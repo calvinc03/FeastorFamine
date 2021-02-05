@@ -23,20 +23,20 @@ namespace DebugSystem
 		//	constexpr float z = -0.1f;
 		//	vec3 red = { 0.8,0.1,0.1 };
 
-		//	// Corner points
-		//	ColoredVertex v;
-		//	v.position = {-0.5,-0.5,z};
-		//	v.color = red;
-		//	resource.mesh.vertices.push_back(v);
-		//	v.position = { -0.5,0.5,z };
-		//	v.color = red;
-		//	resource.mesh.vertices.push_back(v);
-		//	v.position = { 0.5,0.5,z };
-		//	v.color = red;
-		//	resource.mesh.vertices.push_back(v);
-		//	v.position = { 0.5,-0.5,z };
-		//	v.color = red;
-		//	resource.mesh.vertices.push_back(v);
+			// Corner health
+			ColoredVertex v;
+			v.position = {-0.5,-0.5,z};
+			v.color = red;
+			resource.mesh.vertices.push_back(v);
+			v.position = { -0.5,0.5,z };
+			v.color = red;
+			resource.mesh.vertices.push_back(v);
+			v.position = { 0.5,0.5,z };
+			v.color = red;
+			resource.mesh.vertices.push_back(v);
+			v.position = { 0.5,-0.5,z };
+			v.color = red;
+			resource.mesh.vertices.push_back(v);
 
 		//	// Two triangles
 		//	resource.mesh.vertex_indices.push_back(0);
