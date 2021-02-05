@@ -129,28 +129,30 @@ void WorldSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 	//	}
 	//}
 
-	// Spawning new boss
-	//next_boss_spawn -= elapsed_ms * current_speed;
-	//if (ECS::registry<SpringBoss>.components.size() <= MAX_BOSS && next_boss_spawn < 0.f)
-	//{
-	//	// Reset timer
- //       next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
-	//	// Create turtle
-	//	SpringBoss::createSpringBoss();
-	//	// Setting random initial position and constant velocity
-	//	//auto& motion = ECS::registry<Motion>.get(entity);
-	//}
+	
+	
+	//Spawning new boss
+	next_boss_spawn -= elapsed_ms * current_speed;
+	if (registry.view<SpringBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
+	{
+		// Reset timer
+        next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
+		// Create turtle
+		SpringBoss::createSpringBoss();
+		// Setting random initial position and constant velocity
+		//auto& motion = ECS::registry<Motion>.get(entity);
+	}
 
-	//// Spawning new mobs
- //   next_mob_spawn -= elapsed_ms * current_speed;
- //   if (ECS::registry<SpringBoss>.components.size() <= MAX_BOSS && next_boss_spawn < 0.f)
- //   {
- //       // Reset timer
- //       next_boss_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
- //       Mob::createMob();
- //       // Setting random initial position and constant velocity
- //       //auto& motion = ECS::registry<Motion>.get(entity);
- //   }
+	// Spawning new mobs
+    next_mob_spawn -= elapsed_ms * current_speed;
+    if (registry.view<Mob>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
+    {
+        // Reset timer
+        next_boss_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
+        Mob::createMob();
+        // Setting random initial position and constant velocity
+        //auto& motion = ECS::registry<Motion>.get(entity);
+    }
 
 	//// Processing the salmon state
 	//assert(ECS::registry<ScreenState>.components.size() <= 1);
