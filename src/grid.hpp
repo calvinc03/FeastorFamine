@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common.hpp"
-#include "tiny_ecs.hpp"
 
 // A simple physics system that moves rigid bodies and checks for collision
 class GridSystem

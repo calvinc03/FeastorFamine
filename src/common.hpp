@@ -47,6 +47,7 @@ struct Motion {
 	vec2 scale = { 10, 10 };
 };
 
+
 enum grid_type
 {
     GRID_BLOCKED = -1,
@@ -55,3 +56,7 @@ enum grid_type
     PATH_SLOW = 2,
     PATH_FAST = 3,
 };
+
+//TODO: temporary soln
+#include "entt.hpp"
+extern entt::registry registry;

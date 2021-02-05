@@ -1,6 +1,7 @@
 // internal
 #include "physics.hpp"
-#include "tiny_ecs.hpp"
+//#include "tiny_ecs.hpp"
+#include "entt.hpp"
 #include "debug.hpp"
 
 // Returns the local bounding coordinates scaled by the current size of the entity 
@@ -46,41 +47,46 @@ void PhysicsSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	// Visualization for debugging the position and scale of objects
-	if (DebugSystem::in_debug_mode)
-	{
-		for (auto& motion : ECS::registry<Motion>.components)
-		{
-			// draw a cross at the position of all objects
-			auto scale_horizontal_line = motion.scale;
-			scale_horizontal_line.y *= 0.1f;
-			auto scale_vertical_line = motion.scale;
-			scale_vertical_line.x *= 0.1f;
-			DebugSystem::createLine(motion.position, scale_horizontal_line);
-			DebugSystem::createLine(motion.position, scale_vertical_line);
-		}
-	}
+	//if (DebugSystem::in_debug_mode)
+	//{
+	//	for (auto& motion : ECS::registry<Motion>.components)
+	//	{
+	//		// draw a cross at the position of all objects
+	//		auto scale_horizontal_line = motion.scale;
+	//		scale_horizontal_line.y *= 0.1f;
+	//		auto scale_vertical_line = motion.scale;
+	//		scale_vertical_line.x *= 0.1f;
+	//		DebugSystem::createLine(motion.position, scale_horizontal_line);
+	//		DebugSystem::createLine(motion.position, scale_vertical_line);
+	//	}
+	//}
 
 	// Check for collisions between all moving entities
-	auto& motion_container = ECS::registry<Motion>;
-	// for (auto [i, motion_i] : enumerate(motion_container.components)) // in c++ 17 we will be able to do this instead of the next three lines
-	for (unsigned int i=0; i<motion_container.components.size(); i++)
-	{
-		Motion& motion_i = motion_container.components[i];
-		ECS::Entity entity_i = motion_container.entities[i];
-		for (unsigned int j=i+1; j<motion_container.components.size(); j++)
-		{
-			Motion& motion_j = motion_container.components[j];
-			ECS::Entity entity_j = motion_container.entities[j];
+	//auto& motion_container = ECS::registry<Motion>;
+	//entt::registry registry;
+	//auto view = registry.view<Motion>(); 
+	// for (auto [entity, vel] : view.each()) {
+	//auto& motion_container = 
 
-			if (collides(motion_i, motion_j))
-			{
-				// Create a collision event
-				// Note, we are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity, hence, emplace_with_duplicates
-				ECS::registry<Collision>.emplace_with_duplicates(entity_i, entity_j);
-				ECS::registry<Collision>.emplace_with_duplicates(entity_j, entity_i);
-			}
-		}
-	}
+	// for (auto [i, motion_i] : enumerate(motion_container.components)) // in c++ 17 we will be able to do this instead of the next three lines
+	//for (unsigned int i=0; i<motion_container.components.size(); i++)
+	//{
+	//	Motion& motion_i = motion_container.components[i];
+	//	ECS::Entity entity_i = motion_container.entities[i];
+	//	for (unsigned int j=i+1; j<motion_container.components.size(); j++)
+	//	{
+	//		Motion& motion_j = motion_container.components[j];
+	//		ECS::Entity entity_j = motion_container.entities[j];
+
+	//		if (collides(motion_i, motion_j))
+	//		{
+	//			// Create a collision event
+	//			// Note, we are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity, hence, emplace_with_duplicates
+	//			ECS::registry<Collision>.emplace_with_duplicates(entity_i, entity_j);
+	//			ECS::registry<Collision>.emplace_with_duplicates(entity_j, entity_i);
+	//		}
+	//	}
+	//}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A2: HANDLE SALMON - WALL COLLISIONS HERE
@@ -93,7 +99,7 @@ void PhysicsSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }
 
-PhysicsSystem::Collision::Collision(ECS::Entity& other)
+PhysicsSystem::Collision::Collision(entt::entity& other)
 {
 	this->other = other;
 }
