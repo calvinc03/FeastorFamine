@@ -77,8 +77,9 @@ WorldSystem::~WorldSystem(){
 	Mix_CloseAudio();
 
 	// Destroy all created components
-	ECS::ContainerInterface::clear_all_components();
-
+	//ECS::ContainerInterface::clear_all_components();
+	
+	registry.clear(); // this destroys all entities... 
 	// Close the window
 	glfwDestroyWindow(window);
 }
@@ -114,23 +115,25 @@ void WorldSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 	//glfwSetWindowTitle(window, title_ss.str().c_str());
 	//
 	// Removing out of screen entities
-	auto& registry = ECS::registry<Motion>;
+	//auto& registry = ECS::registry<Motion>; // TODO
 
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current upon delete)
-	for (int i = static_cast<int>(registry.components.size())-1; i >= 0; --i)
-	{
-		auto& motion = registry.components[i];
-		if (motion.position.x + abs(motion.scale.x) < 0.f)
-		{
-			ECS::ContainerInterface::remove_all_components_of(registry.entities[i]);
-		}
-	}
+	//for (int i = static_cast<int>(registry.components.size())-1; i >= 0; --i)
+	//{
+	//	auto& motion = registry.components[i];
+	//	if (motion.position.x + abs(motion.scale.x) < 0.f)
+	//	{
+	//		ECS::ContainerInterface::remove_all_components_of(registry.entities[i]);
+	//	}
+	//}
 
-	// Spawning new boss
+	
+	
+	//Spawning new boss
 	next_boss_spawn -= elapsed_ms * current_speed;
-	if (ECS::registry<SpringBoss>.components.size() <= MAX_BOSS && next_boss_spawn < 0.f)
+	if (registry.view<SpringBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
 	{
 		// Reset timer
         next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
@@ -142,7 +145,7 @@ void WorldSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 
 	// Spawning new mobs
     next_mob_spawn -= elapsed_ms * current_speed;
-    if (ECS::registry<SpringBoss>.components.size() <= MAX_BOSS && next_boss_spawn < 0.f)
+    if (registry.view<Mob>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
     {
         // Reset timer
         next_boss_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
@@ -151,31 +154,31 @@ void WorldSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
         //auto& motion = ECS::registry<Motion>.get(entity);
     }
 
-	// Processing the salmon state
-	assert(ECS::registry<ScreenState>.components.size() <= 1);
-	auto& screen = ECS::registry<ScreenState>.components[0];
+	//// Processing the salmon state
+	//assert(ECS::registry<ScreenState>.components.size() <= 1);
+	//auto& screen = ECS::registry<ScreenState>.components[0];
 
-    // TODO polish death scene
-	if (health <= 0)
-	{
-		// Reduce window brightness
-		screen.darken_screen_factor = 1-elapsed_ms/3000.f;
+ //   // TODO polish death scene
+	//if (health <= 0)
+	//{
+	//	// Reduce window brightness
+	//	screen.darken_screen_factor = 1-elapsed_ms/3000.f;
 
-		// Restart the game once some time have passed
-		if (elapsed_ms > 1000)
-		{
-			screen.darken_screen_factor = 0;
-			restart();
-			return;
-		}
-	}
+	//	// Restart the game once some time have passed
+	//	if (elapsed_ms > 1000)
+	//	{
+	//		screen.darken_screen_factor = 0;
+	//		restart();
+	//		return;
+	//	}
+	//}
 }
 
 // Reset the world state to its initial state
 void WorldSystem::restart()
 {
 	// Debugging for memory/component leaks
-	ECS::ContainerInterface::list_all_components();
+	//ECS::ContainerInterface::list_all_components(); //TODO 
 	std::cout << "Restarting\n";
 
 	// Reset the game speed
@@ -183,11 +186,11 @@ void WorldSystem::restart()
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
-	while (ECS::registry<Motion>.entities.size()>0)
-		ECS::ContainerInterface::remove_all_components_of(ECS::registry<Motion>.entities.back());
+	//while (ECS::registry<Motion>.entities.size()>0)
+	//	ECS::ContainerInterface::remove_all_components_of(ECS::registry<Motion>.entities.back());
 
 	// Debugging for memory/component leaks
-	ECS::ContainerInterface::list_all_components();
+	//ECS::ContainerInterface::list_all_components();
 
 	// Create a new salmon
 	//player_salmon = Salmon::createSalmon({ 100, 200 });
@@ -199,20 +202,20 @@ void WorldSystem::restart()
 void WorldSystem::handle_collisions()
 {
 	// Loop over all collisions detected by the physics system
-	auto& registry = ECS::registry<PhysicsSystem::Collision>;
-	for (unsigned int i=0; i< registry.components.size(); i++)
-	{
-		// The entity and its collider
+	//auto& registry = ECS::registry<PhysicsSystem::Collision>;
+	//for (unsigned int i=0; i< registry.components.size(); i++)
+	//{
+	//	// The entity and its collider
 
-		//auto entity = registry.entities[i];
-		//auto entity_other = registry.components[i].other;
+	//	//auto entity = registry.entities[i];
+	//	//auto entity_other = registry.components[i].other;
 
-		// TODO
-		// check projectile and monster collision
-	}
+	//	// TODO
+	//	// check projectile and monster collision
+	//}
 
 	// Remove all collisions from this simulation step
-	ECS::registry<PhysicsSystem::Collision>.clear();
+	//ECS::registry<PhysicsSystem::Collision>.clear();
 }
 
 // Should the game be over ?

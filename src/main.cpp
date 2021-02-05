@@ -11,11 +11,11 @@
 #include "world.hpp"
 
 #include "entt.hpp"
-#include "tiny_ecs.hpp"
+//#include "tiny_ecs.hpp"
 
 #include "render.hpp"
 #include "physics.hpp"
-#include "ai.hpp"
+
 #include "debug.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
@@ -32,11 +32,15 @@ struct Description {
 // Entry point
 int main()
 {
+	
+	//entt::registry reg;
+	
+
 	// Initialize the main systems
 	WorldSystem world(WINDOW_SIZE_IN_PX);
 	RenderSystem renderer(*world.window);
 	PhysicsSystem physics;
-	AISystem ai;
+	//AISystem ai;
 
 	// Set all states to default
 	world.restart();
@@ -53,13 +57,13 @@ int main()
 		t = now;
 
 		DebugSystem::clearDebugComponents();
-		ai.step(elapsed_ms, window_size_in_game_units);
+		//ai.step(elapsed_ms, window_size_in_game_units);
 		world.step(elapsed_ms, window_size_in_game_units);
 		physics.step(elapsed_ms, window_size_in_game_units);
 		world.handle_collisions();
 
 		renderer.draw(window_size_in_game_units);
 	}
-
+	//
 	return EXIT_SUCCESS;
 }

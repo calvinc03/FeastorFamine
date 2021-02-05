@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.hpp"
-#include "tiny_ecs.hpp"
+#include "entt.hpp"//#include "tiny_ecs.hpp"
 #include "render_components.hpp"
 
 struct InstancedMesh;
@@ -34,7 +34,7 @@ private:
 	void initScreenTexture();
 
 	// Internal drawing functions for each entity type
-	void drawTexturedMesh(ECS::Entity entity, const mat3& projection);
+	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
 
 	// Window handle
@@ -44,5 +44,5 @@ private:
 	GLuint frame_buffer;
 	ShadedMesh screen_sprite;
 	GLResource<RENDER_BUFFER> depth_render_buffer_id;
-	ECS::Entity screen_state_entity;
+	entt::entity screen_state_entity;
 };
