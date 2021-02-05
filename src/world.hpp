@@ -55,7 +55,7 @@ private:
 	float current_speed;
 	float next_turtle_spawn;
 	float next_fish_spawn;
-	ECS::Entity player_salmon;
+	entt::entity player_salmon;
 	
 	// music references
 	Mix_Music* background_music;

@@ -42,3 +42,7 @@ struct Motion {
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { 10, 10 };
 };
+
+//TODO: temporary soln
+#include "entt.hpp"
+extern entt::registry registry;

@@ -1,14 +1,21 @@
 // internal
 #include "render.hpp"
 #include "render_components.hpp"
-#include "tiny_ecs.hpp"
-
+//#include "tiny_ecs.hpp"
+#include "entt.hpp"
 #include <iostream>
 
-void RenderSystem::drawTexturedMesh(ECS::Entity entity, const mat3& projection)
+void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 {
-	auto& motion = ECS::registry<Motion>.get(entity);
-	auto& texmesh = *ECS::registry<ShadedMeshRef>.get(entity).reference_to_cache;
+	//auto& motion = ECS::registry<Motion>.get(entity);
+	//auto& texmesh = *ECS::registry<ShadedMeshRef>.get(entity).reference_to_cache;
+	//entt::registry registry;
+	auto view = registry.view<Motion, ShadedMeshRef>();
+	//auto& motion = registry.view<Motion>().get<Motion>(entity);
+	auto& motion = view.get<Motion>(entity);
+	//auto& texmesh = *registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity).reference_to_cache;
+	auto& texmesh = *view.get<ShadedMeshRef>(entity).reference_to_cache;
+	//auto& texmesh = 
 	// Transformation code, see Rendering and Transformation in the template specification for more info
 	// Incrementally updates transformation matrix, thus ORDER IS IMPORTANT
 	Transform transform;
@@ -128,7 +135,11 @@ void RenderSystem::drawToScreen()
 	GLuint time_uloc       = glGetUniformLocation(screen_sprite.effect.program, "time");
 	GLuint dead_timer_uloc = glGetUniformLocation(screen_sprite.effect.program, "darken_screen_factor");
 	glUniform1f(time_uloc, static_cast<float>(glfwGetTime() * 10.0f));
-	auto& screen = ECS::registry<ScreenState>.get(screen_state_entity);
+
+	//auto& screen = ECS::registry<ScreenState>.get(screen_state_entity);
+	//entt::registry registry;
+	auto view = registry.view<ScreenState>();
+	auto& screen = view.get<ScreenState>(screen_state_entity);
 	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
 	gl_has_errors();
 
@@ -183,10 +194,17 @@ void RenderSystem::draw(vec2 window_size_in_game_units)
 	float ty = -(top + bottom) / (top - bottom);
 	mat3 projection_2D{ { sx, 0.f, 0.f },{ 0.f, sy, 0.f },{ tx, ty, 1.f } };
 
+
+	//entt::registry registry;
+	auto view = registry.view<Motion>();
+	auto view_mesh_ref = registry.view<ShadedMeshRef>();
 	// Draw all textured meshes that have a position and size component
-	for (ECS::Entity entity : ECS::registry<ShadedMeshRef>.entities)
+	//for (ECS::Entity entity : ECS::registry<ShadedMeshRef>.entities)
+	for (entt::entity entity : view_mesh_ref)
 	{
-		if (!ECS::registry<Motion>.has(entity))
+		//if (!ECS::registry<Motion>.has(entity))
+		//	continue;
+		if (!registry.has<Motion>(entity))
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity albeit iterating through all Sprites in sequence
 		drawTexturedMesh(entity, projection_2D);
