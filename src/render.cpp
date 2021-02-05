@@ -198,6 +198,7 @@ void RenderSystem::draw(vec2 window_size_in_game_units)
 	//entt::registry registry;
 	auto view = registry.view<Motion>();
 	auto view_mesh_ref = registry.view<ShadedMeshRef>();
+    (void) view;
 	// Draw all textured meshes that have a position and size component
 	//for (ECS::Entity entity : ECS::registry<ShadedMeshRef>.entities)
 	for (entt::entity entity : view_mesh_ref)

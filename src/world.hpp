@@ -2,7 +2,6 @@
 
 // internal
 #include "common.hpp"
-#include "salmon.hpp"
 
 // stlib
 #include <vector>
