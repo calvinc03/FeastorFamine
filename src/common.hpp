@@ -18,6 +18,9 @@
 #include <glm/mat3x3.hpp>           // mat3
 using namespace glm;
 static const float PI = 3.14159265359f;
+static const ivec2 WINDOW_SIZE_IN_PX = {1200, 800};
+static const vec2 FOREST_POS = vec2(0, 0);
+static const vec2 VILLAGE_POS = WINDOW_SIZE_IN_PX;
 
 // Simple utility functions to avoid mistyping directory name
 inline std::string data_path() { return "data"; };

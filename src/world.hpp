@@ -49,14 +49,13 @@ private:
 	void init_audio();
 
 	// Number of fish eaten by the salmon, displayed in the window title
-	unsigned int points;
+	unsigned int health;
 
 	// Game state
 	float current_speed;
-	float next_turtle_spawn;
-	float next_fish_spawn;
-	ECS::Entity player_salmon;
-	
+	float next_boss_spawn;
+	float next_mob_spawn;
+
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* salmon_dead_sound;
