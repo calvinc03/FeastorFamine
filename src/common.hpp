@@ -5,6 +5,7 @@
 #include <tuple>
 #include <vector>
 #include <stdexcept>
+#include <map>
 
 // glfw (OpenGL)
 #define NOMINMAX
@@ -18,6 +19,9 @@
 #include <glm/mat3x3.hpp>           // mat3
 using namespace glm;
 static const float PI = 3.14159265359f;
+static const ivec2 WINDOW_SIZE_IN_PX = {1200, 800};
+static const vec2 FOREST_POS = vec2(0, 0);
+static const vec2 VILLAGE_POS = WINDOW_SIZE_IN_PX;
 
 // Simple utility functions to avoid mistyping directory name
 inline std::string data_path() { return "data"; };
@@ -42,3 +46,17 @@ struct Motion {
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { 10, 10 };
 };
+
+
+enum grid_type
+{
+    GRID_BLOCKED = -1,
+    GRID_DEFAULT = 0,
+    PATH_NORMAL = 1,
+    PATH_SLOW = 2,
+    PATH_FAST = 3,
+};
+
+//TODO: temporary soln
+#include "entt.hpp"
+extern entt::registry registry;

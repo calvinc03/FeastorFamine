@@ -2,10 +2,9 @@
 #include "world.hpp"
 #include "physics.hpp"
 #include "debug.hpp"
-#include "turtle.hpp"
-#include "fish.hpp"
-#include "pebbles.hpp"
 #include "render_components.hpp"
+#include "spring_boss.hpp"
+#include "mob.hpp"
 
 // stlib
 #include <string.h>
@@ -14,17 +13,16 @@
 #include <iostream>
 
 // Game configuration
-const size_t MAX_TURTLES = 15;
-const size_t MAX_FISH = 5;
-const size_t TURTLE_DELAY_MS = 2000;
-const size_t FISH_DELAY_MS = 5000;
+const size_t MAX_MOBS = 20;
+const size_t MOB_DELAY_MS = 1000;
+const size_t MAX_BOSS = 2;
+const size_t BOSS_DELAY_MS = 5000;
 
-// Create the fish world
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 WorldSystem::WorldSystem(ivec2 window_size_px) :
-	points(0),
-	next_turtle_spawn(0.f),
-	next_fish_spawn(0.f)
+        health(500),
+        next_boss_spawn(0.f),
+        next_mob_spawn(0.f)
 {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -79,8 +77,9 @@ WorldSystem::~WorldSystem(){
 	Mix_CloseAudio();
 
 	// Destroy all created components
-	ECS::ContainerInterface::clear_all_components();
-
+	//ECS::ContainerInterface::clear_all_components();
+	
+	registry.clear(); // this destroys all entities... 
 	// Close the window
 	glfwDestroyWindow(window);
 }
@@ -110,85 +109,76 @@ void WorldSystem::init_audio()
 // Update our game world
 void WorldSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 {
-	// Updating window title with points
+	// Updating window title with health
 	//std::stringstream title_ss;
-	//title_ss << "Points: " << points;
+	//title_ss << "Points: " << health;
 	//glfwSetWindowTitle(window, title_ss.str().c_str());
 	//
 	// Removing out of screen entities
-	auto& registry = ECS::registry<Motion>;
+	//auto& registry = ECS::registry<Motion>; // TODO
 
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current upon delete)
-	for (int i = static_cast<int>(registry.components.size())-1; i >= 0; --i)
-	{
-		auto& motion = registry.components[i];
-		if (motion.position.x + abs(motion.scale.x) < 0.f)
-		{
-			ECS::ContainerInterface::remove_all_components_of(registry.entities[i]);
-		}
-	}
+	//for (int i = static_cast<int>(registry.components.size())-1; i >= 0; --i)
+	//{
+	//	auto& motion = registry.components[i];
+	//	if (motion.position.x + abs(motion.scale.x) < 0.f)
+	//	{
+	//		ECS::ContainerInterface::remove_all_components_of(registry.entities[i]);
+	//	}
+	//}
 
-	// Spawning new turtles
-	next_turtle_spawn -= elapsed_ms * current_speed;
-	if (ECS::registry<Turtle>.components.size() <= MAX_TURTLES && next_turtle_spawn < 0.f)
+	
+	
+	//Spawning new boss
+	next_boss_spawn -= elapsed_ms * current_speed;
+	if (registry.view<SpringBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
 	{
 		// Reset timer
-		next_turtle_spawn = (TURTLE_DELAY_MS / 2) + uniform_dist(rng) * (TURTLE_DELAY_MS / 2);
+        next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
 		// Create turtle
-		ECS::Entity entity = Turtle::createTurtle({0, 0});
+		SpringBoss::createSpringBoss();
 		// Setting random initial position and constant velocity
-		auto& motion = ECS::registry<Motion>.get(entity);
-		motion.position = vec2(window_size_in_game_units.x - 150.f, 50.f + uniform_dist(rng) * (window_size_in_game_units.y - 100.f));
-		motion.velocity = vec2(-100.f, 0.f );
+		//auto& motion = ECS::registry<Motion>.get(entity);
 	}
 
-	// Spawning new fish
-	next_fish_spawn -= elapsed_ms * current_speed;
-	if (ECS::registry<Fish>.components.size() <= MAX_FISH && next_fish_spawn < 0.f)
-	{
-		// !!! TODO A1: Create new fish with Fish::createFish({0,0}), as for the Turtles above
-		if(false) // dummy to silence warning about unused function until implemented
-			Fish::createFish({ 0,0 });
-	}
+	// Spawning new mobs
+    next_mob_spawn -= elapsed_ms * current_speed;
+    if (registry.view<Mob>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
+    {
+        // Reset timer
+        next_boss_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
+        Mob::createMob();
+        // Setting random initial position and constant velocity
+        //auto& motion = ECS::registry<Motion>.get(entity);
+    }
 
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A3: HANDLE PEBBLE SPAWN/UPDATES HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//// Processing the salmon state
+	//assert(ECS::registry<ScreenState>.components.size() <= 1);
+	//auto& screen = ECS::registry<ScreenState>.components[0];
 
-	// Processing the salmon state
-	assert(ECS::registry<ScreenState>.components.size() <= 1);
-	auto& screen = ECS::registry<ScreenState>.components[0];
+ //   // TODO polish death scene
+	//if (health <= 0)
+	//{
+	//	// Reduce window brightness
+	//	screen.darken_screen_factor = 1-elapsed_ms/3000.f;
 
-	for (auto entity : ECS::registry<DeathTimer>.entities)
-	{
-		// Progress timer
-		auto& counter = ECS::registry<DeathTimer>.get(entity);
-		counter.counter_ms -= elapsed_ms;
-
-		// Reduce window brightness if any of the present salmons is dying
-		screen.darken_screen_factor = 1-counter.counter_ms/3000.f;
-
-		// Restart the game once the death timer expired
-		if (counter.counter_ms < 0)
-		{
-			ECS::registry<DeathTimer>.remove(entity);
-			screen.darken_screen_factor = 0;
-			restart();
-			return;
-		}
-	}
-
-	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the DeathTimer
+	//	// Restart the game once some time have passed
+	//	if (elapsed_ms > 1000)
+	//	{
+	//		screen.darken_screen_factor = 0;
+	//		restart();
+	//		return;
+	//	}
+	//}
 }
 
 // Reset the world state to its initial state
 void WorldSystem::restart()
 {
 	// Debugging for memory/component leaks
-	ECS::ContainerInterface::list_all_components();
+	//ECS::ContainerInterface::list_all_components(); //TODO 
 	std::cout << "Restarting\n";
 
 	// Reset the game speed
@@ -196,11 +186,11 @@ void WorldSystem::restart()
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
-	while (ECS::registry<Motion>.entities.size()>0)
-		ECS::ContainerInterface::remove_all_components_of(ECS::registry<Motion>.entities.back());
+	//while (ECS::registry<Motion>.entities.size()>0)
+	//	ECS::ContainerInterface::remove_all_components_of(ECS::registry<Motion>.entities.back());
 
 	// Debugging for memory/component leaks
-	ECS::ContainerInterface::list_all_components();
+	//ECS::ContainerInterface::list_all_components();
 
 	// Create a new salmon
 	//player_salmon = Salmon::createSalmon({ 100, 200 });
@@ -212,49 +202,20 @@ void WorldSystem::restart()
 void WorldSystem::handle_collisions()
 {
 	// Loop over all collisions detected by the physics system
-	auto& registry = ECS::registry<PhysicsSystem::Collision>;
-	for (unsigned int i=0; i< registry.components.size(); i++)
-	{
-		// The entity and its collider
-		auto entity = registry.entities[i];
-		auto entity_other = registry.components[i].other;
+	//auto& registry = ECS::registry<PhysicsSystem::Collision>;
+	//for (unsigned int i=0; i< registry.components.size(); i++)
+	//{
+	//	// The entity and its collider
 
-		// For now, we are only interested in collisions that involve the salmon
-		if (ECS::registry<Salmon>.has(entity))
-		{
-			// Checking Salmon - Turtle collisions
-			if (ECS::registry<Turtle>.has(entity_other))
-			{
-				// initiate death unless already dying
-				if (!ECS::registry<DeathTimer>.has(entity))
-				{
-					// Scream, reset timer, and make the salmon sink
-					ECS::registry<DeathTimer>.emplace(entity);
-					Mix_PlayChannel(-1, salmon_dead_sound, 0);
+	//	//auto entity = registry.entities[i];
+	//	//auto entity_other = registry.components[i].other;
 
-					// !!! TODO A1: change the salmon motion to float down up-side down
-
-					// !!! TODO A1: change the salmon color
-				}
-			}
-			// Checking Salmon - Fish collisions
-			else if (ECS::registry<Fish>.has(entity_other))
-			{
-				if (!ECS::registry<DeathTimer>.has(entity))
-				{
-					// chew, count points, and set the LightUp timer 
-					ECS::ContainerInterface::remove_all_components_of(entity_other);
-					Mix_PlayChannel(-1, salmon_eat_sound, 0);
-					++points;
-
-					// !!! TODO A1: create a new struct called LightUp in render_components.hpp and add an instance to the salmon entity
-				}
-			}
-		}
-	}
+	//	// TODO
+	//	// check projectile and monster collision
+	//}
 
 	// Remove all collisions from this simulation step
-	ECS::registry<PhysicsSystem::Collision>.clear();
+	//ECS::registry<PhysicsSystem::Collision>.clear();
 }
 
 // Should the game be over ?
@@ -264,17 +225,11 @@ bool WorldSystem::is_over() const
 }
 
 // On key callback
-// TODO A1: check out https://www.glfw.org/docs/3.3/input_guide.html
 void WorldSystem::on_key(int key, int, int action, int mod)
 {
-	// Move salmon if alive
-	if (!ECS::registry<DeathTimer>.has(player_salmon))
+	// if village is alive
+	if (health > 0)
 	{
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// TODO A1: HANDLE SALMON MOVEMENT HERE
-		// key is of 'type' GLFW_KEY_
-		// action can be GLFW_PRESS GLFW_RELEASE GLFW_REPEAT
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	}
 
 	// Resetting game
@@ -306,14 +261,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 void WorldSystem::on_mouse_move(vec2 mouse_pos)
 {
-	if (!ECS::registry<DeathTimer>.has(player_salmon))
-	{
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// TODO A1: HANDLE SALMON ROTATION HERE
-		// xpos and ypos are relative to the top-left of the window, the salmon's 
-		// default facing direction is (1, 0)
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-		(void)mouse_pos;
-	}
+    // if village is alive
+    if (health > 0)
+    {
+    }
+    (void)mouse_pos;
 }

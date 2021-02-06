@@ -11,16 +11,15 @@
 #include "world.hpp"
 
 #include "entt.hpp"
-#include "tiny_ecs.hpp"
+//#include "tiny_ecs.hpp"
 
 #include "render.hpp"
 #include "physics.hpp"
-#include "ai.hpp"
+
 #include "debug.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
 
-const ivec2 window_size_in_px = {1200, 800};
 const vec2 window_size_in_game_units = { 1200, 800 };
 // Note, here the window will show a width x height part of the game world, measured in px. 
 // You could also define a window to show 1.5 x 1 part of your game world, where the aspect ratio depends on your window size.
@@ -33,11 +32,15 @@ struct Description {
 // Entry point
 int main()
 {
+	
+	//entt::registry reg;
+	
+
 	// Initialize the main systems
-	WorldSystem world(window_size_in_px);
+	WorldSystem world(WINDOW_SIZE_IN_PX);
 	RenderSystem renderer(*world.window);
 	PhysicsSystem physics;
-	AISystem ai;
+	//AISystem ai;
 
 	// Set all states to default
 	world.restart();
@@ -54,13 +57,13 @@ int main()
 		t = now;
 
 		DebugSystem::clearDebugComponents();
-		ai.step(elapsed_ms, window_size_in_game_units);
+		//ai.step(elapsed_ms, window_size_in_game_units);
 		world.step(elapsed_ms, window_size_in_game_units);
 		physics.step(elapsed_ms, window_size_in_game_units);
 		world.handle_collisions();
 
 		renderer.draw(window_size_in_game_units);
 	}
-
+	//
 	return EXIT_SUCCESS;
 }

@@ -125,7 +125,7 @@ struct ShadedMesh
 // Cache for ShadedMesh resources (mesh consisting of vertex and index buffer, the vertex and fragment shaders, and the texture)
 ShadedMesh& cache_resource(std::string key);
 
-// A wrapper that points to the ShadedMesh in the resource_cache
+// A wrapper that health to the ShadedMesh in the resource_cache
 struct ShadedMeshRef
 {
 	ShadedMesh* reference_to_cache;
