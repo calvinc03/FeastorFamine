@@ -8,15 +8,9 @@
 class GridMap
 {
 public:
-    int width;
-    int height;
-    int cell_size;
-
-    GridMap(int width, int height, int cell_size){
-    this->width = width;
-    this->height = height;
-    this->cell_size = cell_size;
-    }
+    int width = WINDOW_SIZE_IN_PX.x / GRID_CELL_SIZE;
+    int height = WINDOW_SIZE_IN_PX.y / GRID_CELL_SIZE;
+    int cell_size = GRID_CELL_SIZE;
 
     entt::entity createGridMap(std::vector<vec2> path_coords);
 

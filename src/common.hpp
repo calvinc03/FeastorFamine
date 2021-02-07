@@ -20,8 +20,9 @@
 using namespace glm;
 static const float PI = 3.14159265359f;
 static const ivec2 WINDOW_SIZE_IN_PX = {1200, 800};
+static const int GRID_CELL_SIZE = 10;
 static const vec2 FOREST_COORD = vec2(0, 0);
-static const vec2 VILLAGE_COORD = WINDOW_SIZE_IN_PX;
+static const vec2 VILLAGE_COORD = WINDOW_SIZE_IN_PX / GRID_CELL_SIZE;
 
 enum grid_type
 {

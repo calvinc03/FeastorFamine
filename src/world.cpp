@@ -128,8 +128,6 @@ void WorldSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 	//		ECS::ContainerInterface::remove_all_components_of(registry.entities[i]);
 	//	}
 	//}
-
-	
 	
 	//Spawning new boss
 	next_boss_spawn -= elapsed_ms * current_speed;
