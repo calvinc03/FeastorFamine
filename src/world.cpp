@@ -128,8 +128,6 @@ void WorldSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 	//		ECS::ContainerInterface::remove_all_components_of(registry.entities[i]);
 	//	}
 	//}
-
-	
 	
 	//Spawning new boss
 	next_boss_spawn -= elapsed_ms * current_speed;
@@ -145,10 +143,10 @@ void WorldSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 
 	// Spawning new mobs
     next_mob_spawn -= elapsed_ms * current_speed;
-    if (registry.view<Mob>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
+    if (registry.view<Mob>().size() <= MAX_MOBS && next_mob_spawn < 0.f)
     {
         // Reset timer
-        next_boss_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
+        next_mob_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
         Mob::createMob();
         // Setting random initial position and constant velocity
         //auto& motion = ECS::registry<Motion>.get(entity);
