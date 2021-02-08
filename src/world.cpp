@@ -118,7 +118,7 @@ void WorldSystem::init_audio()
 // Update our game world
 void WorldSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 {
-	Updating window title with health
+	// Updating window title with health
 	std::stringstream title_ss;
 	title_ss << "Food: " << health;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
