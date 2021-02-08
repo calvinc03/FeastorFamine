@@ -14,44 +14,48 @@ entt::entity GridMap::createGridMapEntt()
     auto entity = registry.create();
     // maintain a GridMap registry (we might want to have multiple maps later)
     auto& map = registry.emplace<GridMap>(entity);
-    map.node_vector.resize(map.width);
+    map.node_entt_matrix.resize(WINDOW_SIZE_IN_COORD.x);
 
-    // fill node_vector with default type grid node
-    for (int x = 0; x < map.width; x++){
-        map.node_vector[x].resize(map.height);
-        for (int y = 0; y < map.height; y++){
-            map.node_vector[x][y] = GridNode::createGridNodeEntt(GRID_DEFAULT,vec2(x,y));
+    // fill node_entt_matrix with default type grid node
+    for (int x = 0; x < WINDOW_SIZE_IN_COORD.x; x++){
+        map.node_entt_matrix[x].resize(WINDOW_SIZE_IN_COORD.y);
+        for (int y = 0; y < WINDOW_SIZE_IN_COORD.y; y++){
+            map.node_entt_matrix[x][y] = GridNode::createGridNodeEntt(GRID_DEFAULT, vec2(x, y));
         }
     }
     return entity;
 }
 
-vec2 GridMap::gridCoordToPixel(vec2 grid_coord) {
-    return grid_coord * (float)cell_size;
+ivec2 GridMap::coordToPixel(ivec2 grid_coord) {
+    return grid_coord * GRID_CELL_SIZE;
 }
 
-vec2 GridMap::pixelToGridCoord(vec2 pixel_coord) {
-    return floor(pixel_coord / (float)cell_size);
+ivec2 GridMap::pixelToCoord(ivec2 pixel_coord) {
+    return pixel_coord / GRID_CELL_SIZE;
 }
 
-void GridMap::setGridType(vec2 grid_coord, int type) {
-    if (grid_coord.x < 0 || grid_coord.y < 0 || grid_coord.x > width || grid_coord.y > height) {
+void GridMap::setGridType(std::vector<std::vector<entt::entity>>& node_matrix, vec2 grid_coord, int type) {
+    if (grid_coord.x < 0 || grid_coord.y < 0 || grid_coord.x > WINDOW_SIZE_IN_COORD.x || grid_coord.y > WINDOW_SIZE_IN_COORD.y) {
         std::cout<<"Debug: out of bounds"<< std::endl;
         return;
     }
-    getNodeAtCoord(grid_coord).type = type;
+    getNodeAtCoord(node_matrix, grid_coord).type = type;
 }
 
-entt::entity GridMap::getEntityAtCoord(vec2 grid_coord) {
-    return node_vector[grid_coord.x][grid_coord.y];
+entt::entity GridMap::getEntityAtCoord(std::vector<std::vector<entt::entity>>& node_matrix, ivec2 grid_coord) {
+    return node_matrix[grid_coord.x][grid_coord.y];
 }
 
-GridNode& GridMap::getNodeAtCoord(vec2 grid_coord) {
-    return registry.get<GridNode>(getEntityAtCoord(grid_coord));
+GridNode& GridMap::getNodeAtCoord(std::vector<std::vector<entt::entity>>& node_matrix, vec2 grid_coord) {
+    return registry.get<GridNode>(getEntityAtCoord(node_matrix, grid_coord));
 }
 
-void GridMap::setPath(std::vector<vec2>& grid_coords) {
+void GridMap::setPathFromCoords(std::vector<vec2>& grid_coords) {
+    path_entt.clear();
+    path_entt.resize(grid_coords.size());
     for(vec2 grid_coord : grid_coords) {
-        registry.get<GridNode>(node_vector[grid_coord.x][grid_coord.y]).type = GRID_PATH;
+        auto& node = node_entt_matrix[grid_coord.x][grid_coord.y];
+        registry.get<GridNode>(node).type = GRID_PATH;
+        path_entt.push_back(node);
     }
 }
