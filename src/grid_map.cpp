@@ -9,25 +9,24 @@
 
 
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
-entt::entity GridMap::createGridMap(std::vector<vec2> path_coords)
+entt::entity GridMap::createGridMapEntt()
 {
     auto entity = registry.create();
+    // maintain a GridMap registry (we might want to have multiple maps later)
+    auto& map = registry.emplace<GridMap>(entity);
+    map.node_vector.resize(map.width);
 
-    for (int x = 0; x < width; x++){
-        for (int y = 0; y < height; y++){
-            node_vector[x][y] = GridNode::createGridNode(GRID_DEFAULT,vec2(x,y));
+    // fill node_vector with default type grid node
+    for (int x = 0; x < map.width; x++){
+        map.node_vector[x].resize(map.height);
+        for (int y = 0; y < map.height; y++){
+            map.node_vector[x][y] = GridNode::createGridNodeEntt(GRID_DEFAULT,vec2(x,y));
         }
     }
-    setPath(path_coords);
-
-    // maintain a GridMap registry (we might want to have multiple maps later)
-
-    registry.emplace<GridMap>(entity);
-
     return entity;
 }
 
-vec2 GridMap::gridToPixelCoord(vec2 grid_coord) {
+vec2 GridMap::gridCoordToPixel(vec2 grid_coord) {
     return grid_coord * (float)cell_size;
 }
 

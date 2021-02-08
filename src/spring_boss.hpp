@@ -7,5 +7,5 @@
 struct SpringBoss
 {
     // Creates all the associated render resources and default transform
-    static entt::entity createSpringBoss();
+    static entt::entity createSpringBossEntt();
 };
