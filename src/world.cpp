@@ -99,13 +99,13 @@ void WorldSystem::init_audio()
 	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1)
 		throw std::runtime_error("Failed to open audio device");
 
-	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
+	background_music = Mix_LoadMUS(audio_path("music2.wav").c_str());
 	salmon_dead_sound = Mix_LoadWAV(audio_path("salmon_dead.wav").c_str());
 	salmon_eat_sound = Mix_LoadWAV(audio_path("salmon_eat.wav").c_str());
 
 	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr)
 		throw std::runtime_error("Failed to load sounds make sure the data directory is present: "+
-			audio_path("music.wav")+
+			audio_path("music2.wav")+
 			audio_path("salmon_dead.wav")+
 			audio_path("salmon_eat.wav"));
 
@@ -114,25 +114,12 @@ void WorldSystem::init_audio()
 // Update our game world
 void WorldSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 {
-	// Updating window title with health
-	//std::stringstream title_ss;
-	//title_ss << "Points: " << health;
-	//glfwSetWindowTitle(window, title_ss.str().c_str());
-	//
-	// Removing out of screen entities
-	//auto& registry = ECS::registry<Motion>; // TODO
+	 //temporary food display
+	std::stringstream title_ss;
+	title_ss << "Food: " << 0; 
+	glfwSetWindowTitle(window, title_ss.str().c_str());
+	
 
-	// Remove entities that leave the screen on the left side
-	// Iterate backwards to be able to remove without unterfering with the next object to visit
-	// (the containers exchange the last element with the current upon delete)
-	//for (int i = static_cast<int>(registry.components.size())-1; i >= 0; --i)
-	//{
-	//	auto& motion = registry.components[i];
-	//	if (motion.position.x + abs(motion.scale.x) < 0.f)
-	//	{
-	//		ECS::ContainerInterface::remove_all_components_of(registry.entities[i]);
-	//	}
-	//}
 	
 	//Spawning new boss
 	next_boss_spawn -= elapsed_ms * current_speed;
@@ -186,8 +173,16 @@ void WorldSystem::restart()
 
 	// Reset the game speed
 	current_speed = 1.f;
-
+	
 	// Remove all entities that we created
+	
+	registry.clear();
+
+	screen_state_entity = registry.create();
+	registry.emplace<ScreenState>(screen_state_entity);
+	
+	
+	
 	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
 	//while (ECS::registry<Motion>.entities.size()>0)
 	//	ECS::ContainerInterface::remove_all_components_of(ECS::registry<Motion>.entities.back());

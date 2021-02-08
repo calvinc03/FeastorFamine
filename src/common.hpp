@@ -63,3 +63,4 @@ struct Monster {
 //TODO: temporary soln
 #include "entt.hpp"
 extern entt::registry registry;
+extern entt::entity screen_state_entity;

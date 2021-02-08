@@ -22,3 +22,5 @@ void Transform::translate(vec2 offset)
 }
 
 entt::registry registry;
+
+entt::entity screen_state_entity;

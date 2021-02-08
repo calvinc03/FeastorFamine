@@ -114,7 +114,9 @@ void RenderSystem::initScreenTexture()
 
 	// Initialize the screen texture and its state
 	screen_sprite.texture.create_from_screen(&window, depth_render_buffer_id.data());
-	//ECS::registry<ScreenState>.emplace(screen_state_entity);
+
+
 	screen_state_entity = registry.create();
 	registry.emplace<ScreenState>(screen_state_entity);
 }
+

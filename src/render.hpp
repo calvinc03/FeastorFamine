@@ -44,5 +44,5 @@ private:
 	GLuint frame_buffer;
 	ShadedMesh screen_sprite;
 	GLResource<RENDER_BUFFER> depth_render_buffer_id;
-	entt::entity screen_state_entity;
+	//entt::entity screen_state_entity;
 };
