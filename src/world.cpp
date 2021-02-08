@@ -319,17 +319,17 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 		//getting cursor position
 		glfwGetCursorPos(window, &xpos, &ypos);
 
-		if (unit_selected == "hunter")
-		{
-			entt::entity entity = Hunter::createHunter({ xpos, ypos });
-		}
-		if (unit_selected == "greenhouse")
-		{
-			entt::entity entity = GreenHouse::createGreenHouse({ xpos, ypos });
-		}
-		if (unit_selected == "watchtower")
-		{
-			entt::entity entity = WatchTower::createWatchTower({ xpos, ypos });
-		}
+//		if (unit_selected == "hunter")
+//		{
+//			entt::entity entity = Hunter::createHunter({ xpos, ypos });
+//		}
+//		if (unit_selected == "greenhouse")
+//		{
+//			entt::entity entity = GreenHouse::createGreenHouse({ xpos, ypos });
+//		}
+//		if (unit_selected == "watchtower")
+//		{
+//			entt::entity entity = WatchTower::createWatchTower({ xpos, ypos });
+//		}
 	}
 }
