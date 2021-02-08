@@ -24,7 +24,7 @@ entt::entity Hunter::createHunter(vec2 pos)
     auto& motion = registry.emplace<Motion>(entity);
     motion.position = pos;
     // Then we scale it to whatever size is needed
-    motion.scale *= 1.f;
+    motion.scale *= 3.f;
 
     registry.emplace<Hunter>(entity);
 
