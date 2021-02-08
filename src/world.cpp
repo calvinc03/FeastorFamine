@@ -5,7 +5,12 @@
 #include "render_components.hpp"
 #include "spring_boss.hpp"
 #include "mob.hpp"
+
 #include "grid_map.hpp"
+#include "hunter.hpp"
+#include "greenhouse.hpp"
+#include "watchtower.hpp"
+
 
 // stlib
 #include <string.h>
@@ -44,30 +49,30 @@ WorldSystem::WorldSystem(ivec2 window_size_px) :
 #if __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
-    glfwWindowHint(GLFW_RESIZABLE, 0);
 
-    // Create the main window (for rendering, keyboard, and mouse input)
-    window = glfwCreateWindow(window_size_px.x, window_size_px.y, "Feast or Famine", nullptr, nullptr);
-    if (window == nullptr)
-        throw std::runtime_error("Failed to glfwCreateWindow");
+	glfwWindowHint(GLFW_RESIZABLE, 0);
 
-    // Setting callbacks to member functions (that's why the redirect is needed)
-    // Input is handled using GLFW, for more info see
-    // http://www.glfw.org/docs/latest/input_guide.html
-    glfwSetWindowUserPointer(window, this);
-    auto key_redirect = [](GLFWwindow *wnd, int _0, int _1, int _2, int _3) {
-        ((WorldSystem *) glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3);
-    };
-    auto cursor_pos_redirect = [](GLFWwindow *wnd, double _0, double _1) {
-        ((WorldSystem *) glfwGetWindowUserPointer(wnd))->on_mouse_move({_0, _1});
-    };
-    glfwSetKeyCallback(window, key_redirect);
-    glfwSetCursorPosCallback(window, cursor_pos_redirect);
+	// Create the main window (for rendering, keyboard, and mouse input)
+	window = glfwCreateWindow(window_size_px.x, window_size_px.y, "Feast or Famine", nullptr, nullptr);
+	if (window == nullptr)
+		throw std::runtime_error("Failed to glfwCreateWindow");
 
-    // Playing background music indefinitely
-    init_audio();
-    Mix_PlayMusic(background_music, -1);
-    std::cout << "Loaded music\n";
+	// Setting callbacks to member functions (that's why the redirect is needed)
+	// Input is handled using GLFW, for more info see
+	// http://www.glfw.org/docs/latest/input_guide.html
+	glfwSetWindowUserPointer(window, this);
+	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
+	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
+	auto mouse_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_click(_0, _1, _2); };
+	glfwSetKeyCallback(window, key_redirect);
+	glfwSetCursorPosCallback(window, cursor_pos_redirect);
+	glfwSetMouseButtonCallback(window, mouse_button_redirect);
+
+	// Playing background music indefinitely
+	init_audio();
+	Mix_PlayMusic(background_music, -1);
+	std::cout << "Loaded music\n";
+
 }
 
 WorldSystem::~WorldSystem(){
@@ -98,13 +103,13 @@ void WorldSystem::init_audio()
 	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1)
 		throw std::runtime_error("Failed to open audio device");
 
-	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
+	background_music = Mix_LoadMUS(audio_path("music2.wav").c_str());
 	salmon_dead_sound = Mix_LoadWAV(audio_path("salmon_dead.wav").c_str());
 	salmon_eat_sound = Mix_LoadWAV(audio_path("salmon_eat.wav").c_str());
 
 	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr)
 		throw std::runtime_error("Failed to load sounds make sure the data directory is present: "+
-			audio_path("music.wav")+
+			audio_path("music2.wav")+
 			audio_path("salmon_dead.wav")+
 			audio_path("salmon_eat.wav"));
 
@@ -113,10 +118,10 @@ void WorldSystem::init_audio()
 // Update our game world
 void WorldSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 {
-	// Updating window title with health
-	//std::stringstream title_ss;
-	//title_ss << "Points: " << health;
-	//glfwSetWindowTitle(window, title_ss.str().c_str());
+	Updating window title with health
+	std::stringstream title_ss;
+	title_ss << "Food: " << health;
+	glfwSetWindowTitle(window, title_ss.str().c_str());
 	//
 	// Removing out of screen entities
 	//auto& registry = ECS::registry<Motion>; // TODO
@@ -185,8 +190,16 @@ void WorldSystem::restart()
 
 	// Reset the game speed
 	current_speed = 1.f;
-
+	
 	// Remove all entities that we created
+	
+	registry.clear();
+
+	screen_state_entity = registry.create();
+	registry.emplace<ScreenState>(screen_state_entity);
+	
+	
+	
 	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
 	//while (ECS::registry<Motion>.entities.size()>0)
 	//	ECS::ContainerInterface::remove_all_components_of(ECS::registry<Motion>.entities.back());
@@ -245,6 +258,21 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	{
 	}
 
+
+	// Hot keys for selecting placeable units
+	if (action == GLFW_PRESS && key == GLFW_KEY_1)
+	{
+		unit_selected = "hunter";
+	}
+	else if (action == GLFW_PRESS && key == GLFW_KEY_2)
+	{
+		unit_selected = "watchtower";
+	}
+	else if (action == GLFW_PRESS && key == GLFW_KEY_3)
+	{
+		unit_selected = "greenhouse"; 
+	}
+
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R)
 	{
@@ -279,4 +307,29 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
     {
     }
     (void)mouse_pos;
+}
+
+// mouse click callback function 
+void WorldSystem::on_mouse_click(int button, int action, int mod) {
+
+	// Mouse click for placing units 
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "")
+	{
+		double xpos, ypos;
+		//getting cursor position
+		glfwGetCursorPos(window, &xpos, &ypos);
+
+		if (unit_selected == "hunter")
+		{
+			entt::entity entity = Hunter::createHunter({ xpos, ypos });
+		}
+		if (unit_selected == "greenhouse")
+		{
+			entt::entity entity = GreenHouse::createGreenHouse({ xpos, ypos });
+		}
+		if (unit_selected == "watchtower")
+		{
+			entt::entity entity = WatchTower::createWatchTower({ xpos, ypos });
+		}
+	}
 }
