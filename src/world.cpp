@@ -5,6 +5,9 @@
 #include "render_components.hpp"
 #include "spring_boss.hpp"
 #include "mob.hpp"
+#include "hunter.hpp"
+#include "greenhouse.hpp"
+#include "watchtower.hpp"
 
 // stlib
 #include <string.h>
@@ -57,8 +60,10 @@ WorldSystem::WorldSystem(ivec2 window_size_px) :
 	glfwSetWindowUserPointer(window, this);
 	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
 	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
+	auto mouse_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_click(_0, _1, _2); };
 	glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
+	glfwSetMouseButtonCallback(window, mouse_button_redirect);
 
 	// Playing background music indefinitely
 	init_audio();
@@ -230,6 +235,21 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	{
 	}
 
+
+	// Hot keys for selecting placeable units
+	if (action == GLFW_PRESS && key == GLFW_KEY_1)
+	{
+		unit_selected = "hunter";
+	}
+	else if (action == GLFW_PRESS && key == GLFW_KEY_2)
+	{
+		unit_selected = "watchtower";
+	}
+	else if (action == GLFW_PRESS && key == GLFW_KEY_3)
+	{
+		unit_selected = "greenhouse"; 
+	}
+
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R)
 	{
@@ -264,4 +284,29 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
     {
     }
     (void)mouse_pos;
+}
+
+// mouse click callback function 
+void WorldSystem::on_mouse_click(int button, int action, int mod) {
+
+	// Mouse click for placing units 
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "")
+	{
+		double xpos, ypos;
+		//getting cursor position
+		glfwGetCursorPos(window, &xpos, &ypos);
+
+		if (unit_selected == "hunter")
+		{
+			entt::entity entity = Hunter::createHunter({ xpos, ypos });
+		}
+		if (unit_selected == "greenhouse")
+		{
+			entt::entity entity = GreenHouse::createGreenHouse({ xpos, ypos });
+		}
+		if (unit_selected == "watchtower")
+		{
+			entt::entity entity = WatchTower::createWatchTower({ xpos, ypos });
+		}
+	}
 }
