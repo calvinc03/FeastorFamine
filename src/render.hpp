@@ -37,6 +37,8 @@ private:
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
 
+	void animate(entt::entity entity);
+
 	// Window handle
 	GLFWwindow& window;
 

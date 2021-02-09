@@ -11,6 +11,7 @@
 #include "greenhouse.hpp"
 #include "watchtower.hpp"
 
+#include "village.hpp"
 
 // stlib
 #include <string.h>
@@ -23,11 +24,13 @@ const size_t MAX_MOBS = 20;
 const size_t MOB_DELAY_MS = 1000;
 const size_t MAX_BOSS = 2;
 const size_t BOSS_DELAY_MS = 5000;
+const size_t ANIMATION_FPS = 12;
 
 const size_t ROUND_TIME = 30 * 1000; // 30 seconds?
 
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 WorldSystem::WorldSystem(ivec2 window_size_px) :
+		fps_ms(1000 / ANIMATION_FPS),
         health(500),
         next_boss_spawn(0.f),
         next_mob_spawn(0.f),
@@ -88,8 +91,10 @@ WorldSystem::~WorldSystem(){
 		Mix_FreeChunk(salmon_eat_sound);
 	Mix_CloseAudio();
 
+	// Destroy all created components
+	//ECS::ContainerInterface::clear_all_components();
+	
 	registry.clear(); // this destroys all entities... 
-
 	// Close the window
 	glfwDestroyWindow(window);
 }
@@ -119,23 +124,52 @@ void WorldSystem::init_audio()
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
-	// Updating window title with health and round
+	// Updating window title with health
 	std::stringstream title_ss;
-	title_ss << "Food: " << health << " Round: " << round_number << " number of collisions: " << registry.view<PhysicsSystem::Collision>().size();
+	title_ss << "Food: " << health << " Round: " << round_number;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
+	//
+	// Removing out of screen entities
+	//auto& registry = ECS::registry<Motion>; // TODO
 
-	//world/wall collisions. 
+	// Remove entities that leave the screen on the left side
+	// Iterate backwards to be able to remove without unterfering with the next object to visit
+	// (the containers exchange the last element with the current upon delete)
+	//for (int i = static_cast<int>(registry.components.size())-1; i >= 0; --i)
+	//{
+	//	auto& motion = registry.components[i];
+	//	if (motion.position.x + abs(motion.scale.x) < 0.f)
+	//	{
+	//		ECS::ContainerInterface::remove_all_components_of(registry.entities[i]);
+	//	}
+	//}
+
 	//stop entities from going off screen + modify motion component
 	auto view_motion = registry.view<Motion>();
 	ivec2 coords = WINDOW_SIZE_IN_PX - ivec2(50,50); //TODO: arbitrary offset, may want to use bounding box.
 	for (auto [entity, motion] : view_motion.each()) {
 		if (motion.position.x < 0.0f || motion.position.x > coords.x) {
-			motion.velocity.x = 0.0f; // complete loss of momentum in x if hitting x bounds
+			
+			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting x bounds
 		}
 		if (motion.position.y < 0.0f || motion.position.y > coords.y) {
-			motion.velocity.y = 0.0f; // complete loss of momentum in xy if hitting y bounds
+			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting y bounds
 		}
 	}
+
+	// animation
+
+	fps_ms -= elapsed_ms;
+	if (fps_ms < 0.f) {
+		for (auto entity : registry.view<Animate>()) {
+			auto& animate = registry.get<Animate>(entity);
+			animate.frame += 1;
+			animate.frame = (int)animate.frame % (int)animate.frame_num;
+		}
+		fps_ms = 1000 / ANIMATION_FPS;
+	}
+	
+
 
 	//Spawning new boss
 	next_boss_spawn -= elapsed_ms * current_speed;
@@ -240,6 +274,9 @@ void WorldSystem::restart()
     }
     // set path
     current_map.setPathFromCoords(path);
+
+	// create village
+	village = Village::createVillage();
 }
 
 // Compute collisions between entities
@@ -253,8 +290,7 @@ void WorldSystem::handle_collisions()
 
 		// TODO
 		// check projectile and monster collision
-		Motion test = registry.get<Motion>(entity);
-		test.velocity.y = 50;
+
 	}
 	registry.clear<PhysicsSystem::Collision>();
 }
@@ -272,6 +308,21 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	if (health > 0)
 	{
 	}
+
+	// Hot keys for changing sprite appearance
+	
+	//if (action == GLFW_PRESS && key == GLFW_KEY_7)
+	//{
+	//	registry.get<Animate>(village).frame = 0;
+	//}
+	//else if (action == GLFW_PRESS && key == GLFW_KEY_8)
+	//{
+	//	registry.get<Animate>(village).frame = 1;
+	//}
+	//else if (action == GLFW_PRESS && key == GLFW_KEY_9)
+	//{
+	//	registry.get<Animate>(village).frame = 2;
+	//}
 
 
 	// Hot keys for selecting placeable units
