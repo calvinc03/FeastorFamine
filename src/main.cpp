@@ -58,11 +58,11 @@ int main()
 
 		DebugSystem::clearDebugComponents();
 		//ai.step(elapsed_ms, window_size_in_game_units);
-		world.step(elapsed_ms, window_size_in_game_units);
-		physics.step(elapsed_ms, window_size_in_game_units);
+		world.step(elapsed_ms, WINDOW_SIZE_IN_PX);
+		physics.step(elapsed_ms, WINDOW_SIZE_IN_PX);
 		world.handle_collisions();
 
-		renderer.draw(window_size_in_game_units);
+		renderer.draw(WINDOW_SIZE_IN_PX);
 	}
 	//
 	return EXIT_SUCCESS;
