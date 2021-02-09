@@ -57,6 +57,8 @@ private:
 	float next_boss_spawn;
 	float next_mob_spawn;
     GridMap current_map;
+	float round_timer;
+	int round_number;
 
 	std::string unit_selected;
 

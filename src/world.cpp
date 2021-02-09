@@ -24,11 +24,14 @@ const size_t MOB_DELAY_MS = 1000;
 const size_t MAX_BOSS = 2;
 const size_t BOSS_DELAY_MS = 5000;
 
+const size_t ROUND_TIME = 30 * 1000; // 30 seconds?
+
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 WorldSystem::WorldSystem(ivec2 window_size_px) :
         health(500),
         next_boss_spawn(0.f),
-        next_mob_spawn(0.f) {
+        next_mob_spawn(0.f),
+		round_timer(ROUND_TIME), round_number(0){
     // Seeding rng with random device
     rng = std::default_random_engine(std::random_device()());
 
@@ -120,7 +123,7 @@ void WorldSystem::step(float elapsed_ms)
 {
 	// Updating window title with health
 	std::stringstream title_ss;
-	title_ss << "Food: " << health;
+	title_ss << "Food: " << health << " Round: " << round_number;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 	//
 	// Removing out of screen entities
@@ -154,6 +157,14 @@ void WorldSystem::step(float elapsed_ms)
         next_mob_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
         Mob::createMobEntt();
     }
+
+	round_timer -= elapsed_ms;
+	if (round_timer < 0.0f) {
+		std::stringstream title_ss;
+		//TODO: only increment round number if certain conditions are met (no enemies left)
+		round_number++;
+		round_timer = ROUND_TIME; // no delay between rounds
+	}
 
 //    // TODO follow the path on the grid
 //    auto& path = current_map.path_entt;
