@@ -121,13 +121,13 @@ void WorldSystem::step(float elapsed_ms)
 {
 	// Updating window title with health and round
 	std::stringstream title_ss;
-	title_ss << "Food: " << health << " Round: " << round_number << " number of collisions: " << registry.view<PhysicsSystem::Collision>().size();
+	title_ss << "Food: " << health << " Round: " << round_number;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	//world/wall collisions. 
 	//stop entities from going off screen + modify motion component
 	auto view_motion = registry.view<Motion>();
-	ivec2 coords = WINDOW_SIZE_IN_PX - ivec2(50,50); //TODO: arbitrary offset, may want to use bounding box.
+	ivec2 coords = WINDOW_SIZE_IN_PX - ivec2(50,0); //TODO: arbitrary offset, may want to use bounding box.
 	for (auto [entity, motion] : view_motion.each()) {
 		if (motion.position.x < 0.0f || motion.position.x > coords.x) {
 			motion.velocity.x = 0.0f; // complete loss of momentum in x if hitting x bounds
@@ -249,12 +249,21 @@ void WorldSystem::handle_collisions()
 
 	auto view_collision = registry.view<PhysicsSystem::Collision>();
 	for (auto [entity, collision] : view_collision.each()) {
-		auto entity_other = collision.other;
+		auto& entity_other = collision.other;
 
 		// TODO
 		// check projectile and monster collision
-		Motion test = registry.get<Motion>(entity);
-		test.velocity.y = 50;
+
+		//game breaking example code
+		//auto& test = registry.get<Motion>(entity);
+		//test.velocity.y += 50;
+
+		//auto& test2 = registry.get<Motion>(entity_other);
+		//test2.velocity.y += 50;
+
+		//this code destroys colliding entities -- must do a null check first.
+		//if (entity != entt::null)
+		//	registry.destroy(entity);
 	}
 	registry.clear<PhysicsSystem::Collision>();
 }
