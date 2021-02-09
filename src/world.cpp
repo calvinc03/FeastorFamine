@@ -5,6 +5,8 @@
 #include "render_components.hpp"
 #include "spring_boss.hpp"
 #include "mob.hpp"
+#include "tower.hpp"
+#include "village.hpp"
 
 // stlib
 #include <string.h>
@@ -51,6 +53,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px) :
 	if (window == nullptr)
 		throw std::runtime_error("Failed to glfwCreateWindow");
 
+
 	// Setting callbacks to member functions (that's why the redirect is needed)
 	// Input is handled using GLFW, for more info see
 	// http://www.glfw.org/docs/latest/input_guide.html
@@ -82,6 +85,14 @@ WorldSystem::~WorldSystem(){
 	registry.clear(); // this destroys all entities... 
 	// Close the window
 	glfwDestroyWindow(window);
+}
+
+void WorldSystem::init_ui()
+{
+	// Create UI components
+	Village::createVillage();
+	Tower::createTower(200, 300);
+	Tower::createTower(600, 500);
 }
 
 void WorldSystem::init_audio()
@@ -131,7 +142,7 @@ void WorldSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 
 	
 	
-	//Spawning new boss
+	//Spawning new 
 	next_boss_spawn -= elapsed_ms * current_speed;
 	if (registry.view<SpringBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
 	{
