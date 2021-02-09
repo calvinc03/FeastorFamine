@@ -2,6 +2,7 @@
 
 // internal
 #include "common.hpp"
+#include "grid_map.hpp"
 
 // stlib
 #include <vector>
@@ -26,7 +27,7 @@ public:
 	void restart();
 
 	// Steps the game ahead by ms milliseconds
-	void step(float elapsed_ms, vec2 window_size_in_game_units);
+	void step(float elapsed_ms);
 
 	// Check for collisions
 	void handle_collisions();
@@ -55,6 +56,7 @@ private:
 	float current_speed;
 	float next_boss_spawn;
 	float next_mob_spawn;
+    GridMap current_map;
 
 	std::string unit_selected;
 

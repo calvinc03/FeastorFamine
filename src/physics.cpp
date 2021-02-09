@@ -26,40 +26,17 @@ bool collides(const Motion& motion1, const Motion& motion2)
 	return false;
 }
 
-void PhysicsSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
+void PhysicsSystem::step(float elapsed_ms)
 {
 	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
-	/*
-	for (auto& motion : ECS::registry<Motion>.components)
-	{
-		float step_seconds = 1.0f * (elapsed_ms / 1000.f);
-		
-		// !!! TODO A1: uncomment block and update motion.position based on step_seconds and motion.velocity
+
+	for(auto entity: registry.view<Motion>()) {
+	    auto& motion = registry.get<Motion>(entity);
+        float step_seconds = 1.0f * (elapsed_ms / 1000.f);
+        motion.position.x += step_seconds * motion.velocity.x;
+        motion.position.y += step_seconds * motion.velocity.y;
 	}
-	*/
-	(void)elapsed_ms; // placeholder to silence unused warning until implemented
-	(void)window_size_in_game_units;
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A3: HANDLE PEBBLE UPDATES HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-	// Visualization for debugging the position and scale of objects
-	//if (DebugSystem::in_debug_mode)
-	//{
-	//	for (auto& motion : ECS::registry<Motion>.components)
-	//	{
-	//		// draw a cross at the position of all objects
-	//		auto scale_horizontal_line = motion.scale;
-	//		scale_horizontal_line.y *= 0.1f;
-	//		auto scale_vertical_line = motion.scale;
-	//		scale_vertical_line.x *= 0.1f;
-	//		DebugSystem::createLine(motion.position, scale_horizontal_line);
-	//		DebugSystem::createLine(motion.position, scale_vertical_line);
-	//	}
-	//}
 
 	// Check for collisions between all moving entities
 	//auto& motion_container = ECS::registry<Motion>;
@@ -87,16 +64,6 @@ void PhysicsSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 	//		}
 	//	}
 	//}
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A2: HANDLE SALMON - WALL COLLISIONS HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 2
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A3: HANDLE PEBBLE COLLISIONS HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }
 
 PhysicsSystem::Collision::Collision(entt::entity& other)

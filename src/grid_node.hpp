@@ -1,7 +1,7 @@
 #include "common.hpp"
 class GridNode {
 public:
-    vec2 coord;
+    ivec2 coord;
     int type = GRID_DEFAULT;
 
     int g_cost;

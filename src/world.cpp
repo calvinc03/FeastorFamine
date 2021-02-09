@@ -116,7 +116,7 @@ void WorldSystem::init_audio()
 }
 
 // Update our game world
-void WorldSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
+void WorldSystem::step(float elapsed_ms)
 {
 	// Updating window title with health
 	std::stringstream title_ss;
@@ -142,24 +142,35 @@ void WorldSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 	next_boss_spawn -= elapsed_ms * current_speed;
 	if (registry.view<SpringBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
 	{
-		// Reset timer
+		// Reset spawn timer and spawn boss
         next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
-		// Create turtle
         SpringBoss::createSpringBossEntt();
-		// Setting random initial position and constant velocity
-		//auto& motion = ECS::registry<Motion>.get(entity);
 	}
 
 	// Spawning new mobs
     next_mob_spawn -= elapsed_ms * current_speed;
     if (registry.view<Mob>().size() <= MAX_MOBS && next_mob_spawn < 0.f)
     {
-        // Reset timer
         next_mob_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
         Mob::createMobEntt();
-        // Setting random initial position and constant velocity
-        //auto& motion = ECS::registry<Motion>.get(entity);
     }
+
+//    // TODO follow the path on the grid
+//    auto& path = current_map.path_entt;
+//    // update velocity for every monster
+//    for(auto entity: registry.view<Monster>()) {
+//        auto& motion = registry.get<Motion>(entity);
+//        auto& current_path_node = registry.get<GridNode>(path.at(motion.current_path_index));
+//        // check that the monster is indeed within the current path node
+//        assert(GridMap::pixelToCoord(motion.position) == current_path_node.coord);
+//        ivec2 next_position = motion.position + elapsed_ms * motion.velocity;
+//        // if the next position of monster is on the same grid
+//        if (GridMap::pixelToCoord(next_position) == current_path_node.coord){
+//            ivec2 target_position = GridMap::coordToPixel(current_path_node.coord + ivec2(1,1));
+//        }
+//
+//    }
+
 
 	//// Processing the salmon state
 	//assert(ECS::registry<ScreenState>.components.size() <= 1);
@@ -211,7 +222,7 @@ void WorldSystem::restart()
 	//player_salmon = Salmon::createSalmon({ 100, 200 });
 
     // create grid map
-    GridMap grid_map = registry.get<GridMap>(GridMap::createGridMapEntt());
+    current_map = registry.get<GridMap>(GridMap::createGridMapEntt());
     // hardcode path
     std::vector<vec2> path = {};
     for (int y = FOREST_COORD.y; y < VILLAGE_COORD.y; y++) {
@@ -221,7 +232,7 @@ void WorldSystem::restart()
         path.emplace_back(x, VILLAGE_COORD.y);
     }
     // set path
-    grid_map.setPath(path);
+    current_map.setPathFromCoords(path);
 }
 
 // Compute collisions between entities
