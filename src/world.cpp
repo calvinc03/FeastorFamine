@@ -5,9 +5,12 @@
 #include "render_components.hpp"
 #include "spring_boss.hpp"
 #include "mob.hpp"
+
+#include "grid_map.hpp"
 #include "hunter.hpp"
 #include "greenhouse.hpp"
 #include "watchtower.hpp"
+
 
 // stlib
 #include <string.h>
@@ -25,28 +28,28 @@ const size_t BOSS_DELAY_MS = 5000;
 WorldSystem::WorldSystem(ivec2 window_size_px) :
         health(500),
         next_boss_spawn(0.f),
-        next_mob_spawn(0.f)
-{
-	// Seeding rng with random device
-	rng = std::default_random_engine(std::random_device()());
+        next_mob_spawn(0.f) {
+    // Seeding rng with random device
+    rng = std::default_random_engine(std::random_device()());
 
-	///////////////////////////////////////
-	// Initialize GLFW
-	auto glfw_err_callback = [](int error, const char* desc) { std::cerr << "OpenGL:" << error << desc << std::endl; };
-	glfwSetErrorCallback(glfw_err_callback);
-	if (!glfwInit())
-		throw std::runtime_error("Failed to initialize GLFW");
+    ///////////////////////////////////////
+    // Initialize GLFW
+    auto glfw_err_callback = [](int error, const char *desc) { std::cerr << "OpenGL:" << error << desc << std::endl; };
+    glfwSetErrorCallback(glfw_err_callback);
+    if (!glfwInit())
+        throw std::runtime_error("Failed to initialize GLFW");
 
-	//-------------------------------------------------------------------------
-	// GLFW / OGL Initialization, needs to be set before glfwCreateWindow
-	// Core Opengl 3.
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
+    //-------------------------------------------------------------------------
+    // GLFW / OGL Initialization, needs to be set before glfwCreateWindow
+    // Core Opengl 3.
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
 #if __APPLE__
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
+
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
 	// Create the main window (for rendering, keyboard, and mouse input)
@@ -69,6 +72,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px) :
 	init_audio();
 	Mix_PlayMusic(background_music, -1);
 	std::cout << "Loaded music\n";
+
 }
 
 WorldSystem::~WorldSystem(){
@@ -112,43 +116,67 @@ void WorldSystem::init_audio()
 }
 
 // Update our game world
-void WorldSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
+void WorldSystem::step(float elapsed_ms)
 {
-	 //temporary food display
+	// Updating window title with health
 	std::stringstream title_ss;
-	title_ss << "Food: " << 0; 
+	title_ss << "Food: " << health;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
-	
+	//
+	// Removing out of screen entities
+	//auto& registry = ECS::registry<Motion>; // TODO
 
-	
+	// Remove entities that leave the screen on the left side
+	// Iterate backwards to be able to remove without unterfering with the next object to visit
+	// (the containers exchange the last element with the current upon delete)
+	//for (int i = static_cast<int>(registry.components.size())-1; i >= 0; --i)
+	//{
+	//	auto& motion = registry.components[i];
+	//	if (motion.position.x + abs(motion.scale.x) < 0.f)
+	//	{
+	//		ECS::ContainerInterface::remove_all_components_of(registry.entities[i]);
+	//	}
+	//}
+
 	//Spawning new boss
 	next_boss_spawn -= elapsed_ms * current_speed;
 	if (registry.view<SpringBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
 	{
-		// Reset timer
+		// Reset spawn timer and spawn boss
         next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
-		// Create turtle
-		SpringBoss::createSpringBoss();
-		// Setting random initial position and constant velocity
-		//auto& motion = ECS::registry<Motion>.get(entity);
+        SpringBoss::createSpringBossEntt();
 	}
 
 	// Spawning new mobs
     next_mob_spawn -= elapsed_ms * current_speed;
     if (registry.view<Mob>().size() <= MAX_MOBS && next_mob_spawn < 0.f)
     {
-        // Reset timer
         next_mob_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
-        Mob::createMob();
-        // Setting random initial position and constant velocity
-        //auto& motion = ECS::registry<Motion>.get(entity);
+        Mob::createMobEntt();
     }
+
+//    // TODO follow the path on the grid
+//    auto& path = current_map.path_entt;
+//    // update velocity for every monster
+//    for(auto entity: registry.view<Monster>()) {
+//        auto& motion = registry.get<Motion>(entity);
+//        auto& current_path_node = registry.get<GridNode>(path.at(motion.current_path_index));
+//        // check that the monster is indeed within the current path node
+//        assert(GridMap::pixelToCoord(motion.position) == current_path_node.coord);
+//        ivec2 next_position = motion.position + elapsed_ms * motion.velocity;
+//        // if the next position of monster is on the same grid
+//        if (GridMap::pixelToCoord(next_position) == current_path_node.coord){
+//            ivec2 target_position = GridMap::coordToPixel(current_path_node.coord + ivec2(1,1));
+//        }
+//
+//    }
+
 
 	//// Processing the salmon state
 	//assert(ECS::registry<ScreenState>.components.size() <= 1);
 	//auto& screen = ECS::registry<ScreenState>.components[0];
 
- //   // TODO polish death scene
+ //   // TODO polish death scene of village
 	//if (health <= 0)
 	//{
 	//	// Reduce window brightness
@@ -193,7 +221,18 @@ void WorldSystem::restart()
 	// Create a new salmon
 	//player_salmon = Salmon::createSalmon({ 100, 200 });
 
-
+    // create grid map
+    current_map = registry.get<GridMap>(GridMap::createGridMapEntt());
+    // hardcode path
+    std::vector<vec2> path = {};
+    for (int y = FOREST_COORD.y; y < VILLAGE_COORD.y; y++) {
+        path.emplace_back(FOREST_COORD.x, y);
+    }
+    for (int x = FOREST_COORD.x; x < VILLAGE_COORD.x; x++) {
+        path.emplace_back(x, VILLAGE_COORD.y);
+    }
+    // set path
+    current_map.setPathFromCoords(path);
 }
 
 // Compute collisions between entities

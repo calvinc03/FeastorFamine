@@ -12,7 +12,7 @@
 class AISystem
 {
 public:
-	void step(float elapsed_ms, vec2 window_size_in_game_units);
+	void step(float elapsed_ms);
 
 //    struct Pathfinding {
 //        GridMap grid = GridMap(0, 0, 0, std::vector<vec2>());

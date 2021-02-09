@@ -19,8 +19,6 @@
 #include "debug.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
-
-const vec2 window_size_in_game_units = { 1200, 800 };
 // Note, here the window will show a width x height part of the game world, measured in px. 
 // You could also define a window to show 1.5 x 1 part of your game world, where the aspect ratio depends on your window size.
 
@@ -57,12 +55,12 @@ int main()
 		t = now;
 
 		DebugSystem::clearDebugComponents();
-		//ai.step(elapsed_ms, window_size_in_game_units);
-		world.step(elapsed_ms, window_size_in_game_units);
-		physics.step(elapsed_ms, window_size_in_game_units);
+		//ai.step(elapsed_ms);
+		world.step(elapsed_ms);
+		physics.step(elapsed_ms);
 		world.handle_collisions();
 
-		renderer.draw(window_size_in_game_units);
+		renderer.draw();
 	}
 	//
 	return EXIT_SUCCESS;

@@ -5,22 +5,21 @@
 #include "grid_node.hpp"
 
 // A simple physics system that moves rigid bodies and checks for collision
+
 class GridMap
 {
 public:
-    int width = WINDOW_SIZE_IN_PX.x / GRID_CELL_SIZE;
-    int height = WINDOW_SIZE_IN_PX.y / GRID_CELL_SIZE;
-    int cell_size = GRID_CELL_SIZE;
+    std::vector<std::vector<entt::entity>> node_entt_matrix = {{}};
+    std::vector<entt::entity> path_entt = {};
 
-    entt::entity createGridMap(std::vector<vec2> path_coords);
+    static entt::entity createGridMapEntt();
 
-    std::vector<std::vector<entt::entity>> node_vector;
-
-    vec2 gridToPixelCoord(vec2 grid_coord);
-    vec2 pixelToGridCoord(vec2 pixel_coord);
-    entt::entity getEntityAtCoord(vec2 grid_coord);
-    GridNode& getNodeAtCoord(vec2 grid_coord);
-    void setGridType(vec2 grid_coord, int type);
-    void setPath(std::vector<vec2>& grid_coords);
+    static ivec2 coordToPixel(ivec2 grid_coord);
+    static ivec2 pixelToCoord(ivec2 pixel_coord);
+    static entt::entity getEntityAtCoord(std::vector<std::vector<entt::entity>>& node_matrix, ivec2 grid_coord);
+    static GridNode& getNodeAtCoord(std::vector<std::vector<entt::entity>>& node_matrix, vec2 grid_coord);
+    void setGridType(std::vector<std::vector<entt::entity>>& node_matrix, vec2 grid_coord, int type);
+    // coordinates must be in order from starting coord to end coord
+    void setPathFromCoords(std::vector<vec2>& grid_coords);
 };
 

@@ -164,7 +164,7 @@ void RenderSystem::drawToScreen()
 
 // Render our game world
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
-void RenderSystem::draw(vec2 window_size_in_game_units)
+void RenderSystem::draw()
 {
 	// Getting size of window
 	ivec2 frame_buffer_size; // in pixels
@@ -185,8 +185,8 @@ void RenderSystem::draw(vec2 window_size_in_game_units)
 	// Fake projection matrix, scales with respect to window coordinates
 	float left = 0.f;
 	float top = 0.f;
-	float right = window_size_in_game_units.x;
-	float bottom = window_size_in_game_units.y;
+	float right = WINDOW_SIZE_IN_PX.x;
+	float bottom = WINDOW_SIZE_IN_PX.y;
 
 	float sx = 2.f / (right - left);
 	float sy = 2.f / (top - bottom);

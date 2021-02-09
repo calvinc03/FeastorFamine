@@ -3,7 +3,7 @@
 #include "render.hpp"
 #include "common.hpp"
 
-entt::entity Mob::createMob()
+entt::entity Mob::createMobEntt()
 {
     // Reserve en entity
     auto entity = registry.create();
@@ -14,7 +14,7 @@ entt::entity Mob::createMob()
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("fish.png"), "textured");
+        RenderSystem::createSprite(resource, textures_path("rabbit.png"), "textured");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -25,8 +25,8 @@ entt::entity Mob::createMob()
     motion.angle = 0.f;
     motion.velocity = { 380.f, 0 };
     motion.position = FOREST_COORD;
-    // Setting initial values, scale is negative to make it face the opposite way
-    motion.scale = vec2({ -0.4f, 0.4f }) * static_cast<vec2>(resource.texture.size);
+    // Setting initial values, scale is 1
+    motion.scale = vec2({ 1, 1 }) * static_cast<vec2>(resource.texture.size);
 
     auto& monster = registry.emplace<Monster>(entity);
     monster.health = 20;
