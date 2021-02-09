@@ -88,10 +88,8 @@ WorldSystem::~WorldSystem(){
 		Mix_FreeChunk(salmon_eat_sound);
 	Mix_CloseAudio();
 
-	// Destroy all created components
-	//ECS::ContainerInterface::clear_all_components();
-	
 	registry.clear(); // this destroys all entities... 
+
 	// Close the window
 	glfwDestroyWindow(window);
 }
@@ -121,36 +119,21 @@ void WorldSystem::init_audio()
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
-	// Updating window title with health
+	// Updating window title with health and round
 	std::stringstream title_ss;
-	title_ss << "Food: " << health << " Round: " << round_number;
+	title_ss << "Food: " << health << " Round: " << round_number << " number of collisions: " << registry.view<PhysicsSystem::Collision>().size();
 	glfwSetWindowTitle(window, title_ss.str().c_str());
-	//
-	// Removing out of screen entities
-	//auto& registry = ECS::registry<Motion>; // TODO
 
-	// Remove entities that leave the screen on the left side
-	// Iterate backwards to be able to remove without unterfering with the next object to visit
-	// (the containers exchange the last element with the current upon delete)
-	//for (int i = static_cast<int>(registry.components.size())-1; i >= 0; --i)
-	//{
-	//	auto& motion = registry.components[i];
-	//	if (motion.position.x + abs(motion.scale.x) < 0.f)
-	//	{
-	//		ECS::ContainerInterface::remove_all_components_of(registry.entities[i]);
-	//	}
-	//}
-
+	//world/wall collisions. 
 	//stop entities from going off screen + modify motion component
 	auto view_motion = registry.view<Motion>();
 	ivec2 coords = WINDOW_SIZE_IN_PX - ivec2(50,50); //TODO: arbitrary offset, may want to use bounding box.
 	for (auto [entity, motion] : view_motion.each()) {
 		if (motion.position.x < 0.0f || motion.position.x > coords.x) {
-			
-			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting x bounds
+			motion.velocity.x = 0.0f; // complete loss of momentum in x if hitting x bounds
 		}
 		if (motion.position.y < 0.0f || motion.position.y > coords.y) {
-			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting y bounds
+			motion.velocity.y = 0.0f; // complete loss of momentum in xy if hitting y bounds
 		}
 	}
 
@@ -270,7 +253,8 @@ void WorldSystem::handle_collisions()
 
 		// TODO
 		// check projectile and monster collision
-
+		Motion test = registry.get<Motion>(entity);
+		test.velocity.y = 50;
 	}
 	registry.clear<PhysicsSystem::Collision>();
 }
