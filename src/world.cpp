@@ -141,6 +141,19 @@ void WorldSystem::step(float elapsed_ms)
 	//	}
 	//}
 
+	//stop entities from going off screen + modify motion component
+	auto view_motion = registry.view<Motion>();
+	ivec2 coords = WINDOW_SIZE_IN_PX - ivec2(50,50); //TODO: arbitrary offset, may want to use bounding box.
+	for (auto [entity, motion] : view_motion.each()) {
+		if (motion.position.x < 0.0f || motion.position.x > coords.x) {
+			
+			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting x bounds
+		}
+		if (motion.position.y < 0.0f || motion.position.y > coords.y) {
+			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting y bounds
+		}
+	}
+
 	//Spawning new boss
 	next_boss_spawn -= elapsed_ms * current_speed;
 	if (registry.view<SpringBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
