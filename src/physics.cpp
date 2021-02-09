@@ -28,23 +28,17 @@ bool collides(const Motion& motion1, const Motion& motion2)
 
 void PhysicsSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 {
+	auto view_motion = registry.view<Motion>();
+	float step_seconds = 1.0f * (elapsed_ms / 1000.f);
+
 	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
-	/*
-	for (auto& motion : ECS::registry<Motion>.components)
-	{
-		float step_seconds = 1.0f * (elapsed_ms / 1000.f);
-		
-		// !!! TODO A1: uncomment block and update motion.position based on step_seconds and motion.velocity
+	for (auto [entity, motion] : view_motion.each()) {
+		motion.position += step_seconds * motion.velocity;
 	}
-	*/
-	(void)elapsed_ms; // placeholder to silence unused warning until implemented
+
 	(void)window_size_in_game_units;
 
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A3: HANDLE PEBBLE UPDATES HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	// Visualization for debugging the position and scale of objects
 	//if (DebugSystem::in_debug_mode)
@@ -61,42 +55,19 @@ void PhysicsSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
 	//	}
 	//}
 
+
 	// Check for collisions between all moving entities
-	//auto& motion_container = ECS::registry<Motion>;
-	//entt::registry registry;
-	//auto view = registry.view<Motion>(); 
-	// for (auto [entity, vel] : view.each()) {
-	//auto& motion_container = 
+	//TODO: needs further testing. See if this avoids duplicates
+	for (auto [entity_i, motion_i] : view_motion.each()) {
+		for (auto [entity_j, motion_j] : view_motion.each()) {
+			if (collides(motion_i, motion_j) && entity_i != entity_j)
+			{
+				registry.emplace_or_replace<Collision>(entity_i, entity_j);
+				registry.emplace_or_replace<Collision>(entity_j, entity_i);
+			}
+		}
+	}
 
-	// for (auto [i, motion_i] : enumerate(motion_container.components)) // in c++ 17 we will be able to do this instead of the next three lines
-	//for (unsigned int i=0; i<motion_container.components.size(); i++)
-	//{
-	//	Motion& motion_i = motion_container.components[i];
-	//	ECS::Entity entity_i = motion_container.entities[i];
-	//	for (unsigned int j=i+1; j<motion_container.components.size(); j++)
-	//	{
-	//		Motion& motion_j = motion_container.components[j];
-	//		ECS::Entity entity_j = motion_container.entities[j];
-
-	//		if (collides(motion_i, motion_j))
-	//		{
-	//			// Create a collision event
-	//			// Note, we are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity, hence, emplace_with_duplicates
-	//			ECS::registry<Collision>.emplace_with_duplicates(entity_i, entity_j);
-	//			ECS::registry<Collision>.emplace_with_duplicates(entity_j, entity_i);
-	//		}
-	//	}
-	//}
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A2: HANDLE SALMON - WALL COLLISIONS HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 2
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A3: HANDLE PEBBLE COLLISIONS HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }
 
 PhysicsSystem::Collision::Collision(entt::entity& other)

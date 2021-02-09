@@ -199,21 +199,17 @@ void WorldSystem::restart()
 // Compute collisions between entities
 void WorldSystem::handle_collisions()
 {
-	// Loop over all collisions detected by the physics system
-	//auto& registry = ECS::registry<PhysicsSystem::Collision>;
-	//for (unsigned int i=0; i< registry.components.size(); i++)
-	//{
-	//	// The entity and its collider
+	//// Loop over all collisions detected by the physics system
 
-	//	//auto entity = registry.entities[i];
-	//	//auto entity_other = registry.components[i].other;
+	auto view_collision = registry.view<PhysicsSystem::Collision>();
+	for (auto [entity, collision] : view_collision.each()) {
+		auto entity_other = collision.other;
 
-	//	// TODO
-	//	// check projectile and monster collision
-	//}
+		// TODO
+		// check projectile and monster collision
 
-	// Remove all collisions from this simulation step
-	//ECS::registry<PhysicsSystem::Collision>.clear();
+	}
+	registry.clear<PhysicsSystem::Collision>();
 }
 
 // Should the game be over ?
