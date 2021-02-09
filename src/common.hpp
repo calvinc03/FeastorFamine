@@ -63,6 +63,18 @@ struct Monster {
     int damage;
 };
 
+struct Food {
+	unsigned int food = 100;
+	float food_production_speed = 0;
+};
+
+struct Animate {
+	float state = 0.f;
+	float frame = 0.f;
+	float state_num = 1.f;
+	float frame_num = 1.f;
+};
+
 //TODO: temporary soln
 #include "entt.hpp"
 extern entt::registry registry;

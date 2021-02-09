@@ -1,7 +1,6 @@
 // Header
 #include "hunter.hpp"
 #include "render.hpp"
-#include "common.hpp"
 
 entt::entity Hunter::createHunter(vec2 pos)
 {

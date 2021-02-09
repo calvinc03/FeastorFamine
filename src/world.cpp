@@ -11,6 +11,7 @@
 #include "greenhouse.hpp"
 #include "watchtower.hpp"
 
+#include "village.hpp"
 
 // stlib
 #include <string.h>
@@ -23,12 +24,17 @@ const size_t MAX_MOBS = 20;
 const size_t MOB_DELAY_MS = 1000;
 const size_t MAX_BOSS = 2;
 const size_t BOSS_DELAY_MS = 5000;
+const size_t ANIMATION_FPS = 12;
+
+const size_t ROUND_TIME = 30 * 1000; // 30 seconds?
 
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 WorldSystem::WorldSystem(ivec2 window_size_px) :
+		fps_ms(1000 / ANIMATION_FPS),
         health(500),
         next_boss_spawn(0.f),
-        next_mob_spawn(0.f) {
+        next_mob_spawn(0.f),
+		round_timer(ROUND_TIME), round_number(0){
     // Seeding rng with random device
     rng = std::default_random_engine(std::random_device()());
 
@@ -120,7 +126,7 @@ void WorldSystem::step(float elapsed_ms)
 {
 	// Updating window title with health
 	std::stringstream title_ss;
-	title_ss << "Food: " << health;
+	title_ss << "Food: " << health << " Round: " << round_number;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 	//
 	// Removing out of screen entities
@@ -138,6 +144,33 @@ void WorldSystem::step(float elapsed_ms)
 	//	}
 	//}
 
+	//stop entities from going off screen + modify motion component
+	auto view_motion = registry.view<Motion>();
+	ivec2 coords = WINDOW_SIZE_IN_PX - ivec2(50,0); //TODO: arbitrary offset, may want to use bounding box.
+	for (auto [entity, motion] : view_motion.each()) {
+		if (motion.position.x < 0.0f || motion.position.x > coords.x) {
+			
+			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting x bounds
+		}
+		if (motion.position.y < 0.0f || motion.position.y > coords.y) {
+			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting y bounds
+		}
+	}
+
+	// animation
+
+	fps_ms -= elapsed_ms;
+	if (fps_ms < 0.f) {
+		for (auto entity : registry.view<Animate>()) {
+			auto& animate = registry.get<Animate>(entity);
+			animate.frame += 1;
+			animate.frame = (int)animate.frame % (int)animate.frame_num;
+		}
+		fps_ms = 1000 / ANIMATION_FPS;
+	}
+	
+
+
 	//Spawning new boss
 	next_boss_spawn -= elapsed_ms * current_speed;
 	if (registry.view<SpringBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
@@ -154,6 +187,14 @@ void WorldSystem::step(float elapsed_ms)
         next_mob_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
         Mob::createMobEntt();
     }
+
+	round_timer -= elapsed_ms;
+	if (round_timer < 0.0f) {
+		std::stringstream title_ss;
+		//TODO: only increment round number if certain conditions are met (no enemies left)
+		round_number++;
+		round_timer = ROUND_TIME; // no delay between rounds
+	}
 
 //    // TODO follow the path on the grid
 //    auto& path = current_map.path_entt;
@@ -233,26 +274,35 @@ void WorldSystem::restart()
     }
     // set path
     current_map.setPathFromCoords(path);
+
+	// create village
+	village = Village::createVillage();
 }
 
 // Compute collisions between entities
 void WorldSystem::handle_collisions()
 {
-	// Loop over all collisions detected by the physics system
-	//auto& registry = ECS::registry<PhysicsSystem::Collision>;
-	//for (unsigned int i=0; i< registry.components.size(); i++)
-	//{
-	//	// The entity and its collider
+	//// Loop over all collisions detected by the physics system
 
-	//	//auto entity = registry.entities[i];
-	//	//auto entity_other = registry.components[i].other;
+	auto view_collision = registry.view<PhysicsSystem::Collision>();
+	for (auto [entity, collision] : view_collision.each()) {
+		auto& entity_other = collision.other;
 
-	//	// TODO
-	//	// check projectile and monster collision
-	//}
+		// TODO
+		// check projectile and monster collision
 
-	// Remove all collisions from this simulation step
-	//ECS::registry<PhysicsSystem::Collision>.clear();
+		//game breaking example code
+		//auto& test = registry.get<Motion>(entity);
+		//test.velocity.y += 50;
+
+		//auto& test2 = registry.get<Motion>(entity_other);
+		//test2.velocity.y += 50;
+
+		//this code destroys colliding entities -- must do a null check first.
+		//if (entity != entt::null)
+		//	registry.destroy(entity);
+	}
+	registry.clear<PhysicsSystem::Collision>();
 }
 
 // Should the game be over ?
@@ -268,6 +318,21 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	if (health > 0)
 	{
 	}
+
+	// Hot keys for changing sprite appearance
+	
+	//if (action == GLFW_PRESS && key == GLFW_KEY_7)
+	//{
+	//	registry.get<Animate>(village).frame = 0;
+	//}
+	//else if (action == GLFW_PRESS && key == GLFW_KEY_8)
+	//{
+	//	registry.get<Animate>(village).frame = 1;
+	//}
+	//else if (action == GLFW_PRESS && key == GLFW_KEY_9)
+	//{
+	//	registry.get<Animate>(village).frame = 2;
+	//}
 
 
 	// Hot keys for selecting placeable units
