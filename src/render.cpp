@@ -5,6 +5,64 @@
 #include "entt.hpp"
 #include <iostream>
 
+void RenderSystem::animate(entt::entity entity)
+{
+	auto view = registry.view<Animate, ShadedMeshRef>();
+	auto& animate = view.get<Animate>(entity);
+
+	auto& sprite = *view.get<ShadedMeshRef>(entity).reference_to_cache;
+
+	float state_num = animate.state_num;
+	float frame_num = animate.frame_num;
+
+	float curr_state = animate.state;
+	float curr_frame = animate.frame;
+
+	vec2 scale_pos = { 1.f, 1.f };
+	vec2 scale_tex = { 1.f, 1.f };
+	
+	// vec2 offset_pos = { 0.f, 0.f };
+	vec2 offset_tex = { 0.f, 0.f };
+
+	scale_tex = { 1 / frame_num, 1 / state_num };
+	scale_pos = { 1 / frame_num, 1 / state_num };
+	offset_tex = { curr_frame / frame_num, curr_state / state_num };
+	// offset_pos = { 0 / frame_num, 0 / state_num };
+
+	// The position corresponds to the center of the texture.
+	TexturedVertex vertices[4];
+
+	vertices[0].position = { -1.f / 2 * scale_pos.x, +1.f / 2 * scale_pos.y, 0.f };
+	vertices[1].position = { +1.f / 2 * scale_pos.x, +1.f / 2 * scale_pos.y, 0.f };
+	vertices[2].position = { +1.f / 2 * scale_pos.x, -1.f / 2 * scale_pos.y, 0.f };
+	vertices[3].position = { -1.f / 2 * scale_pos.x, -1.f / 2 * scale_pos.y, 0.f };
+	vertices[0].texcoord = { 0.f * scale_tex.x + offset_tex.x, 1.f * scale_tex.y + offset_tex.y };
+	vertices[1].texcoord = { 1.f * scale_tex.x + offset_tex.x, 1.f * scale_tex.y + offset_tex.y };
+	vertices[2].texcoord = { 1.f * scale_tex.x + offset_tex.x, 0.f * scale_tex.y + offset_tex.y };
+	vertices[3].texcoord = { 0.f * scale_tex.x + offset_tex.x, 0.f * scale_tex.y + offset_tex.y };
+
+	// Counterclockwise as it's the default opengl front winding direction.
+	uint16_t indices[] = { 0, 3, 1, 1, 3, 2 };
+
+	// generate vertex array object names
+	glGenVertexArrays(1, sprite.mesh.vao.data());
+	glGenBuffers(1, sprite.mesh.vbo.data());
+	glGenBuffers(1, sprite.mesh.ibo.data());
+	gl_has_errors();
+
+	// Vertex Buffer creation
+	glBindBuffer(GL_ARRAY_BUFFER, sprite.mesh.vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // sizeof(TexturedVertex) * 4
+	gl_has_errors();
+
+	// Index Buffer creation
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sprite.mesh.ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); // sizeof(uint16_t) * 6
+	gl_has_errors();
+
+	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
+}
+
 void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 {
 	//auto& motion = ECS::registry<Motion>.get(entity);
@@ -15,13 +73,11 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 	auto& motion = view.get<Motion>(entity);
 	//auto& texmesh = *registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity).reference_to_cache;
 	auto& texmesh = *view.get<ShadedMeshRef>(entity).reference_to_cache;
-	//auto& texmesh = 
 	// Transformation code, see Rendering and Transformation in the template specification for more info
 	// Incrementally updates transformation matrix, thus ORDER IS IMPORTANT
 	Transform transform;
 	transform.translate(motion.position);
 	transform.scale(motion.scale);
-	// !!! TODO A1: add rotation to the chain of transformations, mind the order of transformations
 
 	// Setting shaders
 	glUseProgram(texmesh.effect.program);
@@ -196,18 +252,17 @@ void RenderSystem::draw()
 
 
 	//entt::registry registry;
-	auto view = registry.view<Motion>();
+
 	auto view_mesh_ref = registry.view<ShadedMeshRef>();
-    (void) view;
+
 	// Draw all textured meshes that have a position and size component
-	//for (ECS::Entity entity : ECS::registry<ShadedMeshRef>.entities)
 	for (entt::entity entity : view_mesh_ref)
 	{
-		//if (!ECS::registry<Motion>.has(entity))
-		//	continue;
 		if (!registry.has<Motion>(entity))
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity albeit iterating through all Sprites in sequence
+		if (registry.has<Animate>(entity))
+			animate(entity);
 		drawTexturedMesh(entity, projection_2D);
 		gl_has_errors();
 	}
