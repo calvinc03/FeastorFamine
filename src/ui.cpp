@@ -11,6 +11,7 @@ entt::entity UI::createUI()
 	if (resource.effect.program.resource == 0) {
 		resource = ShadedMesh();
 		RenderSystem::createSprite(resource, textures_path("UI-texture-15.png"), "textured");
+		registry.emplace<Button>(entity, no_button);
 	}
 	
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
