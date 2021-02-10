@@ -30,6 +30,13 @@ const size_t ANIMATION_FPS = 12;
 
 const size_t ROUND_TIME = 30 * 1000; // 30 seconds?
 
+const size_t WATCHTOWER_COST = 300;
+const size_t GREENHOUSE_COST = 500;
+const size_t HUNTER_COST = 100;
+const std::string WATCHTOWER_NAME = "watchtower";
+const std::string GREENHOUSE_NAME = "greenhouse";
+const std::string HUNTER_NAME = "hunter";
+
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 WorldSystem::WorldSystem(ivec2 window_size_px) :
 		fps_ms(1000 / ANIMATION_FPS),
@@ -449,29 +456,48 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 
 // mouse click callback function 
 void WorldSystem::on_mouse_click(int button, int action, int mod) {
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		Button button = UI_click_system();
-		std::cout << button_to_string(button) << " pressed " << std::endl; //enums are listed in common.hpp
+	//getting cursor position
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);
 
-	}
+	// cursor position in grid units
+	int x_grid = xpos / GRID_CELL_SIZE;
+	int y_grid = ypos / GRID_CELL_SIZE;
+
 	// Mouse click for placing units 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "")
 	{
-		double xpos, ypos;
-		//getting cursor position
-		glfwGetCursorPos(window, &xpos, &ypos);
 
-		if (unit_selected == "hunter")
+		if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
 		{
-			entt::entity entity = Hunter::createHunter({ xpos, ypos });
+			entt::entity entity = Hunter::createHunter({ x_grid, y_grid });
+			health -= HUNTER_COST;
+			unit_selected = "";
 		}
-		if (unit_selected == "greenhouse")
+		else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
 		{
-			entt::entity entity = GreenHouse::createGreenHouse({ xpos, ypos });
+			entt::entity entity = Greenhouse::createGreenhouse({ x_grid, y_grid });
+			health -= GREENHOUSE_COST;
+			unit_selected = "";
 		}
-		if (unit_selected == "watchtower")
+		else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
 		{
-			entt::entity entity = WatchTower::createWatchTower({ xpos, ypos });
+			entt::entity entity = Watchtower::createWatchtower({ x_grid, y_grid });
+			health -= WATCHTOWER_COST;
+			unit_selected = "";
+		}
+	}
+	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		Button button = UI_click_system();
+		std::cout << button_to_string(button) << " pressed " << std::endl; //enums are listed in common.hpp
+		if (button == Button::tower_button) {
+			unit_selected = WATCHTOWER_NAME;
+		}
+		else if (button == Button::green_house_button) {
+			unit_selected = GREENHOUSE_NAME;
+		}
+		else if (button == Button::stick_figure_button) {
+			unit_selected = HUNTER_NAME;
 		}
 	}
 }
