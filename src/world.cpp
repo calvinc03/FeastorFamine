@@ -476,13 +476,13 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 		}
 		else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
 		{
-			entt::entity entity = Greenhouse::createGreenhouse({ x_grid, y_grid });
+			entt::entity entity = GreenHouse::createGreenHouse({ x_grid, y_grid });
 			health -= GREENHOUSE_COST;
 			unit_selected = "";
 		}
 		else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
 		{
-			entt::entity entity = Watchtower::createWatchtower({ x_grid, y_grid });
+			entt::entity entity = WatchTower::createWatchTower({ x_grid, y_grid });
 			health -= WATCHTOWER_COST;
 			unit_selected = "";
 		}
