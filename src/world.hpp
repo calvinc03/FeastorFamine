@@ -66,6 +66,9 @@ private:
 	float round_timer;
 	int round_number;
 
+	//UI
+	entt::entity ui;
+
 	std::string unit_selected;
 
 	// music references

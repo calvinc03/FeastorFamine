@@ -13,6 +13,8 @@
 #include "village.hpp"
 
 #include "camera.hpp"
+
+#include "ui.hpp"
 // stlib
 #include <string.h>
 #include <cassert>
@@ -250,7 +252,13 @@ void WorldSystem::restart()
 	screen_state_entity = registry.create();
 	registry.emplace<ScreenState>(screen_state_entity);
 	
-	
+	//create UI	-- needs to be at the top of restart for rendering order. 
+	UI_element::createUI_button(0, tower_button);
+	UI_element::createUI_button(1, green_house_button);
+	UI_element::createUI_button(2, stick_figure_button);
+	ui = UI::createUI();
+
+
 	
 	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
 	//while (ECS::registry<Motion>.entities.size()>0)
@@ -393,9 +401,36 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
 	current_speed = std::max(0.f, current_speed);
 }
+// for detecting if mouse is within a box centered at p with scale b
+float sdBox(vec2 p, vec2 b) {
+	vec2 d = abs(p) - b;
+	return length(max(d, vec2(0.0, 0.0))) + min(max(d.x, d.y), 0.0f);
+}
+//will move this function outside of world eventually.
+void UI_highlight_system(vec2 mouse_pos) {
+	auto view_ui = registry.view<Motion, HighlightBool>(); //may make separate registry for UI elements. Could have position+scale instead of motion component
+	for (auto [entity, motion, highlight] : view_ui.each()) {
+		if (sdBox(mouse_pos / (float)GRID_CELL_SIZE - motion.position, motion.scale / 2.0f / (float)GRID_CELL_SIZE) < 0.0f) {
+			highlight.highlight = true;
+		}
+		else {
+			highlight.highlight = false;
+		}
+	}
+}
+Button UI_click_system() {
+	auto view_ui = registry.view<HighlightBool, Button>();
+	for (auto [entity, highlight, button] : view_ui.each()) {
+		if (highlight.highlight) { // if it's highligted
+			return button;
+		}
+	}
+	return no_button;
+}
 
 void WorldSystem::on_mouse_move(vec2 mouse_pos)
-{
+{	
+	UI_highlight_system(mouse_pos);
     // if village is alive
     if (health > 0)
     {
@@ -414,7 +449,11 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 
 // mouse click callback function 
 void WorldSystem::on_mouse_click(int button, int action, int mod) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		Button button = UI_click_system();
+		std::cout << button_to_string(button) << " pressed " << std::endl; //enums are listed in common.hpp
 
+	}
 	// Mouse click for placing units 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "")
 	{

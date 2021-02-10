@@ -78,6 +78,16 @@ struct Animate {
 	float frame_num = 1.f;
 };
 
+// id for entity
+struct Tag {
+	std::string tag;
+};
+
+//enum for ui buttons
+enum Button { no_button, tower_button, green_house_button, stick_figure_button };
+
+std::string button_to_string(int button); // breaks if enums change
+
 //TODO: temporary soln
 #include "entt.hpp"
 extern entt::registry registry;

@@ -120,19 +120,27 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 		glEnableVertexAttribArray(in_color_loc);
 		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE, sizeof(ColoredVertex), reinterpret_cast<void*>(sizeof(vec3)));
 
-		// Light up?
-		// !!! TODO A1: check whether the entity has a LightUp component
-		if (false)
-		{
-			GLint light_up_uloc = glGetUniformLocation(texmesh.effect.program, "light_up");
 
-			// !!! TODO A1: set the light_up shader variable using glUniform1i
-			(void)light_up_uloc; // placeholder to silence unused warning until implemented
-		}
 	}
 	else
 	{
 		throw std::runtime_error("This type of entity is not yet supported");
+	}
+	//HIGHLIGHT for ui elements
+	if (registry.has<HighlightBool>(entity))
+	{
+		GLint highlight_uloc = glGetUniformLocation(texmesh.effect.program, "highlight");
+		if (highlight_uloc >= 0) {
+
+			if (registry.get<HighlightBool>(entity).highlight) {
+				glUniform1i(highlight_uloc, 1);
+			}
+			else {
+				glUniform1i(highlight_uloc, 0);
+			}
+
+		}
+
 	}
 	gl_has_errors();
 

@@ -27,6 +27,20 @@ void Transform::move_camera(vec2 offset)
 	camera_position.y += offset.y;
 }
 
+
+std::string button_to_string(int button) {
+	switch (button) {
+	case tower_button:
+		return "tower_button";
+	case green_house_button:
+		return "green_house_button";
+	case stick_figure_button:
+		return "stick_figure_button";
+	}
+	return "no button / invalid button / or this method is broken!";
+}
+
+
 entt::registry registry;
 
 entt::entity screen_state_entity;
