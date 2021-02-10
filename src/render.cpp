@@ -1,6 +1,7 @@
 // internal
 #include "render.hpp"
 #include "render_components.hpp"
+#include "camera.hpp"
 //#include "tiny_ecs.hpp"
 #include "entt.hpp"
 #include <iostream>
@@ -192,8 +193,6 @@ void RenderSystem::drawToScreen()
 	GLuint dead_timer_uloc = glGetUniformLocation(screen_sprite.effect.program, "darken_screen_factor");
 	glUniform1f(time_uloc, static_cast<float>(glfwGetTime() * 10.0f));
 
-	//auto& screen = ECS::registry<ScreenState>.get(screen_state_entity);
-	//entt::registry registry;
 	auto view = registry.view<ScreenState>();
 	auto& screen = view.get<ScreenState>(screen_state_entity);
 	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
@@ -238,11 +237,14 @@ void RenderSystem::draw()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	gl_has_errors();
 
+	auto view = registry.view<Motion>();
+	auto& camera_motion = view.get<Motion>(camera);
+	//std::cout << camera_motion.position.x << ", " << camera_motion.position.y << " | " << camera_motion.velocity.x << ", " << camera_motion.velocity.y << "\n";
 	// Fake projection matrix, scales with respect to window coordinates
-	float left = 0.f;
-	float top = 0.f;
-	float right = WINDOW_SIZE_IN_PX.x;
-	float bottom = WINDOW_SIZE_IN_PX.y;
+	float left = 0.f + camera_motion.position.x;
+	float top = 0.f + camera_motion.position.y;
+	float right = WINDOW_SIZE_IN_PX.x + camera_motion.position.x;
+	float bottom = WINDOW_SIZE_IN_PX.y + camera_motion.position.y;
 
 	float sx = 2.f / (right - left);
 	float sy = 2.f / (top - bottom);

@@ -43,10 +43,13 @@ inline std::string mesh_path(const std::string& name) { return data_path() + "/m
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)
 struct Transform {
+	vec2 camera_position = { 0.f, 0.f };
 	mat3 mat = { { 1.f, 0.f, 0.f }, { 0.f, 1.f, 0.f}, { 0.f, 0.f, 1.f} }; // start with the identity
 	void scale(vec2 scale);
 	void rotate(float radians);
 	void translate(vec2 offset);
+	void move_camera(vec2 offset);
+
 };
 
 // All data relevant to the shape and motion of entities
@@ -79,3 +82,5 @@ struct Animate {
 #include "entt.hpp"
 extern entt::registry registry;
 extern entt::entity screen_state_entity;
+// for camera view; zoom & pan
+extern entt::entity camera;

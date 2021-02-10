@@ -10,9 +10,9 @@
 #include "hunter.hpp"
 #include "greenhouse.hpp"
 #include "watchtower.hpp"
-
 #include "village.hpp"
 
+#include "camera.hpp"
 // stlib
 #include <string.h>
 #include <cassert>
@@ -255,7 +255,7 @@ void WorldSystem::restart()
 	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
 	//while (ECS::registry<Motion>.entities.size()>0)
 	//	ECS::ContainerInterface::remove_all_components_of(ECS::registry<Motion>.entities.back());
-
+	
 	// Debugging for memory/component leaks
 	//ECS::ContainerInterface::list_all_components();
 
@@ -277,6 +277,8 @@ void WorldSystem::restart()
 
 	// create village
 	village = Village::createVillage();
+	
+	camera = Camera::createCamera();
 }
 
 // Compute collisions between entities
@@ -319,6 +321,21 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	{
 	}
 
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_SPACE) {
+		auto view = registry.view<Motion, MouseMovement>();
+		auto& motion = view.get<Motion>(camera);
+		auto& mouse_move = view.get<MouseMovement>(camera);
+		mouse_move.mouse_start = mouse_move.mouse_pos + motion.position;
+		mouse_move.state = 1;
+	}
+	else if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE) {
+		auto view = registry.view<Motion, MouseMovement>();
+		auto& motion = view.get<Motion>(camera);
+		auto& mouse_move = view.get<MouseMovement>(camera);
+		mouse_move.state = 0;
+	}
+
 	// Hot keys for changing sprite appearance
 	
 	//if (action == GLFW_PRESS && key == GLFW_KEY_7)
@@ -333,6 +350,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	//{
 	//	registry.get<Animate>(village).frame = 2;
 	//}
+
 
 
 	// Hot keys for selecting placeable units
@@ -382,7 +400,16 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
     if (health > 0)
     {
     }
-    (void)mouse_pos;
+
+	// camera control 
+	auto view = registry.view<Motion, MouseMovement>();
+	auto& motion = view.get<Motion>(camera);
+	auto& mouse_move = view.get<MouseMovement>(camera);
+	mouse_move.mouse_pos = mouse_pos;
+	if (mouse_move.state == 1) {
+		motion.position = vec2(mouse_move.mouse_start.x - mouse_pos.x, mouse_move.mouse_start.y - mouse_pos.y);
+	}
+	
 }
 
 // mouse click callback function 

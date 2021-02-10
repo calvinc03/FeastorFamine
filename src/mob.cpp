@@ -22,7 +22,7 @@ entt::entity Mob::createMobEntt()
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 380.f, 0 };
+    motion.velocity = { 3.f, 0 };
     motion.position = FOREST_COORD;
     // Setting initial values, scale is 1
     motion.scale = vec2({ 0.3f, 0.3f }) * static_cast<vec2>(resource.texture.size);

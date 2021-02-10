@@ -25,7 +25,7 @@ entt::entity SpringBoss::createSpringBossEntt()
     //auto& motion = ECS::registry<Motion>.emplace(entity);
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 380.f, 0 };
+    motion.velocity = { 4.f, 0 };
     motion.position = FOREST_COORD;
     // Setting initial values, scale is 1
     motion.scale = vec2({ 1, 1 }) * static_cast<vec2>(resource.texture.size);
