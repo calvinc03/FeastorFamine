@@ -20,14 +20,21 @@ entt::entity GridMap::createGridMapEntt()
     for (int x = 0; x < WINDOW_SIZE_IN_COORD.x; x++){
         map.node_entt_matrix[x].resize(WINDOW_SIZE_IN_COORD.y);
         for (int y = 0; y < WINDOW_SIZE_IN_COORD.y; y++){
-            map.node_entt_matrix[x][y] = GridNode::createGridNodeEntt(GRID_DEFAULT, vec2(x, y));
+            int type = GRID_DEFAULT;
+            if (ivec2(x, y) == FOREST_COORD) {
+                type = GRID_FOREST;
+            } else if (ivec2(x, y) == VILLAGE_COORD) {
+                type = GRID_VILLAGE;
+            }
+            map.node_entt_matrix[x][y] = GridNode::createGridNodeEntt(type, vec2(x, y));
         }
     }
     return entity;
 }
 
+// add offset so that pixel is centered on grid
 ivec2 GridMap::coordToPixel(ivec2 grid_coord) {
-    return grid_coord * GRID_CELL_SIZE;
+    return grid_coord * GRID_CELL_SIZE + GRID_OFFSET;
 }
 
 ivec2 GridMap::pixelToCoord(ivec2 pixel_coord) {
@@ -55,7 +62,7 @@ void GridMap::setPathFromCoords(std::vector<vec2>& grid_coords) {
     path_entt.resize(grid_coords.size());
     for(vec2 grid_coord : grid_coords) {
         auto& node = node_entt_matrix[grid_coord.x][grid_coord.y];
-        registry.get<GridNode>(node).type = GRID_PATH;
+//        registry.get<GridNode>(node).type = GRID_PATH;
         path_entt.push_back(node);
     }
 }

@@ -3,6 +3,7 @@
 #include "render_components.hpp"
 //#include "tiny_ecs.hpp"
 #include "entt.hpp"
+#include "grid_map.hpp"
 #include <iostream>
 
 void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
@@ -201,11 +202,23 @@ void RenderSystem::draw()
     (void) view;
 	// Draw all textured meshes that have a position and size component
 	//for (ECS::Entity entity : ECS::registry<ShadedMeshRef>.entities)
+
+	auto view_nodes = registry.view<GridNode>();
+
+    // draw the nodes first
+    for (entt::entity entity : view_mesh_ref)
+    {
+        if (!registry.has<GridNode>(entity))
+            continue;
+        drawTexturedMesh(entity, projection_2D);
+        gl_has_errors();
+    }
+
 	for (entt::entity entity : view_mesh_ref)
 	{
 		//if (!ECS::registry<Motion>.has(entity))
 		//	continue;
-		if (!registry.has<Motion>(entity))
+		if (registry.has<GridNode>(entity) || !registry.has<Motion>(entity))
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity albeit iterating through all Sprites in sequence
 		drawTexturedMesh(entity, projection_2D);

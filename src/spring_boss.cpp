@@ -3,6 +3,7 @@
 #include "render.hpp"
 #include "common.hpp"
 #include "spring_boss.hpp"
+#include "grid_map.hpp"
 
 entt::entity SpringBoss::createSpringBossEntt()
 {
@@ -25,8 +26,8 @@ entt::entity SpringBoss::createSpringBossEntt()
     //auto& motion = ECS::registry<Motion>.emplace(entity);
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 380.f, 0 };
-    motion.position = FOREST_COORD;
+    motion.velocity = { 200.f, 0 };
+    motion.position = GridMap::coordToPixel(FOREST_COORD);
     // Setting initial values, scale is 1
     motion.scale = vec2({ 1, 1 }) * static_cast<vec2>(resource.texture.size);
 
