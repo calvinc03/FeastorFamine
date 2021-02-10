@@ -130,6 +130,22 @@ void WorldSystem::init_audio()
 
 }
 
+
+//stop entities from going off screen + modify motion component
+void wall_check() {
+	auto view_motion = registry.view<Motion>();
+	ivec2 coords = WINDOW_SIZE_IN_COORD; //TODO: arbitrary offset, may want to use bounding box.
+	for (auto [entity, motion] : view_motion.each()) {
+		if (motion.position.x < 0.0f || motion.position.x > coords.x) {
+			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting x bounds
+		}
+		if (motion.position.y < 0.0f || motion.position.y > coords.y) {
+			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting y bounds
+		}
+	}
+}
+
+
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
@@ -137,34 +153,9 @@ void WorldSystem::step(float elapsed_ms)
 	std::stringstream title_ss;
 	title_ss << "Food: " << health << " Round: " << round_number;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
-	//
-	// Removing out of screen entities
-	//auto& registry = ECS::registry<Motion>; // TODO
 
-	// Remove entities that leave the screen on the left side
-	// Iterate backwards to be able to remove without unterfering with the next object to visit
-	// (the containers exchange the last element with the current upon delete)
-	//for (int i = static_cast<int>(registry.components.size())-1; i >= 0; --i)
-	//{
-	//	auto& motion = registry.components[i];
-	//	if (motion.position.x + abs(motion.scale.x) < 0.f)
-	//	{
-	//		ECS::ContainerInterface::remove_all_components_of(registry.entities[i]);
-	//	}
-	//}
 
-	//stop entities from going off screen + modify motion component
-	auto view_motion = registry.view<Motion>();
-	ivec2 coords = WINDOW_SIZE_IN_PX - ivec2(50,0); //TODO: arbitrary offset, may want to use bounding box.
-	for (auto [entity, motion] : view_motion.each()) {
-		if (motion.position.x < 0.0f || motion.position.x > coords.x) {
-			
-			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting x bounds
-		}
-		if (motion.position.y < 0.0f || motion.position.y > coords.y) {
-			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting y bounds
-		}
-	}
+	wall_check(); // prevent things from going off screen.
 
 	// animation
 
@@ -266,7 +257,7 @@ void WorldSystem::restart()
 	ui = UI::createUI();
 
 
-	
+	health = 500;
 	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
 	//while (ECS::registry<Motion>.entities.size()>0)
 	//	ECS::ContainerInterface::remove_all_components_of(ECS::registry<Motion>.entities.back());
