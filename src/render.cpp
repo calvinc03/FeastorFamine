@@ -2,6 +2,7 @@
 #include "render.hpp"
 #include "render_components.hpp"
 #include "camera.hpp"
+#include "ui.hpp"
 //#include "tiny_ecs.hpp"
 #include "entt.hpp"
 #include <iostream>
@@ -66,19 +67,27 @@ void RenderSystem::animate(entt::entity entity)
 
 void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 {
-	//auto& motion = ECS::registry<Motion>.get(entity);
-	//auto& texmesh = *ECS::registry<ShadedMeshRef>.get(entity).reference_to_cache;
-	//entt::registry registry;
-	auto view = registry.view<Motion, ShadedMeshRef>();
-	//auto& motion = registry.view<Motion>().get<Motion>(entity);
-	auto& motion = view.get<Motion>(entity);
-	//auto& texmesh = *registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity).reference_to_cache;
-	auto& texmesh = *view.get<ShadedMeshRef>(entity).reference_to_cache;
+	vec2 position;
+	vec2 scale;
+	if (registry.has<Motion>(entity)) {
+		auto& motion = registry.get<Motion>(entity);
+		position = motion.position;
+		scale = motion.scale;
+	}
+	else if (registry.has<UI_element>(entity)) {
+		auto& ui_element = registry.get<UI_element>(entity);
+		position = ui_element.position;
+		scale = ui_element.scale;
+	} 
+
+	
+	auto& texmesh = *registry.get<ShadedMeshRef>(entity).reference_to_cache;
+
 	// Transformation code, see Rendering and Transformation in the template specification for more info
 	// Incrementally updates transformation matrix, thus ORDER IS IMPORTANT
 	Transform transform;
-	transform.translate(motion.position);
-	transform.scale(motion.scale);
+	transform.translate(position);
+	transform.scale(scale);
 
 	// Setting shaders
 	glUseProgram(texmesh.effect.program);
@@ -140,8 +149,18 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 			}
 
 		}
-
 	}
+
+	if (registry.has<HitReaction>(entity)) {
+		GLint hit_bool_uloc = glGetUniformLocation(texmesh.effect.program, "hit_bool");
+		if (registry.get<HitReaction>(entity).hit_bool) {
+			glUniform1i(hit_bool_uloc, 1);
+		}
+		else {
+			glUniform1i(hit_bool_uloc, 0);
+		}
+	}
+
 	gl_has_errors();
 
 	// Getting uniform locations for glUniform* calls
@@ -260,20 +279,31 @@ void RenderSystem::draw()
 	float ty = -(top + bottom) / (top - bottom);
 	mat3 projection_2D{ { sx, 0.f, 0.f },{ 0.f, sy, 0.f },{ tx, ty, 1.f } };
 
+	// some repeated code for the ui matrix -- any suggestions on how to avoid this?
+	float left_ui = 0.f;
+	float top_ui = 0.f;
+	float right_ui = WINDOW_SIZE_IN_PX.x;
+	float bottom_ui = WINDOW_SIZE_IN_PX.y;
 
-	//entt::registry registry;
+	float sx_ui = 2.f / (right_ui - left_ui);
+	float sy_ui = 2.f / (top_ui - bottom_ui);
+	float tx_ui = -(right_ui + left_ui) / (right_ui - left_ui);
+	float ty_ui = -(top_ui + bottom_ui) / (top_ui - bottom_ui);
+	mat3 projection_2D_ui{ { sx_ui, 0.f, 0.f },{ 0.f, sy_ui, 0.f },{ tx_ui, ty_ui, 1.f } };
 
 	auto view_mesh_ref = registry.view<ShadedMeshRef>();
 
 	// Draw all textured meshes that have a position and size component
-	for (entt::entity entity : view_mesh_ref)
+	for (entt::entity entity : view_mesh_ref) 		// Note, its not very efficient to access elements indirectly via the entity albeit iterating through all Sprites in sequence
 	{
-		if (!registry.has<Motion>(entity))
-			continue;
-		// Note, its not very efficient to access elements indirectly via the entity albeit iterating through all Sprites in sequence
-		if (registry.has<Animate>(entity))
-			animate(entity);
-		drawTexturedMesh(entity, projection_2D);
+		if (registry.has<Motion>(entity)) {
+			if (registry.has<Animate>(entity))
+				animate(entity);
+			drawTexturedMesh(entity, projection_2D);
+		}
+		if (registry.has<UI_element>(entity)) {
+			drawTexturedMesh(entity, projection_2D_ui);
+		}
 		gl_has_errors();
 	}
 
