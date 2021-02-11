@@ -1,4 +1,4 @@
-#include "common.hpp"
+
 class GridNode {
 public:
     ivec2 coord;

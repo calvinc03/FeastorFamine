@@ -64,7 +64,6 @@ struct Motion {
 struct Monster {
     int health;
     int damage;
-    std::vector<entt::entity> path = {};
     int current_path_index = 0;
 };
 

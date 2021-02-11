@@ -1,7 +1,6 @@
 // Header
 #include "mob.hpp"
 #include "render.hpp"
-#include "common.hpp"
 #include "grid_map.hpp"
 
 entt::entity Mob::createMobEntt()

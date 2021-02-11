@@ -1,9 +1,6 @@
 // Header
-#include "mob.hpp"
 #include "render.hpp"
-#include "common.hpp"
 #include "spring_boss.hpp"
-#include "grid_map.hpp"
 
 entt::entity SpringBoss::createSpringBossEntt()
 {
@@ -35,7 +32,7 @@ entt::entity SpringBoss::createSpringBossEntt()
     monster.health = 20;
     monster.damage = 5;
 
-   registry.emplace<SpringBoss>(entity);
+    registry.emplace<SpringBoss>(entity);
 
     return entity;
 }

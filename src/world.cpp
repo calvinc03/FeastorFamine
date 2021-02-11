@@ -20,7 +20,7 @@
 
 // Game configuration
 const size_t MAX_MOBS = 20;
-const size_t MOB_DELAY_MS = 1000;
+const size_t MOB_DELAY_MS = 2000;
 const size_t MAX_BOSS = 2;
 const size_t BOSS_DELAY_MS = 5000;
 
@@ -138,38 +138,54 @@ void WorldSystem::step(float elapsed_ms)
 	//	}
 	//}
 
+    // Spawning new mobs
+    next_mob_spawn -= elapsed_ms * current_speed;
+    if (registry.view<Mob>().size() <= MAX_MOBS && next_mob_spawn < 0.f)
+    {
+        next_mob_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
+        auto entity = Mob::createMobEntt();
+        auto& motion = registry.get<Motion>(entity);
+        motion.velocity = length(motion.velocity) * intital_direction;
+    }
 	//Spawning new boss
 	next_boss_spawn -= elapsed_ms * current_speed;
 	if (registry.view<SpringBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
 	{
 		// Reset spawn timer and spawn boss
         next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
-        SpringBoss::createSpringBossEntt();
+        auto entity = SpringBoss::createSpringBossEntt();
+        auto& motion = registry.get<Motion>(entity);
+        motion.velocity = length(motion.velocity) * intital_direction;
 	}
 
-	// Spawning new mobs
-    next_mob_spawn -= elapsed_ms * current_speed;
-    if (registry.view<Mob>().size() <= MAX_MOBS && next_mob_spawn < 0.f)
-    {
-        next_mob_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
-        Mob::createMobEntt();
-    }
 
-//    // TODO follow the path on the grid
-//    auto& path = current_map.path_entt;
-//    // update velocity for every monster
-//    for(auto entity: registry.view<Monster>()) {
-//        auto& motion = registry.get<Motion>(entity);
-//        auto& current_path_node = registry.get<GridNode>(path.at(motion.current_path_index));
-//        // check that the monster is indeed within the current path node
-//        assert(GridMap::pixelToCoord(motion.position) == current_path_node.coord);
-//        ivec2 next_position = motion.position + elapsed_ms * motion.velocity;
-//        // if the next position of monster is on the same grid
-//        if (GridMap::pixelToCoord(next_position) == current_path_node.coord){
-//            ivec2 target_position = GridMap::coordToPixel(current_path_node.coord + ivec2(1,1));
-//        }
-//
-//    }
+    // update velocity for every monster
+    for(auto entity: registry.view<Monster>()) {
+        auto& monster = registry.get<Monster>(entity);
+        auto& motion = registry.get<Motion>(entity);
+        auto& current_path_node = registry.get<GridNode>(monster_path.at(monster.current_path_index));
+
+        // check that the monster is indeed within the current path node
+        ivec2 coord = GridMap::pixelToCoord(motion.position);
+        assert(GridMap::pixelToCoord(motion.position) == current_path_node.coord);
+
+        // if we are on the last node, stop the monster and remove entity
+        // TODO: make disappearance fancier
+        if (monster.current_path_index >= monster_path.size() - 1) {
+            health -= monster.damage;
+            motion.velocity *= 0;
+            registry.destroy(entity);
+            continue;
+        }
+
+        GridNode next_path_node = registry.get<GridNode>(monster_path.at(monster.current_path_index + 1));
+        motion.velocity = length(motion.velocity) * normalize((vec2)(next_path_node.coord - current_path_node.coord));
+        // if we will reach the next node in the next step, increase path index for next step
+        ivec2 next_step_coord = GridMap::pixelToCoord(motion.position + (elapsed_ms / 1000.f) * motion.velocity);
+        if (next_step_coord == next_path_node.coord) {
+            monster.current_path_index++;
+        }
+    }
 
 
 	//// Processing the salmon state
@@ -223,16 +239,19 @@ void WorldSystem::restart()
 
     // create grid map
     current_map = registry.get<GridMap>(GridMap::createGridMapEntt());
-    // hardcode path
-    std::vector<vec2> path = {};
+    // hard code path
+    std::vector<ivec2> path = {};
     for (int y = FOREST_COORD.y; y < VILLAGE_COORD.y; y++) {
         path.emplace_back(FOREST_COORD.x, y);
     }
     for (int x = FOREST_COORD.x; x < VILLAGE_COORD.x; x++) {
         path.emplace_back(x, VILLAGE_COORD.y);
     }
-    // set path
-    current_map.setPathFromCoords(path);
+    monster_path = GridMap::getNodesFromCoords(current_map, path);
+
+    auto& first_path_node = registry.get<GridNode>(monster_path.at(0));
+    auto& second_path_node = registry.get<GridNode>(monster_path.at(1));
+    intital_direction = normalize((vec2)(second_path_node.coord - first_path_node.coord));
 }
 
 // Compute collisions between entities

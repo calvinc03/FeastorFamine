@@ -57,7 +57,8 @@ private:
 	float next_boss_spawn;
 	float next_mob_spawn;
     GridMap current_map;
-
+    std::vector<entt::entity> monster_path = {};
+    vec2 intital_direction;
 	std::string unit_selected;
 
 	// music references

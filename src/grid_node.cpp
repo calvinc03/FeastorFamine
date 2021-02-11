@@ -16,7 +16,7 @@ entt::entity GridNode::createGridNodeEntt(int type, vec2 coord)
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("grid_"+std::to_string(type)+".png"), "textured");
+        RenderSystem::createSprite(resource, textures_path("grid_0.png"), "textured");
     }
     registry.emplace<ShadedMeshRef>(entity, resource);
 
