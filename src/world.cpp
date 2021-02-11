@@ -155,7 +155,7 @@ void WorldSystem::step(float elapsed_ms)
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 
-	wall_check(); // prevent things from going off screen.
+	//wall_check(); // prevent things from going off screen.
 
 	// animation
 
