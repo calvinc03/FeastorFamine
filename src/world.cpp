@@ -242,31 +242,23 @@ void WorldSystem::restart()
 
 	// Reset the game speed
 	current_speed = 1.f;
+	health = 500; //reset health
+	unit_selected = ""; // no initial selection
+
 	
-	// Remove all entities that we created
-	
-	registry.clear();
+	registry.clear();	// Remove all entities that we created
 
 	screen_state_entity = registry.create();
 	registry.emplace<ScreenState>(screen_state_entity);
 	
 	//create UI	-- needs to be at the top of restart for rendering order. 
-	UI_element::createUI_button(0, tower_button);
-	UI_element::createUI_button(1, green_house_button);
-	UI_element::createUI_button(2, stick_figure_button);
-	ui = UI::createUI();
+	UI_button::createUI_button(0, tower_button);
+	UI_button::createUI_button(1, green_house_button);
+	UI_button::createUI_button(2, stick_figure_button);
+	UI_background::createUI_background();
 
 
-	health = 500;
-	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
-	//while (ECS::registry<Motion>.entities.size()>0)
-	//	ECS::ContainerInterface::remove_all_components_of(ECS::registry<Motion>.entities.back());
-	
-	// Debugging for memory/component leaks
-	//ECS::ContainerInterface::list_all_components();
 
-	// Create a new salmon
-	//player_salmon = Salmon::createSalmon({ 100, 200 });
 
     // create grid map
     current_map = registry.get<GridMap>(GridMap::createGridMapEntt());
@@ -404,6 +396,7 @@ float sdBox(vec2 p, vec2 b) {
 	vec2 d = abs(p) - b;
 	return length(max(d, vec2(0.0, 0.0))) + min(max(d.x, d.y), 0.0f);
 }
+
 //will move this function outside of world eventually.
 void UI_highlight_system(vec2 mouse_pos) {
 	auto view_ui = registry.view<Motion, HighlightBool>(); //may make separate registry for UI elements. Could have position+scale instead of motion component
@@ -416,14 +409,25 @@ void UI_highlight_system(vec2 mouse_pos) {
 		}
 	}
 }
+
 Button UI_click_system() {
-	auto view_ui = registry.view<HighlightBool, Button>();
-	for (auto [entity, highlight, button] : view_ui.each()) {
-		if (highlight.highlight) { // if it's highligted
+	auto view_buttons = registry.view<Button, HighlightBool>();
+	for (auto [entity, button, highlight] : view_buttons.each()) {
+		if (highlight.highlight) {
 			return button;
 		}
 	}
-	return no_button;
+
+	return no_button_pressed;
+}
+bool mouse_in_game_area(vec2 mouse_pos) {
+	auto view_ui = registry.view<Motion, UI_element>();
+	for (auto [entity, motion,ui_element] : view_ui.each()) {
+		if ((sdBox(mouse_pos / (float)GRID_CELL_SIZE - motion.position, motion.scale / 2.0f / (float)GRID_CELL_SIZE) < 0.0f)) {
+			return false;
+		}
+	}
+	return true;
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_pos)
@@ -455,10 +459,21 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	int x_grid = xpos / GRID_CELL_SIZE;
 	int y_grid = ypos / GRID_CELL_SIZE;
 
-	// Mouse click for placing units 
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "")
-	{
+	Button ui_button = UI_click_system();
+	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
 
+	//some debugging print outs
+	//if (in_game_area) { 
+	//	std::cout << "in game area" << std::endl;
+	//}
+	//else {
+	//	std::cout << "not in game area" << std::endl;
+	//	std::cout << button_to_string(ui_button) << " pressed " << std::endl;
+	//}
+
+	// Mouse click for placing units 
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "" && in_game_area)
+	{
 		if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
 		{
 			entt::entity entity = Hunter::createHunter({ x_grid, y_grid });
@@ -478,17 +493,22 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 			unit_selected = "";
 		}
 	}
-	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		Button button = UI_click_system();
-		std::cout << button_to_string(button) << " pressed " << std::endl; //enums are listed in common.hpp
-		if (button == Button::tower_button) {
+	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area) {
+		
+		if (ui_button == Button::tower_button) {
 			unit_selected = WATCHTOWER_NAME;
 		}
-		else if (button == Button::green_house_button) {
+		else if (ui_button == Button::green_house_button) {
 			unit_selected = GREENHOUSE_NAME;
 		}
-		else if (button == Button::stick_figure_button) {
+		else if (ui_button == Button::stick_figure_button) {
 			unit_selected = HUNTER_NAME;
+		} 
+		else {
+			unit_selected = "";
 		}
 	}
+
+	//std::cout << "selected: " << unit_selected << std::endl;
+	
 }

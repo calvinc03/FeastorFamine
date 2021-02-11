@@ -84,7 +84,7 @@ struct Tag {
 };
 
 //enum for ui buttons
-enum Button { no_button, tower_button, green_house_button, stick_figure_button };
+enum Button { no_button_pressed, tower_button, green_house_button, stick_figure_button};
 
 std::string button_to_string(int button); // breaks if enums change
 
