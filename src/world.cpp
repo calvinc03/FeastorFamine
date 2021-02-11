@@ -189,9 +189,9 @@ void WorldSystem::step(float elapsed_ms)
     }
 
 	round_timer -= elapsed_ms;
+	//TODO: only increment round number if certain conditions are met (no enemies left)
 	if (round_timer < 0.0f) {
-		std::stringstream title_ss;
-		//TODO: only increment round number if certain conditions are met (no enemies left)
+		
 		round_number++;
 		round_timer = ROUND_TIME; // no delay between rounds
 	}
@@ -236,15 +236,14 @@ void WorldSystem::step(float elapsed_ms)
 // Reset the world state to its initial state
 void WorldSystem::restart()
 {
-	// Debugging for memory/component leaks
-	//ECS::ContainerInterface::list_all_components(); //TODO 
 	std::cout << "Restarting\n";
 
-	// Reset the game speed
+	// Reset the game state
 	current_speed = 1.f;
 	health = 500; //reset health
 	unit_selected = ""; // no initial selection
-
+	round_number = 0;
+	round_timer = ROUND_TIME;
 	
 	registry.clear();	// Remove all entities that we created
 

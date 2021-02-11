@@ -15,7 +15,7 @@ entt::entity SpringBoss::createSpringBossEntt()
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("hawk.png"), "textured");
+        RenderSystem::createSprite(resource, textures_path("hawk.png"), "monster");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -34,7 +34,8 @@ entt::entity SpringBoss::createSpringBossEntt()
     monster.health = 20;
     monster.damage = 5;
 
-   registry.emplace<SpringBoss>(entity);
+    registry.emplace<SpringBoss>(entity);
+    registry.emplace<HitReaction>(entity);
 
     return entity;
 }
