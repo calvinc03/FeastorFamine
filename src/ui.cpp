@@ -24,6 +24,7 @@ Button UI_click_system() {
 	}
 	return no_button_pressed;
 }
+
 std::string button_to_string(int button) {
 	switch (button) {
 	case tower_button:
@@ -32,6 +33,8 @@ std::string button_to_string(int button) {
 		return "green_house_button";
 	case stick_figure_button:
 		return "stick_figure_button";
+	case wall_button:
+		return "wall_button";
 	}
 	return "no button / invalid button / or this method is broken!";
 }
@@ -77,6 +80,9 @@ entt::entity UI_button::createUI_button(int pos, Button button) {
 		}
 		else if (button == stick_figure_button) {
 			RenderSystem::createSprite(resource, textures_path("stickfigure.png"), "ui");
+		}
+		else if (button ==wall_button) {
+			RenderSystem::createSprite(resource, textures_path("wall_icon.png"), "ui");
 		}
 	}
 

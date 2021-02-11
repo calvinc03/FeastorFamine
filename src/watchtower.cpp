@@ -5,12 +5,6 @@
 
 entt::entity WatchTower::createWatchTower(vec2 pos)
 {
-    // snap to nearest grid size
-    int xpos = (pos.x + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE;
-    xpos *= GRID_CELL_SIZE;
-    int ypos = (pos.y + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE;
-    ypos *= GRID_CELL_SIZE;
-
     // Reserve an entity
     auto entity = registry.create();
 
@@ -28,7 +22,7 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
 
     // Initialize the position component
     auto& motion = registry.emplace<Motion>(entity);
-    motion.position = vec2{ xpos, ypos };
+    motion.position = pos;
     // Then we scale it to whatever size is needed
     motion.scale *= 3.f;
 

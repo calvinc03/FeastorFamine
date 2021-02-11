@@ -15,8 +15,8 @@ public:
 
     static vec2 coordToPixel(ivec2 grid_coord);
     static ivec2 pixelToCoord(vec2 pixel_coord);
-    static entt::entity getEntityAtCoord(std::vector<std::vector<entt::entity>>& node_matrix, ivec2 grid_coord);
-    static GridNode& getNodeAtCoord(std::vector<std::vector<entt::entity>>& node_matrix, ivec2 grid_coord);
-    void setGridType(std::vector<std::vector<entt::entity>>& node_matrix, vec2 grid_coord, int type);
+    static entt::entity getEntityAtCoord(GridMap current_map, ivec2 grid_coord);
+    static GridNode& getNodeAtCoord(GridMap current_map, ivec2 grid_coord);
+    void setGridType(GridMap current_map, vec2 grid_coord, int type);
     static std::vector<entt::entity> getNodesFromCoords(GridMap current_map, std::vector<ivec2>& grid_coords);
 };

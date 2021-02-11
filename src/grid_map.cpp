@@ -35,20 +35,20 @@ ivec2 GridMap::pixelToCoord(vec2 pixel_coord) {
     return (ivec2)pixel_coord / GRID_CELL_SIZE;
 }
 
-void GridMap::setGridType(std::vector<std::vector<entt::entity>>& node_matrix, vec2 grid_coord, int type) {
+void GridMap::setGridType(GridMap current_map, vec2 grid_coord, int type) {
     if (grid_coord.x < 0 || grid_coord.y < 0 || grid_coord.x > WINDOW_SIZE_IN_COORD.x || grid_coord.y > WINDOW_SIZE_IN_COORD.y) {
         std::cout<<"Debug: out of bounds"<< std::endl;
         return;
     }
-    getNodeAtCoord(node_matrix, grid_coord).type = type;
+    getNodeAtCoord(current_map, grid_coord).type = type;
 }
 
-entt::entity GridMap::getEntityAtCoord(std::vector<std::vector<entt::entity>>& node_matrix, ivec2 grid_coord) {
-    return node_matrix[grid_coord.x][grid_coord.y];
+entt::entity GridMap::getEntityAtCoord(GridMap current_map, ivec2 grid_coord) {
+    return current_map.node_matrix[grid_coord.x][grid_coord.y];
 }
 
-GridNode& GridMap::getNodeAtCoord(std::vector<std::vector<entt::entity>>& node_matrix, ivec2 grid_coord) {
-    return registry.get<GridNode>(getEntityAtCoord(node_matrix, grid_coord));
+GridNode& GridMap::getNodeAtCoord(GridMap current_map, ivec2 grid_coord) {
+    return registry.get<GridNode>(getEntityAtCoord(current_map, grid_coord));
 }
 
 std::vector<entt::entity> GridMap::getNodesFromCoords(GridMap current_map, std::vector<ivec2>& grid_coords){
