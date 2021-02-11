@@ -10,8 +10,11 @@
 #include "hunter.hpp"
 #include "greenhouse.hpp"
 #include "watchtower.hpp"
+#include "village.hpp"
 
+#include "camera.hpp"
 
+#include "ui.hpp"
 // stlib
 #include <string.h>
 #include <cassert>
@@ -20,15 +23,27 @@
 
 // Game configuration
 const size_t MAX_MOBS = 20;
-const size_t MOB_DELAY_MS = 2000;
+const size_t MOB_DELAY_MS = 3000;
 const size_t MAX_BOSS = 2;
 const size_t BOSS_DELAY_MS = 5000;
+const size_t ANIMATION_FPS = 12;
+
+const size_t ROUND_TIME = 30 * 1000; // 30 seconds?
+
+const size_t WATCHTOWER_COST = 300;
+const size_t GREENHOUSE_COST = 500;
+const size_t HUNTER_COST = 100;
+const std::string WATCHTOWER_NAME = "watchtower";
+const std::string GREENHOUSE_NAME = "greenhouse";
+const std::string HUNTER_NAME = "hunter";
 
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 WorldSystem::WorldSystem(ivec2 window_size_px) :
+		fps_ms(1000 / ANIMATION_FPS),
         health(500),
         next_boss_spawn(0.f),
-        next_mob_spawn(0.f) {
+        next_mob_spawn(0.f),
+		round_timer(ROUND_TIME), round_number(0){
     // Seeding rng with random device
     rng = std::default_random_engine(std::random_device()());
 
@@ -115,49 +130,71 @@ void WorldSystem::init_audio()
 
 }
 
+
+//stop entities from going off screen + modify motion component
+void wall_check() {
+	auto view_motion = registry.view<Motion>();
+	ivec2 coords = WINDOW_SIZE_IN_COORD; //TODO: arbitrary offset, may want to use bounding box.
+	for (auto [entity, motion] : view_motion.each()) {
+		if (motion.position.x < 0.0f || motion.position.x > coords.x) {
+			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting x bounds
+		}
+		if (motion.position.y < 0.0f || motion.position.y > coords.y) {
+			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting y bounds
+		}
+	}
+}
+
+
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
 	// Updating window title with health
 	std::stringstream title_ss;
-	title_ss << "Food: " << health;
+	title_ss << "Food: " << health << " Round: " << round_number;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
-	//
-	// Removing out of screen entities
-	//auto& registry = ECS::registry<Motion>; // TODO
 
-	// Remove entities that leave the screen on the left side
-	// Iterate backwards to be able to remove without unterfering with the next object to visit
-	// (the containers exchange the last element with the current upon delete)
-	//for (int i = static_cast<int>(registry.components.size())-1; i >= 0; --i)
-	//{
-	//	auto& motion = registry.components[i];
-	//	if (motion.position.x + abs(motion.scale.x) < 0.f)
-	//	{
-	//		ECS::ContainerInterface::remove_all_components_of(registry.entities[i]);
-	//	}
-	//}
 
-    // Spawning new mobs
-    next_mob_spawn -= elapsed_ms * current_speed;
-    if (registry.view<Mob>().size() <= MAX_MOBS && next_mob_spawn < 0.f)
-    {
-        next_mob_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
-        auto entity = Mob::createMobEntt();
-        auto& motion = registry.get<Motion>(entity);
-        motion.velocity = length(motion.velocity) * intital_direction;
-    }
+	//wall_check(); // prevent things from going off screen.
+
+	// animation
+
+	fps_ms -= elapsed_ms;
+	if (fps_ms < 0.f) {
+		for (auto entity : registry.view<Animate>()) {
+			auto& animate = registry.get<Animate>(entity);
+			animate.frame += 1;
+			animate.frame = (int)animate.frame % (int)animate.frame_num;
+		}
+		fps_ms = 1000 / ANIMATION_FPS;
+	}
+	
+
+
 	//Spawning new boss
 	next_boss_spawn -= elapsed_ms * current_speed;
 	if (registry.view<SpringBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
 	{
 		// Reset spawn timer and spawn boss
         next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
-        auto entity = SpringBoss::createSpringBossEntt();
-        auto& motion = registry.get<Motion>(entity);
-        motion.velocity = length(motion.velocity) * intital_direction;
+        SpringBoss::createSpringBossEntt();
 	}
 
+	// Spawning new mobs
+    next_mob_spawn -= elapsed_ms * current_speed;
+    if (registry.view<Mob>().size() <= MAX_MOBS && next_mob_spawn < 0.f)
+    {
+        next_mob_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
+        Mob::createMobEntt();
+    }
+
+	round_timer -= elapsed_ms;
+	//TODO: only increment round number if certain conditions are met (no enemies left)
+	if (round_timer < 0.0f) {
+		
+		round_number++;
+		round_timer = ROUND_TIME; // no delay between rounds
+	}
 
     // update velocity for every monster
     for(auto entity: registry.view<Monster>()) {
@@ -211,35 +248,30 @@ void WorldSystem::step(float elapsed_ms)
 // Reset the world state to its initial state
 void WorldSystem::restart()
 {
-	// Debugging for memory/component leaks
-	//ECS::ContainerInterface::list_all_components(); //TODO 
 	std::cout << "Restarting\n";
 
-	// Reset the game speed
+	// Reset the game state
 	current_speed = 1.f;
+	health = 500; //reset health
+	unit_selected = ""; // no initial selection
+	round_number = 0;
+	round_timer = ROUND_TIME;
 	
-	// Remove all entities that we created
-	
-	registry.clear();
+	registry.clear();	// Remove all entities that we created
 
 	screen_state_entity = registry.create();
 	registry.emplace<ScreenState>(screen_state_entity);
 	
-	
-	
-	// All that have a motion, we could also iterate over all fish, turtles, ... but that would be more cumbersome
-	//while (ECS::registry<Motion>.entities.size()>0)
-	//	ECS::ContainerInterface::remove_all_components_of(ECS::registry<Motion>.entities.back());
+	//create UI	-- needs to be at the top of restart for rendering order. 
+	UI_button::createUI_button(0, tower_button);
+	UI_button::createUI_button(1, green_house_button);
+	UI_button::createUI_button(2, stick_figure_button);
+	UI_background::createUI_background();
 
-	// Debugging for memory/component leaks
-	//ECS::ContainerInterface::list_all_components();
-
-	// Create a new salmon
-	//player_salmon = Salmon::createSalmon({ 100, 200 });
 
     // create grid map
     current_map = registry.get<GridMap>(GridMap::createGridMapEntt());
-    // hard code path
+    // hardcode path
     std::vector<ivec2> path = {};
     for (int y = FOREST_COORD.y; y < VILLAGE_COORD.y; y++) {
         path.emplace_back(FOREST_COORD.x, y);
@@ -247,31 +279,39 @@ void WorldSystem::restart()
     for (int x = FOREST_COORD.x; x < VILLAGE_COORD.x; x++) {
         path.emplace_back(x, VILLAGE_COORD.y);
     }
+    // set path
     monster_path = GridMap::getNodesFromCoords(current_map, path);
 
-    auto& first_path_node = registry.get<GridNode>(monster_path.at(0));
-    auto& second_path_node = registry.get<GridNode>(monster_path.at(1));
-    intital_direction = normalize((vec2)(second_path_node.coord - first_path_node.coord));
+    // create village
+	village = Village::createVillage();
+	
+	camera = Camera::createCamera();
 }
 
 // Compute collisions between entities
 void WorldSystem::handle_collisions()
 {
-	// Loop over all collisions detected by the physics system
-	//auto& registry = ECS::registry<PhysicsSystem::Collision>;
-	//for (unsigned int i=0; i< registry.components.size(); i++)
-	//{
-	//	// The entity and its collider
+	//// Loop over all collisions detected by the physics system
 
-	//	//auto entity = registry.entities[i];
-	//	//auto entity_other = registry.components[i].other;
+	auto view_collision = registry.view<PhysicsSystem::Collision>();
+	for (auto [entity, collision] : view_collision.each()) {
+		auto& entity_other = collision.other;
 
-	//	// TODO
-	//	// check projectile and monster collision
-	//}
+		// TODO
+		// check projectile and monster collision
 
-	// Remove all collisions from this simulation step
-	//ECS::registry<PhysicsSystem::Collision>.clear();
+		//game breaking example code
+		//auto& test = registry.get<Motion>(entity);
+		//test.velocity.y += 50;
+
+		//auto& test2 = registry.get<Motion>(entity_other);
+		//test2.velocity.y += 50;
+
+		//this code destroys colliding entities -- must do a null check first.
+		//if (entity != entt::null)
+		//	registry.destroy(entity);
+	}
+	registry.clear<PhysicsSystem::Collision>();
 }
 
 // Should the game be over ?
@@ -287,6 +327,37 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	if (health > 0)
 	{
 	}
+
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_SPACE) {
+		auto view = registry.view<Motion, MouseMovement>();
+		auto& motion = view.get<Motion>(camera);
+		auto& mouse_move = view.get<MouseMovement>(camera);
+		mouse_move.mouse_start = mouse_move.mouse_pos + motion.position;
+		mouse_move.state = 1;
+	}
+	else if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE) {
+		auto view = registry.view<Motion, MouseMovement>();
+		auto& motion = view.get<Motion>(camera);
+		auto& mouse_move = view.get<MouseMovement>(camera);
+		mouse_move.state = 0;
+	}
+
+	// Hot keys for changing sprite appearance
+	
+	//if (action == GLFW_PRESS && key == GLFW_KEY_7)
+	//{
+	//	registry.get<Animate>(village).frame = 0;
+	//}
+	//else if (action == GLFW_PRESS && key == GLFW_KEY_8)
+	//{
+	//	registry.get<Animate>(village).frame = 1;
+	//}
+	//else if (action == GLFW_PRESS && key == GLFW_KEY_9)
+	//{
+	//	registry.get<Animate>(village).frame = 2;
+	//}
+
 
 
 	// Hot keys for selecting placeable units
@@ -330,36 +401,98 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	current_speed = std::max(0.f, current_speed);
 }
 
+bool mouse_in_game_area(vec2 mouse_pos) {
+	auto view_ui = registry.view< UI_element>();
+	for (auto [entity,ui_element] : view_ui.each()) {
+		if ((sdBox(mouse_pos / (float)GRID_CELL_SIZE, ui_element.position, ui_element.scale / 2.0f / (float)GRID_CELL_SIZE) < 0.0f)) {
+			return false;
+		}
+	}
+	return true;
+}
+
 void WorldSystem::on_mouse_move(vec2 mouse_pos)
-{
+{	
+	//if mouse is hovering over a button, then highlight
+	UI_highlight_system(mouse_pos);
     // if village is alive
     if (health > 0)
     {
     }
-    (void)mouse_pos;
+
+	// camera control 
+	auto view = registry.view<Motion, MouseMovement>();
+	auto& motion = view.get<Motion>(camera);
+	auto& mouse_move = view.get<MouseMovement>(camera);
+	mouse_move.mouse_pos = mouse_pos;
+	if (mouse_move.state == 1) {
+		motion.position = vec2(mouse_move.mouse_start.x - mouse_pos.x, mouse_move.mouse_start.y - mouse_pos.y);
+	}
+	
 }
 
 // mouse click callback function 
 void WorldSystem::on_mouse_click(int button, int action, int mod) {
+	//getting cursor position
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);
+
+	Motion camera_motion = registry.get<Motion>(camera);
+
+	// cursor position in grid units
+	int x_grid = (xpos + camera_motion.position.x) / GRID_CELL_SIZE;
+	int y_grid = (ypos  + camera_motion.position.y) / GRID_CELL_SIZE;
+
+	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
+	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
+
+	//some debugging print outs
+	if (in_game_area) { 
+		std::cout << "in game area" << std::endl;
+	}
+	else {
+		std::cout << "not in game area" << std::endl;
+		std::cout << button_to_string(ui_button) << " pressed " << std::endl;
+	}
 
 	// Mouse click for placing units 
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "")
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "" && in_game_area)
 	{
-		double xpos, ypos;
-		//getting cursor position
-		glfwGetCursorPos(window, &xpos, &ypos);
-
-		if (unit_selected == "hunter")
+		if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
 		{
-			entt::entity entity = Hunter::createHunter({ xpos, ypos });
+			entt::entity entity = Hunter::createHunter({ x_grid, y_grid });
+			health -= HUNTER_COST;
+			unit_selected = "";
 		}
-		if (unit_selected == "greenhouse")
+		else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
 		{
-			entt::entity entity = GreenHouse::createGreenHouse({ xpos, ypos });
+			entt::entity entity = GreenHouse::createGreenHouse({ x_grid, y_grid });
+			health -= GREENHOUSE_COST;
+			unit_selected = "";
 		}
-		if (unit_selected == "watchtower")
+		else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
 		{
-			entt::entity entity = WatchTower::createWatchTower({ xpos, ypos });
+			entt::entity entity = WatchTower::createWatchTower({ x_grid, y_grid });
+			health -= WATCHTOWER_COST;
+			unit_selected = "";
 		}
 	}
+	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area) {
+		
+		if (ui_button == Button::tower_button) {
+			unit_selected = WATCHTOWER_NAME;
+		}
+		else if (ui_button == Button::green_house_button) {
+			unit_selected = GREENHOUSE_NAME;
+		}
+		else if (ui_button == Button::stick_figure_button) {
+			unit_selected = HUNTER_NAME;
+		} 
+		else {
+			unit_selected = "";
+		}
+	}
+
+	//std::cout << "selected: " << unit_selected << std::endl;
+	
 }

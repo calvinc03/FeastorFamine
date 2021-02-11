@@ -49,16 +49,29 @@ private:
 	// Loads the audio
 	void init_audio();
 
-	// Number of fish eaten by the salmon, displayed in the window title
+	// village
+	entt::entity village;
+
+	// animation fps
+	float fps_ms;
+
+	// health of the village
 	unsigned int health;
 
 	// Game state
 	float current_speed;
 	float next_boss_spawn;
 	float next_mob_spawn;
+
     GridMap current_map;
     std::vector<entt::entity> monster_path = {};
-    vec2 intital_direction;
+
+	float round_timer;
+	int round_number;
+
+	//UI
+	entt::entity ui;
+
 	std::string unit_selected;
 
 	// music references

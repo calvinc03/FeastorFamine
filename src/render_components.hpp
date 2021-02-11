@@ -143,3 +143,12 @@ struct DeathTimer
 {
 	float counter_ms = 1000;
 };
+struct HitReaction
+{
+	bool hit_bool;
+};
+//for ui 
+struct HighlightBool
+{
+	bool highlight = false;
+};

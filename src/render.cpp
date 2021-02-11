@@ -1,28 +1,94 @@
 // internal
 #include "render.hpp"
 #include "render_components.hpp"
+#include "camera.hpp"
+#include "ui.hpp"
 //#include "tiny_ecs.hpp"
 #include "entt.hpp"
 #include "grid_map.hpp"
 #include <iostream>
 
+void RenderSystem::animate(entt::entity entity)
+{
+	auto view = registry.view<Animate, ShadedMeshRef>();
+	auto& animate = view.get<Animate>(entity);
+
+	auto& sprite = *view.get<ShadedMeshRef>(entity).reference_to_cache;
+
+	float state_num = animate.state_num;
+	float frame_num = animate.frame_num;
+
+	float curr_state = animate.state;
+	float curr_frame = animate.frame;
+
+	vec2 scale_pos = { 1.f, 1.f };
+	vec2 scale_tex = { 1.f, 1.f };
+	
+	// vec2 offset_pos = { 0.f, 0.f };
+	vec2 offset_tex = { 0.f, 0.f };
+
+	scale_tex = { 1 / frame_num, 1 / state_num };
+	scale_pos = { 1 / frame_num, 1 / state_num };
+	offset_tex = { curr_frame / frame_num, curr_state / state_num };
+	// offset_pos = { 0 / frame_num, 0 / state_num };
+
+	// The position corresponds to the center of the texture.
+	TexturedVertex vertices[4];
+
+	vertices[0].position = { -1.f / 2 * scale_pos.x, +1.f / 2 * scale_pos.y, 0.f };
+	vertices[1].position = { +1.f / 2 * scale_pos.x, +1.f / 2 * scale_pos.y, 0.f };
+	vertices[2].position = { +1.f / 2 * scale_pos.x, -1.f / 2 * scale_pos.y, 0.f };
+	vertices[3].position = { -1.f / 2 * scale_pos.x, -1.f / 2 * scale_pos.y, 0.f };
+	vertices[0].texcoord = { 0.f * scale_tex.x + offset_tex.x, 1.f * scale_tex.y + offset_tex.y };
+	vertices[1].texcoord = { 1.f * scale_tex.x + offset_tex.x, 1.f * scale_tex.y + offset_tex.y };
+	vertices[2].texcoord = { 1.f * scale_tex.x + offset_tex.x, 0.f * scale_tex.y + offset_tex.y };
+	vertices[3].texcoord = { 0.f * scale_tex.x + offset_tex.x, 0.f * scale_tex.y + offset_tex.y };
+
+	// Counterclockwise as it's the default opengl front winding direction.
+	uint16_t indices[] = { 0, 3, 1, 1, 3, 2 };
+
+	// generate vertex array object names
+	glGenVertexArrays(1, sprite.mesh.vao.data());
+	glGenBuffers(1, sprite.mesh.vbo.data());
+	glGenBuffers(1, sprite.mesh.ibo.data());
+	gl_has_errors();
+
+	// Vertex Buffer creation
+	glBindBuffer(GL_ARRAY_BUFFER, sprite.mesh.vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // sizeof(TexturedVertex) * 4
+	gl_has_errors();
+
+	// Index Buffer creation
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sprite.mesh.ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); // sizeof(uint16_t) * 6
+	gl_has_errors();
+
+	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
+}
+
 void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 {
-	//auto& motion = ECS::registry<Motion>.get(entity);
-	//auto& texmesh = *ECS::registry<ShadedMeshRef>.get(entity).reference_to_cache;
-	//entt::registry registry;
-	auto view = registry.view<Motion, ShadedMeshRef>();
-	//auto& motion = registry.view<Motion>().get<Motion>(entity);
-	auto& motion = view.get<Motion>(entity);
-	//auto& texmesh = *registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity).reference_to_cache;
-	auto& texmesh = *view.get<ShadedMeshRef>(entity).reference_to_cache;
-	//auto& texmesh = 
+	vec2 position;
+	vec2 scale;
+	if (registry.has<Motion>(entity)) {
+		auto& motion = registry.get<Motion>(entity);
+		position = motion.position;
+		scale = motion.scale;
+	}
+	else if (registry.has<UI_element>(entity)) {
+		auto& ui_element = registry.get<UI_element>(entity);
+		position = ui_element.position;
+		scale = ui_element.scale;
+	} 
+
+	
+	auto& texmesh = *registry.get<ShadedMeshRef>(entity).reference_to_cache;
+
 	// Transformation code, see Rendering and Transformation in the template specification for more info
 	// Incrementally updates transformation matrix, thus ORDER IS IMPORTANT
 	Transform transform;
-	transform.translate(motion.position);
-	transform.scale(motion.scale);
-	// !!! TODO A1: add rotation to the chain of transformations, mind the order of transformations
+	transform.translate(position);
+	transform.scale(scale);
 
 	// Setting shaders
 	glUseProgram(texmesh.effect.program);
@@ -64,20 +130,38 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 		glEnableVertexAttribArray(in_color_loc);
 		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE, sizeof(ColoredVertex), reinterpret_cast<void*>(sizeof(vec3)));
 
-		// Light up?
-		// !!! TODO A1: check whether the entity has a LightUp component
-		if (false)
-		{
-			GLint light_up_uloc = glGetUniformLocation(texmesh.effect.program, "light_up");
 
-			// !!! TODO A1: set the light_up shader variable using glUniform1i
-			(void)light_up_uloc; // placeholder to silence unused warning until implemented
-		}
 	}
 	else
 	{
 		throw std::runtime_error("This type of entity is not yet supported");
 	}
+	//HIGHLIGHT for ui elements
+	if (registry.has<HighlightBool>(entity))
+	{
+		GLint highlight_uloc = glGetUniformLocation(texmesh.effect.program, "highlight");
+		if (highlight_uloc >= 0) {
+
+			if (registry.get<HighlightBool>(entity).highlight) {
+				glUniform1i(highlight_uloc, 1);
+			}
+			else {
+				glUniform1i(highlight_uloc, 0);
+			}
+
+		}
+	}
+
+	if (registry.has<HitReaction>(entity)) {
+		GLint hit_bool_uloc = glGetUniformLocation(texmesh.effect.program, "hit_bool");
+		if (registry.get<HitReaction>(entity).hit_bool) {
+			glUniform1i(hit_bool_uloc, 1);
+		}
+		else {
+			glUniform1i(hit_bool_uloc, 0);
+		}
+	}
+
 	gl_has_errors();
 
 	// Getting uniform locations for glUniform* calls
@@ -137,8 +221,6 @@ void RenderSystem::drawToScreen()
 	GLuint dead_timer_uloc = glGetUniformLocation(screen_sprite.effect.program, "darken_screen_factor");
 	glUniform1f(time_uloc, static_cast<float>(glfwGetTime() * 10.0f));
 
-	//auto& screen = ECS::registry<ScreenState>.get(screen_state_entity);
-	//entt::registry registry;
 	auto view = registry.view<ScreenState>();
 	auto& screen = view.get<ScreenState>(screen_state_entity);
 	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
@@ -183,11 +265,14 @@ void RenderSystem::draw()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	gl_has_errors();
 
+	auto view = registry.view<Motion>();
+	auto& camera_motion = view.get<Motion>(camera);
+	//std::cout << camera_motion.position.x << ", " << camera_motion.position.y << " | " << camera_motion.velocity.x << ", " << camera_motion.velocity.y << "\n";
 	// Fake projection matrix, scales with respect to window coordinates
-	float left = 0.f;
-	float top = 0.f;
-	float right = WINDOW_SIZE_IN_PX.x;
-	float bottom = WINDOW_SIZE_IN_PX.y;
+	float left = 0.f + camera_motion.position.x;
+	float top = 0.f + camera_motion.position.y;
+	float right = WINDOW_SIZE_IN_PX.x + camera_motion.position.x;
+	float bottom = WINDOW_SIZE_IN_PX.y + camera_motion.position.y;
 
 	float sx = 2.f / (right - left);
 	float sy = 2.f / (top - bottom);
@@ -195,33 +280,41 @@ void RenderSystem::draw()
 	float ty = -(top + bottom) / (top - bottom);
 	mat3 projection_2D{ { sx, 0.f, 0.f },{ 0.f, sy, 0.f },{ tx, ty, 1.f } };
 
+	// some repeated code for the ui matrix -- any suggestions on how to avoid this?
+	float left_ui = 0.f;
+	float top_ui = 0.f;
+	float right_ui = WINDOW_SIZE_IN_PX.x;
+	float bottom_ui = WINDOW_SIZE_IN_PX.y;
 
-	//entt::registry registry;
-	auto view = registry.view<Motion>();
+	float sx_ui = 2.f / (right_ui - left_ui);
+	float sy_ui = 2.f / (top_ui - bottom_ui);
+	float tx_ui = -(right_ui + left_ui) / (right_ui - left_ui);
+	float ty_ui = -(top_ui + bottom_ui) / (top_ui - bottom_ui);
+	mat3 projection_2D_ui{ { sx_ui, 0.f, 0.f },{ 0.f, sy_ui, 0.f },{ tx_ui, ty_ui, 1.f } };
+
 	auto view_mesh_ref = registry.view<ShadedMeshRef>();
-    (void) view;
-	// Draw all textured meshes that have a position and size component
-	//for (ECS::Entity entity : ECS::registry<ShadedMeshRef>.entities)
 
-	auto view_nodes = registry.view<GridNode>();
-
+    auto view_nodes = registry.view<GridNode>();
     // draw the nodes first
-    for (entt::entity entity : view_mesh_ref)
+    for (entt::entity entity : view_nodes)
     {
-        if (!registry.has<GridNode>(entity))
-            continue;
         drawTexturedMesh(entity, projection_2D);
         gl_has_errors();
     }
 
-	for (entt::entity entity : view_mesh_ref)
+    for (entt::entity entity : view_mesh_ref) 		// Note, its not very efficient to access elements indirectly via the entity albeit iterating through all Sprites in sequence
 	{
-		//if (!ECS::registry<Motion>.has(entity))
-		//	continue;
-		if (registry.has<GridNode>(entity) || !registry.has<Motion>(entity))
-			continue;
-		// Note, its not very efficient to access elements indirectly via the entity albeit iterating through all Sprites in sequence
-		drawTexturedMesh(entity, projection_2D);
+        if (registry.has<GridNode>(entity)) {
+            continue;
+        }
+		if (registry.has<Motion>(entity)) {
+			if (registry.has<Animate>(entity))
+				animate(entity);
+			drawTexturedMesh(entity, projection_2D);
+		}
+		if (registry.has<UI_element>(entity)) {
+			drawTexturedMesh(entity, projection_2D_ui);
+		}
 		gl_has_errors();
 	}
 

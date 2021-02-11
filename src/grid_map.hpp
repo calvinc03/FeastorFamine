@@ -20,4 +20,3 @@ public:
     void setGridType(std::vector<std::vector<entt::entity>>& node_matrix, vec2 grid_coord, int type);
     static std::vector<entt::entity> getNodesFromCoords(GridMap current_map, std::vector<ivec2>& grid_coords);
 };
-

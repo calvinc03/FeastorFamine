@@ -24,17 +24,15 @@ static const int GRID_CELL_SIZE = 100;
 static const ivec2 GRID_OFFSET =  ivec2(GRID_CELL_SIZE/2 , GRID_CELL_SIZE/2);
 static const ivec2 WINDOW_SIZE_IN_PX = {1500, 900};
 static const ivec2 WINDOW_SIZE_IN_COORD = WINDOW_SIZE_IN_PX / GRID_CELL_SIZE;
-static const ivec2 FOREST_COORD = ivec2(0, 0) / GRID_CELL_SIZE;
-// bottom right position in 0 based indexing, integers are truncated so no need to floor
-static const ivec2 VILLAGE_COORD = (WINDOW_SIZE_IN_PX - ivec2(1, 1)) / GRID_CELL_SIZE;
+static const ivec2 FOREST_COORD = ivec2(0, 0);
+// bottom right position (TODO offset this by village size)
+static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
 
 enum grid_type
 {
     GRID_BLOCKED = -1,
     GRID_DEFAULT = 0,
-    GRID_FOREST = 1,
-    GRID_VILLAGE = 2,
-    GRID_PATH = 3,
+    GRID_PATH = 1,
 };
 
 // Simple utility functions to avoid mistyping directory name
@@ -47,10 +45,13 @@ inline std::string mesh_path(const std::string& name) { return data_path() + "/m
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)
 struct Transform {
+	vec2 camera_position = { 0.f, 0.f };
 	mat3 mat = { { 1.f, 0.f, 0.f }, { 0.f, 1.f, 0.f}, { 0.f, 0.f, 1.f} }; // start with the identity
 	void scale(vec2 scale);
 	void rotate(float radians);
 	void translate(vec2 offset);
+	void move_camera(vec2 offset);
+
 };
 
 // All data relevant to the shape and motion of entities
@@ -58,7 +59,7 @@ struct Motion {
 	vec2 position = { 0, 0 };
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
-    vec2 scale = { 10, 10 };
+	vec2 scale = { 10, 10 };
 };
 
 struct Monster {
@@ -67,7 +68,30 @@ struct Monster {
     int current_path_index = 0;
 };
 
+struct Food {
+	unsigned int food = 100;
+	float food_production_speed = 0;
+};
+
+struct Animate {
+	float state = 0.f;
+	float frame = 0.f;
+	float state_num = 1.f;
+	float frame_num = 1.f;
+};
+
+// id for entity
+struct Tag {
+	std::string tag;
+};
+
+
+//detects if mouse is within the a rectangle of size scale at position entity_pos
+float sdBox(vec2 mouse_pos_grid, vec2 entity_pos, vec2 scale);
+
 //TODO: temporary soln
 #include "entt.hpp"
 extern entt::registry registry;
 extern entt::entity screen_state_entity;
+// for camera view; zoom & pan
+extern entt::entity camera;

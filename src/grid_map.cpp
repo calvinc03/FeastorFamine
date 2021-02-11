@@ -20,11 +20,6 @@ entt::entity GridMap::createGridMapEntt()
         map.node_matrix[x].resize(WINDOW_SIZE_IN_COORD.y);
         for (int y = 0; y < WINDOW_SIZE_IN_COORD.y; y++){
             int type = GRID_DEFAULT;
-            if (ivec2(x, y) == FOREST_COORD) {
-                type = GRID_FOREST;
-            } else if (ivec2(x, y) == VILLAGE_COORD) {
-                type = GRID_VILLAGE;
-            }
             map.node_matrix[x][y] = GridNode::createGridNodeEntt(type, vec2(x, y));
         }
     }

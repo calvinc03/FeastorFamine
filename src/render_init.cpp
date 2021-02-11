@@ -36,6 +36,7 @@ RenderSystem::~RenderSystem()
 	//TODO: do this with entt
 }
 
+
 // Create a new sprite and register it with ECS
 void RenderSystem::createSprite(ShadedMesh& sprite, std::string texture_path, std::string shader_name)
 {
@@ -44,10 +45,10 @@ void RenderSystem::createSprite(ShadedMesh& sprite, std::string texture_path, st
 
 	// The position corresponds to the center of the texture.
 	TexturedVertex vertices[4];
-	vertices[0].position = { -1.f/2, +1.f/2, 0.f };
-	vertices[1].position = { +1.f/2, +1.f/2, 0.f };
-	vertices[2].position = { +1.f/2, -1.f/2, 0.f };
-	vertices[3].position = { -1.f/2, -1.f/2, 0.f };
+	vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
+	vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
+	vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
+	vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
 	vertices[0].texcoord = { 0.f, 1.f };
 	vertices[1].texcoord = { 1.f, 1.f };
 	vertices[2].texcoord = { 1.f, 0.f };

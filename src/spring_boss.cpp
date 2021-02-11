@@ -13,7 +13,7 @@ entt::entity SpringBoss::createSpringBossEntt()
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("hawk.png"), "textured");
+        RenderSystem::createSprite(resource, textures_path("hawk.png"), "monster");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -25,7 +25,6 @@ entt::entity SpringBoss::createSpringBossEntt()
     motion.angle = 0.f;
     motion.velocity = { 200.f, 0 };
     motion.position = GridMap::coordToPixel(FOREST_COORD);
-    // Setting initial values, scale is 1
     motion.scale = vec2({ 1, 1 }) * static_cast<vec2>(resource.texture.size);
 
     auto& monster = registry.emplace<Monster>(entity);
@@ -33,6 +32,7 @@ entt::entity SpringBoss::createSpringBossEntt()
     monster.damage = 5;
 
     registry.emplace<SpringBoss>(entity);
+    registry.emplace<HitReaction>(entity);
 
     return entity;
 }
