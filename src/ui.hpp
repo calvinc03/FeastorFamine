@@ -12,8 +12,11 @@ Button UI_click_system();
 void UI_highlight_system(vec2 mouse_pos);
 
 struct UI_element {
-	std::string tag;
+	//std::string tag;
+	vec2 position;
+	vec2 scale;
 };
+
 struct UI_background
 {
 	static entt::entity createUI_background();

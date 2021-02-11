@@ -390,14 +390,10 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	current_speed = std::max(0.f, current_speed);
 }
 
-
-
-
-
 bool mouse_in_game_area(vec2 mouse_pos) {
-	auto view_ui = registry.view<Motion, UI_element>();
-	for (auto [entity, motion,ui_element] : view_ui.each()) {
-		if ((sdBox(mouse_pos / (float)GRID_CELL_SIZE, motion.position, motion.scale / 2.0f / (float)GRID_CELL_SIZE) < 0.0f)) {
+	auto view_ui = registry.view< UI_element>();
+	for (auto [entity,ui_element] : view_ui.each()) {
+		if ((sdBox(mouse_pos / (float)GRID_CELL_SIZE, ui_element.position, ui_element.scale / 2.0f / (float)GRID_CELL_SIZE) < 0.0f)) {
 			return false;
 		}
 	}
@@ -406,6 +402,7 @@ bool mouse_in_game_area(vec2 mouse_pos) {
 
 void WorldSystem::on_mouse_move(vec2 mouse_pos)
 {	
+	//if mouse is hovering over a button, then highlight
 	UI_highlight_system(mouse_pos);
     // if village is alive
     if (health > 0)
@@ -433,17 +430,17 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	int x_grid = xpos / GRID_CELL_SIZE;
 	int y_grid = ypos / GRID_CELL_SIZE;
 
-	Button ui_button = UI_click_system();
+	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
 
 	//some debugging print outs
-	//if (in_game_area) { 
-	//	std::cout << "in game area" << std::endl;
-	//}
-	//else {
-	//	std::cout << "not in game area" << std::endl;
-	//	std::cout << button_to_string(ui_button) << " pressed " << std::endl;
-	//}
+	if (in_game_area) { 
+		std::cout << "in game area" << std::endl;
+	}
+	else {
+		std::cout << "not in game area" << std::endl;
+		std::cout << button_to_string(ui_button) << " pressed " << std::endl;
+	}
 
 	// Mouse click for placing units 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "" && in_game_area)

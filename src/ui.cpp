@@ -4,9 +4,9 @@
 
 //will move this function outside of world eventually.
 void UI_highlight_system(vec2 mouse_pos) {
-	auto view_ui = registry.view<Motion, HighlightBool>(); //may make separate registry for UI elements. Could have position+scale instead of motion component
-	for (auto [entity, motion, highlight] : view_ui.each()) {
-		if (sdBox(mouse_pos / (float)GRID_CELL_SIZE, motion.position, motion.scale / 2.0f / (float)GRID_CELL_SIZE) < 0.0f) {
+	auto view_ui = registry.view<UI_element, HighlightBool>(); //may make separate registry for UI elements. Could have position+scale instead of motion component
+	for (auto [entity, ui_element, highlight] : view_ui.each()) {
+		if (sdBox(mouse_pos / (float)GRID_CELL_SIZE, ui_element.position, ui_element.scale / 2.0f / (float)GRID_CELL_SIZE) < 0.0f) {
 			highlight.highlight = true;
 		}
 		else {
@@ -50,16 +50,13 @@ entt::entity UI_background::createUI_background()
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	registry.emplace<ShadedMeshRef>(entity, resource);
 
-	Motion& motion = registry.emplace<Motion>(entity);
-	motion.scale = vec2(WINDOW_SIZE_IN_PX.x, WINDOW_SIZE_IN_PX.y / 10.0f);
-	motion.position = vec2(WINDOW_SIZE_IN_PX.x/2, WINDOW_SIZE_IN_PX.y - motion.scale.y/2.0f) / (float)GRID_CELL_SIZE;
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.scale = vec2(WINDOW_SIZE_IN_PX.x, WINDOW_SIZE_IN_PX.y / 10.0f);
+	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x/2, WINDOW_SIZE_IN_PX.y - ui_element.scale.y/2.0f) / (float)GRID_CELL_SIZE;
 
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	
 	
 	registry.emplace<UI_background>(entity);
-	registry.emplace<UI_element>(entity, "bg");
+
 	return entity;
 }
 
@@ -87,17 +84,15 @@ entt::entity UI_button::createUI_button(int pos, Button button) {
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	registry.emplace<ShadedMeshRef>(entity, resource);
 
-	// Setting initial motion values
-	Motion& motion = registry.emplace<Motion>(entity);
-	motion.scale = vec2({ 1.0f, 1.0f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
-	motion.position = vec2( 200+ pos * motion.scale.x, WINDOW_SIZE_IN_PX.y  - motion.scale.y/2.0f) / (float)GRID_CELL_SIZE; //WINDOW_SIZE_IN_PX.x / 2 +
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.scale = vec2({ 1.0f, 1.0f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.position = vec2( 200+ pos * ui_element.scale.x, WINDOW_SIZE_IN_PX.y  - ui_element.scale.y/2.0f) / (float)GRID_CELL_SIZE;
 
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	
+
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);
 	registry.emplace<UI_button>(entity);
-	registry.emplace<UI_element>(entity, "button");
+
 	return entity;
 }

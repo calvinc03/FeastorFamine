@@ -2,6 +2,7 @@
 #include "render.hpp"
 #include "render_components.hpp"
 #include "camera.hpp"
+#include "ui.hpp"
 //#include "tiny_ecs.hpp"
 #include "entt.hpp"
 #include <iostream>
@@ -66,19 +67,27 @@ void RenderSystem::animate(entt::entity entity)
 
 void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 {
-	//auto& motion = ECS::registry<Motion>.get(entity);
-	//auto& texmesh = *ECS::registry<ShadedMeshRef>.get(entity).reference_to_cache;
-	//entt::registry registry;
-	auto view = registry.view<Motion, ShadedMeshRef>();
-	//auto& motion = registry.view<Motion>().get<Motion>(entity);
-	auto& motion = view.get<Motion>(entity);
-	//auto& texmesh = *registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity).reference_to_cache;
-	auto& texmesh = *view.get<ShadedMeshRef>(entity).reference_to_cache;
+	vec2 position;
+	vec2 scale;
+	if (registry.has<Motion>(entity)) {
+		auto& motion = registry.get<Motion>(entity);
+		position = motion.position;
+		scale = motion.scale;
+	}
+	else if (registry.has<UI_element>(entity)) {
+		auto& ui_element = registry.get<UI_element>(entity);
+		position = ui_element.position;
+		scale = ui_element.scale;
+	} 
+
+	
+	auto& texmesh = *registry.get<ShadedMeshRef>(entity).reference_to_cache;
+
 	// Transformation code, see Rendering and Transformation in the template specification for more info
 	// Incrementally updates transformation matrix, thus ORDER IS IMPORTANT
 	Transform transform;
-	transform.translate(motion.position);
-	transform.scale(motion.scale);
+	transform.translate(position);
+	transform.scale(scale);
 
 	// Setting shaders
 	glUseProgram(texmesh.effect.program);
@@ -268,7 +277,8 @@ void RenderSystem::draw()
 	// Draw all textured meshes that have a position and size component
 	for (entt::entity entity : view_mesh_ref)
 	{
-		if (!registry.has<Motion>(entity))
+
+		if (!registry.has<Motion>(entity) && !registry.has<UI_element>(entity))
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity albeit iterating through all Sprites in sequence
 		if (registry.has<Animate>(entity))
