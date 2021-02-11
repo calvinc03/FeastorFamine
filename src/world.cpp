@@ -270,7 +270,7 @@ void WorldSystem::restart()
 
 
     // create grid map
-    current_map = registry.get<GridMap>(GridMap::createGridMapEntt());
+    current_map = registry.get<GridMap>(GridMap::createGridMap());
     // hardcode path
     std::vector<ivec2> path = {};
     for (int y = FOREST_COORD.y; y < VILLAGE_COORD.y; y++) {

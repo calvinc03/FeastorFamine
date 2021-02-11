@@ -28,11 +28,16 @@ static const ivec2 FOREST_COORD = ivec2(0, 0);
 // bottom right position (TODO offset this by village size)
 static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
 
-enum grid_type
+enum grid_state
 {
     GRID_BLOCKED = -1,
-    GRID_DEFAULT = 0,
-    GRID_PATH = 1,
+    GRID_VACANT = 0,
+    GRID_FOREST = 1,
+    GRID_VILLAGE = 2,
+    GRID_GREENHOUSE = 3,
+    GRID_TOWER = 4,
+    GRID_WALL = 5,
+    GRID_HUNTER = 6,
 };
 
 // Simple utility functions to avoid mistyping directory name
