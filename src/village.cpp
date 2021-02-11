@@ -19,10 +19,10 @@ entt::entity Village::createVillage()
 
 	// Setting initial motion values
 	Motion& motion = registry.emplace<Motion>(entity);
-	motion.position = {600, 600};
+	motion.position = VILLAGE_COORD;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ 1.0f, 1.0f }) * static_cast<vec2>(resource.texture.size);
+	motion.scale = vec2({ 0.5f, 0.5f }) * static_cast<vec2>(resource.texture.size);
 
 
 	Food& food = registry.emplace<Food>(entity);
