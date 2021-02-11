@@ -361,17 +361,17 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 
 	// Hot keys for selecting placeable units
-	if (action == GLFW_PRESS && key == GLFW_KEY_1)
-	{
-		unit_selected = "hunter";
-	}
-	else if (action == GLFW_PRESS && key == GLFW_KEY_2)
+	else if (action == GLFW_PRESS && key == GLFW_KEY_1)
 	{
 		unit_selected = "watchtower";
 	}
-	else if (action == GLFW_PRESS && key == GLFW_KEY_3)
+	else if (action == GLFW_PRESS && key == GLFW_KEY_2)
 	{
 		unit_selected = "greenhouse"; 
+	}
+	if (action == GLFW_PRESS && key == GLFW_KEY_3)
+	{
+		unit_selected = "hunter";
 	}
 
 	// Resetting game
