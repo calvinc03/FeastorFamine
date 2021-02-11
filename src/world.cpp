@@ -425,9 +425,11 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
 
+	Motion camera_motion = registry.get<Motion>(camera);
+
 	// cursor position in grid units
-	int x_grid = xpos / GRID_CELL_SIZE;
-	int y_grid = ypos / GRID_CELL_SIZE;
+	int x_grid = (xpos + camera_motion.position.x) / GRID_CELL_SIZE;
+	int y_grid = (ypos  + camera_motion.position.y) / GRID_CELL_SIZE;
 
 	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
