@@ -3,11 +3,14 @@
 #include "render_components.hpp"
 #include "camera.hpp"
 #include "ui.hpp"
-//#include "tiny_ecs.hpp"
+
 #include "entt.hpp"
 #include "grid_map.hpp"
 #include <iostream>
 
+
+#include "spring_boss.hpp"
+#include "mob.hpp"
 void RenderSystem::animate(entt::entity entity)
 {
 	auto view = registry.view<Animate, ShadedMeshRef>();
@@ -68,8 +71,9 @@ void RenderSystem::animate(entt::entity entity)
 
 void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 {
-	vec2 position;
-	vec2 scale;
+	vec2 position = vec2();
+	vec2 scale = vec2(1.0, 1.0);
+
 	if (registry.has<Motion>(entity)) {
 		auto& motion = registry.get<Motion>(entity);
 		position = motion.position;
@@ -79,7 +83,9 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 		auto& ui_element = registry.get<UI_element>(entity);
 		position = ui_element.position;
 		scale = ui_element.scale;
-	} 
+	}
+
+
 
 	
 	auto& texmesh = *registry.get<ShadedMeshRef>(entity).reference_to_cache;
@@ -292,31 +298,48 @@ void RenderSystem::draw()
 	float ty_ui = -(top_ui + bottom_ui) / (top_ui - bottom_ui);
 	mat3 projection_2D_ui{ { sx_ui, 0.f, 0.f },{ 0.f, sy_ui, 0.f },{ tx_ui, ty_ui, 1.f } };
 
-	auto view_mesh_ref = registry.view<ShadedMeshRef>();
+	
+	auto view_mesh_ref_motion = registry.view<ShadedMeshRef, Motion>();
+	auto view_mesh_ref_ui = registry.view<UI_element>();
+	auto view_Mob = registry.view<Mob>();
+	auto view_SpringBoss = registry.view<SpringBoss>();
+	auto view_nodes = registry.view<GridNode>();
 
-    auto view_nodes = registry.view<GridNode>();
-    // draw the nodes first
-    for (entt::entity entity : view_nodes)
-    {
-        drawTexturedMesh(entity, projection_2D);
-        gl_has_errors();
-    }
-
-    for (entt::entity entity : view_mesh_ref) 		// Note, its not very efficient to access elements indirectly via the entity albeit iterating through all Sprites in sequence
+	// draw the nodes first
+	for (entt::entity entity : view_nodes)
 	{
-        if (registry.has<GridNode>(entity)) {
-            continue;
-        }
-		if (registry.has<Motion>(entity)) {
-			if (registry.has<Animate>(entity))
-				animate(entity);
-			drawTexturedMesh(entity, projection_2D);
-		}
-		if (registry.has<UI_element>(entity)) {
-			drawTexturedMesh(entity, projection_2D_ui);
-		}
+		drawTexturedMesh(entity, projection_2D);
 		gl_has_errors();
 	}
+	//// render everything that has motion and that is not a grid node/springboss/mob
+	for (entt::entity entity : view_mesh_ref_motion) {
+		if (registry.has<GridNode>(entity) || registry.has<Mob>(entity) || registry.has<SpringBoss>(entity)) {
+			continue;
+		}
+		if (registry.has<Animate>(entity)) {
+			animate(entity);
+		}
+		drawTexturedMesh(entity, projection_2D);
+		gl_has_errors();
+	}
+
+	for (entt::entity entity : view_Mob)
+	{
+		animate(entity);
+		drawTexturedMesh(entity, projection_2D);
+		gl_has_errors();
+	}
+	for (entt::entity entity : view_SpringBoss)
+	{
+		drawTexturedMesh(entity, projection_2D);
+		gl_has_errors();
+	}
+	// draw ui last
+	for (entt::entity entity : view_mesh_ref_ui) {
+		drawTexturedMesh(entity, projection_2D_ui);
+		gl_has_errors();
+	}
+
 
 	// Truely render to the screen
 	drawToScreen();
