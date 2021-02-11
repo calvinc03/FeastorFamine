@@ -404,7 +404,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 bool mouse_in_game_area(vec2 mouse_pos) {
 	auto view_ui = registry.view< UI_element>();
 	for (auto [entity,ui_element] : view_ui.each()) {
-		if ((sdBox(mouse_pos / (float)GRID_CELL_SIZE, ui_element.position, ui_element.scale / 2.0f / (float)GRID_CELL_SIZE) < 0.0f)) {
+		if ((sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f ) < 0.0f)) {
 			return false;
 		}
 	}
@@ -440,8 +440,8 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	Motion camera_motion = registry.get<Motion>(camera);
 
 	// cursor position in grid units
-	int x_grid = (xpos + camera_motion.position.x) / GRID_CELL_SIZE;
-	int y_grid = (ypos  + camera_motion.position.y) / GRID_CELL_SIZE;
+	int x_grid = (xpos + camera_motion.position.x) ;
+	int y_grid = (ypos  + camera_motion.position.y);
 
 	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
