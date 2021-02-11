@@ -83,10 +83,9 @@ struct Tag {
 	std::string tag;
 };
 
-//enum for ui buttons
-enum Button { no_button_pressed, tower_button, green_house_button, stick_figure_button};
 
-std::string button_to_string(int button); // breaks if enums change
+//detects if mouse is within the a rectangle of size scale at position entity_pos
+float sdBox(vec2 mouse_pos_grid, vec2 entity_pos, vec2 scale);
 
 //TODO: temporary soln
 #include "entt.hpp"

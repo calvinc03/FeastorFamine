@@ -28,16 +28,12 @@ void Transform::move_camera(vec2 offset)
 }
 
 
-std::string button_to_string(int button) {
-	switch (button) {
-	case tower_button:
-		return "tower_button";
-	case green_house_button:
-		return "green_house_button";
-	case stick_figure_button:
-		return "stick_figure_button";
-	}
-	return "no button / invalid button / or this method is broken!";
+
+//detects if mouse is within the a rectangle of size scale at position entity_pos
+//not easy to use right now, look at how it's used in the ui procedures.
+float sdBox(vec2 mouse_pos_grid, vec2 entity_pos, vec2 scale) {
+	vec2 d = abs(mouse_pos_grid - entity_pos) - scale;
+	return length(max(d, vec2(0.0, 0.0))) + min(max(d.x, d.y), 0.0f);
 }
 
 
