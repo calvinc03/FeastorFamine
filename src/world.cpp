@@ -429,6 +429,12 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	int x_grid = (xpos + camera_motion.position.x) ;
 	int y_grid = (ypos  + camera_motion.position.y);
 
+	// snap to nearest grid size
+	int x = (x_grid + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE;
+	x *= GRID_CELL_SIZE;
+	int y = (y_grid + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE;
+	y *= GRID_CELL_SIZE;
+
 	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
 
@@ -446,25 +452,25 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	{
 		if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
 		{
-			entt::entity entity = Hunter::createHunter({ x_grid, y_grid });
+			entt::entity entity = Hunter::createHunter({ x, y });
 			health -= HUNTER_COST;
 			unit_selected = "";
 		}
 		else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
 		{
-			entt::entity entity = GreenHouse::createGreenHouse({ x_grid, y_grid });
+			entt::entity entity = GreenHouse::createGreenHouse({ x, y });
 			health -= GREENHOUSE_COST;
 			unit_selected = "";
 		}
 		else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
 		{
-			entt::entity entity = WatchTower::createWatchTower({ x_grid, y_grid });
+			entt::entity entity = WatchTower::createWatchTower({ x, y });
 			health -= WATCHTOWER_COST;
 			unit_selected = "";
 		}
 		else if (unit_selected ==WALL_NAME && health >= WALL_COST)
 		{
-			entt::entity entity = Wall::createWall({ x_grid, y_grid }, false);
+			entt::entity entity = Wall::createWall({ x, y }, false);
 			health -= WALL_COST;
 			unit_selected = "";
 		}
