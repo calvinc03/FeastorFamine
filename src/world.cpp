@@ -23,7 +23,7 @@
 
 // Game configuration
 const size_t MAX_MOBS = 20;
-const size_t MOB_DELAY_MS = 1000;
+const size_t MOB_DELAY_MS = 3000;
 const size_t MAX_BOSS = 2;
 const size_t BOSS_DELAY_MS = 5000;
 const size_t ANIMATION_FPS = 12;
@@ -196,21 +196,33 @@ void WorldSystem::step(float elapsed_ms)
 		round_timer = ROUND_TIME; // no delay between rounds
 	}
 
-//    // TODO follow the path on the grid
-//    auto& path = current_map.path_entt;
-//    // update velocity for every monster
-//    for(auto entity: registry.view<Monster>()) {
-//        auto& motion = registry.get<Motion>(entity);
-//        auto& current_path_node = registry.get<GridNode>(path.at(motion.current_path_index));
-//        // check that the monster is indeed within the current path node
-//        assert(GridMap::pixelToCoord(motion.position) == current_path_node.coord);
-//        ivec2 next_position = motion.position + elapsed_ms * motion.velocity;
-//        // if the next position of monster is on the same grid
-//        if (GridMap::pixelToCoord(next_position) == current_path_node.coord){
-//            ivec2 target_position = GridMap::coordToPixel(current_path_node.coord + ivec2(1,1));
-//        }
-//
-//    }
+    // update velocity for every monster
+    for(auto entity: registry.view<Monster>()) {
+        auto& monster = registry.get<Monster>(entity);
+        auto& motion = registry.get<Motion>(entity);
+        auto& current_path_node = registry.get<GridNode>(monster_path.at(monster.current_path_index));
+
+        // check that the monster is indeed within the current path node
+        ivec2 coord = GridMap::pixelToCoord(motion.position);
+        assert(GridMap::pixelToCoord(motion.position) == current_path_node.coord);
+
+        // if we are on the last node, stop the monster and remove entity
+        // TODO: make disappearance fancier
+        if (monster.current_path_index >= monster_path.size() - 1) {
+            health -= monster.damage;
+            motion.velocity *= 0;
+            registry.destroy(entity);
+            continue;
+        }
+
+        GridNode next_path_node = registry.get<GridNode>(monster_path.at(monster.current_path_index + 1));
+        motion.velocity = length(motion.velocity) * normalize((vec2)(next_path_node.coord - current_path_node.coord));
+        // if we will reach the next node in the next step, increase path index for next step
+        ivec2 next_step_coord = GridMap::pixelToCoord(motion.position + (elapsed_ms / 1000.f) * motion.velocity);
+        if (next_step_coord == next_path_node.coord) {
+            monster.current_path_index++;
+        }
+    }
 
 
 	//// Processing the salmon state
@@ -260,7 +272,7 @@ void WorldSystem::restart()
     // create grid map
     current_map = registry.get<GridMap>(GridMap::createGridMapEntt());
     // hardcode path
-    std::vector<vec2> path = {};
+    std::vector<ivec2> path = {};
     for (int y = FOREST_COORD.y; y < VILLAGE_COORD.y; y++) {
         path.emplace_back(FOREST_COORD.x, y);
     }
@@ -268,9 +280,9 @@ void WorldSystem::restart()
         path.emplace_back(x, VILLAGE_COORD.y);
     }
     // set path
-    current_map.setPathFromCoords(path);
+    monster_path = GridMap::getNodesFromCoords(current_map, path);
 
-	// create village
+    // create village
 	village = Village::createVillage();
 	
 	camera = Camera::createCamera();
@@ -349,17 +361,17 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 
 	// Hot keys for selecting placeable units
-	if (action == GLFW_PRESS && key == GLFW_KEY_1)
-	{
-		unit_selected = "hunter";
-	}
-	else if (action == GLFW_PRESS && key == GLFW_KEY_2)
+	else if (action == GLFW_PRESS && key == GLFW_KEY_1)
 	{
 		unit_selected = "watchtower";
 	}
-	else if (action == GLFW_PRESS && key == GLFW_KEY_3)
+	else if (action == GLFW_PRESS && key == GLFW_KEY_2)
 	{
 		unit_selected = "greenhouse"; 
+	}
+	if (action == GLFW_PRESS && key == GLFW_KEY_3)
+	{
+		unit_selected = "hunter";
 	}
 
 	// Resetting game
@@ -392,7 +404,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 bool mouse_in_game_area(vec2 mouse_pos) {
 	auto view_ui = registry.view< UI_element>();
 	for (auto [entity,ui_element] : view_ui.each()) {
-		if ((sdBox(mouse_pos / (float)GRID_CELL_SIZE, ui_element.position, ui_element.scale / 2.0f / (float)GRID_CELL_SIZE) < 0.0f)) {
+		if ((sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f ) < 0.0f)) {
 			return false;
 		}
 	}
@@ -428,8 +440,8 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	Motion camera_motion = registry.get<Motion>(camera);
 
 	// cursor position in grid units
-	int x_grid = (xpos + camera_motion.position.x) / GRID_CELL_SIZE;
-	int y_grid = (ypos  + camera_motion.position.y) / GRID_CELL_SIZE;
+	int x_grid = (xpos + camera_motion.position.x) ;
+	int y_grid = (ypos  + camera_motion.position.y);
 
 	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));

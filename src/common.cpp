@@ -17,7 +17,7 @@ void Transform::rotate(float radians)
 
 void Transform::translate(vec2 offset)
 {
-	mat3 T = { { 1.f, 0.f, 0.f },{ 0.f, 1.f, 0.f },{ offset.x * GRID_CELL_SIZE + camera_position.x, offset.y * GRID_CELL_SIZE + camera_position.y, 1.f } };
+	mat3 T = { { 1.f, 0.f, 0.f },{ 0.f, 1.f, 0.f },{ offset.x + camera_position.x, offset.y + camera_position.y, 1.f } };
 	mat = mat * T;
 }
 

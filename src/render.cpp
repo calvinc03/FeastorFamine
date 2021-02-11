@@ -5,6 +5,7 @@
 #include "ui.hpp"
 //#include "tiny_ecs.hpp"
 #include "entt.hpp"
+#include "grid_map.hpp"
 #include <iostream>
 
 void RenderSystem::animate(entt::entity entity)
@@ -293,9 +294,19 @@ void RenderSystem::draw()
 
 	auto view_mesh_ref = registry.view<ShadedMeshRef>();
 
-	// Draw all textured meshes that have a position and size component
-	for (entt::entity entity : view_mesh_ref) 		// Note, its not very efficient to access elements indirectly via the entity albeit iterating through all Sprites in sequence
+    auto view_nodes = registry.view<GridNode>();
+    // draw the nodes first
+    for (entt::entity entity : view_nodes)
+    {
+        drawTexturedMesh(entity, projection_2D);
+        gl_has_errors();
+    }
+
+    for (entt::entity entity : view_mesh_ref) 		// Note, its not very efficient to access elements indirectly via the entity albeit iterating through all Sprites in sequence
 	{
+        if (registry.has<GridNode>(entity)) {
+            continue;
+        }
 		if (registry.has<Motion>(entity)) {
 			if (registry.has<Animate>(entity))
 				animate(entity);

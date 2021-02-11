@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "entt.hpp"
+#include "grid_map.hpp"
 
 // Mob monster that appears in all seasons
 struct Mob

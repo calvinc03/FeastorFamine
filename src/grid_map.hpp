@@ -9,17 +9,14 @@
 class GridMap
 {
 public:
-    std::vector<std::vector<entt::entity>> node_entt_matrix = {{}};
-    std::vector<entt::entity> path_entt = {};
+    std::vector<std::vector<entt::entity>> node_matrix = {{}};
 
     static entt::entity createGridMapEntt();
 
-    static ivec2 coordToPixel(ivec2 grid_coord);
-    static ivec2 pixelToCoord(ivec2 pixel_coord);
+    static vec2 coordToPixel(ivec2 grid_coord);
+    static ivec2 pixelToCoord(vec2 pixel_coord);
     static entt::entity getEntityAtCoord(std::vector<std::vector<entt::entity>>& node_matrix, ivec2 grid_coord);
-    static GridNode& getNodeAtCoord(std::vector<std::vector<entt::entity>>& node_matrix, vec2 grid_coord);
+    static GridNode& getNodeAtCoord(std::vector<std::vector<entt::entity>>& node_matrix, ivec2 grid_coord);
     void setGridType(std::vector<std::vector<entt::entity>>& node_matrix, vec2 grid_coord, int type);
-    // coordinates must be in order from starting coord to end coord
-    void setPathFromCoords(std::vector<vec2>& grid_coords);
+    static std::vector<entt::entity> getNodesFromCoords(GridMap current_map, std::vector<ivec2>& grid_coords);
 };
-

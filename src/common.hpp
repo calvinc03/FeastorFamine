@@ -11,20 +11,22 @@
 #define NOMINMAX
 #include <gl3w.h>
 #include <GLFW/glfw3.h>
-
+#include <entt.hpp>
 // The glm library provides vector and matrix operations as in GLSL
 #include <glm/vec2.hpp>				// vec2
 #include <glm/ext/vector_int2.hpp>  // ivec2
 #include <glm/vec3.hpp>             // vec3
 #include <glm/mat3x3.hpp>           // mat3
+
 using namespace glm;
 static const float PI = 3.14159265359f;
 static const int GRID_CELL_SIZE = 100;
+static const ivec2 GRID_OFFSET =  ivec2(GRID_CELL_SIZE/2 , GRID_CELL_SIZE/2);
 static const ivec2 WINDOW_SIZE_IN_PX = {1500, 900};
 static const ivec2 WINDOW_SIZE_IN_COORD = WINDOW_SIZE_IN_PX / GRID_CELL_SIZE;
-static const ivec2 FOREST_COORD = ivec2(0, 0) / GRID_CELL_SIZE;
-// bottom right position in 0 based indexing, integers are truncated so no need to floor
-static const ivec2 VILLAGE_COORD = (WINDOW_SIZE_IN_PX - ivec2(1, 1)) / GRID_CELL_SIZE;
+static const ivec2 FOREST_COORD = ivec2(0, 0);
+// bottom right position (TODO offset this by village size)
+static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
 
 enum grid_type
 {
@@ -58,12 +60,12 @@ struct Motion {
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { 10, 10 };
-	int current_path_index = 0;
 };
 
 struct Monster {
     int health;
     int damage;
+    int current_path_index = 0;
 };
 
 struct Food {

@@ -62,7 +62,10 @@ private:
 	float current_speed;
 	float next_boss_spawn;
 	float next_mob_spawn;
+
     GridMap current_map;
+    std::vector<entt::entity> monster_path = {};
+
 	float round_timer;
 	int round_number;
 

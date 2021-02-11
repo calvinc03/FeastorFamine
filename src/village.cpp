@@ -2,6 +2,7 @@
 
 #include "village.hpp"
 #include "render.hpp"
+#include "grid_map.hpp"
 
 entt::entity Village::createVillage()
 {
@@ -19,7 +20,7 @@ entt::entity Village::createVillage()
 
 	// Setting initial motion values
 	Motion& motion = registry.emplace<Motion>(entity);
-	motion.position = VILLAGE_COORD;
+	motion.position = GridMap::coordToPixel(VILLAGE_COORD);
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.scale = vec2({ 0.5f, 0.5f }) * static_cast<vec2>(resource.texture.size);

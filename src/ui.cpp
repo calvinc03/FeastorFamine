@@ -6,7 +6,7 @@
 void UI_highlight_system(vec2 mouse_pos) {
 	auto view_ui = registry.view<UI_element, HighlightBool>(); //may make separate registry for UI elements. Could have position+scale instead of motion component
 	for (auto [entity, ui_element, highlight] : view_ui.each()) {
-		if (sdBox(mouse_pos / (float)GRID_CELL_SIZE, ui_element.position, ui_element.scale / 2.0f / (float)GRID_CELL_SIZE) < 0.0f) {
+		if (sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f  ) < 0.0f) {
 			highlight.highlight = true;
 		}
 		else {
@@ -52,7 +52,7 @@ entt::entity UI_background::createUI_background()
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.scale = vec2(WINDOW_SIZE_IN_PX.x, WINDOW_SIZE_IN_PX.y / 10.0f);
-	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x/2, WINDOW_SIZE_IN_PX.y - ui_element.scale.y/2.0f) / (float)GRID_CELL_SIZE;
+	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x/2, WINDOW_SIZE_IN_PX.y - ui_element.scale.y/2.0f);
 
 	
 	registry.emplace<UI_background>(entity);
@@ -87,7 +87,7 @@ entt::entity UI_button::createUI_button(int pos, Button button) {
 	// Setting initial ui_element values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.scale = vec2({ 1.0f, 1.0f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
-	ui_element.position = vec2( 200+ pos * ui_element.scale.x, WINDOW_SIZE_IN_PX.y  - ui_element.scale.y/2.0f) / (float)GRID_CELL_SIZE;
+	ui_element.position = vec2( 200+ pos * ui_element.scale.x, WINDOW_SIZE_IN_PX.y  - ui_element.scale.y/2.0f);
 
 
 	registry.emplace<HighlightBool>(entity);

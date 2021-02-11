@@ -1,4 +1,4 @@
-#include "grid_node.hpp"
+#include "grid_map.hpp"
 #include "render.hpp"
 #include "common.hpp"
 
@@ -19,6 +19,13 @@ entt::entity GridNode::createGridNodeEntt(int type, vec2 coord)
         RenderSystem::createSprite(resource, textures_path("grid_0.png"), "textured");
     }
     registry.emplace<ShadedMeshRef>(entity, resource);
+
+    auto& motion = registry.emplace<Motion>(entity);
+    motion.angle = 0.f;
+    motion.velocity = { 0, 0 };
+    motion.position = GridMap::coordToPixel(coord);
+    // Setting initial values, scale is 1
+    motion.scale = vec2({ 1, 1 }) * static_cast<vec2>(resource.texture.size);
 
     return entity;
 }

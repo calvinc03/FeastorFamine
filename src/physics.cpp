@@ -37,8 +37,7 @@ void PhysicsSystem::step(float elapsed_ms)
 	for(auto entity: registry.view<Motion>()) {
 	    auto& motion = registry.get<Motion>(entity);
         float step_seconds = 1.0f * (elapsed_ms / 1000.f);
-        motion.position.x += step_seconds * motion.velocity.x;
-        motion.position.y += step_seconds * motion.velocity.y;
+        motion.position += step_seconds * motion.velocity;
 	}
 
 
