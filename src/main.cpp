@@ -35,9 +35,9 @@ int main()
 	
 
 	// Initialize the main systems
-	WorldSystem world(WINDOW_SIZE_IN_PX);
-	RenderSystem renderer(*world.window);
 	PhysicsSystem physics;
+	WorldSystem world(WINDOW_SIZE_IN_PX, &physics);
+	RenderSystem renderer(*world.window);
 	//AISystem ai;
 
 	// Set all states to default
@@ -58,7 +58,7 @@ int main()
 		//ai.step(elapsed_ms);
 		world.step(elapsed_ms);
 		physics.step(elapsed_ms);
-		world.handle_collisions();
+		//world.handle_collisions();
 
 		renderer.draw();
 	}
