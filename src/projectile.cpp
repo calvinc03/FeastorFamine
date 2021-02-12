@@ -26,7 +26,7 @@ entt::entity Projectile::createProjectile(vec2 pos, vec2 velocity, int damage)
 //    motion.angle = 0.f;
 //    motion.velocity = { -20.f, 0.f};
     motion.angle = atan2(velocity.y, velocity.x);
-    motion.velocity = { 500 * velocity.x, 500 * velocity.y };
+    motion.velocity = { 700 * velocity.x, 700 * velocity.y };
     motion.position = pos;
     // Setting initial values, scale is negative to make it face the opposite way
     motion.scale *= vec2({ -1.f, 0.5f });

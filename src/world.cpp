@@ -25,7 +25,7 @@
 
 // Game configuration
 const size_t MAX_MOBS = 20;
-const size_t MOB_DELAY_MS = 10000;
+const size_t MOB_DELAY_MS = 8000;
 const size_t MAX_BOSS = 2;
 const size_t BOSS_DELAY_MS = 20000;
 const size_t ANIMATION_FPS = 12;
@@ -34,7 +34,7 @@ const size_t ROUND_TIME = 30 * 1000; // 30 seconds?
 
 const size_t WATCHTOWER_COST = 200;
 const size_t GREENHOUSE_COST = 300;
-const size_t HUNTER_COST = 50;
+const size_t HUNTER_COST = 150;
 const size_t WALL_COST = 100;
 const std::string WATCHTOWER_NAME = "watchtower";
 const std::string GREENHOUSE_NAME = "greenhouse";
@@ -197,7 +197,7 @@ void WorldSystem::step(float elapsed_ms)
 
         // check that the monster is indeed within the current path node
         ivec2 coord = GridMap::pixelToCoord(motion.position);
-        assert(GridMap::pixelToCoord(motion.position) == current_path_node.coord);
+        //assert(GridMap::pixelToCoord(motion.position) == current_path_node.coord);
 
         // if we are on the last node, stop the monster and remove entity
         // TODO: make disappearance fancier
@@ -218,30 +218,6 @@ void WorldSystem::step(float elapsed_ms)
             monster.current_path_index++;
         }
     }
-
-	// Attack mobs if in range of hunter
-	for (auto monster : registry.view<Monster>()) {
-		auto animal = entt::to_entity(registry, monster);
-		auto& motion_m = registry.get<Motion>(animal);
-		for (auto unit : registry.view<Unit>()) {
-			auto hunter = entt::to_entity(registry, unit);
-			auto& motion_h = registry.get<Motion>(hunter);
-			auto& placeable_unit = registry.get<Unit>(hunter);
-
-			float opposite = motion_m.position.y - motion_h.position.y;
-			float adjacent = motion_m.position.x - motion_h.position.x;
-			float distance = sqrt(pow(adjacent, 2) + pow(opposite, 2));
-
-			if (distance <= placeable_unit.attack_range) {
-				placeable_unit.next_projectile_spawn -= elapsed_ms * current_speed;
-				if (placeable_unit.next_projectile_spawn < 0.f) {
-					placeable_unit.next_projectile_spawn = FIRING_RATE;
-					Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, placeable_unit.damage);
-				}
-
-			}
-		}
-	}
 
 	for (auto projectile : registry.view<Projectile>()) {
 		auto& pos = registry.get<Motion>(projectile);
@@ -309,20 +285,18 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 {
 	if (registry.has<Projectile>(entity_i)) {
 		if (registry.has<Monster>(entity_j)) {
-			std::cout << "A monster was hit" << "\n";
+			//std::cout << "A monster was hit" << "\n";
 			auto& animal = registry.get<Monster>(entity_j);
 			auto& projectile = registry.get<Projectile_Dmg>(entity_i);
 
-			auto& hit_reaction = registry.get<HitReaction>(entity_j);
-			hit_reaction.hit_bool = true;
 			Mix_PlayChannel(-1, impact_sound, 0);
 
 			animal.health -= projectile.damage;
 			registry.destroy(entity_i);
 			if (animal.health <= 0)
 			{
+				health += 30;
 				registry.destroy(entity_j);
-				health += 20;
 			}
 		}
 	}
@@ -496,13 +470,13 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
 
 	//some debugging print outs
-	if (in_game_area) { 
+	/*if (in_game_area) { 
 		std::cout << "in game area" << std::endl;
 	}
 	else {
 		std::cout << "not in game area" << std::endl;
 		std::cout << button_to_string(ui_button) << " pressed " << std::endl;
-	}
+	}*/
 
 	// Mouse click for placing units 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "" && in_game_area)

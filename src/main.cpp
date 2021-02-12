@@ -15,6 +15,7 @@
 
 #include "render.hpp"
 #include "physics.hpp"
+#include "ai.hpp"
 
 #include "debug.hpp"
 
@@ -36,9 +37,10 @@ int main()
 
 	// Initialize the main systems
 	PhysicsSystem physics;
+	AISystem ai(&physics);
 	WorldSystem world(WINDOW_SIZE_IN_PX, &physics);
 	RenderSystem renderer(*world.window);
-	//AISystem ai;
+	
 
 	// Set all states to default
 	world.restart();
@@ -55,7 +57,7 @@ int main()
 		t = now;
 
 		DebugSystem::clearDebugComponents();
-		//ai.step(elapsed_ms);
+		ai.step(elapsed_ms);
 		world.step(elapsed_ms);
 		physics.step(elapsed_ms);
 		//world.handle_collisions();
