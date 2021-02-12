@@ -20,12 +20,13 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
+#include <projectile.hpp>
 
 // Game configuration
 const size_t MAX_MOBS = 20;
-const size_t MOB_DELAY_MS = 3000;
+const size_t MOB_DELAY_MS = 10000;
 const size_t MAX_BOSS = 2;
-const size_t BOSS_DELAY_MS = 5000;
+const size_t BOSS_DELAY_MS = 20000;
 const size_t ANIMATION_FPS = 12;
 
 const size_t ROUND_TIME = 30 * 1000; // 30 seconds?
@@ -43,8 +44,8 @@ const std::string WALL_NAME = "wall";
 WorldSystem::WorldSystem(ivec2 window_size_px) :
 		fps_ms(1000 / ANIMATION_FPS),
         health(500),
-        next_boss_spawn(0.f),
-        next_mob_spawn(0.f),
+        next_boss_spawn(2000.f),
+        next_mob_spawn(3000.f),
 		round_timer(ROUND_TIME), round_number(0){
     // Seeding rng with random device
     rng = std::default_random_engine(std::random_device()());
@@ -209,6 +210,57 @@ void WorldSystem::step(float elapsed_ms)
         }
     }
 
+	// Attack mobs if in range of hunter
+	for (auto animal : registry.view<Mob>()) {
+		auto& motion_m = registry.get<Motion>(animal);
+		for (auto hunter : registry.view<Hunter>()) {
+			auto& motion_h = registry.get<Motion>(hunter);
+			auto& unit = registry.get<Unit>(hunter);
+
+			float opposite = motion_m.position.y - motion_h.position.y;
+			float adjacent = motion_m.position.x - motion_h.position.x;
+			float distance = sqrt(pow(adjacent, 2) + pow(opposite, 2));
+
+			if (distance <= unit.attack_range) {
+				unit.next_projectile_spawn -= elapsed_ms * current_speed;
+				if (unit.next_projectile_spawn < 0.f) {
+					unit.next_projectile_spawn = FIRING_RATE;
+					Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, unit.damage);
+				}
+			
+			}
+		}
+	}
+
+	// Attack mobs if in range of tower
+	for (auto animal : registry.view<Mob>()) {
+		auto& motion_m = registry.get<Motion>(animal);
+		for (auto tower : registry.view<WatchTower>()) {
+			auto& motion_h = registry.get<Motion>(tower);
+			auto& unit = registry.get<Unit>(tower);
+
+			float opposite = motion_m.position.y - motion_h.position.y;
+			float adjacent = motion_m.position.x - motion_h.position.x;
+			float distance = sqrt(pow(adjacent, 2) + pow(opposite, 2));
+
+			if (distance <= unit.attack_range && unit.workers > 0) {
+				unit.next_projectile_spawn -= elapsed_ms * current_speed;
+				if (unit.next_projectile_spawn < 0.f) {
+					unit.next_projectile_spawn = FIRING_RATE;
+					Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, unit.damage);
+				}
+
+			}
+		}
+	}
+
+	for (auto projectile : registry.view<Projectile>()) {
+		auto& pos = registry.get<Motion>(projectile);
+		if (pos.position.x == WINDOW_SIZE_IN_PX.x || pos.position.y == WINDOW_SIZE_IN_PX.y) {
+			registry.destroy(projectile);
+		}
+	}
+
 
 	//// Processing the salmon state
 	//assert(ECS::registry<ScreenState>.components.size() <= 1);
@@ -278,24 +330,35 @@ void WorldSystem::restart()
 void WorldSystem::handle_collisions()
 {
 	//// Loop over all collisions detected by the physics system
+	auto collision = registry.view<PhysicsSystem::Collision>();
+	for (unsigned int i = 0; i < collision.size(); i++)
+	{
+		auto entity = collision[i];
+		auto entity_other = registry.get<PhysicsSystem::Collision>(collision[i]);
+		if (registry.has<Projectile>(entity) && registry.has<Mob>(entity_other.other)) {
+			std::cout << "XD";
+		}
 
-	auto view_collision = registry.view<PhysicsSystem::Collision>();
-	for (auto [entity, collision] : view_collision.each()) {
-		auto& entity_other = collision.other;
+		if (registry.has<Projectile>(entity_other.other) && registry.has<Mob>(entity)) {
+			std::cout << "LOL";
+		}
 
-		// TODO
-		// check projectile and monster collision
-
-		//game breaking example code
-		//auto& test = registry.get<Motion>(entity);
-		//test.velocity.y += 50;
-
-		//auto& test2 = registry.get<Motion>(entity_other);
-		//test2.velocity.y += 50;
-
-		//this code destroys colliding entities -- must do a null check first.
-		//if (entity != entt::null)
-		//	registry.destroy(entity);
+		if (registry.has<Mob>(entity)) {
+			if (registry.has<Projectile>(entity_other.other)) {
+				std::cout << "This is hit" << "\n";
+				auto& animal = registry.get<Monster>(entity);
+				auto& projectile = registry.get<Projectile_Dmg>(entity_other.other);
+				animal.health -= projectile.damage;
+				registry.destroy(entity_other.other);
+				if (animal.health <= 0)
+				{
+					registry.destroy(entity);
+					// TODO add village health
+				}
+			}
+			// TODO else - village health
+		}
+		//registry.remove<PhysicsSystem::Collision>(entity);
 	}
 	registry.clear<PhysicsSystem::Collision>();
 }

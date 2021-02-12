@@ -13,7 +13,7 @@ entt::entity Mob::createMobEntt()
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("rabbit_animate.png"), "monster");
+        RenderSystem::createSprite(resource, textures_path("rabbit.png"), "monster");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -22,9 +22,9 @@ entt::entity Mob::createMobEntt()
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 100.f, 0 };
+    motion.velocity = { 25.f, 0 };
     motion.position = GridMap::coordToPixel(FOREST_COORD);
-    motion.scale = vec2({ 0.3f, 0.3f }) * static_cast<vec2>(resource.texture.size);
+    motion.scale = vec2({ 1.f, 1.f }) * static_cast<vec2>(resource.texture.size);
 
     auto& monster = registry.emplace<Monster>(entity);
     monster.health = 20;

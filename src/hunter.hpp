@@ -8,5 +8,4 @@ struct Hunter
 {
     // Creates all the associated render resources and default transform
     static entt::entity createHunter(vec2 pos);
-    int damage = 20;
 };
