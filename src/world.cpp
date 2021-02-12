@@ -206,7 +206,9 @@ void WorldSystem::step(float elapsed_ms)
         }
 
         GridNode next_path_node = registry.get<GridNode>(monster_path.at(monster.current_path_index + 1));
-        motion.velocity = length(motion.velocity) * normalize((vec2)(next_path_node.coord - current_path_node.coord));
+        vec2 move_direction = normalize((vec2)(next_path_node.coord - current_path_node.coord));
+        motion.velocity = length(motion.velocity) * move_direction;
+        motion.angle = atan(move_direction.y / move_direction.x);
         // if we will reach the next node in the next step, increase path index for next step
         ivec2 next_step_coord = GridMap::pixelToCoord(motion.position + (elapsed_ms / 1000.f) * motion.velocity);
         if (next_step_coord == next_path_node.coord) {
@@ -292,7 +294,7 @@ void WorldSystem::restart()
 
 
     // create grid map
-    current_map = registry.get<GridMap>(GridMap::createGridMapEntt());
+    current_map = registry.get<GridMap>(GridMap::createGridMap());
     // hardcode path
     std::vector<ivec2> path = {};
     for (int y = FOREST_COORD.y; y < VILLAGE_COORD.y; y++) {

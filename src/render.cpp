@@ -13,10 +13,10 @@
 #include "mob.hpp"
 void RenderSystem::animate(entt::entity entity)
 {
-	auto view = registry.view<Animate, ShadedMeshRef>();
-	auto& animate = view.get<Animate>(entity);
+	
+	auto& animate = registry.get<Animate>(entity);
 
-	auto& sprite = *view.get<ShadedMeshRef>(entity).reference_to_cache;
+	auto& sprite = *registry.get<ShadedMeshRef>(entity).reference_to_cache;
 
 	float state_num = animate.state_num;
 	float frame_num = animate.frame_num;
@@ -50,11 +50,7 @@ void RenderSystem::animate(entt::entity entity)
 	// Counterclockwise as it's the default opengl front winding direction.
 	uint16_t indices[] = { 0, 3, 1, 1, 3, 2 };
 
-	// generate vertex array object names
-	glGenVertexArrays(1, sprite.mesh.vao.data());
-	glGenBuffers(1, sprite.mesh.vbo.data());
-	glGenBuffers(1, sprite.mesh.ibo.data());
-	gl_has_errors();
+
 
 	// Vertex Buffer creation
 	glBindBuffer(GL_ARRAY_BUFFER, sprite.mesh.vbo);
@@ -73,11 +69,13 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 {
 	vec2 position = vec2();
 	vec2 scale = vec2(1.0, 1.0);
+	float angle = 0.f;
 
 	if (registry.has<Motion>(entity)) {
 		auto& motion = registry.get<Motion>(entity);
 		position = motion.position;
 		scale = motion.scale;
+		angle = motion.angle;
 	}
 	else if (registry.has<UI_element>(entity)) {
 		auto& ui_element = registry.get<UI_element>(entity);
@@ -85,15 +83,13 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 		scale = ui_element.scale;
 	}
 
-
-
-	
 	auto& texmesh = *registry.get<ShadedMeshRef>(entity).reference_to_cache;
 
 	// Transformation code, see Rendering and Transformation in the template specification for more info
 	// Incrementally updates transformation matrix, thus ORDER IS IMPORTANT
 	Transform transform;
 	transform.translate(position);
+	transform.rotate(angle);
 	transform.scale(scale);
 
 	// Setting shaders

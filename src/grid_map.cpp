@@ -8,7 +8,7 @@
 
 
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
-entt::entity GridMap::createGridMapEntt()
+entt::entity GridMap::createGridMap()
 {
     auto entity = registry.create();
     // maintain a GridMap registry (we might want to have multiple maps later)
@@ -19,8 +19,8 @@ entt::entity GridMap::createGridMapEntt()
     for (int x = 0; x < WINDOW_SIZE_IN_COORD.x; x++){
         map.node_matrix[x].resize(WINDOW_SIZE_IN_COORD.y);
         for (int y = 0; y < WINDOW_SIZE_IN_COORD.y; y++){
-            int type = GRID_DEFAULT;
-            map.node_matrix[x][y] = GridNode::createGridNodeEntt(type, vec2(x, y));
+            int type = GRID_VACANT;
+            map.node_matrix[x][y] = GridNode::createGridNode(type, vec2(x, y));
         }
     }
     return entity;

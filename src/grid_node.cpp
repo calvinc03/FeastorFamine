@@ -2,7 +2,7 @@
 #include "render.hpp"
 #include "common.hpp"
 
-entt::entity GridNode::createGridNodeEntt(int type, vec2 coord)
+entt::entity GridNode::createGridNode(int type, vec2 coord)
 {
     // get up node components
     auto entity = registry.create();

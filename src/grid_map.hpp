@@ -11,7 +11,7 @@ class GridMap
 public:
     std::vector<std::vector<entt::entity>> node_matrix = {{}};
 
-    static entt::entity createGridMapEntt();
+    static entt::entity createGridMap();
 
     static vec2 coordToPixel(ivec2 grid_coord);
     static ivec2 pixelToCoord(vec2 pixel_coord);
