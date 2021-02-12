@@ -13,10 +13,10 @@
 #include "mob.hpp"
 void RenderSystem::animate(entt::entity entity)
 {
-	auto view = registry.view<Animate, ShadedMeshRef>();
-	auto& animate = view.get<Animate>(entity);
+	
+	auto& animate = registry.get<Animate>(entity);
 
-	auto& sprite = *view.get<ShadedMeshRef>(entity).reference_to_cache;
+	auto& sprite = *registry.get<ShadedMeshRef>(entity).reference_to_cache;
 
 	float state_num = animate.state_num;
 	float frame_num = animate.frame_num;
@@ -50,11 +50,7 @@ void RenderSystem::animate(entt::entity entity)
 	// Counterclockwise as it's the default opengl front winding direction.
 	uint16_t indices[] = { 0, 3, 1, 1, 3, 2 };
 
-	// generate vertex array object names
-	glGenVertexArrays(1, sprite.mesh.vao.data());
-	glGenBuffers(1, sprite.mesh.vbo.data());
-	glGenBuffers(1, sprite.mesh.ibo.data());
-	gl_has_errors();
+
 
 	// Vertex Buffer creation
 	glBindBuffer(GL_ARRAY_BUFFER, sprite.mesh.vbo);
