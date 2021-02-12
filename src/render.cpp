@@ -73,11 +73,13 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 {
 	vec2 position = vec2();
 	vec2 scale = vec2(1.0, 1.0);
+	float angle = 0.f;
 
 	if (registry.has<Motion>(entity)) {
 		auto& motion = registry.get<Motion>(entity);
 		position = motion.position;
 		scale = motion.scale;
+		angle = motion.angle;
 	}
 	else if (registry.has<UI_element>(entity)) {
 		auto& ui_element = registry.get<UI_element>(entity);
@@ -85,15 +87,13 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 		scale = ui_element.scale;
 	}
 
-
-
-	
 	auto& texmesh = *registry.get<ShadedMeshRef>(entity).reference_to_cache;
 
 	// Transformation code, see Rendering and Transformation in the template specification for more info
 	// Incrementally updates transformation matrix, thus ORDER IS IMPORTANT
 	Transform transform;
 	transform.translate(position);
+	transform.rotate(angle);
 	transform.scale(scale);
 
 	// Setting shaders
