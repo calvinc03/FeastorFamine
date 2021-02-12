@@ -11,7 +11,7 @@
 #include "greenhouse.hpp"
 #include "watchtower.hpp"
 #include "village.hpp"
-
+#include "wall.hpp"
 #include "camera.hpp"
 
 #include "ui.hpp"
@@ -33,9 +33,11 @@ const size_t ROUND_TIME = 30 * 1000; // 30 seconds?
 const size_t WATCHTOWER_COST = 300;
 const size_t GREENHOUSE_COST = 500;
 const size_t HUNTER_COST = 100;
+const size_t WALL_COST = 100;
 const std::string WATCHTOWER_NAME = "watchtower";
 const std::string GREENHOUSE_NAME = "greenhouse";
 const std::string HUNTER_NAME = "hunter";
+const std::string WALL_NAME = "wall";
 
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 WorldSystem::WorldSystem(ivec2 window_size_px) :
@@ -131,31 +133,14 @@ void WorldSystem::init_audio()
 }
 
 
-//stop entities from going off screen + modify motion component
-void wall_check() {
-	auto view_motion = registry.view<Motion>();
-	ivec2 coords = WINDOW_SIZE_IN_COORD; //TODO: arbitrary offset, may want to use bounding box.
-	for (auto [entity, motion] : view_motion.each()) {
-		if (motion.position.x < 0.0f || motion.position.x > coords.x) {
-			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting x bounds
-		}
-		if (motion.position.y < 0.0f || motion.position.y > coords.y) {
-			motion.velocity = vec2(0, 0); // complete loss of momentum in xy if hitting y bounds
-		}
-	}
-}
-
 
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
 	// Updating window title with health
 	std::stringstream title_ss;
-	title_ss << "Food: " << health << " Round: " << round_number;
+	title_ss << "Food: " << health << " Round: " << round_number << " fps: " << 1000.0/elapsed_ms;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
-
-
-	//wall_check(); // prevent things from going off screen.
 
 	// animation
 
@@ -268,6 +253,7 @@ void WorldSystem::restart()
 	UI_button::createUI_button(0, tower_button);
 	UI_button::createUI_button(1, green_house_button);
 	UI_button::createUI_button(2, stick_figure_button);
+	UI_button::createUI_button(3, wall_button);
 	UI_background::createUI_background();
 
 
@@ -445,6 +431,12 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	int x_grid = (xpos + camera_motion.position.x) ;
 	int y_grid = (ypos  + camera_motion.position.y);
 
+	// snap to nearest grid size
+	int x = (x_grid + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE;
+	x *= GRID_CELL_SIZE;
+	int y = (y_grid + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE;
+	y *= GRID_CELL_SIZE;
+
 	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
 
@@ -462,20 +454,26 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	{
 		if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
 		{
-			entt::entity entity = Hunter::createHunter({ x_grid, y_grid });
+			entt::entity entity = Hunter::createHunter({ x, y });
 			health -= HUNTER_COST;
 			unit_selected = "";
 		}
 		else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
 		{
-			entt::entity entity = GreenHouse::createGreenHouse({ x_grid, y_grid });
+			entt::entity entity = GreenHouse::createGreenHouse({ x, y });
 			health -= GREENHOUSE_COST;
 			unit_selected = "";
 		}
 		else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
 		{
-			entt::entity entity = WatchTower::createWatchTower({ x_grid, y_grid });
+			entt::entity entity = WatchTower::createWatchTower({ x, y });
 			health -= WATCHTOWER_COST;
+			unit_selected = "";
+		}
+		else if (unit_selected ==WALL_NAME && health >= WALL_COST)
+		{
+			entt::entity entity = Wall::createWall({ x, y }, false);
+			health -= WALL_COST;
 			unit_selected = "";
 		}
 	}
@@ -490,6 +488,9 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 		else if (ui_button == Button::stick_figure_button) {
 			unit_selected = HUNTER_NAME;
 		} 
+		else if (ui_button == Button::wall_button) {
+			unit_selected = WALL_NAME;
+		}
 		else {
 			unit_selected = "";
 		}
