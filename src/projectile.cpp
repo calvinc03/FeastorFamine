@@ -15,7 +15,7 @@ entt::entity Projectile::createProjectile(vec2 pos, vec2 velocity, int damage)
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("triangle.png"), "textured");
+        RenderSystem::createSprite(resource, textures_path("projectile.png"), "textured");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -29,7 +29,7 @@ entt::entity Projectile::createProjectile(vec2 pos, vec2 velocity, int damage)
     motion.velocity = { 500 * velocity.x, 500 * velocity.y };
     motion.position = pos;
     // Setting initial values, scale is negative to make it face the opposite way
-    motion.scale = vec2({ -0.4f, 0.4f }) * static_cast<vec2>(resource.texture.size);
+    motion.scale *= vec2({ -1.f, 0.5f });
     
     auto& projectile = registry.emplace<Projectile_Dmg>(entity);
     projectile.damage = damage;

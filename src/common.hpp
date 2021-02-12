@@ -65,7 +65,7 @@ struct Motion {
 	vec2 position = { 0, 0 };
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
-	vec2 scale = { 10, 10 };
+	vec2 scale = { GRID_CELL_SIZE, GRID_CELL_SIZE };
 	vec2 boundingbox = { 10, 10 };;
 };
 
