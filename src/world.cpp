@@ -248,24 +248,14 @@ void WorldSystem::step(float elapsed_ms)
 	}
 
 
-	//// Processing the salmon state
-	//assert(ECS::registry<ScreenState>.components.size() <= 1);
-	//auto& screen = ECS::registry<ScreenState>.components[0];
-
- //   // TODO polish death scene of village
-	//if (health <= 0)
-	//{
-	//	// Reduce window brightness
-	//	screen.darken_screen_factor = 1-elapsed_ms/3000.f;
-
-	//	// Restart the game once some time have passed
-	//	if (elapsed_ms > 1000)
-	//	{
-	//		screen.darken_screen_factor = 0;
-	//		restart();
-	//		return;
-	//	}
-	//}
+	// TODO polish death scene of village
+	if (health < 0) // using < vs <= so we don't die if we spend all the food
+	{
+		auto& screen = registry.get<ScreenState>(screen_state_entity);
+		//screen.darken_screen_factor = 1-elapsed_ms/3000.f;
+		screen.darken_screen_factor = 0;
+		restart();
+	}
 }
 
 // Reset the world state to its initial state
@@ -319,6 +309,10 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			std::cout << "A monster was hit" << "\n";
 			auto& animal = registry.get<Monster>(entity_j);
 			auto& projectile = registry.get<Projectile_Dmg>(entity_i);
+
+			auto& hit_reaction = registry.get<HitReaction>(entity_j);
+			hit_reaction.hit_bool = true;
+
 			animal.health -= projectile.damage;
 			registry.destroy(entity_i);
 			if (animal.health <= 0)

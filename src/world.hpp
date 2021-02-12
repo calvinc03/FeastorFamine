@@ -63,7 +63,7 @@ private:
 	float fps_ms;
 
 	// health of the village
-	unsigned int health;
+	int health;
 
 	// Game state
 	float current_speed;
