@@ -43,16 +43,6 @@ void PhysicsSystem::step(float elapsed_ms)
 
 
 	// Check for collisions between all moving entities
-	//TODO: needs further testing. See if this avoids duplicates
-	/*for (auto [entity_i, motion_i] : view_motion.each()) {
-		for (auto [entity_j, motion_j] : view_motion.each()) {
-			if (collides(motion_i, motion_j, elapsed_ms) && entity_i != entity_j)
-			{
-				registry.emplace_or_replace<Collision>(entity_i, entity_j);
-				registry.emplace_or_replace<Collision>(entity_j, entity_i);
-			}
-		}
-	}*/
 
 	auto entity = registry.view<Motion>();
 
@@ -67,15 +57,26 @@ void PhysicsSystem::step(float elapsed_ms)
 
 			if (collides(motion_i, motion_j, elapsed_ms))
 			{
-				registry.emplace_or_replace<Collision>(entity_j, entity_i);
-				registry.emplace_or_replace<Collision>(entity_i, entity_j);
+				notifyObservers(entity_i, entity_j);
+				//registry.emplace_or_replace<Collision>(entity_j, entity_i);
+				//registry.emplace_or_replace<Collision>(entity_i, entity_j);
 			}
 		}
 	}
-
+	
 }
 
 PhysicsSystem::Collision::Collision(entt::entity& other)
 {
 	this->other = other;
+}
+
+void PhysicsSystem::notifyObservers(entt::entity entity_i, entt::entity entity_j) {
+	for (int i = 0; i < observerlist.size(); i++) {
+		observerlist[i]->updateCollisions(entity_i, entity_j);
+	}
+}
+
+void PhysicsSystem::attach(Observer* obs) {
+	this->observerlist.push_back(obs);
 }

@@ -1,5 +1,6 @@
 // Header
 #include "world.hpp"
+//#include "Observer.hpp"
 #include "physics.hpp"
 #include "debug.hpp"
 #include "render_components.hpp"
@@ -31,9 +32,9 @@ const size_t ANIMATION_FPS = 12;
 
 const size_t ROUND_TIME = 30 * 1000; // 30 seconds?
 
-const size_t WATCHTOWER_COST = 300;
-const size_t GREENHOUSE_COST = 500;
-const size_t HUNTER_COST = 100;
+const size_t WATCHTOWER_COST = 200;
+const size_t GREENHOUSE_COST = 300;
+const size_t HUNTER_COST = 50;
 const size_t WALL_COST = 100;
 const std::string WATCHTOWER_NAME = "watchtower";
 const std::string GREENHOUSE_NAME = "greenhouse";
@@ -41,12 +42,12 @@ const std::string HUNTER_NAME = "hunter";
 const std::string WALL_NAME = "wall";
 
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
-WorldSystem::WorldSystem(ivec2 window_size_px) :
+WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) :
 		fps_ms(1000 / ANIMATION_FPS),
         health(500),
         next_boss_spawn(2000.f),
         next_mob_spawn(3000.f),
-		round_timer(ROUND_TIME), round_number(0){
+		round_timer(ROUND_TIME), round_number(0) {
     // Seeding rng with random device
     rng = std::default_random_engine(std::random_device()());
 
@@ -91,6 +92,9 @@ WorldSystem::WorldSystem(ivec2 window_size_px) :
 	Mix_PlayMusic(background_music, -1);
 	std::cout << "Loaded music\n";
 
+	// Attaching World Observer to Physics observerlist
+	this->physics = physics;
+	this->physics->attach(this);
 }
 
 WorldSystem::~WorldSystem(){
@@ -304,6 +308,24 @@ void WorldSystem::restart()
 	village = Village::createVillage();
 	
 	camera = Camera::createCamera();
+}
+
+void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
+{
+	if (registry.has<Projectile>(entity_i)) {
+		if (registry.has<Monster>(entity_j)) {
+			std::cout << "A monster was hit" << "\n";
+			auto& animal = registry.get<Monster>(entity_j);
+			auto& projectile = registry.get<Projectile_Dmg>(entity_i);
+			animal.health -= projectile.damage;
+			registry.destroy(entity_i);
+			if (animal.health <= 0)
+			{
+				registry.destroy(entity_j);
+				health += 20;
+			}
+		}
+	}
 }
 
 // Compute collisions between entities

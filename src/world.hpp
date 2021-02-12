@@ -3,6 +3,8 @@
 // internal
 #include "common.hpp"
 #include "grid_map.hpp"
+#include "Observer.hpp"
+#include "physics.hpp"
 
 // stlib
 #include <vector>
@@ -14,17 +16,19 @@
 
 // Container for all our entities and game logic. Individual rendering / update is 
 // deferred to the relative update() methods
-class WorldSystem
+class WorldSystem : public Observer
 {
 public:
 	// Creates a window
-	WorldSystem(ivec2 window_size_px);
+	WorldSystem(ivec2 window_size_px, PhysicsSystem *physics);
 
 	// Releases all associated resources
 	~WorldSystem();
 
 	// restart level
 	void restart();
+
+	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
 
 	// Steps the game ahead by ms milliseconds
 	void step(float elapsed_ms);
@@ -41,6 +45,9 @@ public:
 	// OpenGL window handle
 	GLFWwindow* window;
 private:
+	// PhysicsSystem handle
+	PhysicsSystem* physics;
+
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 mouse_pos);
@@ -63,7 +70,8 @@ private:
 	float next_boss_spawn;
 	float next_mob_spawn;
 
-    GridMap current_map;
+    // Map nodes and path
+	GridMap current_map;
     std::vector<entt::entity> monster_path = {};
 
 	float round_timer;
