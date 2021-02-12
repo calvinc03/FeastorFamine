@@ -211,43 +211,23 @@ void WorldSystem::step(float elapsed_ms)
     }
 
 	// Attack mobs if in range of hunter
-	for (auto animal : registry.view<Mob>()) {
+	for (auto monster : registry.view<Monster>()) {
+		auto animal = entt::to_entity(registry, monster);
 		auto& motion_m = registry.get<Motion>(animal);
-		for (auto hunter : registry.view<Hunter>()) {
+		for (auto unit : registry.view<Unit>()) {
+			auto hunter = entt::to_entity(registry, unit);
 			auto& motion_h = registry.get<Motion>(hunter);
-			auto& unit = registry.get<Unit>(hunter);
+			auto& placeable_unit = registry.get<Unit>(hunter);
 
 			float opposite = motion_m.position.y - motion_h.position.y;
 			float adjacent = motion_m.position.x - motion_h.position.x;
 			float distance = sqrt(pow(adjacent, 2) + pow(opposite, 2));
 
-			if (distance <= unit.attack_range) {
-				unit.next_projectile_spawn -= elapsed_ms * current_speed;
-				if (unit.next_projectile_spawn < 0.f) {
-					unit.next_projectile_spawn = FIRING_RATE;
-					Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, unit.damage);
-				}
-			
-			}
-		}
-	}
-
-	// Attack mobs if in range of tower
-	for (auto animal : registry.view<Mob>()) {
-		auto& motion_m = registry.get<Motion>(animal);
-		for (auto tower : registry.view<WatchTower>()) {
-			auto& motion_h = registry.get<Motion>(tower);
-			auto& unit = registry.get<Unit>(tower);
-
-			float opposite = motion_m.position.y - motion_h.position.y;
-			float adjacent = motion_m.position.x - motion_h.position.x;
-			float distance = sqrt(pow(adjacent, 2) + pow(opposite, 2));
-
-			if (distance <= unit.attack_range && unit.workers > 0) {
-				unit.next_projectile_spawn -= elapsed_ms * current_speed;
-				if (unit.next_projectile_spawn < 0.f) {
-					unit.next_projectile_spawn = FIRING_RATE;
-					Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, unit.damage);
+			if (distance <= placeable_unit.attack_range) {
+				placeable_unit.next_projectile_spawn -= elapsed_ms * current_speed;
+				if (placeable_unit.next_projectile_spawn < 0.f) {
+					placeable_unit.next_projectile_spawn = FIRING_RATE;
+					Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, placeable_unit.damage);
 				}
 
 			}
@@ -335,25 +315,17 @@ void WorldSystem::handle_collisions()
 	{
 		auto entity = collision[i];
 		auto entity_other = registry.get<PhysicsSystem::Collision>(collision[i]);
-		if (registry.has<Projectile>(entity) && registry.has<Mob>(entity_other.other)) {
-			std::cout << "XD";
-		}
-
-		if (registry.has<Projectile>(entity_other.other) && registry.has<Mob>(entity)) {
-			std::cout << "LOL";
-		}
-
-		if (registry.has<Mob>(entity)) {
-			if (registry.has<Projectile>(entity_other.other)) {
-				std::cout << "This is hit" << "\n";
-				auto& animal = registry.get<Monster>(entity);
-				auto& projectile = registry.get<Projectile_Dmg>(entity_other.other);
+		if (registry.has<Projectile>(entity)) {
+			if (registry.has<Monster>(entity_other.other)) {
+				std::cout << "A monster was hit" << "\n";
+				auto& animal = registry.get<Monster>(entity_other.other);
+				auto& projectile = registry.get<Projectile_Dmg>(entity);
 				animal.health -= projectile.damage;
-				registry.destroy(entity_other.other);
+				registry.destroy(entity);
 				if (animal.health <= 0)
 				{
-					registry.destroy(entity);
-					// TODO add village health
+					registry.destroy(entity_other.other);
+					health += 20;
 				}
 			}
 			// TODO else - village health

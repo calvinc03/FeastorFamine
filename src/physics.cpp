@@ -67,8 +67,8 @@ void PhysicsSystem::step(float elapsed_ms)
 
 			if (collides(motion_i, motion_j, elapsed_ms))
 			{
-				registry.emplace<Collision>(entity_i, entity_j);
 				registry.emplace_or_replace<Collision>(entity_j, entity_i);
+				registry.emplace_or_replace<Collision>(entity_i, entity_j);
 			}
 		}
 	}
