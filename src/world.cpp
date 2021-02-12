@@ -105,6 +105,8 @@ WorldSystem::~WorldSystem(){
 		Mix_FreeChunk(salmon_dead_sound);
 	if (salmon_eat_sound != nullptr)
 		Mix_FreeChunk(salmon_eat_sound);
+	if (impact_sound != nullptr)
+		Mix_FreeChunk(impact_sound);
 	Mix_CloseAudio();
 
 	// Destroy all created components
@@ -128,10 +130,11 @@ void WorldSystem::init_audio()
 	background_music = Mix_LoadMUS(audio_path("music2.wav").c_str());
 	salmon_dead_sound = Mix_LoadWAV(audio_path("salmon_dead.wav").c_str());
 	salmon_eat_sound = Mix_LoadWAV(audio_path("salmon_eat.wav").c_str());
-
-	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr)
+	impact_sound = Mix_LoadWAV(audio_path("impact.wav").c_str());
+	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr || impact_sound == nullptr)
 		throw std::runtime_error("Failed to load sounds make sure the data directory is present: "+
 			audio_path("music2.wav")+
+			audio_path("impact.wav") +
 			audio_path("salmon_dead.wav")+
 			audio_path("salmon_eat.wav"));
 
@@ -312,6 +315,7 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 
 			auto& hit_reaction = registry.get<HitReaction>(entity_j);
 			hit_reaction.hit_bool = true;
+			Mix_PlayChannel(-1, impact_sound, 0);
 
 			animal.health -= projectile.damage;
 			registry.destroy(entity_i);

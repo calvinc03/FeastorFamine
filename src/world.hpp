@@ -86,6 +86,7 @@ private:
 	Mix_Music* background_music;
 	Mix_Chunk* salmon_dead_sound;
 	Mix_Chunk* salmon_eat_sound;
+	Mix_Chunk* impact_sound;
 
 	// C++ random number generator
 	std::default_random_engine rng;
