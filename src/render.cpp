@@ -156,8 +156,10 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 
 	if (registry.has<HitReaction>(entity)) {
 		GLint hit_bool_uloc = glGetUniformLocation(texmesh.effect.program, "hit_bool");
-		if (registry.get<HitReaction>(entity).hit_bool) {
+		auto& hit_reaction = registry.get<HitReaction>(entity);
+		if (hit_reaction.hit_bool) {
 			glUniform1i(hit_bool_uloc, 1);
+			hit_reaction.hit_bool = false;
 		}
 		else {
 			glUniform1i(hit_bool_uloc, 0);
