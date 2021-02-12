@@ -9,7 +9,7 @@
 vec2 get_bounding_box(const Motion& motion)
 {
 	// fabs is to avoid negative scale due to the facing direction.
-	return { abs(motion.scale.x), abs(motion.scale.y) };
+	return { abs(motion.boundingbox.x), abs(motion.boundingbox.y) };
 }
 
 // This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
@@ -17,6 +17,7 @@ vec2 get_bounding_box(const Motion& motion)
 // need to try to use this technique.
 bool collides(const Motion& motion1, const Motion& motion2, float elapsed_ms)
 {
+	
 	auto dp = motion1.position - motion2.position;
 	float dist_squared = dot(dp,dp);
 	float other_r = std::sqrt(std::pow(get_bounding_box(motion1).x/2.0f, 2.f) + std::pow(get_bounding_box(motion1).y/2.0f, 2.f));
