@@ -23,9 +23,9 @@ entt::entity SpringBoss::createSpringBossEntt()
     //auto& motion = ECS::registry<Motion>.emplace(entity);
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 200.f, 0 };
+    motion.velocity = { 50.f, 0 };
     motion.position = GridMap::coordToPixel(FOREST_COORD);
-    motion.scale = vec2({ 1, 1 }) * static_cast<vec2>(resource.texture.size);
+    motion.scale = vec2({ 2, 2 }) * static_cast<vec2>(resource.texture.size);
 
     auto& monster = registry.emplace<Monster>(entity);
     monster.health = 20;

@@ -8,6 +8,4 @@ struct WatchTower
 {
     // Creates all the associated render resources and default transform
     static entt::entity createWatchTower(vec2 pos);
-    int workers = 0;
-    int damage = workers * 10;
 };

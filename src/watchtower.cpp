@@ -26,6 +26,12 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     // Then we scale it to whatever size is needed
     motion.scale *= 3.f;
 
+    auto& unit = registry.emplace<Unit>(entity);
+    unit.damage = 10;
+    unit.attack_rate = 10000;
+    unit.attack_range = 400;
+    unit.workers = 0;
+
     registry.emplace<WatchTower>(entity);
 
     return entity;

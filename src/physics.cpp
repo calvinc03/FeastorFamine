@@ -3,6 +3,7 @@
 //#include "tiny_ecs.hpp"
 #include "entt.hpp"
 #include "debug.hpp"
+#include <iostream>
 
 // Returns the local bounding coordinates scaled by the current size of the entity 
 vec2 get_bounding_box(const Motion& motion)
@@ -14,7 +15,7 @@ vec2 get_bounding_box(const Motion& motion)
 // This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
 // if the center point of either object is inside the other's bounding-box-circle. You don't
 // need to try to use this technique.
-bool collides(const Motion& motion1, const Motion& motion2)
+bool collides(const Motion& motion1, const Motion& motion2, float elapsed_ms)
 {
 	auto dp = motion1.position - motion2.position;
 	float dist_squared = dot(dp,dp);
@@ -43,12 +44,31 @@ void PhysicsSystem::step(float elapsed_ms)
 
 	// Check for collisions between all moving entities
 	//TODO: needs further testing. See if this avoids duplicates
-	for (auto [entity_i, motion_i] : view_motion.each()) {
+	/*for (auto [entity_i, motion_i] : view_motion.each()) {
 		for (auto [entity_j, motion_j] : view_motion.each()) {
-			if (collides(motion_i, motion_j) && entity_i != entity_j)
+			if (collides(motion_i, motion_j, elapsed_ms) && entity_i != entity_j)
 			{
 				registry.emplace_or_replace<Collision>(entity_i, entity_j);
 				registry.emplace_or_replace<Collision>(entity_j, entity_i);
+			}
+		}
+	}*/
+
+	auto entity = registry.view<Motion>();
+
+	for (unsigned int i = 0; i < entity.size(); i++)
+	{
+		for (unsigned int j = i + 1; j < entity.size(); j++)
+		{
+			Motion& motion_i = registry.get<Motion>(entity[i]);
+			entt::entity entity_i = entity[i];
+			Motion& motion_j = registry.get<Motion>(entity[j]);
+			entt::entity entity_j = entity[j];
+
+			if (collides(motion_i, motion_j, elapsed_ms))
+			{
+				registry.emplace_or_replace<Collision>(entity_j, entity_i);
+				registry.emplace_or_replace<Collision>(entity_i, entity_j);
 			}
 		}
 	}

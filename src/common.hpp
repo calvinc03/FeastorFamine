@@ -20,6 +20,7 @@
 
 using namespace glm;
 static const float PI = 3.14159265359f;
+static const size_t FIRING_RATE = 3000;
 static const int GRID_CELL_SIZE = 100;
 static const ivec2 GRID_OFFSET =  ivec2(GRID_CELL_SIZE/2 , GRID_CELL_SIZE/2);
 static const ivec2 WINDOW_SIZE_IN_PX = {1500, 900};
@@ -73,9 +74,21 @@ struct Monster {
     int current_path_index = 0;
 };
 
+struct Unit {
+	int damage;
+	size_t attack_rate;
+	float next_projectile_spawn;
+	int attack_range;
+	int workers;
+};
+
 struct Food {
 	unsigned int food = 100;
 	float food_production_speed = 0;
+};
+
+struct Projectile_Dmg {
+	int damage;
 };
 
 struct Animate {

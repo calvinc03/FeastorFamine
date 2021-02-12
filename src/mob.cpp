@@ -22,9 +22,9 @@ entt::entity Mob::createMobEntt()
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 100.f, 0 };
+    motion.velocity = { 25.f, 0 };
     motion.position = GridMap::coordToPixel(FOREST_COORD);
-    motion.scale = vec2({ 0.3f, 0.3f }) * static_cast<vec2>(resource.texture.size);
+    motion.scale = vec2({ 0.5f, 0.5f }) * static_cast<vec2>(resource.texture.size);
 
     auto& monster = registry.emplace<Monster>(entity);
     monster.health = 20;
