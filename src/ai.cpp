@@ -1,16 +1,59 @@
 // internal
 #include "ai.hpp"
-//#include "tiny_ecs.hpp"
 #include "entt.hpp"
-void AISystem::step(float elapsed_ms, vec2 window_size_in_game_units)
-{
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A2: HANDLE FISH AI HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 2
-	// You will likely want to write new functions and need to create
-	// new data structures to implement a more sophisticated Fish AI. 
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#include "common.hpp"
+#include <projectile.hpp>
+#include <render_components.hpp>
 
-	(void)elapsed_ms; // placeholder to silence unused warning until implemented
-	(void)window_size_in_game_units; // placeholder to silence unused warning until implemented
+AISystem::AISystem(PhysicsSystem* physics) 
+{
+	this->physics = physics;
+	this->physics->attach(this);
+}
+
+AISystem::~AISystem() {}
+
+void AISystem::step(float elapsed_ms)
+{
+	//(void)elapsed_ms; // placeholder to silence unused warning until implemented
+	
+	// Attack mobs if in range of hunter
+	for (auto monster : registry.view<Monster>()) {
+		auto animal = entt::to_entity(registry, monster);
+		auto& motion_m = registry.get<Motion>(animal);
+		for (auto unit : registry.view<Unit>()) {
+			auto hunter = entt::to_entity(registry, unit);
+			auto& motion_h = registry.get<Motion>(hunter);
+			auto& placeable_unit = registry.get<Unit>(hunter);
+
+			float opposite = motion_m.position.y - motion_h.position.y;
+			float adjacent = motion_m.position.x - motion_h.position.x;
+			float distance = sqrt(pow(adjacent, 2) + pow(opposite, 2));
+
+			if (distance <= placeable_unit.attack_range) {
+				// TODO: scale projectile spawn with the current speed of the game 
+				placeable_unit.next_projectile_spawn -= elapsed_ms;
+				if (placeable_unit.next_projectile_spawn < 0.f) {
+					placeable_unit.next_projectile_spawn = FIRING_RATE;
+					Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, placeable_unit.damage);
+				}
+
+			}
+		}
+	}
+}
+
+void AISystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
+{
+	if (registry.has<Projectile>(entity_i)) {
+		if (registry.has<Monster>(entity_j)) {
+			auto& hit_reaction = registry.get<HitReaction>(entity_j);
+			hit_reaction.hit_bool = true;
+
+			// increase velocity of monsters that are hit
+			auto& motion = registry.get<Motion>(entity_j);
+			motion.velocity.x += motion.velocity.x > 0 ? 100.f : 0;
+			motion.velocity.y += motion.velocity.y > 0 ? 100.f : 0;
+		}
+	}
 }

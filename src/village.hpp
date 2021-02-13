@@ -1,12 +1,10 @@
 #pragma once
+// Created by Ray 
 
-#include "common.hpp"
 #include "entt.hpp"
+#include "common.hpp"
 
 struct Village
 {
-    // Creates all the associated render resources and default transform
-    static entt::entity createVillage();
-    int health = 1000;
-    int damage = 50;
+	static entt::entity createVillage();
 };

@@ -3,19 +3,21 @@
 //#include "tiny_ecs.hpp"
 #include "entt.hpp"
 #include "debug.hpp"
+#include <iostream>
 
 // Returns the local bounding coordinates scaled by the current size of the entity 
 vec2 get_bounding_box(const Motion& motion)
 {
 	// fabs is to avoid negative scale due to the facing direction.
-	return { abs(motion.scale.x), abs(motion.scale.y) };
+	return { abs(motion.boundingbox.x), abs(motion.boundingbox.y) };
 }
 
 // This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
 // if the center point of either object is inside the other's bounding-box-circle. You don't
 // need to try to use this technique.
-bool collides(const Motion& motion1, const Motion& motion2)
+bool collides(const Motion& motion1, const Motion& motion2, float elapsed_ms)
 {
+	
 	auto dp = motion1.position - motion2.position;
 	float dist_squared = dot(dp,dp);
 	float other_r = std::sqrt(std::pow(get_bounding_box(motion1).x/2.0f, 2.f) + std::pow(get_bounding_box(motion1).y/2.0f, 2.f));
@@ -26,80 +28,56 @@ bool collides(const Motion& motion1, const Motion& motion2)
 	return false;
 }
 
-void PhysicsSystem::step(float elapsed_ms, vec2 window_size_in_game_units)
+void PhysicsSystem::step(float elapsed_ms)
 {
+	auto view_motion = registry.view<Motion>();
+	
+
 	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
-	/*
-	for (auto& motion : ECS::registry<Motion>.components)
-	{
-		float step_seconds = 1.0f * (elapsed_ms / 1000.f);
-		
-		// !!! TODO A1: uncomment block and update motion.position based on step_seconds and motion.velocity
+
+	for(auto entity: registry.view<Motion>()) {
+	    auto& motion = registry.get<Motion>(entity);
+        float step_seconds = 1.0f * (elapsed_ms / 1000.f);
+        motion.position += step_seconds * motion.velocity;
 	}
-	*/
-	(void)elapsed_ms; // placeholder to silence unused warning until implemented
-	(void)window_size_in_game_units;
 
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A3: HANDLE PEBBLE UPDATES HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-	// Visualization for debugging the position and scale of objects
-	//if (DebugSystem::in_debug_mode)
-	//{
-	//	for (auto& motion : ECS::registry<Motion>.components)
-	//	{
-	//		// draw a cross at the position of all objects
-	//		auto scale_horizontal_line = motion.scale;
-	//		scale_horizontal_line.y *= 0.1f;
-	//		auto scale_vertical_line = motion.scale;
-	//		scale_vertical_line.x *= 0.1f;
-	//		DebugSystem::createLine(motion.position, scale_horizontal_line);
-	//		DebugSystem::createLine(motion.position, scale_vertical_line);
-	//	}
-	//}
 
 	// Check for collisions between all moving entities
-	//auto& motion_container = ECS::registry<Motion>;
-	//entt::registry registry;
-	//auto view = registry.view<Motion>(); 
-	// for (auto [entity, vel] : view.each()) {
-	//auto& motion_container = 
 
-	// for (auto [i, motion_i] : enumerate(motion_container.components)) // in c++ 17 we will be able to do this instead of the next three lines
-	//for (unsigned int i=0; i<motion_container.components.size(); i++)
-	//{
-	//	Motion& motion_i = motion_container.components[i];
-	//	ECS::Entity entity_i = motion_container.entities[i];
-	//	for (unsigned int j=i+1; j<motion_container.components.size(); j++)
-	//	{
-	//		Motion& motion_j = motion_container.components[j];
-	//		ECS::Entity entity_j = motion_container.entities[j];
+	auto entity = registry.view<Motion>();
 
-	//		if (collides(motion_i, motion_j))
-	//		{
-	//			// Create a collision event
-	//			// Note, we are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity, hence, emplace_with_duplicates
-	//			ECS::registry<Collision>.emplace_with_duplicates(entity_i, entity_j);
-	//			ECS::registry<Collision>.emplace_with_duplicates(entity_j, entity_i);
-	//		}
-	//	}
-	//}
+	for (unsigned int i = 0; i < entity.size(); i++)
+	{
+		for (unsigned int j = i + 1; j < entity.size(); j++)
+		{
+			Motion& motion_i = registry.get<Motion>(entity[i]);
+			entt::entity entity_i = entity[i];
+			Motion& motion_j = registry.get<Motion>(entity[j]);
+			entt::entity entity_j = entity[j];
 
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A2: HANDLE SALMON - WALL COLLISIONS HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 2
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A3: HANDLE PEBBLE COLLISIONS HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			if (collides(motion_i, motion_j, elapsed_ms))
+			{
+				notifyObservers(entity_i, entity_j);
+				//registry.emplace_or_replace<Collision>(entity_j, entity_i);
+				//registry.emplace_or_replace<Collision>(entity_i, entity_j);
+			}
+		}
+	}
+	
 }
 
 PhysicsSystem::Collision::Collision(entt::entity& other)
 {
 	this->other = other;
+}
+
+void PhysicsSystem::notifyObservers(entt::entity entity_i, entt::entity entity_j) {
+	for (int i = 0; i < observerlist.size(); i++) {
+		observerlist[i]->updateCollisions(entity_i, entity_j);
+	}
+}
+
+void PhysicsSystem::attach(Observer* obs) {
+	this->observerlist.push_back(obs);
 }

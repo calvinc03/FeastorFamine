@@ -1,9 +1,8 @@
 // Header
 #include "mob.hpp"
 #include "render.hpp"
-#include "common.hpp"
 
-entt::entity Mob::createMob()
+entt::entity Mob::createMobEntt()
 {
     // Reserve en entity
     auto entity = registry.create();
@@ -14,7 +13,7 @@ entt::entity Mob::createMob()
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("fish.png"), "textured");
+        RenderSystem::createSprite(resource, textures_path("rabbit_animate.png"), "monster");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -23,13 +22,23 @@ entt::entity Mob::createMob()
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 380.f, 0 };
-    motion.position = FOREST_POS;
-    // Setting initial values, scale is negative to make it face the opposite way
-    motion.scale = vec2({ -0.4f, 0.4f }) * static_cast<vec2>(resource.texture.size);
+    motion.velocity = { 50.f, 0 };
+    motion.position = GridMap::coordToPixel(FOREST_COORD);
+    motion.scale = vec2({ 0.25f, 0.25f }) * static_cast<vec2>(resource.texture.size);
+    // temporary fix
+    motion.boundingbox = vec2({ motion.scale.x * 0.12, motion.scale.y * 0.7});
 
-    // Create and (empty) Fish component to be able to refer to all fish
+    auto& monster = registry.emplace<Monster>(entity);
+    monster.health = 30;
+    monster.damage = 5;
+
+    Animate& animate = registry.emplace<Animate>(entity);
+    animate.frame = 0.f;
+    animate.state = 0.f;
+    animate.frame_num = 6.f;
+    animate.state_num = 1.f;
+
     registry.emplace<Mob>(entity);
-
+    registry.emplace<HitReaction>(entity);
     return entity;
 }

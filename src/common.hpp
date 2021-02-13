@@ -11,17 +11,35 @@
 #define NOMINMAX
 #include <gl3w.h>
 #include <GLFW/glfw3.h>
-
+#include <entt.hpp>
 // The glm library provides vector and matrix operations as in GLSL
 #include <glm/vec2.hpp>				// vec2
 #include <glm/ext/vector_int2.hpp>  // ivec2
 #include <glm/vec3.hpp>             // vec3
 #include <glm/mat3x3.hpp>           // mat3
+
 using namespace glm;
 static const float PI = 3.14159265359f;
-static const ivec2 WINDOW_SIZE_IN_PX = {1200, 800};
-static const vec2 FOREST_POS = vec2(0, 0);
-static const vec2 VILLAGE_POS = WINDOW_SIZE_IN_PX;
+static const size_t FIRING_RATE = 3000;
+static const int GRID_CELL_SIZE = 100;
+static const ivec2 GRID_OFFSET =  ivec2(GRID_CELL_SIZE/2 , GRID_CELL_SIZE/2);
+static const ivec2 WINDOW_SIZE_IN_PX = {1500, 900};
+static const ivec2 WINDOW_SIZE_IN_COORD = WINDOW_SIZE_IN_PX / GRID_CELL_SIZE;
+static const ivec2 FOREST_COORD = ivec2(0, 0);
+// bottom right position (TODO offset this by village size)
+static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
+
+enum grid_state
+{
+    GRID_BLOCKED = -1,
+    GRID_VACANT = 0,
+    GRID_FOREST = 1,
+    GRID_VILLAGE = 2,
+    GRID_GREENHOUSE = 3,
+    GRID_TOWER = 4,
+    GRID_WALL = 5,
+    GRID_HUNTER = 6,
+};
 
 // Simple utility functions to avoid mistyping directory name
 inline std::string data_path() { return "data"; };
@@ -33,10 +51,13 @@ inline std::string mesh_path(const std::string& name) { return data_path() + "/m
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)
 struct Transform {
+	vec2 camera_position = { 0.f, 0.f };
 	mat3 mat = { { 1.f, 0.f, 0.f }, { 0.f, 1.f, 0.f}, { 0.f, 0.f, 1.f} }; // start with the identity
 	void scale(vec2 scale);
 	void rotate(float radians);
 	void translate(vec2 offset);
+	void move_camera(vec2 offset);
+
 };
 
 // All data relevant to the shape and motion of entities
@@ -44,19 +65,52 @@ struct Motion {
 	vec2 position = { 0, 0 };
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
-	vec2 scale = { 10, 10 };
+	vec2 scale = { GRID_CELL_SIZE, GRID_CELL_SIZE };
+	vec2 boundingbox = { 10, 10 };;
+};
+
+struct Monster {
+    int health;
+    int damage;
+    int current_path_index = 0;
+};
+
+struct Unit {
+	int damage;
+	size_t attack_rate;
+	float next_projectile_spawn;
+	int attack_range;
+	int workers;
+};
+
+struct Food {
+	unsigned int food = 100;
+	float food_production_speed = 0;
+};
+
+struct Projectile_Dmg {
+	int damage;
+};
+
+struct Animate {
+	float state = 0.f;
+	float frame = 0.f;
+	float state_num = 1.f;
+	float frame_num = 1.f;
+};
+
+// id for entity
+struct Tag {
+	std::string tag;
 };
 
 
-enum grid_type
-{
-    GRID_BLOCKED = -1,
-    GRID_DEFAULT = 0,
-    PATH_NORMAL = 1,
-    PATH_SLOW = 2,
-    PATH_FAST = 3,
-};
+//detects if mouse is within the a rectangle of size scale at position entity_pos
+float sdBox(vec2 mouse_pos_grid, vec2 entity_pos, vec2 scale);
 
 //TODO: temporary soln
 #include "entt.hpp"
 extern entt::registry registry;
+extern entt::entity screen_state_entity;
+// for camera view; zoom & pan
+extern entt::entity camera;

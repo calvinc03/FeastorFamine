@@ -1,10 +1,8 @@
 // Header
-#include "mob.hpp"
 #include "render.hpp"
-#include "common.hpp"
 #include "spring_boss.hpp"
 
-entt::entity SpringBoss::createSpringBoss()
+entt::entity SpringBoss::createSpringBossEntt()
 {
     // Reserve en entity
     auto entity = registry.create();
@@ -15,7 +13,7 @@ entt::entity SpringBoss::createSpringBoss()
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("turtle.png"), "textured");
+        RenderSystem::createSprite(resource, textures_path("hawk.png"), "monster");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -25,12 +23,17 @@ entt::entity SpringBoss::createSpringBoss()
     //auto& motion = ECS::registry<Motion>.emplace(entity);
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 380.f, 0 };
-    motion.position = FOREST_POS;
-    // Setting initial values, scale is negative to make it face the opposite way
-    motion.scale = vec2({ -0.4f, 0.4f }) * static_cast<vec2>(resource.texture.size);
+    motion.velocity = { 75.f, 0 };
+    motion.position = GridMap::coordToPixel(FOREST_COORD);
+    motion.scale = vec2({ 1, 1 }) * static_cast<vec2>(resource.texture.size);
+    motion.boundingbox = motion.scale;
 
-   registry.emplace<SpringBoss>(entity);
+    auto& monster = registry.emplace<Monster>(entity);
+    monster.health = 40;
+    monster.damage = 5;
+
+    registry.emplace<SpringBoss>(entity);
+    registry.emplace<HitReaction>(entity);
 
     return entity;
 }

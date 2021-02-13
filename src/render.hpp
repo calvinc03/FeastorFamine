@@ -22,7 +22,7 @@ public:
 	~RenderSystem();
 
 	// Draw all entities
-	void draw(vec2 window_size_in_game_units);
+	void draw();
 
 	// Expose the creating of visual representations to other systems
 	static void createSprite(ShadedMesh& mesh_container, std::string texture_path, std::string shader_name);
@@ -37,6 +37,8 @@ private:
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
 
+	void animate(entt::entity entity);
+
 	// Window handle
 	GLFWwindow& window;
 
@@ -44,5 +46,5 @@ private:
 	GLuint frame_buffer;
 	ShadedMesh screen_sprite;
 	GLResource<RENDER_BUFFER> depth_render_buffer_id;
-	entt::entity screen_state_entity;
+	//entt::entity screen_state_entity;
 };
