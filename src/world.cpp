@@ -120,14 +120,6 @@ WorldSystem::~WorldSystem(){
 	glfwDestroyWindow(window);
 }
 
-void WorldSystem::init_ui()
-{
-	// Create UI components
-	Village::createVillage();
-	Tower::createTower(200, 300);
-	Tower::createTower(600, 500);
-}
-
 void WorldSystem::init_audio()
 {
 	//////////////////////////////////////
