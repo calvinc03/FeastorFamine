@@ -193,7 +193,7 @@ void WorldSystem::step(float elapsed_ms)
     for(auto entity: registry.view<Monster>()) {
         auto& monster = registry.get<Monster>(entity);
         auto& motion = registry.get<Motion>(entity);
-        auto& current_path_node = registry.get<GridNode>(monster_path.at(monster.current_path_index));
+        auto& current_path_node = monster_path.at(monster.current_path_index);
 
         // check that the monster is indeed within the current path node
         ivec2 coord = GridMap::pixelToCoord(motion.position);
@@ -208,7 +208,7 @@ void WorldSystem::step(float elapsed_ms)
             continue;
         }
 
-        GridNode next_path_node = registry.get<GridNode>(monster_path.at(monster.current_path_index + 1));
+        GridNode next_path_node = monster_path.at(monster.current_path_index + 1);
         vec2 move_direction = normalize((vec2)(next_path_node.coord - current_path_node.coord));
         motion.velocity = length(motion.velocity) * move_direction;
         motion.angle = atan(move_direction.y / move_direction.x);
