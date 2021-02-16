@@ -29,7 +29,15 @@ static const ivec2 FOREST_COORD = ivec2(0, 0);
 // bottom right position (TODO offset this by village size)
 static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
 
-enum grid_state
+enum grid_terran
+{
+    GRID_DEFAULT = 0,
+    GRID_GRASS = 1,
+    GRID_DIRT = 1,
+    GRID_WATER = 1,
+};
+
+enum grid_occupancy
 {
     GRID_BLOCKED = -1,
     GRID_VACANT = 0,
