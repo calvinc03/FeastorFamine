@@ -83,14 +83,27 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 		scale = ui_element.scale;
 	}
 
+	// camera zoom
+	auto view = registry.view<Motion>();
+	auto& camera_scale = view.get<Motion>(camera).scale;
+	//std::cout << camera_scale.x << ", " << camera_scale.y << "\n";
 	auto& texmesh = *registry.get<ShadedMeshRef>(entity).reference_to_cache;
 
 	// Transformation code, see Rendering and Transformation in the template specification for more info
 	// Incrementally updates transformation matrix, thus ORDER IS IMPORTANT
 	Transform transform;
-	transform.translate(position);
-	transform.rotate(angle);
-	transform.scale(scale);
+	if (registry.has<UI_element>(entity)) {
+		transform.translate(position);
+		transform.rotate(angle);
+		transform.scale(scale);
+	}
+	else {
+		transform.translate(vec2({ position.x * camera_scale.x, position.y * camera_scale.y }));
+		transform.rotate(angle);
+		transform.scale(vec2({ scale.x * camera_scale.x, scale.y * camera_scale.y }));
+	}
+
+
 
 	// Setting shaders
 	glUseProgram(texmesh.effect.program);

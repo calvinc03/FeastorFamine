@@ -83,9 +83,12 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) :
 	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
 	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
 	auto mouse_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_click(_0, _1, _2); };
+	auto scroll_redirect = [](GLFWwindow* wnd, double xoffset, double yoffset) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->scroll_callback(xoffset, yoffset); };
 	glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 	glfwSetMouseButtonCallback(window, mouse_button_redirect);
+	glfwSetScrollCallback(window, scroll_redirect);
+
 
 	// Playing background music indefinitely
 	init_audio();
@@ -348,34 +351,17 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_SPACE) {
 		auto view = registry.view<Motion, MouseMovement>();
-		auto& motion = view.get<Motion>(camera);
+		auto& cam_motion = view.get<Motion>(camera);
 		auto& mouse_move = view.get<MouseMovement>(camera);
-		mouse_move.mouse_start = mouse_move.mouse_pos + motion.position;
-		mouse_move.state = 1;
+		mouse_move.mouse_start = mouse_move.mouse_pos + cam_motion.position;
+		mouse_move.is_pan_state = 1;
 	}
 	else if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE) {
 		auto view = registry.view<Motion, MouseMovement>();
 		auto& motion = view.get<Motion>(camera);
 		auto& mouse_move = view.get<MouseMovement>(camera);
-		mouse_move.state = 0;
+		mouse_move.is_pan_state = 0;
 	}
-
-	// Hot keys for changing sprite appearance
-	
-	//if (action == GLFW_PRESS && key == GLFW_KEY_7)
-	//{
-	//	registry.get<Animate>(village).frame = 0;
-	//}
-	//else if (action == GLFW_PRESS && key == GLFW_KEY_8)
-	//{
-	//	registry.get<Animate>(village).frame = 1;
-	//}
-	//else if (action == GLFW_PRESS && key == GLFW_KEY_9)
-	//{
-	//	registry.get<Animate>(village).frame = 2;
-	//}
-
-
 
 	// Hot keys for selecting placeable units
 	else if (action == GLFW_PRESS && key == GLFW_KEY_1)
@@ -428,6 +414,80 @@ bool mouse_in_game_area(vec2 mouse_pos) {
 	return true;
 }
 
+void WorldSystem::scroll_callback(double xoffset, double yoffset)
+{
+	auto view = registry.view<Motion, MouseMovement>();
+	auto& camera_motion = view.get<Motion>(camera);
+	auto& camera_scale = camera_motion.scale;
+	auto& camera_position = camera_motion.position;
+
+	auto& mouse_movement = view.get<MouseMovement>(camera);
+	
+	double temp_scale = 20.0f;
+	
+	// zoom out limit
+	if (camera_scale.y + (yoffset / temp_scale) < 1) {
+		camera_scale = { 1.f, 1.f };
+		camera_motion.position = { 0.f, 0.f };
+		return;
+	}
+
+	camera_scale.y += yoffset / temp_scale;
+	camera_scale.x = camera_scale.y;
+	
+	double mouse_in_world_x = abs(yoffset) * ((mouse_movement.mouse_pos.x + camera_position.x) / camera_scale.x) / temp_scale;
+	double mouse_in_world_y = abs(yoffset) * ((mouse_movement.mouse_pos.y + camera_position.y) / camera_scale.y) / temp_scale;
+
+	
+
+	if (yoffset > 0) {
+		// zoom in
+		// no need to check out of border
+		camera_position.x += mouse_in_world_x;
+		camera_position.y += mouse_in_world_y;
+	}
+	else {
+		// zoom out
+		double new_cam_pos_x = camera_position.x - mouse_in_world_x;
+		double new_cam_pos_y = camera_position.y - mouse_in_world_y;
+		// check out of map border
+		if (new_cam_pos_x < 0) {
+			new_cam_pos_x = 0;
+		}
+		if (new_cam_pos_y < 0) {
+			new_cam_pos_y = 0;
+		}
+		if ((WINDOW_SIZE_IN_PX.x * camera_motion.scale.x) - new_cam_pos_x < WINDOW_SIZE_IN_PX.x) {
+		//std::cout << new_pos_x + (WINDOW_SIZE_IN_PX.x * cam_motion.scale.x) << " > " << WINDOW_SIZE_IN_PX.x << "\n";
+			new_cam_pos_x = (WINDOW_SIZE_IN_PX.x * camera_motion.scale.x) - WINDOW_SIZE_IN_PX.x;
+}
+		if ((WINDOW_SIZE_IN_PX.y * camera_motion.scale.y) - new_cam_pos_y < WINDOW_SIZE_IN_PX.y) {
+			new_cam_pos_y = (WINDOW_SIZE_IN_PX.y * camera_motion.scale.y) - WINDOW_SIZE_IN_PX.y;
+		}
+
+		camera_position = vec2(new_cam_pos_x, new_cam_pos_y);
+	}
+	//
+	//double new_pos_x = mouse_move.mouse_start.x - mouse_pos.x;
+	//double new_pos_y = mouse_move.mouse_start.y - mouse_pos.y;
+	//if (new_pos_x < 0) {
+	//	new_pos_x = 0;
+	//}
+	//if (new_pos_y < 0) {
+	//	new_pos_y = 0;
+	//}
+	//if ((WINDOW_SIZE_IN_PX.x * cam_motion.scale.x) - new_pos_x < WINDOW_SIZE_IN_PX.x) {
+	//	//std::cout << new_pos_x + (WINDOW_SIZE_IN_PX.x * cam_motion.scale.x) << " > " << WINDOW_SIZE_IN_PX.x << "\n";
+	//	new_pos_x = (WINDOW_SIZE_IN_PX.x * cam_motion.scale.x) - WINDOW_SIZE_IN_PX.x;
+	//}
+	//if ((WINDOW_SIZE_IN_PX.y * cam_motion.scale.y) - new_pos_y < WINDOW_SIZE_IN_PX.y) {
+	//	new_pos_y = (WINDOW_SIZE_IN_PX.y * cam_motion.scale.y) - WINDOW_SIZE_IN_PX.y;
+	//}
+	//cam_motion.position = vec2(new_pos_x, new_pos_y);
+
+	// std::cout << camera_scale.x << ", " << camera_position.y << "\n";
+}
+
 void WorldSystem::on_mouse_move(vec2 mouse_pos)
 {	
 	//if mouse is hovering over a button, then highlight
@@ -439,11 +499,27 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 
 	// camera control 
 	auto view = registry.view<Motion, MouseMovement>();
-	auto& motion = view.get<Motion>(camera);
+	auto& cam_motion = view.get<Motion>(camera);
 	auto& mouse_move = view.get<MouseMovement>(camera);
 	mouse_move.mouse_pos = mouse_pos;
-	if (mouse_move.state == 1) {
-		motion.position = vec2(mouse_move.mouse_start.x - mouse_pos.x, mouse_move.mouse_start.y - mouse_pos.y);
+	if (mouse_move.is_pan_state == 1) {
+		// prevent pan off map
+		double new_pos_x = mouse_move.mouse_start.x - mouse_pos.x;
+		double new_pos_y = mouse_move.mouse_start.y - mouse_pos.y;
+		if (new_pos_x < 0 ) {
+			new_pos_x = 0;
+		}
+		if (new_pos_y < 0) {
+			new_pos_y = 0;
+		}
+		if ((WINDOW_SIZE_IN_PX.x * cam_motion.scale.x) - new_pos_x < WINDOW_SIZE_IN_PX.x) {
+			//std::cout << new_pos_x + (WINDOW_SIZE_IN_PX.x * cam_motion.scale.x) << " > " << WINDOW_SIZE_IN_PX.x << "\n";
+			new_pos_x = (WINDOW_SIZE_IN_PX.x * cam_motion.scale.x) - WINDOW_SIZE_IN_PX.x;
+		}
+		if ((WINDOW_SIZE_IN_PX.y * cam_motion.scale.y) - new_pos_y < WINDOW_SIZE_IN_PX.y) {
+			new_pos_y = (WINDOW_SIZE_IN_PX.y * cam_motion.scale.y) - WINDOW_SIZE_IN_PX.y;
+		}
+		cam_motion.position = vec2(new_pos_x, new_pos_y);
 	}
 	
 }

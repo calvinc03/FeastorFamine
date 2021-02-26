@@ -70,7 +70,7 @@ struct Transform {
 
 // All data relevant to the shape and motion of entities
 struct Motion {
-	vec2 position = { 0, 0 };
+	vec2 position = { 0.f, 0.f };
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { GRID_CELL_SIZE, GRID_CELL_SIZE };

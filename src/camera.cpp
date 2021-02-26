@@ -14,6 +14,7 @@ entt::entity Camera::createCamera()
 	motion.position = {0.f, 0.f};
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
+	motion.scale = { 1.f, 1.f };
 
 	registry.emplace<MouseMovement>(entity);
 

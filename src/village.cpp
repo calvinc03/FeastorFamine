@@ -23,7 +23,7 @@ entt::entity Village::createVillage()
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.scale = vec2({ 0.5f, 0.5f }) * static_cast<vec2>(resource.texture.size);
-    motion.position = GridMap::coordToPixel(VILLAGE_COORD) - motion.scale/4.f;
+    motion.position = GridMap::coordToPixel(VILLAGE_COORD);
 
 
 	Food& food = registry.emplace<Food>(entity);
