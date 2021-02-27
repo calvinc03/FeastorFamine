@@ -14,7 +14,7 @@
 #include "village.hpp"
 #include "wall.hpp"
 #include "camera.hpp"
-
+#include "button.hpp"
 #include "ui.hpp"
 // stlib
 #include <string.h>
@@ -43,6 +43,7 @@ const std::string WALL_NAME = "wall";
 
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) :
+		game_state(start_menu),
 		fps_ms(1000 / ANIMATION_FPS),
         health(500),
         next_boss_spawn(2000.f),
@@ -238,6 +239,19 @@ void WorldSystem::step(float elapsed_ms)
 		screen.darken_screen_factor = 0;
 		restart();
 	}
+}
+// Start Menu
+void WorldSystem::setup_start_menu()
+{
+	std::cout << "In Start Menu\n";
+	registry.clear();
+	screen_state_entity = registry.create();
+	registry.emplace<ScreenState>(screen_state_entity);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 1 / 5, "new_game", new_game_button);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 2 / 5, "load_game", load_game_button);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 3 / 5, "settings", settings_button);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 5, "exit", exit_button);
+	camera = Camera::createCamera();
 }
 
 // Reset the world state to its initial state
@@ -602,5 +616,37 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	}
 
 	//std::cout << "selected: " << unit_selected << std::endl;
+
+	// handle clicks in the start menu
+	switch (game_state)
+	{
+		case start_menu: start_menu_click_handle(xpos, ypos, button, action, mod); break;
+	}
 	
+}
+
+// helper for start menu mouse click
+void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
+{
+	/*if (mouse_pos_x > 1000) {
+		game_state = in_game;
+		std::cout << "NOW IN GAME\n";
+	}*/
+	std::string button_tag = "";
+	if (action == GLFW_PRESS)
+	{
+		button_tag = on_click({ mouse_pos_x , mouse_pos_y });
+		std::cout << button_tag << "\n";
+	}
+
+	if (button_tag == "exit")
+	{
+		// close window
+		glfwSetWindowShouldClose(window, GLFW_TRUE);
+	}
+	else if (button_tag == "new_game")
+	{
+		game_state = in_game;
+		restart();
+	}
 }

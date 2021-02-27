@@ -64,8 +64,6 @@ struct Transform {
 	void scale(vec2 scale);
 	void rotate(float radians);
 	void translate(vec2 offset);
-	void move_camera(vec2 offset);
-
 };
 
 // All data relevant to the shape and motion of entities

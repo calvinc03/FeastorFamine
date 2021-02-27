@@ -25,6 +25,9 @@ public:
 	// Releases all associated resources
 	~WorldSystem();
 
+	// menu
+	void setup_start_menu();
+
 	// restart level
 	void restart();
 
@@ -44,6 +47,12 @@ public:
 
 	// OpenGL window handle
 	GLFWwindow* window;
+
+	// game state
+	int game_state;
+
+	// Menu
+	enum GameState { start_menu, in_game };
 private:
 	// PhysicsSystem handle
 	PhysicsSystem* physics;
@@ -82,6 +91,11 @@ private:
 	entt::entity ui;
 
 	std::string unit_selected;
+
+
+
+	// helper for start menu mouse click
+	void start_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 
 	// music references
 	Mix_Music* background_music;

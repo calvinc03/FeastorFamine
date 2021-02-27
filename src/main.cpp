@@ -9,7 +9,7 @@
 // internal
 #include "common.hpp"
 #include "world.hpp"
-
+#include "game_state.hpp"
 #include "entt.hpp"
 //#include "tiny_ecs.hpp"
 
@@ -41,9 +41,9 @@ int main()
 	WorldSystem world(WINDOW_SIZE_IN_PX, &physics);
 	RenderSystem renderer(*world.window);
 	
-
+	world.setup_start_menu();
 	// Set all states to default
-	world.restart();
+	//world.restart();
 	auto t = Clock::now();
 	// Variable timestep loop
 	while (!world.is_over())
@@ -57,10 +57,13 @@ int main()
 		t = now;
 
 		DebugSystem::clearDebugComponents();
-		ai.step(elapsed_ms);
-		world.step(elapsed_ms);
-		physics.step(elapsed_ms);
-		//world.handle_collisions();
+		if (world.game_state == WorldSystem::in_game) {
+			ai.step(elapsed_ms);
+			world.step(elapsed_ms);
+			physics.step(elapsed_ms);
+			world.handle_collisions();
+		}
+		
 
 		renderer.draw();
 	}
