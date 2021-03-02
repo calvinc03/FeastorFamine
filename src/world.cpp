@@ -5,6 +5,9 @@
 #include "debug.hpp"
 #include "render_components.hpp"
 #include "spring_boss.hpp"
+#include "bosses/fall_boss.hpp"
+#include "bosses/summer_boss.hpp"
+#include "bosses/winter_boss.hpp"
 #include "mob.hpp"
 
 #include "grid_map.hpp"
@@ -48,7 +51,8 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) :
         health(500),
         next_boss_spawn(2000.f),
         next_mob_spawn(3000.f),
-		round_timer(ROUND_TIME), round_number(0) {
+		round_timer(ROUND_TIME), 
+		round_number(0) {
     // Seeding rng with random device
     rng = std::default_random_engine(std::random_device()());
 
@@ -170,11 +174,17 @@ void WorldSystem::step(float elapsed_ms)
 
 	//Spawning new boss
 	next_boss_spawn -= elapsed_ms * current_speed;
-	if (registry.view<SpringBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
+	//if (registry.view<SpringBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
+	//{
+	//	// Reset spawn timer and spawn boss
+	//	next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
+	//	SpringBoss::createSpringBossEntt();
+	//}
+	if (registry.view<SummerBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
 	{
 		// Reset spawn timer and spawn boss
-        next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
-        SpringBoss::createSpringBossEntt();
+		next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
+		SummerBoss::createSummerBossEntt();
 	}
 
 	// Spawning new mobs
@@ -338,7 +348,7 @@ void WorldSystem::handle_collisions()
 				if (animal.health <= 0)
 				{
 					registry.destroy(entity_other.other);
-					health += 20;
+					health += 20; // TODO should be based on the animal/boss
 				}
 			}
 			// TODO else - village health
