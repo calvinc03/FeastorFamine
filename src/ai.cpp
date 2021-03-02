@@ -46,14 +46,32 @@ void AISystem::step(float elapsed_ms)
 void AISystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 {
 	if (registry.has<Projectile>(entity_i)) {
+		if (registry.has<Boss>(entity_j))
+		{
+			auto& boss = registry.get<Boss>(entity_j);
+			if (!boss.hit)
+			{
+				boss.hit = true;
+
+				if (boss.speed_multiplier > 1)
+				{
+					boss.sprite = boss.run_sprite;
+					boss.frames = boss.run_frames;
+				}
+
+				auto& motion = registry.get<Motion>(entity_j);
+				motion.velocity *= boss.speed_multiplier;
+
+			}
+		}
 		if (registry.has<Monster>(entity_j)) {
 			auto& hit_reaction = registry.get<HitReaction>(entity_j);
 			hit_reaction.hit_bool = true;
 
-			// increase velocity of monsters that are hit
+			// increase velocity of monsters that are hit - removed
 			auto& motion = registry.get<Motion>(entity_j);
-			motion.velocity.x += motion.velocity.x > 0 ? 100.f : 0;
-			motion.velocity.y += motion.velocity.y > 0 ? 100.f : 0;
+			//motion.velocity.x += motion.velocity.x > 0 ? 100.f : 0;
+			//motion.velocity.y += motion.velocity.y > 0 ? 100.f : 0;
 		}
 	}
 }
