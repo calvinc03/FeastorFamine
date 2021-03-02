@@ -2,7 +2,6 @@
 #include "render.hpp"
 #include <string>
 
-//will move this function outside of world eventually.
 void UI_highlight_system(vec2 mouse_pos) {
 	auto view_ui = registry.view<UI_element, HighlightBool>(); //may make separate registry for UI elements. Could have position+scale instead of motion component
 	for (auto [entity, ui_element, highlight] : view_ui.each()) {
