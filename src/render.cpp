@@ -151,13 +151,14 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 	{
 		throw std::runtime_error("This type of entity is not yet supported");
 	}
+
 	//HIGHLIGHT for ui elements
 	if (registry.has<HighlightBool>(entity))
 	{
 		GLint highlight_uloc = glGetUniformLocation(texmesh.effect.program, "highlight");
 		if (highlight_uloc >= 0) {
 
-			if (registry.get<HighlightBool>(entity).highlight) {
+			if (registry.get<HighlightBool>(entity).highlight) { //check bool
 				glUniform1i(highlight_uloc, 1);
 			}
 			else {
