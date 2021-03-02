@@ -597,9 +597,6 @@ void WorldSystem::in_game_click_handle(double mouse_pos_x, double mouse_pos_y, i
 {
 	Motion camera_motion = registry.get<Motion>(camera);
 
-	std::cout << mouse_pos_x << ", " << mouse_pos_y << "\n";
-	std::cout << camera_motion.position.x << ", " << camera_motion.position.y << "\n";
-
 	// cursor position in grid units
 	int x_grid = (mouse_pos_x + camera_motion.position.x);
 	int y_grid = (mouse_pos_y + camera_motion.position.y);
