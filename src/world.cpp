@@ -1,6 +1,5 @@
 // Header
 #include "world.hpp"
-//#include "Observer.hpp"
 #include "physics.hpp"
 #include "debug.hpp"
 #include "render_components.hpp"
@@ -29,6 +28,7 @@ const size_t MOB_DELAY_MS = 8000;
 const size_t MAX_BOSS = 2;
 const size_t BOSS_DELAY_MS = 20000;
 const size_t ANIMATION_FPS = 12;
+const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 
 const size_t ROUND_TIME = 30 * 1000; // 30 seconds?
 
@@ -48,6 +48,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) :
         health(500),
         next_boss_spawn(2000.f),
         next_mob_spawn(3000.f),
+		next_greenhouse_production(3000.f),
 		round_timer(ROUND_TIME), round_number(0) {
     // Seeding rng with random device
     rng = std::default_random_engine(std::random_device()());
@@ -223,6 +224,7 @@ void WorldSystem::step(float elapsed_ms)
         }
     }
 
+	// removes projectiles that are out of the screen
 	for (auto projectile : registry.view<Projectile>()) {
 		auto& pos = registry.get<Motion>(projectile);
 		if (pos.position.x == WINDOW_SIZE_IN_PX.x || pos.position.y == WINDOW_SIZE_IN_PX.y) {
@@ -230,6 +232,12 @@ void WorldSystem::step(float elapsed_ms)
 		}
 	}
 
+	// greenhouse food production
+	next_greenhouse_production -= elapsed_ms * current_speed;
+	if (next_greenhouse_production < 0.f) {
+		health += registry.view<GreenHouse>().size() * 20;
+		next_greenhouse_production = GREENHOUSE_PRODUCTION_DELAY;
+	}
 
 	// TODO polish death scene of village
 	if (health < 0) // using < vs <= so we don't die if we spend all the food
@@ -597,9 +605,11 @@ void WorldSystem::in_game_click_handle(double mouse_pos_x, double mouse_pos_y, i
 {
 	Motion camera_motion = registry.get<Motion>(camera);
 
-	// cursor position in grid units
-	int x_grid = (mouse_pos_x + camera_motion.position.x);
-	int y_grid = (mouse_pos_y + camera_motion.position.y);
+	// cursor position in world pos
+	vec2 mouse_world_pos = mouse_in_world_coord(vec2({ mouse_pos_x, mouse_pos_y }));
+
+	int x_grid = mouse_world_pos.x; 
+	int y_grid = mouse_world_pos.y; 
 
 	// snap to nearest grid size
 	int x = (x_grid + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE;

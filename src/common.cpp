@@ -36,3 +36,12 @@ entt::registry registry;
 entt::entity screen_state_entity;
 // for camera view; zoom & pan
 entt::entity camera;
+
+vec2 mouse_in_world_coord(vec2 mouse_pos)
+{
+	auto view = registry.view<Motion>();
+	auto& camera_motion = view.get<Motion>(camera);
+	vec2 mouse_world_pos = vec2({ (mouse_pos.x + camera_motion.position.x) / camera_motion.scale.x,
+								  (mouse_pos.y + camera_motion.position.y) / camera_motion.scale.y });
+	return mouse_world_pos;
+}

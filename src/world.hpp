@@ -54,8 +54,7 @@ public:
 	// Menu
 	enum GameState { start_menu, in_game };
 
-	// Map
-	GridMap current_map;
+	
 private:
 	// PhysicsSystem handle
 	PhysicsSystem* physics;
@@ -82,8 +81,10 @@ private:
 	float current_speed;
 	float next_boss_spawn;
 	float next_mob_spawn;
+	float next_greenhouse_production;
 
     // Monster path
+	GridMap current_map;
     std::vector<GridNode> monster_path = {};
 
 	float round_timer;
