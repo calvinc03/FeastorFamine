@@ -174,17 +174,11 @@ void WorldSystem::step(float elapsed_ms)
 
 	//Spawning new boss
 	next_boss_spawn -= elapsed_ms * current_speed;
-	//if (registry.view<SpringBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
-	//{
-	//	// Reset spawn timer and spawn boss
-	//	next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
-	//	SpringBoss::createSpringBossEntt();
-	//}
-	if (registry.view<SummerBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
+	if (registry.view<FallBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
 	{
 		// Reset spawn timer and spawn boss
 		next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
-		SummerBoss::createSummerBossEntt();
+		FallBoss::createFallBossEntt();
 	}
 
 	// Spawning new mobs
