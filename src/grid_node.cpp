@@ -16,7 +16,7 @@ entt::entity GridNode::createGridNode(int terran, vec2 coord)
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("grid_0.png"), "textured");
+        RenderSystem::createSprite(resource, textures_path("grid_0.png"), "grid");
     }
     registry.emplace<ShadedMeshRef>(entity, resource);
 
@@ -26,6 +26,8 @@ entt::entity GridNode::createGridNode(int terran, vec2 coord)
     motion.position = GridMap::coordToPixel(coord);
     // Setting initial values, scale is 1
     motion.scale = vec2({ 1, 1 }) * static_cast<vec2>(resource.texture.size);
+
+    registry.emplace<HighlightBool>(entity); //component that stores whether this gridnode should be highlighted
 
     return entity;
 }
