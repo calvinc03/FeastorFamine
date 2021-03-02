@@ -588,12 +588,14 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	int y_grid = mouse_world_pos.y; 
 
 	// snap to nearest grid size
-	int x = (x_grid + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE; //+ GRID_CELL_SIZE / 2
+	float x = (x_grid) / GRID_CELL_SIZE; //+ GRID_CELL_SIZE / 2
 	x *= GRID_CELL_SIZE;
-	int y = (y_grid + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE; //+ GRID_CELL_SIZE / 2
+	float y = (y_grid) / GRID_CELL_SIZE; //+ GRID_CELL_SIZE / 2
 	y *= GRID_CELL_SIZE;
-	//x -= GRID_CELL_SIZE / 2;
-	//y -= GRID_CELL_SIZE / 2;
+
+	x += GRID_CELL_SIZE / 2.0;
+	y += GRID_CELL_SIZE / 2.0;
+	
 	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
 	
