@@ -284,16 +284,24 @@ void WorldSystem::restart()
     // hardcode path
     std::vector<ivec2> path = {};
     for (int y = FOREST_COORD.y; y < VILLAGE_COORD.y; y++) {
+		current_map.setGridOccupancy(current_map, vec2(FOREST_COORD.x, y), GRID_BLOCKED);
         path.emplace_back(FOREST_COORD.x, y);
     }
     for (int x = FOREST_COORD.x; x < VILLAGE_COORD.x; x++) {
+		current_map.setGridOccupancy(current_map, vec2(x, VILLAGE_COORD.y), GRID_BLOCKED);
         path.emplace_back(x, VILLAGE_COORD.y);
     }
+
     // set path
     monster_path = GridMap::getNodesFromCoords(current_map, path);
 
     // create village
 	village = Village::createVillage();
+
+	current_map.setGridOccupancy(current_map, VILLAGE_COORD, GRID_VILLAGE);
+	current_map.setGridOccupancy(current_map, VILLAGE_COORD + ivec2(1, 0), GRID_VILLAGE);
+	current_map.setGridOccupancy(current_map, VILLAGE_COORD + ivec2(0, 1), GRID_VILLAGE);
+	current_map.setGridOccupancy(current_map, VILLAGE_COORD + ivec2(1, 1), GRID_VILLAGE);
 	
 	camera = Camera::createCamera();
 }
@@ -320,6 +328,7 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 }
 
 // Compute collisions between entities
+// Keep this here for now. But can be deleted as collisions are handled by updateCOllisions(
 void WorldSystem::handle_collisions()
 {
 	//// Loop over all collisions detected by the physics system
@@ -544,83 +553,15 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
 
-	Motion camera_motion = registry.get<Motion>(camera);
-
-	// cursor position in grid units
-	int x_grid = (xpos + camera_motion.position.x) ;
-	int y_grid = (ypos  + camera_motion.position.y);
-
-	// snap to nearest grid size
-	int x = (x_grid + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE;
-	x *= GRID_CELL_SIZE;
-	int y = (y_grid + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE;
-	y *= GRID_CELL_SIZE;
-
-	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
-	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
-
-	//some debugging print outs
-	/*if (in_game_area) { 
-		std::cout << "in game area" << std::endl;
-	}
-	else {
-		std::cout << "not in game area" << std::endl;
-		std::cout << button_to_string(ui_button) << " pressed " << std::endl;
-	}*/
-
-	// Mouse click for placing units 
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "" && in_game_area)
-	{
-		if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
-		{
-			entt::entity entity = Hunter::createHunter({ x, y });
-			health -= HUNTER_COST;
-			unit_selected = "";
-		}
-		else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
-		{
-			entt::entity entity = GreenHouse::createGreenHouse({ x, y });
-			health -= GREENHOUSE_COST;
-			unit_selected = "";
-		}
-		else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
-		{
-			entt::entity entity = WatchTower::createWatchTower({ x, y });
-			health -= WATCHTOWER_COST;
-			unit_selected = "";
-		}
-		else if (unit_selected ==WALL_NAME && health >= WALL_COST)
-		{
-			entt::entity entity = Wall::createWall({ x, y }, false);
-			health -= WALL_COST;
-			unit_selected = "";
-		}
-	}
-	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area) {
-		
-		if (ui_button == Button::tower_button) {
-			unit_selected = WATCHTOWER_NAME;
-		}
-		else if (ui_button == Button::green_house_button) {
-			unit_selected = GREENHOUSE_NAME;
-		}
-		else if (ui_button == Button::stick_figure_button) {
-			unit_selected = HUNTER_NAME;
-		} 
-		else if (ui_button == Button::wall_button) {
-			unit_selected = WALL_NAME;
-		}
-		else {
-			unit_selected = "";
-		}
-	}
-
-	//std::cout << "selected: " << unit_selected << std::endl;
-
-	// handle clicks in the start menu
 	switch (game_state)
 	{
-		case start_menu: start_menu_click_handle(xpos, ypos, button, action, mod); break;
+		case start_menu: 
+			start_menu_click_handle(xpos, ypos, button, action, mod); 
+			break;
+
+		case in_game: 
+			in_game_click_handle(xpos, ypos, button, action, mod);
+			break;
 	}
 	
 }
@@ -649,4 +590,95 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 		game_state = in_game;
 		restart();
 	}
+}
+
+// helper for in game mouse click
+void WorldSystem::in_game_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
+{
+	Motion camera_motion = registry.get<Motion>(camera);
+
+	std::cout << mouse_pos_x << ", " << mouse_pos_y << "\n";
+	std::cout << camera_motion.position.x << ", " << camera_motion.position.y << "\n";
+
+	// cursor position in grid units
+	int x_grid = (mouse_pos_x + camera_motion.position.x);
+	int y_grid = (mouse_pos_y + camera_motion.position.y);
+
+	// snap to nearest grid size
+	int x = (x_grid + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE;
+	x *= GRID_CELL_SIZE;
+	int y = (y_grid + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE;
+	y *= GRID_CELL_SIZE;
+
+	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
+	bool in_game_area = mouse_in_game_area(vec2(mouse_pos_x, mouse_pos_y));
+
+	//some debugging print outs
+	if (in_game_area) {
+		std::cout << "in game area" << std::endl;
+	}
+	else {
+		std::cout << "not in game area" << std::endl;
+		std::cout << button_to_string(ui_button) << " pressed " << std::endl;
+	}
+
+
+	// Mouse click for placing units 
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "" && in_game_area)
+	{
+		GridNode& node = GridMap::getNodeAtCoord(current_map, GridMap::pixelToCoord(vec2(x, y)));
+
+		if (node.occupancy == GRID_VACANT) {
+			if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
+			{
+				entt::entity entity = Hunter::createHunter({ x, y });
+				health -= HUNTER_COST;
+				unit_selected = "";
+				node.occupancy = GRID_HUNTER;
+			}
+			else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
+			{
+				entt::entity entity = GreenHouse::createGreenHouse({ x, y });
+				health -= GREENHOUSE_COST;
+				unit_selected = "";
+				node.occupancy = GRID_GREENHOUSE;
+			}
+			else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
+			{
+				entt::entity entity = WatchTower::createWatchTower({ x, y });
+				health -= WATCHTOWER_COST;
+				unit_selected = "";
+				node.occupancy = GRID_TOWER;
+			}
+			else if (unit_selected == WALL_NAME && health >= WALL_COST)
+			{
+				entt::entity entity = Wall::createWall({ x, y }, false);
+				health -= WALL_COST;
+				unit_selected = "";
+				node.occupancy = GRID_WALL;
+			}
+		}
+	}
+	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area) {
+
+		if (ui_button == Button::tower_button) {
+			unit_selected = WATCHTOWER_NAME;
+		}
+		else if (ui_button == Button::green_house_button) {
+			unit_selected = GREENHOUSE_NAME;
+		}
+		else if (ui_button == Button::stick_figure_button) {
+			unit_selected = HUNTER_NAME;
+		}
+		else if (ui_button == Button::wall_button) {
+			unit_selected = WALL_NAME;
+		}
+		else {
+			unit_selected = "";
+		}
+	}
+
+	//std::cout << "selected: " << unit_selected << std::endl;
+
+	// handle clicks in the start menu
 }

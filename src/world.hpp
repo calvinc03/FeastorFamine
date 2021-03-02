@@ -53,6 +53,9 @@ public:
 
 	// Menu
 	enum GameState { start_menu, in_game };
+
+	// Map
+	GridMap current_map;
 private:
 	// PhysicsSystem handle
 	PhysicsSystem* physics;
@@ -80,8 +83,7 @@ private:
 	float next_boss_spawn;
 	float next_mob_spawn;
 
-    // Map nodes and path
-	GridMap current_map;
+    // Monster path
     std::vector<GridNode> monster_path = {};
 
 	float round_timer;
@@ -94,8 +96,9 @@ private:
 
 
 
-	// helper for start menu mouse click
+	// helper for start menu mouse click and in_game mouse click
 	void start_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
+	void in_game_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 
 	// music references
 	Mix_Music* background_music;
