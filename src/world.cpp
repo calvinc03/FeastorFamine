@@ -546,9 +546,11 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 
 	Motion camera_motion = registry.get<Motion>(camera);
 
-	// cursor position in grid units
-	int x_grid = (xpos + camera_motion.position.x) ;
-	int y_grid = (ypos  + camera_motion.position.y);
+	// cursor position in world pos
+	vec2 mouse_world_pos = mouse_in_world_coord(vec2({ xpos, ypos }));
+
+	int x_grid = mouse_world_pos.x; 
+	int y_grid = mouse_world_pos.y; 
 
 	// snap to nearest grid size
 	int x = (x_grid + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE;

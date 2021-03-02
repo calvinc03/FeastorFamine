@@ -120,3 +120,4 @@ extern entt::registry registry;
 extern entt::entity screen_state_entity;
 // for camera view; zoom & pan
 extern entt::entity camera;
+vec2 mouse_in_world_coord(vec2 mouse_pos);
