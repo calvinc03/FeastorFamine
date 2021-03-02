@@ -33,8 +33,11 @@ public:
 
 	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
 
-	// Steps the game ahead by ms milliseconds
+	// Steps the game during monster rounds ahead by ms milliseconds
 	void step(float elapsed_ms);
+
+	// Steps the game during set up rounds
+	void set_up_step(float elapsed_ms);
 
 	// Check for collisions
 	void handle_collisions();
@@ -54,6 +57,9 @@ public:
 	// Menu
 	enum GameState { start_menu, in_game };
 
+	// state for set_up and monster_rounds
+	int player_state;
+	enum PlayerState { set_up_stage, monster_round_stage };
 	
 private:
 	// PhysicsSystem handle
@@ -87,8 +93,10 @@ private:
 	GridMap current_map;
     std::vector<GridNode> monster_path = {};
 
+	// round and set up
 	float round_timer;
 	int round_number;
+	float set_up_timer;
 
 	//UI
 	entt::entity ui;

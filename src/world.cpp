@@ -31,6 +31,7 @@ const size_t ANIMATION_FPS = 12;
 const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 
 const size_t ROUND_TIME = 30 * 1000; // 30 seconds?
+const size_t SET_UP_TIME = 15 * 1000;
 
 const size_t WATCHTOWER_COST = 200;
 const size_t GREENHOUSE_COST = 300;
@@ -44,11 +45,13 @@ const std::string WALL_NAME = "wall";
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) :
 		game_state(start_menu),
+		player_state(set_up_stage),
 		fps_ms(1000 / ANIMATION_FPS),
         health(500),
         next_boss_spawn(2000.f),
         next_mob_spawn(3000.f),
 		next_greenhouse_production(3000.f),
+		set_up_timer(SET_UP_TIME),
 		round_timer(ROUND_TIME), round_number(0) {
     // Seeding rng with random device
     rng = std::default_random_engine(std::random_device()());
@@ -191,7 +194,8 @@ void WorldSystem::step(float elapsed_ms)
 	if (round_timer < 0.0f) {
 		
 		round_number++;
-		round_timer = ROUND_TIME; // no delay between rounds
+		round_timer = ROUND_TIME;
+		player_state = set_up_stage;
 	}
 
     // update velocity for every monster
@@ -248,6 +252,23 @@ void WorldSystem::step(float elapsed_ms)
 		restart();
 	}
 }
+
+void WorldSystem::set_up_step(float elapsed_ms) {
+
+	set_up_timer -= elapsed_ms;
+
+	// Updating window title with health and setup timer 
+	std::stringstream title_ss;
+	title_ss << "Food: " << health << " Round: " << round_number << " Time left to setup: " << round(set_up_timer / 1000) << " fps: " << 1000.0 / elapsed_ms;
+	glfwSetWindowTitle(window, title_ss.str().c_str());
+
+	if (set_up_timer <= 0) {
+		player_state = monster_round_stage;
+		set_up_timer = SET_UP_TIME;
+	}
+}
+
+
 // Start Menu
 void WorldSystem::setup_start_menu()
 {
@@ -602,7 +623,7 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 
 // helper for in game mouse click
 void WorldSystem::in_game_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
-{
+{	
 	Motion camera_motion = registry.get<Motion>(camera);
 
 	// cursor position in world pos
@@ -629,63 +650,64 @@ void WorldSystem::in_game_click_handle(double mouse_pos_x, double mouse_pos_y, i
 		std::cout << button_to_string(ui_button) << " pressed " << std::endl;
 	}
 
+	if (player_state == set_up_stage) {
+		// Mouse click for placing units 
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "" && in_game_area)
+		{
+			GridNode& node = GridMap::getNodeAtCoord(current_map, GridMap::pixelToCoord(vec2(x, y)));
 
-	// Mouse click for placing units 
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "" && in_game_area)
-	{
-		GridNode& node = GridMap::getNodeAtCoord(current_map, GridMap::pixelToCoord(vec2(x, y)));
-
-		if (node.occupancy == GRID_VACANT) {
-			if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
-			{
-				entt::entity entity = Hunter::createHunter({ x, y });
-				health -= HUNTER_COST;
-				unit_selected = "";
-				node.occupancy = GRID_HUNTER;
-			}
-			else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
-			{
-				entt::entity entity = GreenHouse::createGreenHouse({ x, y });
-				health -= GREENHOUSE_COST;
-				unit_selected = "";
-				node.occupancy = GRID_GREENHOUSE;
-			}
-			else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
-			{
-				entt::entity entity = WatchTower::createWatchTower({ x, y });
-				health -= WATCHTOWER_COST;
-				unit_selected = "";
-				node.occupancy = GRID_TOWER;
-			}
-			else if (unit_selected == WALL_NAME && health >= WALL_COST)
-			{
-				entt::entity entity = Wall::createWall({ x, y }, false);
-				health -= WALL_COST;
-				unit_selected = "";
-				node.occupancy = GRID_WALL;
+			if (node.occupancy == GRID_VACANT) {
+				if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
+				{
+					entt::entity entity = Hunter::createHunter({ x, y });
+					health -= HUNTER_COST;
+					unit_selected = "";
+					node.occupancy = GRID_HUNTER;
+				}
+				else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
+				{
+					entt::entity entity = GreenHouse::createGreenHouse({ x, y });
+					health -= GREENHOUSE_COST;
+					unit_selected = "";
+					node.occupancy = GRID_GREENHOUSE;
+				}
+				else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
+				{
+					entt::entity entity = WatchTower::createWatchTower({ x, y });
+					health -= WATCHTOWER_COST;
+					unit_selected = "";
+					node.occupancy = GRID_TOWER;
+				}
+				else if (unit_selected == WALL_NAME && health >= WALL_COST)
+				{
+					entt::entity entity = Wall::createWall({ x, y }, false);
+					health -= WALL_COST;
+					unit_selected = "";
+					node.occupancy = GRID_WALL;
+				}
 			}
 		}
+		else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area) {
+
+			if (ui_button == Button::tower_button) {
+				unit_selected = WATCHTOWER_NAME;
+			}
+			else if (ui_button == Button::green_house_button) {
+				unit_selected = GREENHOUSE_NAME;
+			}
+			else if (ui_button == Button::stick_figure_button) {
+				unit_selected = HUNTER_NAME;
+			}
+			else if (ui_button == Button::wall_button) {
+				unit_selected = WALL_NAME;
+			}
+			else {
+				unit_selected = "";
+			}
+		}
+
+		//std::cout << "selected: " << unit_selected << std::endl;
+
+		// handle clicks in the start menu
 	}
-	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area) {
-
-		if (ui_button == Button::tower_button) {
-			unit_selected = WATCHTOWER_NAME;
-		}
-		else if (ui_button == Button::green_house_button) {
-			unit_selected = GREENHOUSE_NAME;
-		}
-		else if (ui_button == Button::stick_figure_button) {
-			unit_selected = HUNTER_NAME;
-		}
-		else if (ui_button == Button::wall_button) {
-			unit_selected = WALL_NAME;
-		}
-		else {
-			unit_selected = "";
-		}
-	}
-
-	//std::cout << "selected: " << unit_selected << std::endl;
-
-	// handle clicks in the start menu
 }
