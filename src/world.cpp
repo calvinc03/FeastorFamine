@@ -524,11 +524,12 @@ void grid_highlight_system(vec2 mouse_pos, std::string unit_selected) {
 void WorldSystem::on_mouse_move(vec2 mouse_pos)
 {	
 	//if mouse is hovering over a button, then highlight
-	UI_highlight_system(mouse_pos);
+	vec2 mouse_pos_world = mouse_in_world_coord(mouse_pos);
+	UI_highlight_system( mouse_pos);
 
 	bool in_game_area = mouse_in_game_area(mouse_pos);
 	if(in_game_area )
-		grid_highlight_system(mouse_pos, unit_selected);
+		grid_highlight_system(mouse_pos_world, unit_selected);
 
     // if village is alive
     if (health > 0)
