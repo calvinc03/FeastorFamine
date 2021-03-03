@@ -48,6 +48,8 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) :
         health(500),
         next_boss_spawn(2000.f),
         next_mob_spawn(3000.f),
+        current_season(0),
+        current_weather(0),
 		round_timer(ROUND_TIME), round_number(0) {
     // Seeding rng with random device
     rng = std::default_random_engine(std::random_device()());
@@ -312,11 +314,27 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			registry.destroy(entity_i);
 			if (animal.health <= 0)
 			{
-				health += 30;
+                if (current_season == 3) {
+                    health += 30 * 2;
+                }
+                else if (current_season == 4) {
+                    health += 30 / 2;
+                }
+                else {
+                    health += 30;
+                }
 				registry.destroy(entity_j);
 			}
 		}
 	}
+    if (registry.has<Monster>(entity_i)) {
+        if (registry.has<Village>(entity_j)) {
+            auto& animal = registry.get<Monster>(entity_i);
+            auto& village = registry.get<Food>(entity_j);
+            village.food -= animal.damage;
+        }
+    }
+    
 }
 
 // Compute collisions between entities
@@ -328,9 +346,10 @@ void WorldSystem::handle_collisions()
 	{
 		auto entity = collision[i];
 		auto entity_other = registry.get<PhysicsSystem::Collision>(collision[i]);
+        // Projectile and Monster Collision event
 		if (registry.has<Projectile>(entity)) {
 			if (registry.has<Monster>(entity_other.other)) {
-				std::cout << "A monster was hit" << "\n";
+				std::cout << "A monster was hit by projectile" << "\n";
 				auto& animal = registry.get<Monster>(entity_other.other);
 				auto& projectile = registry.get<Projectile_Dmg>(entity);
 				animal.health -= projectile.damage;
@@ -341,8 +360,16 @@ void WorldSystem::handle_collisions()
 					health += 20;
 				}
 			}
-			// TODO else - village health
 		}
+        // Monster and Village collision event
+        if (registry.has<Monster>(entity)) {
+            if (registry.has<Village>(entity_other.other)) {
+                std::cout << "Monster takes food from village" << "\n";
+                auto& animal = registry.get<Monster>(entity);
+                auto& village = registry.get<Food>(entity_other.other);
+                village.food -= animal.damage;
+            }
+        }
 		//registry.remove<PhysicsSystem::Collision>(entity);
 	}
 	registry.clear<PhysicsSystem::Collision>();

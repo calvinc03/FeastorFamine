@@ -79,6 +79,29 @@ private:
 	float current_speed;
 	float next_boss_spawn;
 	float next_mob_spawn;
+    
+    // Season
+    enum season
+    {
+        SPRING = 0,
+        SUMMER = 1,
+        FALL = 2,
+        WINTER = 3,
+    };
+    
+    int current_season;
+    
+    // Weather
+    enum weather
+    {
+        CLEAR = 0,
+        RAIN = 1,
+        DROUGHT = 2,
+        FOG = 3,
+        SNOW = 4,
+    };
+    
+    int current_weather;
 
     // Map nodes and path
 	GridMap current_map;
