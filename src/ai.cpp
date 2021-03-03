@@ -107,12 +107,13 @@ std::vector<GridNode> AISystem::PathFinder::find_path(GridMap& current_map, ivec
     while (!queue.empty()) {
         QueueNode current_qnode = queue.front();
         qnode_storage.emplace_back(current_qnode);
-        queue.pop();
 
         // current node is the goal node, check and update shortest path
          if (current_qnode.node.coord == goal_coord && current_qnode.cost < min_path_qnode.cost) {
              min_path_qnode = current_qnode;
         }
+
+        queue.pop();
 
         // check neighbors
         for (int i = 0; i < 8; i++) {
@@ -128,7 +129,6 @@ std::vector<GridNode> AISystem::PathFinder::find_path(GridMap& current_map, ivec
             queue.push(next_qnode);
         }
     }
-
     // verify that a path can be found
     assert(min_path_qnode.cost != INFINITY);
 
