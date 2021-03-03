@@ -364,10 +364,6 @@ void WorldSystem::restart()
     std::vector<ivec2> path_coords = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
     monster_path = GridMap::getNodesFromCoords(current_map, path_coords);
 
-	// set path
-	monster_path = GridMap::getNodesFromCoords(current_map, path);
-    //monster_path = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
-
     // create village
 	village = Village::createVillage();
 
