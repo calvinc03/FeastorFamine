@@ -22,13 +22,7 @@ public:
 	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
 
 	struct PathFinder {
-        struct QueueNode
-        {
-            GridNode node;
-            QueueNode *parent;
-            float cost;
-        };
-        static std::vector<GridNode> find_path(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord);
+        static std::vector<ivec2> find_path(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord);
     };
 
 private:

@@ -80,65 +80,59 @@ void AISystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 
 bool isValidPosition(ivec2 coord)
 {
-    return (coord.x >= 0) && (coord.x < WINDOW_SIZE_IN_COORD.y) &&
-           (coord.y >= 0) && (coord.y < WINDOW_SIZE_IN_COORD.x);
+    return (coord.x >= 0) && (coord.x < WINDOW_SIZE_IN_COORD.x) &&
+           (coord.y >= 0) && (coord.y < WINDOW_SIZE_IN_COORD.y);
 }
 
-float get_distance(GridNode node1, GridNode node2) {
-    return length((vec2)(node1.coord - node2.coord));
+float get_distance(ivec2 coord1, ivec2 coord2) {
+    return length((vec2)(coord1 - coord2));
 }
 
 int col_neighbor[] = {1, 1, 1, 0, 0, -1, -1, -1};
 int row_neighbor[] = {1, 0, -1, 1, -1, 1, 0, -1};
 
-std::vector<GridNode> AISystem::PathFinder::find_path(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord) {
-    bool visited[WINDOW_SIZE_IN_COORD.x][WINDOW_SIZE_IN_COORD.y] = {};
-    GridNode start_node = current_map.node_matrix[start_coord.x][start_coord.y];
-    QueueNode min_path_qnode = {start_node, nullptr, INFINITY};
-    std::vector<QueueNode> qnode_storage = {};
-    qnode_storage.reserve(current_map.node_matrix.size());
+std::vector<ivec2> AISystem::PathFinder::find_path(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord) {
+    std::vector<std::vector<bool>> visited(WINDOW_SIZE_IN_COORD.x, std::vector<bool> (WINDOW_SIZE_IN_COORD.y, false));
+    std::vector<std::vector<std::tuple<ivec2, float>>> parent(WINDOW_SIZE_IN_COORD.x,
+                                                              std::vector<std::tuple<ivec2, float>> (WINDOW_SIZE_IN_COORD.y, std::make_tuple(vec2(-1, -1), -1)));
 
-    // visit start node and add it to queue
+    std::tuple<ivec2, float> min_qnode = std::make_tuple(vec2(-1, -1), INFINITY);
+    std::tuple<ivec2, float> start_qnode = std::make_tuple(start_coord, 0.f);
+
+    std::queue<std::tuple<ivec2, float>> queue;
     visited[start_coord.x][start_coord.y] = true;
-    QueueNode s = {start_node, nullptr, 0};
-    std::queue<QueueNode> queue;
-    queue.push(s);
+    queue.push(start_qnode);
 
     while (!queue.empty()) {
-        QueueNode current_qnode = queue.front();
-        qnode_storage.emplace_back(current_qnode);
+        std::tuple<ivec2, float> current_qnode = queue.front();
 
         // current node is the goal node, check and update shortest path
-         if (current_qnode.node.coord == goal_coord && current_qnode.cost < min_path_qnode.cost) {
-             min_path_qnode = current_qnode;
+         if (std::get<0>(current_qnode) == goal_coord && std::get<1>(current_qnode) < std::get<1>(min_qnode)) {
+             min_qnode = current_qnode;
         }
-
         queue.pop();
-
         // check neighbors
         for (int i = 0; i < 8; i++) {
-            ivec2 next_coord = current_qnode.node.coord + ivec2(row_neighbor[i], col_neighbor[i]);
+            ivec2 next_coord = std::get<0>(current_qnode) + ivec2(row_neighbor[i], col_neighbor[i]);
             if (!isValidPosition(next_coord) || visited[next_coord.x][next_coord.y]) {
                 continue;
             }
-
+            std::tuple<ivec2, float> next_qnode = std::make_tuple(next_coord, std::get<1>(current_qnode) + get_distance(next_coord, std::get<0>(current_qnode)));
             visited[next_coord.x][next_coord.y] = true;
-            GridNode next_node = current_map.node_matrix[next_coord.x][next_coord.y];
-
-            QueueNode next_qnode = {next_node, &qnode_storage.back(), current_qnode.cost + get_distance(next_node, current_qnode.node)};
-            queue.push(next_qnode);
+            queue.emplace(next_qnode);
+            parent[next_coord.x][next_coord.y] = current_qnode;
         }
     }
     // verify that a path can be found
-    assert(min_path_qnode.cost != INFINITY);
+    assert(std::get<1>(min_qnode) != INFINITY);
 
-    // trace backward to start node and return
-    std::vector<GridNode> path_nodes = {};
-    while(min_path_qnode.node.coord != start_coord) {
-        path_nodes.emplace_back(min_path_qnode.node);
-        min_path_qnode = *min_path_qnode.parent;
+    // trace backward to start_qnode node and return
+    ivec2 coord_pointer = std::get<0>(min_qnode);
+    std::vector<ivec2> path_nodes = {coord_pointer};
+    while(std::get<1>(parent[coord_pointer.x][coord_pointer.y]) != -1) {
+        coord_pointer = std::get<0>(parent[coord_pointer.x][coord_pointer.y]);
+        path_nodes.emplace_back(coord_pointer);
     }
-    path_nodes.emplace_back(start_node);
     std::reverse(path_nodes.begin(), path_nodes.end());
     return path_nodes;
 }
