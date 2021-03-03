@@ -89,7 +89,7 @@ float get_distance(ivec2 coord1, ivec2 coord2) {
 }
 
 int col_neighbor[] = {1, 1, 1, 0, 0, -1, -1, -1};
-int row_neighbor[] = {1, 0, -1, 1, -1, 1, 0, -1};
+int row_neighbor[] = {0, -1, 1, -1, 1, 0, 1, -1};
 
 std::vector<ivec2> AISystem::PathFinder::find_path(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord) {
     std::vector<std::vector<bool>> visited(WINDOW_SIZE_IN_COORD.x, std::vector<bool> (WINDOW_SIZE_IN_COORD.y, false));
