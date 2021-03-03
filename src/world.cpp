@@ -163,7 +163,7 @@ void WorldSystem::step(float elapsed_ms)
 {
 	// Updating window title with health
 	std::stringstream title_ss;
-	title_ss << "Food: " << health << " Round: " << round_number << " fps: " << 1000.0/elapsed_ms;
+	title_ss << "Battle stage... Food: " << health << " Round: " << round_number << " fps: " << 1000.0/elapsed_ms;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// animation
@@ -283,7 +283,7 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 
 	// Updating window title with health and setup timer 
 	std::stringstream title_ss;
-	title_ss << "Food: " << health << " Round: " << round_number << " Time left to setup: " << round(set_up_timer / 1000) << " fps: " << 1000.0 / elapsed_ms;
+	title_ss << "Setup stage... Food: " << health << " Round: " << round_number << " Time left to setup: " << round(set_up_timer / 1000) << " fps: " << 1000.0 / elapsed_ms;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	if (set_up_timer <= 0) {
