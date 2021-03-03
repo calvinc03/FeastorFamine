@@ -26,8 +26,8 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
-#include <../ext/nlohmann/json.hpp>
 
+#include "json.hpp"
 // Game configuration
 size_t MAX_MOBS = 20;
 size_t MOB_DELAY_MS = 8000;
@@ -381,9 +381,10 @@ void WorldSystem::restart()
 
 	// Reading json file of rounds 
 	// TODO : This uses the absolute path. I have no idea how to get it with relative path. The json file is currently in the src dir because it doesn't work elsewhere
-	auto absolute_path = "C:\\Users\\calvi\\OneDrive\\Desktop\\XD\\Feast-or-Famine\\src\\rounds.json";
-	std::ifstream input_stream(absolute_path);
-
+	auto absolute_path =  "data/monster_rounds/rounds.json";
+	std::ifstream input_stream("data/monster_rounds/rounds.json");
+	
+	
 	if (input_stream.fail()) {
 		std::cout << "Not reading json file \n";
 	}

@@ -1,5 +1,138 @@
 [
   {
-    "round_num": 5
+    "round_num": 0,
+    "max_mobs": 5,
+    "mob_delay_ms": 2000,
+    "max_bosses": 0,
+    "boss_delay_ms": 20000,
+    "season": "spring"
+  },
+  {
+    "round_num": 1,
+    "max_mobs": 3,
+    "mob_delay_ms": 3000,
+    "max_bosses": 2,
+    "boss_delay_ms": 10000,
+    "season": "spring"
+  },
+  {
+    "round_num": 2,
+    "max_mobs": 5,
+    "mob_delay_ms": 2000,
+    "max_bosses": 0,
+    "boss_delay_ms": 20000,
+    "season": "summer"
+  },
+  {
+    "round_num": 3,
+    "max_mobs": 3,
+    "mob_delay_ms": 3000,
+    "max_bosses": 2,
+    "boss_delay_ms": 10000,
+    "season": "summer"
+  },
+  {
+    "round_num": 4,
+    "max_mobs": 5,
+    "mob_delay_ms": 2000,
+    "max_bosses": 0,
+    "boss_delay_ms": 20000,
+    "season": "fall"
+  },
+  {
+    "round_num": 5,
+    "max_mobs": 3,
+    "mob_delay_ms": 3000,
+    "max_bosses": 2,
+    "boss_delay_ms": 10000,
+    "season": "fall"
+  },
+  {
+    "round_num": 6,
+    "max_mobs": 5,
+    "mob_delay_ms": 2000,
+    "max_bosses": 0,
+    "boss_delay_ms": 20000,
+    "season": "winter"
+  },
+  {
+    "round_num": 7,
+    "max_mobs": 3,
+    "mob_delay_ms": 3000,
+    "max_bosses": 2,
+    "boss_delay_ms": 10000,
+    "season": "winter"
+  },
+  {
+    "round_num": 8,
+    "max_mobs": 10,
+    "mob_delay_ms": 8000,
+    "max_bosses": 0,
+    "boss_delay_ms": 20000,
+    "season": "spring"
+  },
+  {
+    "round_num": 9,
+    "max_mobs": 10,
+    "mob_delay_ms": 8000,
+    "max_bosses": 0,
+    "boss_delay_ms": 20000,
+    "season": "spring"
+  },
+  {
+    "round_num": 10,
+    "max_mobs": 10,
+    "mob_delay_ms": 8000,
+    "max_bosses": 0,
+    "boss_delay_ms": 20000,
+    "season": "spring"
+  },
+  {
+    "round_num": 11,
+    "max_mobs": 10,
+    "mob_delay_ms": 8000,
+    "max_bosses": 0,
+    "boss_delay_ms": 20000,
+    "season": "spring"
+  },
+  {
+    "round_num": 12,
+    "max_mobs": 10,
+    "mob_delay_ms": 8000,
+    "max_bosses": 0,
+    "boss_delay_ms": 20000,
+    "season": "spring"
+  },
+  {
+    "round_num": 13,
+    "max_mobs": 10,
+    "mob_delay_ms": 8000,
+    "max_bosses": 0,
+    "boss_delay_ms": 20000,
+    "season": "spring"
+  },
+  {
+    "round_num": 14,
+    "max_mobs": 10,
+    "mob_delay_ms": 8000,
+    "max_bosses": 0,
+    "boss_delay_ms": 20000,
+    "season": "spring"
+  },
+  {
+    "round_num": 15,
+    "max_mobs": 10,
+    "mob_delay_ms": 8000,
+    "max_bosses": 0,
+    "boss_delay_ms": 20000,
+    "season": "spring"
+  },
+  {
+    "round_num": 16,
+    "max_mobs": 10,
+    "mob_delay_ms": 8000,
+    "max_bosses": 0,
+    "boss_delay_ms": 20000,
+    "season": "spring"
   }
 ]
