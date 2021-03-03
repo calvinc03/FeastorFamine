@@ -361,8 +361,20 @@ void WorldSystem::restart()
     // create grid map
     current_map = registry.get<GridMap>(GridMap::createGridMap());
 
-    // set path
-    monster_path = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
+	// hardcode path
+	std::vector<ivec2> path = {};
+	for (int y = FOREST_COORD.y; y < VILLAGE_COORD.y; y++) {
+		current_map.setGridOccupancy(current_map, vec2(FOREST_COORD.x, y), GRID_BLOCKED);
+		path.emplace_back(FOREST_COORD.x, y);
+	}
+	for (int x = FOREST_COORD.x; x < VILLAGE_COORD.x; x++) {
+		current_map.setGridOccupancy(current_map, vec2(x, VILLAGE_COORD.y), GRID_BLOCKED);
+		path.emplace_back(x, VILLAGE_COORD.y);
+	}
+
+	// set path
+	monster_path = GridMap::getNodesFromCoords(current_map, path);
+    //monster_path = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
 
     // create village
 	village = Village::createVillage();

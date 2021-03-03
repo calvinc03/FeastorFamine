@@ -93,7 +93,8 @@ int col_neighbor[] = {1, 1, 1, 0, 0, -1, -1, -1};
 int row_neighbor[] = {1, 0, -1, 1, -1, 1, 0, -1};
 
 std::vector<GridNode> AISystem::PathFinder::find_path(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord) {
-    bool visited[WINDOW_SIZE_IN_COORD.x][WINDOW_SIZE_IN_COORD.y] = {};
+    //bool visited[WINDOW_SIZE_IN_COORD.x][WINDOW_SIZE_IN_COORD.y] = {};
+	bool visited[15][9] = {};
     GridNode start_node = current_map.node_matrix[start_coord.x][start_coord.y];
     QueueNode min_path_qnode = {start_node, nullptr, INFINITY};
     std::vector<QueueNode> qnode_storage = {};
