@@ -94,6 +94,7 @@ struct Monster {
     int health;
     int damage;
     int current_path_index = 0;
+	int reward;
 };
 
 struct Unit {

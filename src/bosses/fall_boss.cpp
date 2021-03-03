@@ -41,6 +41,7 @@ entt::entity FallBoss::createFallBossEntt()
     auto& monster = registry.emplace<Monster>(entity);
     monster.health = 120;
     monster.damage = 20;
+    monster.reward = 50;
 
     auto& boss = registry.emplace<Boss>(entity);
     boss.hit = false;

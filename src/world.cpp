@@ -307,49 +307,20 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 	if (registry.has<Projectile>(entity_i)) {
 		if (registry.has<Monster>(entity_j)) {
 			//std::cout << "A monster was hit" << "\n";
-			auto& animal = registry.get<Monster>(entity_j);
+			auto& monster = registry.get<Monster>(entity_j);
 			auto& projectile = registry.get<Projectile_Dmg>(entity_i);
 
 			Mix_PlayChannel(-1, impact_sound, 0);
 
-			animal.health -= projectile.damage;
+			monster.health -= projectile.damage;
 			registry.destroy(entity_i);
-			if (animal.health <= 0)
+			if (monster.health <= 0)
 			{
-				health += 30;
+				health += monster.reward;
 				registry.destroy(entity_j);
 			}
 		}
 	}
-}
-
-// Compute collisions between entities
-void WorldSystem::handle_collisions()
-{
-	//// Loop over all collisions detected by the physics system
-	auto collision = registry.view<PhysicsSystem::Collision>();
-	for (unsigned int i = 0; i < collision.size(); i++)
-	{
-		auto entity = collision[i];
-		auto entity_other = registry.get<PhysicsSystem::Collision>(collision[i]);
-		if (registry.has<Projectile>(entity)) {
-			if (registry.has<Monster>(entity_other.other)) {
-				std::cout << "A monster was hit" << "\n";
-				auto& animal = registry.get<Monster>(entity_other.other);
-				auto& projectile = registry.get<Projectile_Dmg>(entity);
-				animal.health -= projectile.damage;
-				registry.destroy(entity);
-				if (animal.health <= 0)
-				{
-					registry.destroy(entity_other.other);
-					health += 20; // TODO should be based on the animal/boss
-				}
-			}
-			// TODO else - village health
-		}
-		//registry.remove<PhysicsSystem::Collision>(entity);
-	}
-	registry.clear<PhysicsSystem::Collision>();
 }
 
 // Should the game be over ?

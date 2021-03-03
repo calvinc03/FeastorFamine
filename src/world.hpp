@@ -31,13 +31,11 @@ public:
 	// restart level
 	void restart();
 
+	// Check for collisions
 	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
 
 	// Steps the game ahead by ms milliseconds
 	void step(float elapsed_ms);
-
-	// Check for collisions
-	void handle_collisions();
 
 	// Renders our scene
 	void draw();
