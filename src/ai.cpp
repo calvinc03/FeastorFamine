@@ -38,6 +38,7 @@ void AISystem::step(float elapsed_ms)
 				if (placeable_unit.next_projectile_spawn < 0.f) {
 					placeable_unit.next_projectile_spawn = FIRING_RATE;
 					Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, placeable_unit.damage);
+					motion_h.angle = atan2(opposite, adjacent);
 				}
 
 			}
