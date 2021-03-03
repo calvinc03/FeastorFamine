@@ -60,7 +60,7 @@ int main()
 			if (world.player_state == WorldSystem::set_up_stage) {
 				world.set_up_step(elapsed_ms);
 			}
-			else if (world.player_state == WorldSystem::monster_round_stage) {
+			else if (world.player_state == WorldSystem::battle_stage) {
 				ai.step(elapsed_ms);
 				world.step(elapsed_ms);
 				physics.step(elapsed_ms);

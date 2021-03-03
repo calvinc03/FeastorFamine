@@ -3,11 +3,12 @@
 #include "physics.hpp"
 #include "debug.hpp"
 #include "render_components.hpp"
-#include "spring_boss.hpp"
+#include "bosses/spring_boss.hpp"
 #include "bosses/fall_boss.hpp"
 #include "bosses/summer_boss.hpp"
 #include "bosses/winter_boss.hpp"
 #include "mob.hpp"
+#include <projectile.hpp>
 
 #include "grid_map.hpp"
 #include "hunter.hpp"
@@ -23,18 +24,20 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
-#include <projectile.hpp>
+#include <fstream>
+#include <../ext/nlohmann/json.hpp>
 
 // Game configuration
-const size_t MAX_MOBS = 20;
-const size_t MOB_DELAY_MS = 8000;
-const size_t MAX_BOSS = 2;
-const size_t BOSS_DELAY_MS = 20000;
+size_t MAX_MOBS = 20;
+size_t MOB_DELAY_MS = 8000;
+size_t MAX_BOSS = 2;
+size_t BOSS_DELAY_MS = 20000;
+
+
 const size_t ANIMATION_FPS = 12;
 const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 
-const size_t ROUND_TIME = 30 * 1000; // 30 seconds?
-const size_t SET_UP_TIME = 15 * 1000;
+const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
 
 const size_t WATCHTOWER_COST = 200;
 const size_t GREENHOUSE_COST = 300;
@@ -46,35 +49,37 @@ const std::string HUNTER_NAME = "hunter";
 const std::string WALL_NAME = "wall";
 
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
-WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) :
-		game_state(start_menu),
-		player_state(set_up_stage),
-		fps_ms(1000 / ANIMATION_FPS),
-        health(500),
-        next_boss_spawn(2000.f),
-        next_mob_spawn(3000.f),
-		next_greenhouse_production(3000.f),
-		set_up_timer(SET_UP_TIME),
-		round_timer(ROUND_TIME), round_number(0) {
-    // Seeding rng with random device
-    rng = std::default_random_engine(std::random_device()());
+WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
+	game_state(start_menu),
+	player_state(set_up_stage),
+	fps_ms(1000 / ANIMATION_FPS),
+	health(500),
+	next_boss_spawn(2000.f),
+	next_mob_spawn(3000.f),
+	num_mobs_spawned(0),
+	num_bosses_spawned(0),
+	next_greenhouse_production(3000.f),
+	set_up_timer(SET_UP_TIME),
+	round_number(0) {
+	// Seeding rng with random device
+	rng = std::default_random_engine(std::random_device()());
 
-    ///////////////////////////////////////
-    // Initialize GLFW
-    auto glfw_err_callback = [](int error, const char *desc) { std::cerr << "OpenGL:" << error << desc << std::endl; };
-    glfwSetErrorCallback(glfw_err_callback);
-    if (!glfwInit())
-        throw std::runtime_error("Failed to initialize GLFW");
+	///////////////////////////////////////
+	// Initialize GLFW
+	auto glfw_err_callback = [](int error, const char* desc) { std::cerr << "OpenGL:" << error << desc << std::endl; };
+	glfwSetErrorCallback(glfw_err_callback);
+	if (!glfwInit())
+		throw std::runtime_error("Failed to initialize GLFW");
 
-    //-------------------------------------------------------------------------
-    // GLFW / OGL Initialization, needs to be set before glfwCreateWindow
-    // Core Opengl 3.
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
+	//-------------------------------------------------------------------------
+	// GLFW / OGL Initialization, needs to be set before glfwCreateWindow
+	// Core Opengl 3.
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
 #if __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
 	glfwWindowHint(GLFW_RESIZABLE, 0);
@@ -106,6 +111,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) :
 	// Attaching World Observer to Physics observerlist
 	this->physics = physics;
 	this->physics->attach(this);
+
 }
 
 WorldSystem::~WorldSystem(){
@@ -151,8 +157,6 @@ void WorldSystem::init_audio()
 
 }
 
-
-
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
@@ -177,29 +181,23 @@ void WorldSystem::step(float elapsed_ms)
 
 	//Spawning new boss
 	next_boss_spawn -= elapsed_ms * current_speed;
-	if (registry.view<FallBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
+	if (num_bosses_spawned < MAX_BOSS && next_boss_spawn < 0.f)
 	{
 		// Reset spawn timer and spawn boss
 		next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
-		FallBoss::createFallBossEntt();
+		//FallBoss::createFallBossEntt();
+		create_boss();
+		num_bosses_spawned += 1;
 	}
 
 	// Spawning new mobs
     next_mob_spawn -= elapsed_ms * current_speed;
-    if (registry.view<Mob>().size() <= MAX_MOBS && next_mob_spawn < 0.f)
+    if (num_mobs_spawned < MAX_MOBS && next_mob_spawn < 0.f)
     {
         next_mob_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
         Mob::createMobEntt();
+		num_mobs_spawned += 1;
     }
-
-	round_timer -= elapsed_ms;
-	//TODO: only increment round number if certain conditions are met (no enemies left)
-	if (round_timer < 0.0f) {
-		
-		round_number++;
-		round_timer = ROUND_TIME;
-		player_state = set_up_stage;
-	}
 
     // update velocity for every monster
     for(auto entity: registry.view<Monster>()) {
@@ -234,7 +232,7 @@ void WorldSystem::step(float elapsed_ms)
 	// removes projectiles that are out of the screen
 	for (auto projectile : registry.view<Projectile>()) {
 		auto& pos = registry.get<Motion>(projectile);
-		if (pos.position.x == WINDOW_SIZE_IN_PX.x || pos.position.y == WINDOW_SIZE_IN_PX.y) {
+		if (pos.position.x > WINDOW_SIZE_IN_PX.x || pos.position.y > WINDOW_SIZE_IN_PX.y || pos.position.x < 0 || pos.position.y < 0) {
 			registry.destroy(projectile);
 		}
 	}
@@ -244,6 +242,16 @@ void WorldSystem::step(float elapsed_ms)
 	if (next_greenhouse_production < 0.f) {
 		health += registry.view<GreenHouse>().size() * 20;
 		next_greenhouse_production = GREENHOUSE_PRODUCTION_DELAY;
+	}
+
+	// Increment round number if all enemies are not on the map and projectiles are removed
+	if (num_bosses_spawned == MAX_BOSS && num_mobs_spawned == MAX_MOBS) {
+		if (registry.view<Monster>().empty() && registry.view<Projectile>().empty()) {
+			round_number++;
+			player_state = set_up_stage;
+			num_bosses_spawned = 0;
+			num_mobs_spawned = 0;
+		}
 	}
 
 	// TODO polish death scene of village
@@ -265,6 +273,11 @@ void un_highlight() {
 
 void WorldSystem::set_up_step(float elapsed_ms) {
 
+	// Restart/End game after max rounds
+	if (round_number > 16) {
+		restart();
+	}
+
 	set_up_timer -= elapsed_ms;
 
 	// Updating window title with health and setup timer 
@@ -273,9 +286,35 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	if (set_up_timer <= 0) {
-		player_state = monster_round_stage;
+		player_state = battle_stage;
 		set_up_timer = SET_UP_TIME;
 		un_highlight();
+
+		MAX_MOBS = round_json[round_number]["max_mobs"];
+		MOB_DELAY_MS = round_json[round_number]["mob_delay_ms"];
+		MAX_BOSS = round_json[round_number]["max_bosses"];
+		BOSS_DELAY_MS = round_json[round_number]["boss_delay_ms"];
+		
+		if (round_json[round_number]["season"] == "spring") {
+			std::cout << "Spring season! \n";
+			create_boss = SpringBoss::createSpringBossEntt;
+
+		}
+		else if (round_json[round_number]["season"] == "summer") {
+			std::cout << "Summer season! \n";
+			create_boss = SummerBoss::createSummerBossEntt;
+
+		}
+		else if (round_json[round_number]["season"] == "fall") {
+			std::cout << "Fall season! \n";
+			create_boss = FallBoss::createFallBossEntt;
+
+		}
+		else if (round_json[round_number]["season"] == "winter") {
+			std::cout << "Winter season! \n";
+			create_boss = WinterBoss::createWinterBossEntt;
+
+		}
 	}
 }
 
@@ -304,7 +343,6 @@ void WorldSystem::restart()
 	health = 500; //reset health
 	unit_selected = ""; // no initial selection
 	round_number = 0;
-	round_timer = ROUND_TIME;
 	
 	registry.clear();	// Remove all entities that we created
 
@@ -344,6 +382,17 @@ void WorldSystem::restart()
 	current_map.setGridOccupancy(current_map, VILLAGE_COORD + ivec2(1, 1), GRID_VILLAGE);
 	
 	camera = Camera::createCamera();
+
+	// Reading json file of rounds 
+	// TODO : This uses the absolute path. I have no idea how to get it with relative path. The json file is currently in the src dir because it doesn't work elsewhere
+	auto absolute_path = "C:\\Users\\calvi\\OneDrive\\Desktop\\XD\\Feast-or-Famine\\src\\rounds.json";
+	std::ifstream input_stream(absolute_path);
+
+	if (input_stream.fail()) {
+		std::cout << "Not reading json file \n";
+	}
+	
+	round_json = nlohmann::json::parse(input_stream);
 }
 
 void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
@@ -379,6 +428,23 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	// if village is alive
 	if (health > 0)
 	{
+	}
+
+	// keys used to skip rounds; used to debug and test rounds
+	if (action == GLFW_RELEASE && key == GLFW_KEY_G) {
+		if (player_state == set_up_stage) {
+			set_up_timer = 0;
+		}
+		else if (player_state == battle_stage) {
+			num_bosses_spawned = MAX_BOSS;
+			num_mobs_spawned = MAX_MOBS;
+			for (entt::entity projectile : registry.view<Projectile>()) {
+				registry.destroy(projectile);
+			}
+			for (entt::entity monster : registry.view<Monster>()) {
+				registry.destroy(monster);
+			}
+		}
 	}
 
 
@@ -648,13 +714,13 @@ void WorldSystem::in_game_click_handle(double mouse_pos_x, double mouse_pos_y, i
 	bool in_game_area = mouse_in_game_area(vec2(mouse_pos_x, mouse_pos_y));
 
 	//some debugging print outs
-	if (in_game_area) {
+	/*if (in_game_area) {
 		std::cout << "in game area" << std::endl;
 	}
 	else {
 		std::cout << "not in game area" << std::endl;
 		std::cout << button_to_string(ui_button) << " pressed " << std::endl;
-	}
+	}*/
 
 	if (player_state == set_up_stage) {
 		// Mouse click for placing units 

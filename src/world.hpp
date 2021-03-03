@@ -13,6 +13,7 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <SDL_mixer.h>
+#include <../ext/nlohmann/json.hpp>
 
 // Container for all our entities and game logic. Individual rendering / update is 
 // deferred to the relative update() methods
@@ -57,7 +58,7 @@ public:
 
 	// state for set_up and monster_rounds
 	int player_state;
-	enum PlayerState { set_up_stage, monster_round_stage };
+	enum PlayerState { set_up_stage, battle_stage };
 	
 private:
 	// PhysicsSystem handle
@@ -81,18 +82,23 @@ private:
 	// health of the village
 	int health;
 
+	// json object for rounds
+	nlohmann::json round_json;
+
 	// Game state
 	float current_speed;
 	float next_boss_spawn;
 	float next_mob_spawn;
 	float next_greenhouse_production;
+	int num_mobs_spawned;
+	int num_bosses_spawned; 
+	entt::entity (*create_boss)();
 
     // Monster path
 	GridMap current_map;
     std::vector<GridNode> monster_path = {};
 
 	// round and set up
-	float round_timer;
 	int round_number;
 	float set_up_timer;
 
