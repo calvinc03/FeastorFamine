@@ -75,10 +75,26 @@ struct Motion {
 	vec2 boundingbox = { 10, 10 };;
 };
 
+struct Boss {
+	bool hit;
+	float speed_multiplier;
+	std::string walk_sprite;
+	std::string run_sprite;
+	std::string attack_sprite;
+	std::string death_sprite;
+	std::string sprite;
+	size_t walk_frames;
+	size_t run_frames;
+	size_t attack_frames;
+	size_t death_frames;
+	size_t frames;
+};
+
 struct Monster {
     int health;
     int damage;
     int current_path_index = 0;
+	int reward;
 };
 
 struct Unit {

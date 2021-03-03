@@ -5,6 +5,9 @@
 #include "debug.hpp"
 #include "render_components.hpp"
 #include "spring_boss.hpp"
+#include "bosses/fall_boss.hpp"
+#include "bosses/summer_boss.hpp"
+#include "bosses/winter_boss.hpp"
 #include "mob.hpp"
 
 #include "grid_map.hpp"
@@ -48,7 +51,8 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) :
         health(500),
         next_boss_spawn(2000.f),
         next_mob_spawn(3000.f),
-		round_timer(ROUND_TIME), round_number(0) {
+		round_timer(ROUND_TIME), 
+		round_number(0) {
     // Seeding rng with random device
     rng = std::default_random_engine(std::random_device()());
 
@@ -170,11 +174,11 @@ void WorldSystem::step(float elapsed_ms)
 
 	//Spawning new boss
 	next_boss_spawn -= elapsed_ms * current_speed;
-	if (registry.view<SpringBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
+	if (registry.view<FallBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
 	{
 		// Reset spawn timer and spawn boss
-        next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
-        SpringBoss::createSpringBossEntt();
+		next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
+		FallBoss::createFallBossEntt();
 	}
 
 	// Spawning new mobs
@@ -303,49 +307,20 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 	if (registry.has<Projectile>(entity_i)) {
 		if (registry.has<Monster>(entity_j)) {
 			//std::cout << "A monster was hit" << "\n";
-			auto& animal = registry.get<Monster>(entity_j);
+			auto& monster = registry.get<Monster>(entity_j);
 			auto& projectile = registry.get<Projectile_Dmg>(entity_i);
 
 			Mix_PlayChannel(-1, impact_sound, 0);
 
-			animal.health -= projectile.damage;
+			monster.health -= projectile.damage;
 			registry.destroy(entity_i);
-			if (animal.health <= 0)
+			if (monster.health <= 0)
 			{
-				health += 30;
+				health += monster.reward;
 				registry.destroy(entity_j);
 			}
 		}
 	}
-}
-
-// Compute collisions between entities
-void WorldSystem::handle_collisions()
-{
-	//// Loop over all collisions detected by the physics system
-	auto collision = registry.view<PhysicsSystem::Collision>();
-	for (unsigned int i = 0; i < collision.size(); i++)
-	{
-		auto entity = collision[i];
-		auto entity_other = registry.get<PhysicsSystem::Collision>(collision[i]);
-		if (registry.has<Projectile>(entity)) {
-			if (registry.has<Monster>(entity_other.other)) {
-				std::cout << "A monster was hit" << "\n";
-				auto& animal = registry.get<Monster>(entity_other.other);
-				auto& projectile = registry.get<Projectile_Dmg>(entity);
-				animal.health -= projectile.damage;
-				registry.destroy(entity);
-				if (animal.health <= 0)
-				{
-					registry.destroy(entity_other.other);
-					health += 20;
-				}
-			}
-			// TODO else - village health
-		}
-		//registry.remove<PhysicsSystem::Collision>(entity);
-	}
-	registry.clear<PhysicsSystem::Collision>();
 }
 
 // Should the game be over ?
@@ -502,10 +477,31 @@ void WorldSystem::scroll_callback(double xoffset, double yoffset)
 	// std::cout << camera_scale.x << ", " << camera_position.y << "\n";
 }
 
+//will move this eventually
+//atm this is repeated code because ui uses a different position/scale than gridnode 
+void grid_highlight_system(vec2 mouse_pos, std::string unit_selected) {
+	auto view_ui = registry.view<Motion, HighlightBool>(); 
+	for (auto [entity, grid_motion, highlight] : view_ui.each()) {
+		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && unit_selected != "") {
+			highlight.highlight = true;
+		}
+		else {
+			highlight.highlight = false;
+		}
+	}
+}
+
+
 void WorldSystem::on_mouse_move(vec2 mouse_pos)
 {	
 	//if mouse is hovering over a button, then highlight
-	UI_highlight_system(mouse_pos);
+	vec2 mouse_pos_world = mouse_in_world_coord(mouse_pos);
+	UI_highlight_system( mouse_pos);
+
+	bool in_game_area = mouse_in_game_area(mouse_pos);
+	if(in_game_area )
+		grid_highlight_system(mouse_pos_world, unit_selected);
+
     // if village is alive
     if (health > 0)
     {
@@ -537,7 +533,12 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 	}
 	
 }
-
+void un_highlight() {
+	auto view_ui = registry.view< HighlightBool>();
+	for (auto [entity, highlight] : view_ui.each()) {
+		highlight.highlight = false;
+	}
+}
 // mouse click callback function 
 void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	//getting cursor position
@@ -553,23 +554,20 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	int y_grid = mouse_world_pos.y; 
 
 	// snap to nearest grid size
-	int x = (x_grid + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE;
+	float x = (x_grid) / GRID_CELL_SIZE; //+ GRID_CELL_SIZE / 2
 	x *= GRID_CELL_SIZE;
-	int y = (y_grid + GRID_CELL_SIZE / 2) / GRID_CELL_SIZE;
+	float y = (y_grid) / GRID_CELL_SIZE; //+ GRID_CELL_SIZE / 2
 	y *= GRID_CELL_SIZE;
 
+	x += GRID_CELL_SIZE / 2.0;
+	y += GRID_CELL_SIZE / 2.0;
+	
 	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
+	
+	un_highlight(); // turn off highlights for grid node on click
 
-	//some debugging print outs
-	/*if (in_game_area) { 
-		std::cout << "in game area" << std::endl;
-	}
-	else {
-		std::cout << "not in game area" << std::endl;
-		std::cout << button_to_string(ui_button) << " pressed " << std::endl;
-	}*/
-
+	
 	// Mouse click for placing units 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "" && in_game_area)
 	{
@@ -600,16 +598,16 @@ void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	}
 	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area) {
 		
-		if (ui_button == Button::tower_button) {
+		if (ui_button == Button::tower_button && health >= WATCHTOWER_COST) {
 			unit_selected = WATCHTOWER_NAME;
 		}
-		else if (ui_button == Button::green_house_button) {
+		else if (ui_button == Button::green_house_button && health >= GREENHOUSE_COST) {
 			unit_selected = GREENHOUSE_NAME;
 		}
-		else if (ui_button == Button::stick_figure_button) {
+		else if (ui_button == Button::stick_figure_button && health >= HUNTER_COST) {
 			unit_selected = HUNTER_NAME;
 		} 
-		else if (ui_button == Button::wall_button) {
+		else if (ui_button == Button::wall_button && health >= WALL_COST) {
 			unit_selected = WALL_NAME;
 		}
 		else {

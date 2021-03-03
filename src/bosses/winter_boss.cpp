@@ -1,14 +1,14 @@
 // Header
 #include "render.hpp"
-#include "spring_boss.hpp"
+#include "winter_boss.hpp"
 
-entt::entity SpringBoss::createSpringBossEntt()
+entt::entity WinterBoss::createWinterBossEntt()
 {
     // Reserve en entity
     auto entity = registry.create();
 
     // Create the rendering components
-    std::string key = "spring_boss";
+    std::string key = "winter_boss";
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {
@@ -31,9 +31,8 @@ entt::entity SpringBoss::createSpringBossEntt()
     auto& monster = registry.emplace<Monster>(entity);
     monster.health = 40;
     monster.damage = 5;
-    monster.reward = 30;
 
-    registry.emplace<SpringBoss>(entity);
+    registry.emplace<WinterBoss>(entity);
     registry.emplace<HitReaction>(entity);
 
     return entity;
