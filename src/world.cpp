@@ -256,6 +256,13 @@ void WorldSystem::step(float elapsed_ms)
 	}
 }
 
+void un_highlight() {
+	auto view_ui = registry.view< HighlightBool>();
+	for (auto [entity, highlight] : view_ui.each()) {
+		highlight.highlight = false;
+	}
+}
+
 void WorldSystem::set_up_step(float elapsed_ms) {
 
 	set_up_timer -= elapsed_ms;
@@ -268,6 +275,7 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 	if (set_up_timer <= 0) {
 		player_state = monster_round_stage;
 		set_up_timer = SET_UP_TIME;
+		un_highlight();
 	}
 }
 
@@ -357,36 +365,6 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			}
 		}
 	}
-}
-
-// Compute collisions between entities
-// Keep this here for now. But can be deleted as collisions are handled by updateCOllisions(
-void WorldSystem::handle_collisions()
-{
-	//// Loop over all collisions detected by the physics system
-	auto collision = registry.view<PhysicsSystem::Collision>();
-	for (unsigned int i = 0; i < collision.size(); i++)
-	{
-		auto entity = collision[i];
-		auto entity_other = registry.get<PhysicsSystem::Collision>(collision[i]);
-		if (registry.has<Projectile>(entity)) {
-			if (registry.has<Monster>(entity_other.other)) {
-				std::cout << "A monster was hit" << "\n";
-				auto& animal = registry.get<Monster>(entity_other.other);
-				auto& projectile = registry.get<Projectile_Dmg>(entity);
-				animal.health -= projectile.damage;
-				registry.destroy(entity);
-				if (animal.health <= 0)
-				{
-					registry.destroy(entity_other.other);
-					health += 20; // TODO should be based on the animal/boss
-				}
-			}
-			// TODO else - village health
-		}
-		//registry.remove<PhysicsSystem::Collision>(entity);
-	}
-	registry.clear<PhysicsSystem::Collision>();
 }
 
 // Should the game be over ?
@@ -600,12 +578,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 	}
 	
 }
-void un_highlight() {
-	auto view_ui = registry.view< HighlightBool>();
-	for (auto [entity, highlight] : view_ui.each()) {
-		highlight.highlight = false;
-	}
-}
+
 // mouse click callback function 
 void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	//getting cursor position

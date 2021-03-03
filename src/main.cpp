@@ -64,7 +64,6 @@ int main()
 				ai.step(elapsed_ms);
 				world.step(elapsed_ms);
 				physics.step(elapsed_ms);
-				world.handle_collisions();
 			}
 		}
 		

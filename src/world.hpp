@@ -31,6 +31,7 @@ public:
 	// restart level
 	void restart();
 
+	// Check for collisions
 	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
 
 	// Steps the game during monster rounds ahead by ms milliseconds
@@ -38,9 +39,6 @@ public:
 
 	// Steps the game during set up rounds
 	void set_up_step(float elapsed_ms);
-
-	// Check for collisions
-	void handle_collisions();
 
 	// Renders our scene
 	void draw();

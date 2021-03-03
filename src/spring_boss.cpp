@@ -31,6 +31,7 @@ entt::entity SpringBoss::createSpringBossEntt()
     auto& monster = registry.emplace<Monster>(entity);
     monster.health = 40;
     monster.damage = 5;
+    monster.reward = 30;
 
     registry.emplace<SpringBoss>(entity);
     registry.emplace<HitReaction>(entity);
