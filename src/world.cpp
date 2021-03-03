@@ -1,14 +1,14 @@
 // Header
 #include "world.hpp"
-//#include "Observer.hpp"
 #include "physics.hpp"
 #include "debug.hpp"
 #include "render_components.hpp"
-#include "spring_boss.hpp"
+#include "bosses/spring_boss.hpp"
 #include "bosses/fall_boss.hpp"
 #include "bosses/summer_boss.hpp"
 #include "bosses/winter_boss.hpp"
 #include "mob.hpp"
+#include <projectile.hpp>
 
 #include "grid_map.hpp"
 #include "hunter.hpp"
@@ -25,16 +25,20 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
-#include <projectile.hpp>
+#include <fstream>
+#include <../ext/nlohmann/json.hpp>
 
 // Game configuration
-const size_t MAX_MOBS = 20;
-const size_t MOB_DELAY_MS = 8000;
-const size_t MAX_BOSS = 2;
-const size_t BOSS_DELAY_MS = 20000;
-const size_t ANIMATION_FPS = 12;
+size_t MAX_MOBS = 20;
+size_t MOB_DELAY_MS = 8000;
+size_t MAX_BOSS = 2;
+size_t BOSS_DELAY_MS = 20000;
 
-const size_t ROUND_TIME = 30 * 1000; // 30 seconds?
+
+const size_t ANIMATION_FPS = 12;
+const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
+
+const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
 
 const size_t WATCHTOWER_COST = 200;
 const size_t GREENHOUSE_COST = 300;
@@ -46,33 +50,37 @@ const std::string HUNTER_NAME = "hunter";
 const std::string WALL_NAME = "wall";
 
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
-WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) :
-		game_state(start_menu),
-		fps_ms(1000 / ANIMATION_FPS),
-        health(500),
-        next_boss_spawn(2000.f),
-        next_mob_spawn(3000.f),
-		round_timer(ROUND_TIME), 
-		round_number(0) {
-    // Seeding rng with random device
-    rng = std::default_random_engine(std::random_device()());
+WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
+	game_state(start_menu),
+	player_state(set_up_stage),
+	fps_ms(1000 / ANIMATION_FPS),
+	health(500),
+	next_boss_spawn(2000.f),
+	next_mob_spawn(3000.f),
+	num_mobs_spawned(0),
+	num_bosses_spawned(0),
+	next_greenhouse_production(3000.f),
+	set_up_timer(SET_UP_TIME),
+	round_number(0) {
+	// Seeding rng with random device
+	rng = std::default_random_engine(std::random_device()());
 
-    ///////////////////////////////////////
-    // Initialize GLFW
-    auto glfw_err_callback = [](int error, const char *desc) { std::cerr << "OpenGL:" << error << desc << std::endl; };
-    glfwSetErrorCallback(glfw_err_callback);
-    if (!glfwInit())
-        throw std::runtime_error("Failed to initialize GLFW");
+	///////////////////////////////////////
+	// Initialize GLFW
+	auto glfw_err_callback = [](int error, const char* desc) { std::cerr << "OpenGL:" << error << desc << std::endl; };
+	glfwSetErrorCallback(glfw_err_callback);
+	if (!glfwInit())
+		throw std::runtime_error("Failed to initialize GLFW");
 
-    //-------------------------------------------------------------------------
-    // GLFW / OGL Initialization, needs to be set before glfwCreateWindow
-    // Core Opengl 3.
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
+	//-------------------------------------------------------------------------
+	// GLFW / OGL Initialization, needs to be set before glfwCreateWindow
+	// Core Opengl 3.
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
 #if __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
 	glfwWindowHint(GLFW_RESIZABLE, 0);
@@ -104,6 +112,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) :
 	// Attaching World Observer to Physics observerlist
 	this->physics = physics;
 	this->physics->attach(this);
+
 }
 
 WorldSystem::~WorldSystem(){
@@ -149,8 +158,6 @@ void WorldSystem::init_audio()
 
 }
 
-
-
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
@@ -175,28 +182,23 @@ void WorldSystem::step(float elapsed_ms)
 
 	//Spawning new boss
 	next_boss_spawn -= elapsed_ms * current_speed;
-	if (registry.view<FallBoss>().size() <= MAX_BOSS && next_boss_spawn < 0.f)
+	if (num_bosses_spawned < MAX_BOSS && next_boss_spawn < 0.f)
 	{
 		// Reset spawn timer and spawn boss
 		next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
-		FallBoss::createFallBossEntt();
+		//FallBoss::createFallBossEntt();
+		create_boss();
+		num_bosses_spawned += 1;
 	}
 
 	// Spawning new mobs
     next_mob_spawn -= elapsed_ms * current_speed;
-    if (registry.view<Mob>().size() <= MAX_MOBS && next_mob_spawn < 0.f)
+    if (num_mobs_spawned < MAX_MOBS && next_mob_spawn < 0.f)
     {
         next_mob_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
         Mob::createMobEntt();
+		num_mobs_spawned += 1;
     }
-
-	round_timer -= elapsed_ms;
-	//TODO: only increment round number if certain conditions are met (no enemies left)
-	if (round_timer < 0.0f) {
-		
-		round_number++;
-		round_timer = ROUND_TIME; // no delay between rounds
-	}
 
     // update velocity for every monster
     for(auto entity: registry.view<Monster>()) {
@@ -228,13 +230,30 @@ void WorldSystem::step(float elapsed_ms)
         }
     }
 
+	// removes projectiles that are out of the screen
 	for (auto projectile : registry.view<Projectile>()) {
 		auto& pos = registry.get<Motion>(projectile);
-		if (pos.position.x == WINDOW_SIZE_IN_PX.x || pos.position.y == WINDOW_SIZE_IN_PX.y) {
+		if (pos.position.x > WINDOW_SIZE_IN_PX.x || pos.position.y > WINDOW_SIZE_IN_PX.y || pos.position.x < 0 || pos.position.y < 0) {
 			registry.destroy(projectile);
 		}
 	}
 
+	// greenhouse food production
+	next_greenhouse_production -= elapsed_ms * current_speed;
+	if (next_greenhouse_production < 0.f) {
+		health += registry.view<GreenHouse>().size() * 20;
+		next_greenhouse_production = GREENHOUSE_PRODUCTION_DELAY;
+	}
+
+	// Increment round number if all enemies are not on the map and projectiles are removed
+	if (num_bosses_spawned == MAX_BOSS && num_mobs_spawned == MAX_MOBS) {
+		if (registry.view<Monster>().empty() && registry.view<Projectile>().empty()) {
+			round_number++;
+			player_state = set_up_stage;
+			num_bosses_spawned = 0;
+			num_mobs_spawned = 0;
+		}
+	}
 
 	// TODO polish death scene of village
 	if (health < 0) // using < vs <= so we don't die if we spend all the food
@@ -245,6 +264,62 @@ void WorldSystem::step(float elapsed_ms)
 		restart();
 	}
 }
+
+void un_highlight() {
+	auto view_ui = registry.view< HighlightBool>();
+	for (auto [entity, highlight] : view_ui.each()) {
+		highlight.highlight = false;
+	}
+}
+
+void WorldSystem::set_up_step(float elapsed_ms) {
+
+	// Restart/End game after max rounds
+	if (round_number > 16) {
+		restart();
+	}
+
+	set_up_timer -= elapsed_ms;
+
+	// Updating window title with health and setup timer 
+	std::stringstream title_ss;
+	title_ss << "Food: " << health << " Round: " << round_number << " Time left to setup: " << round(set_up_timer / 1000) << " fps: " << 1000.0 / elapsed_ms;
+	glfwSetWindowTitle(window, title_ss.str().c_str());
+
+	if (set_up_timer <= 0) {
+		player_state = battle_stage;
+		set_up_timer = SET_UP_TIME;
+		un_highlight();
+
+		MAX_MOBS = round_json[round_number]["max_mobs"];
+		MOB_DELAY_MS = round_json[round_number]["mob_delay_ms"];
+		MAX_BOSS = round_json[round_number]["max_bosses"];
+		BOSS_DELAY_MS = round_json[round_number]["boss_delay_ms"];
+		
+		if (round_json[round_number]["season"] == "spring") {
+			std::cout << "Spring season! \n";
+			create_boss = SpringBoss::createSpringBossEntt;
+
+		}
+		else if (round_json[round_number]["season"] == "summer") {
+			std::cout << "Summer season! \n";
+			create_boss = SummerBoss::createSummerBossEntt;
+
+		}
+		else if (round_json[round_number]["season"] == "fall") {
+			std::cout << "Fall season! \n";
+			create_boss = FallBoss::createFallBossEntt;
+
+		}
+		else if (round_json[round_number]["season"] == "winter") {
+			std::cout << "Winter season! \n";
+			create_boss = WinterBoss::createWinterBossEntt;
+
+		}
+	}
+}
+
+
 // Start Menu
 void WorldSystem::setup_start_menu()
 {
@@ -269,7 +344,6 @@ void WorldSystem::restart()
 	health = 500; //reset health
 	unit_selected = ""; // no initial selection
 	round_number = 0;
-	round_timer = ROUND_TIME;
 	
 	registry.clear();	// Remove all entities that we created
 
@@ -287,13 +361,41 @@ void WorldSystem::restart()
     // create grid map
     current_map = registry.get<GridMap>(GridMap::createGridMap());
 
-    // set path
-    monster_path = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
+	// hardcode path
+	std::vector<ivec2> path = {};
+	for (int y = FOREST_COORD.y; y < VILLAGE_COORD.y; y++) {
+		current_map.setGridOccupancy(current_map, vec2(FOREST_COORD.x, y), GRID_BLOCKED);
+		path.emplace_back(FOREST_COORD.x, y);
+	}
+	for (int x = FOREST_COORD.x; x < VILLAGE_COORD.x; x++) {
+		current_map.setGridOccupancy(current_map, vec2(x, VILLAGE_COORD.y), GRID_BLOCKED);
+		path.emplace_back(x, VILLAGE_COORD.y);
+	}
+
+	// set path
+	monster_path = GridMap::getNodesFromCoords(current_map, path);
+    //monster_path = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
 
     // create village
 	village = Village::createVillage();
+
+	current_map.setGridOccupancy(current_map, VILLAGE_COORD, GRID_VILLAGE);
+	current_map.setGridOccupancy(current_map, VILLAGE_COORD + ivec2(1, 0), GRID_VILLAGE);
+	current_map.setGridOccupancy(current_map, VILLAGE_COORD + ivec2(0, 1), GRID_VILLAGE);
+	current_map.setGridOccupancy(current_map, VILLAGE_COORD + ivec2(1, 1), GRID_VILLAGE);
 	
 	camera = Camera::createCamera();
+
+	// Reading json file of rounds 
+	// TODO : This uses the absolute path. I have no idea how to get it with relative path. The json file is currently in the src dir because it doesn't work elsewhere
+	auto absolute_path = "C:\\Users\\calvi\\OneDrive\\Desktop\\XD\\Feast-or-Famine\\src\\rounds.json";
+	std::ifstream input_stream(absolute_path);
+
+	if (input_stream.fail()) {
+		std::cout << "Not reading json file \n";
+	}
+	
+	round_json = nlohmann::json::parse(input_stream);
 }
 
 void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
@@ -301,16 +403,16 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 	if (registry.has<Projectile>(entity_i)) {
 		if (registry.has<Monster>(entity_j)) {
 			//std::cout << "A monster was hit" << "\n";
-			auto& monster = registry.get<Monster>(entity_j);
+			auto& animal = registry.get<Monster>(entity_j);
 			auto& projectile = registry.get<Projectile_Dmg>(entity_i);
 
 			Mix_PlayChannel(-1, impact_sound, 0);
 
-			monster.health -= projectile.damage;
+			animal.health -= projectile.damage;
 			registry.destroy(entity_i);
-			if (monster.health <= 0)
+			if (animal.health <= 0)
 			{
-				health += monster.reward;
+				health += 30;
 				registry.destroy(entity_j);
 			}
 		}
@@ -329,6 +431,23 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	// if village is alive
 	if (health > 0)
 	{
+	}
+
+	// keys used to skip rounds; used to debug and test rounds
+	if (action == GLFW_RELEASE && key == GLFW_KEY_G) {
+		if (player_state == set_up_stage) {
+			set_up_timer = 0;
+		}
+		else if (player_state == battle_stage) {
+			num_bosses_spawned = MAX_BOSS;
+			num_mobs_spawned = MAX_MOBS;
+			for (entt::entity projectile : registry.view<Projectile>()) {
+				registry.destroy(projectile);
+			}
+			for (entt::entity monster : registry.view<Monster>()) {
+				registry.destroy(monster);
+			}
+		}
 	}
 
 
@@ -473,10 +592,12 @@ void WorldSystem::scroll_callback(double xoffset, double yoffset)
 
 //will move this eventually
 //atm this is repeated code because ui uses a different position/scale than gridnode 
-void grid_highlight_system(vec2 mouse_pos, std::string unit_selected) {
+void grid_highlight_system(vec2 mouse_pos, std::string unit_selected, GridMap current_map) {
 	auto view_ui = registry.view<Motion, HighlightBool>(); 
+	
+	GridNode& node = GridMap::getNodeAtCoord(current_map, GridMap::pixelToCoord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each()) {
-		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && unit_selected != "") {
+		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == GRID_VACANT) {
 			highlight.highlight = true;
 		}
 		else {
@@ -489,12 +610,11 @@ void grid_highlight_system(vec2 mouse_pos, std::string unit_selected) {
 void WorldSystem::on_mouse_move(vec2 mouse_pos)
 {	
 	//if mouse is hovering over a button, then highlight
-	vec2 mouse_pos_world = mouse_in_world_coord(mouse_pos);
-	UI_highlight_system( mouse_pos);
+	UI_highlight_system(mouse_pos);
 
 	bool in_game_area = mouse_in_game_area(mouse_pos);
-	if(in_game_area )
-		grid_highlight_system(mouse_pos_world, unit_selected);
+	if (in_game_area && unit_selected != "" && player_state == set_up_stage)
+		grid_highlight_system(mouse_pos, unit_selected, current_map);
 
     // if village is alive
     if (health > 0)
@@ -527,94 +647,22 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 	}
 	
 }
-void un_highlight() {
-	auto view_ui = registry.view< HighlightBool>();
-	for (auto [entity, highlight] : view_ui.each()) {
-		highlight.highlight = false;
-	}
-}
+
 // mouse click callback function 
 void WorldSystem::on_mouse_click(int button, int action, int mod) {
 	//getting cursor position
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
 
-	Motion camera_motion = registry.get<Motion>(camera);
-
-	// cursor position in world pos
-	vec2 mouse_world_pos = mouse_in_world_coord(vec2({ xpos, ypos }));
-
-	int x_grid = mouse_world_pos.x; 
-	int y_grid = mouse_world_pos.y; 
-
-	// snap to nearest grid size
-	float x = (x_grid) / GRID_CELL_SIZE; //+ GRID_CELL_SIZE / 2
-	x *= GRID_CELL_SIZE;
-	float y = (y_grid) / GRID_CELL_SIZE; //+ GRID_CELL_SIZE / 2
-	y *= GRID_CELL_SIZE;
-
-	x += GRID_CELL_SIZE / 2.0;
-	y += GRID_CELL_SIZE / 2.0;
-	
-	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
-	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
-	
-	un_highlight(); // turn off highlights for grid node on click
-
-	
-	// Mouse click for placing units 
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "" && in_game_area)
-	{
-		if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
-		{
-			entt::entity entity = Hunter::createHunter({ x, y });
-			health -= HUNTER_COST;
-			unit_selected = "";
-		}
-		else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
-		{
-			entt::entity entity = GreenHouse::createGreenHouse({ x, y });
-			health -= GREENHOUSE_COST;
-			unit_selected = "";
-		}
-		else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
-		{
-			entt::entity entity = WatchTower::createWatchTower({ x, y });
-			health -= WATCHTOWER_COST;
-			unit_selected = "";
-		}
-		else if (unit_selected ==WALL_NAME && health >= WALL_COST)
-		{
-			entt::entity entity = Wall::createWall({ x, y }, false);
-			health -= WALL_COST;
-			unit_selected = "";
-		}
-	}
-	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area) {
-		
-		if (ui_button == Button::tower_button && health >= WATCHTOWER_COST) {
-			unit_selected = WATCHTOWER_NAME;
-		}
-		else if (ui_button == Button::green_house_button && health >= GREENHOUSE_COST) {
-			unit_selected = GREENHOUSE_NAME;
-		}
-		else if (ui_button == Button::stick_figure_button && health >= HUNTER_COST) {
-			unit_selected = HUNTER_NAME;
-		} 
-		else if (ui_button == Button::wall_button && health >= WALL_COST) {
-			unit_selected = WALL_NAME;
-		}
-		else {
-			unit_selected = "";
-		}
-	}
-
-	//std::cout << "selected: " << unit_selected << std::endl;
-
-	// handle clicks in the start menu
 	switch (game_state)
 	{
-		case start_menu: start_menu_click_handle(xpos, ypos, button, action, mod); break;
+		case start_menu: 
+			start_menu_click_handle(xpos, ypos, button, action, mod); 
+			break;
+
+		case in_game: 
+			in_game_click_handle(xpos, ypos, button, action, mod);
+			break;
 	}
 	
 }
@@ -642,5 +690,101 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 	{
 		game_state = in_game;
 		restart();
+	}
+}
+
+// helper for in game mouse click
+void WorldSystem::in_game_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
+{	
+	Motion camera_motion = registry.get<Motion>(camera);
+
+	// cursor position in world pos
+	vec2 mouse_world_pos = mouse_in_world_coord(vec2({ mouse_pos_x, mouse_pos_y }));
+
+	int x_grid = mouse_world_pos.x; 
+	int y_grid = mouse_world_pos.y; 
+
+	// snap to nearest grid size
+	float x = (x_grid) / GRID_CELL_SIZE; //+ GRID_CELL_SIZE / 2
+	x *= GRID_CELL_SIZE;
+	float y = (y_grid) / GRID_CELL_SIZE; //+ GRID_CELL_SIZE / 2
+	y *= GRID_CELL_SIZE;
+
+	x += GRID_CELL_SIZE / 2.0;
+	y += GRID_CELL_SIZE / 2.0;
+	
+	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
+	bool in_game_area = mouse_in_game_area(vec2(mouse_pos_x, mouse_pos_y));
+
+	//some debugging print outs
+	/*if (in_game_area) {
+		std::cout << "in game area" << std::endl;
+	}
+	else {
+		std::cout << "not in game area" << std::endl;
+		std::cout << button_to_string(ui_button) << " pressed " << std::endl;
+	}*/
+
+	if (player_state == set_up_stage) {
+		// Mouse click for placing units 
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "" && in_game_area)
+		{
+			GridNode& node = GridMap::getNodeAtCoord(current_map, GridMap::pixelToCoord(vec2(x, y)));
+
+			if (node.occupancy == GRID_VACANT) {
+				if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
+				{
+					entt::entity entity = Hunter::createHunter({ x, y });
+					health -= HUNTER_COST;
+					unit_selected = "";
+					node.occupancy = GRID_HUNTER;
+				}
+				else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
+				{
+					entt::entity entity = GreenHouse::createGreenHouse({ x, y });
+					health -= GREENHOUSE_COST;
+					unit_selected = "";
+					node.occupancy = GRID_GREENHOUSE;
+				}
+				else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
+				{
+					entt::entity entity = WatchTower::createWatchTower({ x, y });
+					health -= WATCHTOWER_COST;
+					unit_selected = "";
+					node.occupancy = GRID_TOWER;
+				}
+				else if (unit_selected == WALL_NAME && health >= WALL_COST)
+				{
+					entt::entity entity = Wall::createWall({ x, y }, false);
+					health -= WALL_COST;
+					unit_selected = "";
+					node.occupancy = GRID_WALL;
+				}
+
+				un_highlight();
+			}
+		}
+		else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area) {
+
+			if (ui_button == Button::tower_button) {
+				unit_selected = WATCHTOWER_NAME;
+			}
+			else if (ui_button == Button::green_house_button) {
+				unit_selected = GREENHOUSE_NAME;
+			}
+			else if (ui_button == Button::stick_figure_button) {
+				unit_selected = HUNTER_NAME;
+			}
+			else if (ui_button == Button::wall_button) {
+				unit_selected = WALL_NAME;
+			}
+			else {
+				unit_selected = "";
+			}
+		}
+
+		//std::cout << "selected: " << unit_selected << std::endl;
+
+		// handle clicks in the start menu
 	}
 }

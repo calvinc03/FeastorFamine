@@ -9,7 +9,7 @@
 #include <iostream>
 
 
-#include "spring_boss.hpp"
+#include "bosses/spring_boss.hpp"
 #include "mob.hpp"
 void RenderSystem::animate(entt::entity entity)
 {
