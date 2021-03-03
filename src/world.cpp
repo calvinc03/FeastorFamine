@@ -545,10 +545,12 @@ void WorldSystem::scroll_callback(double xoffset, double yoffset)
 
 //will move this eventually
 //atm this is repeated code because ui uses a different position/scale than gridnode 
-void grid_highlight_system(vec2 mouse_pos, std::string unit_selected) {
+void grid_highlight_system(vec2 mouse_pos, std::string unit_selected, GridMap current_map) {
 	auto view_ui = registry.view<Motion, HighlightBool>(); 
+	
+	GridNode& node = GridMap::getNodeAtCoord(current_map, GridMap::pixelToCoord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each()) {
-		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && unit_selected != "") {
+		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == GRID_VACANT) {
 			highlight.highlight = true;
 		}
 		else {
@@ -564,8 +566,8 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 	UI_highlight_system(mouse_pos);
 
 	bool in_game_area = mouse_in_game_area(mouse_pos);
-	if(in_game_area )
-		grid_highlight_system(mouse_pos, unit_selected);
+	if (in_game_area && unit_selected != "" && player_state == set_up_stage)
+		grid_highlight_system(mouse_pos, unit_selected, current_map);
 
     // if village is alive
     if (health > 0)
@@ -716,6 +718,8 @@ void WorldSystem::in_game_click_handle(double mouse_pos_x, double mouse_pos_y, i
 					unit_selected = "";
 					node.occupancy = GRID_WALL;
 				}
+
+				un_highlight();
 			}
 		}
 		else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area) {
