@@ -19,6 +19,7 @@
 #include "camera.hpp"
 #include "button.hpp"
 #include "ui.hpp"
+#include "ai.hpp"
 // stlib
 #include <string.h>
 #include <cassert>
@@ -105,7 +106,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 
 	// Playing background music indefinitely
 	init_audio();
-	Mix_PlayMusic(background_music, -1);
+	// Mix_PlayMusic(background_music, -1);
 	std::cout << "Loaded music\n";
 
 	// Attaching World Observer to Physics observerlist
@@ -359,19 +360,9 @@ void WorldSystem::restart()
 
     // create grid map
     current_map = registry.get<GridMap>(GridMap::createGridMap());
-    // hardcode path
-    std::vector<ivec2> path = {};
-    for (int y = FOREST_COORD.y; y < VILLAGE_COORD.y; y++) {
-		current_map.setGridOccupancy(current_map, vec2(FOREST_COORD.x, y), GRID_BLOCKED);
-        path.emplace_back(FOREST_COORD.x, y);
-    }
-    for (int x = FOREST_COORD.x; x < VILLAGE_COORD.x; x++) {
-		current_map.setGridOccupancy(current_map, vec2(x, VILLAGE_COORD.y), GRID_BLOCKED);
-        path.emplace_back(x, VILLAGE_COORD.y);
-    }
 
     // set path
-    monster_path = GridMap::getNodesFromCoords(current_map, path);
+    monster_path = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
 
     // create village
 	village = Village::createVillage();
