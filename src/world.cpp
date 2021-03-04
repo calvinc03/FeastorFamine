@@ -415,15 +415,16 @@ void WorldSystem::restart()
 
     // create grid map
     current_map = registry.get<GridMap>(GridMap::createGridMap());
-    current_map.node_matrix[3][3].setTerran(GRID_PAVEMENT);
+    current_map.setGridTerran(ivec2(2, 2), GRID_PAVEMENT);
     // create village
 	village = Village::createVillage();
+	current_map.setGridOccupancy(VILLAGE_COORD, GRID_VILLAGE);
+	current_map.setGridOccupancy(VILLAGE_COORD + ivec2(1, 0), GRID_VILLAGE);
+	current_map.setGridOccupancy(VILLAGE_COORD + ivec2(0, 1), GRID_VILLAGE);
+	current_map.setGridOccupancy(VILLAGE_COORD + ivec2(1, 1), GRID_VILLAGE);
 
-	current_map.setGridOccupancy(current_map, VILLAGE_COORD, GRID_VILLAGE);
-	current_map.setGridOccupancy(current_map, VILLAGE_COORD + ivec2(1, 0), GRID_VILLAGE);
-	current_map.setGridOccupancy(current_map, VILLAGE_COORD + ivec2(0, 1), GRID_VILLAGE);
-	current_map.setGridOccupancy(current_map, VILLAGE_COORD + ivec2(1, 1), GRID_VILLAGE);
-	
+	// TODO: create forest
+	current_map.setGridOccupancy(FOREST_COORD, GRID_FOREST);
 	camera = Camera::createCamera();
 
 	// Reading json file of rounds 
@@ -643,7 +644,7 @@ void WorldSystem::scroll_callback(double xoffset, double yoffset)
 void grid_highlight_system(vec2 mouse_pos, std::string unit_selected, GridMap current_map) {
 	auto view_ui = registry.view<Motion, HighlightBool>(); 
 	
-	GridNode& node = GridMap::getNodeAtCoord(current_map, pixelToCoord(mouse_pos));
+	auto& node = current_map.getNodeAtCoord(pixelToCoord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each()) {
 		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == GRID_VACANT) {
 			highlight.highlight = true;
@@ -777,7 +778,7 @@ void WorldSystem::in_game_click_handle(double mouse_pos_x, double mouse_pos_y, i
 		// Mouse click for placing units 
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "" && in_game_area)
 		{
-			GridNode& node = GridMap::getNodeAtCoord(current_map, pixelToCoord(vec2(x, y)));
+			auto& node = current_map.getNodeAtCoord(pixelToCoord(vec2(x, y)));
 
 			if (node.occupancy == GRID_VACANT) {
 				if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)

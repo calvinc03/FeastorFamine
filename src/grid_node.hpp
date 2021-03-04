@@ -23,6 +23,7 @@ public:
 
     static entt::entity createGridNode(int terran, vec2 coord);
     void setTerran(int terran);
+    void setOccupancy(int occupancy);
 };
 
 

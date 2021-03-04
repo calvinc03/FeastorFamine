@@ -161,4 +161,6 @@ vec2 mouse_in_world_coord(vec2 mouse_pos);
 
 vec2 coordToPixel(ivec2 grid_coord);
 
-ivec2 pixelToCoord(vec2 pixel_coord);
+ivec2 pixelToCoord(vec2 pixel_position);
+
+bool is_inbounds(ivec2 coord);

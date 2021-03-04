@@ -79,10 +79,9 @@ void AISystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 	}
 }
 
-bool isValidPosition(GridMap& current_map, ivec2 coord)
+bool isWalkable(GridMap& current_map, ivec2 coord)
 {
-    if ((coord.x >= 0) && (coord.x < WINDOW_SIZE_IN_COORD.x) &&
-            (coord.y >= 0) && (coord.y < WINDOW_SIZE_IN_COORD.y)) {
+    if (is_inbounds(coord)) {
         int occupancy = current_map.node_matrix[coord.x][coord.y].occupancy;
         return occupancy == GRID_VACANT || occupancy == GRID_FOREST || occupancy == GRID_VILLAGE;
     }
@@ -93,8 +92,13 @@ float get_distance(ivec2 coord1, ivec2 coord2) {
     return length((vec2)(coord1 - coord2));
 }
 
-int col_neighbor[] = {1, 1, 1, 0, 0, -1, -1, -1};
-int row_neighbor[] = {0, -1, 1, -1, 1, 0, 1, -1};
+// with diagonals
+//int col_neighbor[] = {1, 1, 1, 0, 0, -1, -1, -1};
+//int row_neighbor[] = {0, -1, 1, -1, 1, 0, 1, -1};
+
+// no diagonal version
+int col_neighbor[] = {1, -1, 0, 0, };
+int row_neighbor[] = {0, 0, 1, -1,};
 
 std::vector<ivec2> AISystem::PathFinder::find_path(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord) {
     std::vector<std::vector<bool>> visited(WINDOW_SIZE_IN_COORD.x, std::vector<bool> (WINDOW_SIZE_IN_COORD.y, false));
@@ -124,7 +128,7 @@ std::vector<ivec2> AISystem::PathFinder::find_path(GridMap& current_map, ivec2 s
         // check neighbors
         for (int i = 0; i < 8; i++) {
             ivec2 next_coord = std::get<0>(current_qnode) + ivec2(row_neighbor[i], col_neighbor[i]);
-            if (!isValidPosition(current_map, next_coord) || visited[next_coord.x][next_coord.y]) {
+            if (!isWalkable(current_map, next_coord) || visited[next_coord.x][next_coord.y]) {
                 continue;
             }
             std::tuple<ivec2, float> next_qnode = std::make_tuple(next_coord, std::get<1>(current_qnode) + get_distance(next_coord, std::get<0>(current_qnode)));

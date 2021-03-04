@@ -9,15 +9,15 @@
 class GridMap
 {
 public:
-    std::vector<std::vector<entt::entity>> node_entity_matrix = {{}};
-    std::vector<std::vector<GridNode>> node_matrix = {{}};
+    std::vector<std::vector<entt::entity>> node_entity_matrix = std::vector<std::vector<entt::entity>>(WINDOW_SIZE_IN_COORD.x, std::vector<entt::entity>(WINDOW_SIZE_IN_COORD.y));
+    std::vector<std::vector<GridNode>> node_matrix = std::vector<std::vector<GridNode>>(WINDOW_SIZE_IN_COORD.x, std::vector<GridNode>(WINDOW_SIZE_IN_COORD.y));;
 
     static entt::entity createGridMap();
 
-    static entt::entity& getEntityAtCoord(GridMap& current_map, ivec2 grid_coord);
-    static GridNode& getNodeAtCoord(GridMap& current_map, ivec2 grid_coord);
-    void setGridTerran(GridMap& current_map, vec2 grid_coord, int terran);
-    void setGridOccupancy(GridMap& current_map, vec2 grid_coord, int occupancy);
-    static std::vector<entt::entity> *getNodeEntitiesFromCoords(GridMap& current_map, std::vector<ivec2>& grid_coords);
-    static std::vector<GridNode> *getNodesFromCoords(GridMap& current_map, std::vector<ivec2>& grid_coords);
+    entt::entity& getEntityAtCoord(ivec2 grid_coord);
+    GridNode& getNodeAtCoord(ivec2 grid_coord);
+    void setGridTerran(ivec2 grid_coord, int terran);
+    void setGridOccupancy(ivec2 grid_coord, int occupancy);
+    std::vector<entt::entity> getNodeEntitiesFromCoords(std::vector<ivec2>& grid_coords);
+    std::vector<GridNode> getNodesFromCoords(std::vector<ivec2>& grid_coords);
 };

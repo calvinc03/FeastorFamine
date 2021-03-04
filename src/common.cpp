@@ -50,6 +50,10 @@ vec2 coordToPixel(ivec2 grid_coord) {
     return grid_coord * GRID_CELL_SIZE + GRID_OFFSET;
 }
 
-ivec2 pixelToCoord(vec2 pixel_coord) {
-    return (ivec2)pixel_coord / GRID_CELL_SIZE;
+ivec2 pixelToCoord(vec2 pixel_position) {
+    return (ivec2)pixel_position / GRID_CELL_SIZE;
+}
+
+bool is_inbounds(ivec2 grid_coord) {
+    return grid_coord.x >= 0 && grid_coord.y >= 0 && grid_coord.x < WINDOW_SIZE_IN_COORD.x && grid_coord.y < WINDOW_SIZE_IN_COORD.y;
 }

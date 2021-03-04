@@ -45,3 +45,7 @@ void GridNode::setTerran(int terran) {
         resource.texture.load_from_file(textures_path(terran_texture_path.at(terran)));
     }
 }
+
+void GridNode::setOccupancy(int occupancy) {
+    this->occupancy = occupancy;
+}
