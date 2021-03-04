@@ -61,7 +61,7 @@ namespace DebugSystem
 
 	}
 
-	void createDirectedLine(vec2 position1, vec2 position2, vec2 scale) {
+	void createDirectedLine(vec2 position1, vec2 position2, float width) {
 		auto entity = registry.create();
 
 		std::string key = "thick_line";
@@ -103,7 +103,7 @@ namespace DebugSystem
 		vec2 x_axis = vec2(1, 0);
 		float angle = acos(dot(n_dir, x_axis));
 
-
+		float len = length(position1 -position2);
 
 		// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 		registry.emplace<ShadedMeshRef>(entity, resource);
@@ -113,7 +113,7 @@ namespace DebugSystem
 		motion.angle = angle;
 		motion.velocity = { 0, 0 };
 		motion.position = (position1 + position2) / 2.0f;
-		motion.scale = scale;
+		motion.scale = vec2(len, width);
 
 		registry.emplace<DebugComponent>(entity);
 
