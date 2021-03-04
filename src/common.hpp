@@ -49,6 +49,14 @@ enum grid_occupancy
     GRID_HUNTER = 6,
 };
 
+enum season
+{
+    SPRING = 0,
+    SUMMER = 1,
+    FALL = 2,
+    WINTER = 3
+};
+
 // Simple utility functions to avoid mistyping directory name
 inline std::string data_path() { return "data"; };
 inline std::string shader_path(const std::string& name) { return data_path() + "/shaders/" + name;};

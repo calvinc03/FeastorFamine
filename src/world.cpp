@@ -297,26 +297,24 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 		MOB_DELAY_MS = round_json[round_number]["mob_delay_ms"];
 		MAX_BOSS = round_json[round_number]["max_bosses"];
 		BOSS_DELAY_MS = round_json[round_number]["boss_delay_ms"];
-		
-		if (round_json[round_number]["season"] == "spring") {
-			std::cout << "Spring season! \n";
+		std::string season_str = round_json[round_number]["season_str"];
+        std::cout << season_str << " season_str! \n";
+
+		if (season_str == "spring") {
+		    season = SPRING;
 			create_boss = SpringBoss::createSpringBossEntt;
-
 		}
-		else if (round_json[round_number]["season"] == "summer") {
-			std::cout << "Summer season! \n";
+		else if (season_str == "summer") {
+		    season = SUMMER;
 			create_boss = SummerBoss::createSummerBossEntt;
-
 		}
-		else if (round_json[round_number]["season"] == "fall") {
-			std::cout << "Fall season! \n";
-			create_boss = FallBoss::createFallBossEntt;
-
+		else if (season_str == "fall") {
+			season = FALL;
+		    create_boss = FallBoss::createFallBossEntt;
 		}
-		else if (round_json[round_number]["season"] == "winter") {
-			std::cout << "Winter season! \n";
+		else if (season_str == "winter") {
+		    season = WINTER;
 			create_boss = WinterBoss::createWinterBossEntt;
-
 		}
 	}
 }

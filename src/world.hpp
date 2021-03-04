@@ -82,6 +82,8 @@ private:
 	// health of the village
 	int health;
 
+	int season;
+
 	// json object for rounds
 	nlohmann::json round_json;
 
