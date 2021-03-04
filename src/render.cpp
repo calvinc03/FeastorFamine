@@ -9,7 +9,6 @@
 #include <iostream>
 
 
-#include "spring_boss.hpp"
 #include "mob.hpp"
 void RenderSystem::animate(entt::entity entity)
 {
@@ -313,7 +312,6 @@ void RenderSystem::draw()
 	
 	auto view_mesh_ref_motion = registry.view<ShadedMeshRef, Motion>();
 	auto view_mesh_ref_ui = registry.view<UI_element>();
-	auto view_SpringBoss = registry.view<SpringBoss>();
 	auto view_nodes = registry.view<GridNode>();
 
 	// draw the nodes first
@@ -323,9 +321,9 @@ void RenderSystem::draw()
 		gl_has_errors();
 	}
 
-	//// render everything that has motion and that is not a grid node/springboss
+	//// render everything that has motion and that is not a grid node/
 	for (entt::entity entity : view_mesh_ref_motion) {
-		if (registry.has<GridNode>(entity) || registry.has<SpringBoss>(entity)) {
+		if (registry.has<GridNode>(entity)) {
 			continue;
 		}
 		if (registry.has<Animate>(entity)) {
@@ -335,11 +333,6 @@ void RenderSystem::draw()
 		gl_has_errors();
 	}
 	
-	for (entt::entity entity : view_SpringBoss)
-	{
-		drawTexturedMesh(entity, projection_2D);
-		gl_has_errors();
-	}
 	// draw ui last
 	for (entt::entity entity : view_mesh_ref_ui) {
 		drawTexturedMesh(entity, projection_2D_ui);

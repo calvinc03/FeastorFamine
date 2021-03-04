@@ -1,23 +1,23 @@
 // Header
 #include "render.hpp"
-#include "fall_boss.hpp"
+#include "spring_boss.hpp"
 
-const std::string WALK_SPRITE = "bear/bear_walk.png";
+const std::string WALK_SPRITE = "eagle/eagle_walk.png";
 const std::string RUN_SPRITE = "NA";
-const std::string ATTACK_SPRITE = "bear/bear_attack.png";
-const std::string DEATH_SPRITE = "bear/bear_death.png";
-const size_t WALK_FRAMES = 6.f;
+const std::string ATTACK_SPRITE = "eagle/eagle_attack.png";
+const std::string DEATH_SPRITE = "eagle/eagle_death.png";
+const size_t WALK_FRAMES = 4.f;
 const size_t RUN_FRAMES = 0.f;
-const size_t ATTACK_FRAMES = 7.f;
-const size_t DEATH_FRAMES = 6.f;
+const size_t ATTACK_FRAMES = 0.f;
+const size_t DEATH_FRAMES = 0.f;
 
-entt::entity FallBoss::createFallBossEntt()
+entt::entity SpringBoss::createSpringBossEntt()
 {
     // Reserve en entity
     auto entity = registry.create();
 
     // Create the rendering components
-    std::string key = "fall_boss";
+    std::string key = "spring_boss";
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {
@@ -63,7 +63,7 @@ entt::entity FallBoss::createFallBossEntt()
     animate.frame_num = WALK_FRAMES;
     animate.state_num = 1.f;
 
-    registry.emplace<FallBoss>(entity);
+    registry.emplace<SpringBoss>(entity);
     registry.emplace<HitReaction>(entity);
 
     return entity;

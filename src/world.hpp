@@ -13,6 +13,7 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <SDL_mixer.h>
+#include <../ext/nlohmann/json.hpp>
 
 // Container for all our entities and game logic. Individual rendering / update is 
 // deferred to the relative update() methods
@@ -31,13 +32,14 @@ public:
 	// restart level
 	void restart();
 
+	// Check for collisions
 	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
 
-	// Steps the game ahead by ms milliseconds
+	// Steps the game during monster rounds ahead by ms milliseconds
 	void step(float elapsed_ms);
 
-	// Check for collisions
-	void handle_collisions();
+	// Steps the game during set up rounds
+	void set_up_step(float elapsed_ms);
 
 	// Renders our scene
 	void draw();
@@ -53,6 +55,11 @@ public:
 
 	// Menu
 	enum GameState { start_menu, in_game };
+
+	// state for set_up and monster_rounds
+	int player_state;
+	enum PlayerState { set_up_stage, battle_stage };
+	
 private:
 	// PhysicsSystem handle
 	PhysicsSystem* physics;
@@ -74,6 +81,11 @@ private:
 
 	// health of the village
 	int health;
+
+	int season;
+
+	// json object for rounds
+	nlohmann::json round_json;
 
 	// Game state
 	float current_speed;
@@ -102,13 +114,20 @@ private:
     };
     
     int current_weather;
+    
+    //
+	float next_greenhouse_production;
+	int num_mobs_spawned;
+	int num_bosses_spawned; 
+	entt::entity (*create_boss)();
 
-    // Map nodes and path
+    // Monster path
 	GridMap current_map;
-    std::vector<GridNode> monster_path = {};
+    std::vector<ivec2> monster_path_coords = {};
 
-	float round_timer;
+	// round and set up
 	int round_number;
+	float set_up_timer;
 
 	//UI
 	entt::entity ui;
@@ -117,8 +136,9 @@ private:
 
 
 
-	// helper for start menu mouse click
+	// helper for start menu mouse click and in_game mouse click
 	void start_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
+	void in_game_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 
 	// music references
 	Mix_Music* background_music;

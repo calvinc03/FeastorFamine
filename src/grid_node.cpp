@@ -31,7 +31,3 @@ entt::entity GridNode::createGridNode(int terran, vec2 coord)
 
     return entity;
 }
-
-void GridNode::calculateFCost() {
-    f_cost = g_cost + h_cost;
-}

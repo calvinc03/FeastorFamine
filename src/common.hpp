@@ -24,6 +24,7 @@ static const size_t FIRING_RATE = 3000;
 static const int GRID_CELL_SIZE = 100;
 static const ivec2 GRID_OFFSET =  ivec2(GRID_CELL_SIZE/2 , GRID_CELL_SIZE/2);
 static const ivec2 WINDOW_SIZE_IN_PX = {1200, 700};
+
 static const ivec2 WINDOW_SIZE_IN_COORD = WINDOW_SIZE_IN_PX / GRID_CELL_SIZE;
 static const ivec2 FOREST_COORD = ivec2(0, 0);
 // bottom right position (TODO offset this by village size)
@@ -33,8 +34,8 @@ enum grid_terran
 {
     GRID_DEFAULT = 0,
     GRID_GRASS = 1,
-    GRID_DIRT = 1,
-    GRID_WATER = 1,
+    GRID_DIRT = 2,
+    GRID_WATER = 3,
 };
 
 enum grid_occupancy
@@ -47,6 +48,14 @@ enum grid_occupancy
     GRID_TOWER = 4,
     GRID_WALL = 5,
     GRID_HUNTER = 6,
+};
+
+enum season
+{
+    SPRING = 0,
+    SUMMER = 1,
+    FALL = 2,
+    WINTER = 3
 };
 
 // Simple utility functions to avoid mistyping directory name
@@ -94,6 +103,7 @@ struct Monster {
     int health;
     int damage;
     int current_path_index = 0;
+	int reward;
 };
 
 struct Unit {

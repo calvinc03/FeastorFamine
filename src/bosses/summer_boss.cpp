@@ -40,6 +40,7 @@ entt::entity SummerBoss::createSummerBossEntt()
     auto& monster = registry.emplace<Monster>(entity);
     monster.health = 60;
     monster.damage = 10;
+    monster.reward = 50;
 
     auto& boss = registry.emplace<Boss>(entity);
     boss.hit = false;
