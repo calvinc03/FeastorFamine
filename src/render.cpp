@@ -339,6 +339,11 @@ void RenderSystem::draw()
 		gl_has_errors();
 	}
 
+	auto view_health = registry.view<HealthComponent>();
+	for (entt::entity entity : view_health) {
+		drawTexturedMesh(entity, projection_2D);
+		gl_has_errors();
+	}
 
 	// Truely render to the screen
 	drawToScreen();

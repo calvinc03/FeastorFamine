@@ -21,6 +21,7 @@
 #include "button.hpp"
 #include "ui.hpp"
 #include "ai.hpp"
+
 // stlib
 #include <string.h>
 #include <cassert>
@@ -263,17 +264,6 @@ void WorldSystem::step(float elapsed_ms) {
         }
     }
 
-//	//DEBUG LINES: path of bosses/mobs
-//	//TODO can display entire path.
-//	auto view_monster = registry.view<Monster>();
-//	for (auto [entity, mob] : view_monster.each())
-//	{
-//		auto& monster = registry.get<Monster>(entity);
-//		auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
-//		ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
-//		float len = length(coordToPixel(current_path_coord) - coordToPixel(next_path_coord));
-//		DebugSystem::createDirectedLine(coordToPixel(current_path_coord), coordToPixel(next_path_coord), vec2(len, 5));
-//	}
 
 }
 
@@ -311,7 +301,7 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 		BOSS_DELAY_MS = round_json[round_number]["boss_delay_ms"];
 		std::string season_str = round_json[round_number]["season"];
         
-        std::cout << season_str << " season_str! \n";
+        std::cout << season_str << " season! \n";
 
 		if (season_str == "spring") {
 		    season = SPRING;
@@ -325,8 +315,6 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 //            }
             // comment out when done testing
             weather = RAIN;
-            std::cout << season << " \n";
-            std::cout << weather << " \n";
 			create_boss = SpringBoss::createSpringBossEntt;
 		}
 		else if (season_str == "summer") {
@@ -339,8 +327,6 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 //                weather = CLEAR;
 //            }
             weather = DROUGHT;
-            std::cout << season << " \n";
-            std::cout << weather << " \n";
 			create_boss = SummerBoss::createSummerBossEntt;
 		}
 		else if (season_str == "fall") {
@@ -353,8 +339,6 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 //                weather = CLEAR;
 //            }
             weather = FOG;
-            std::cout << season << " \n";
-            std::cout << weather << " \n";
 		    create_boss = FallBoss::createFallBossEntt;
 		}
 		else if (season_str == "winter") {
@@ -367,10 +351,10 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 //                weather = CLEAR;
 //            }
             weather = SNOW;
-            std::cout << season << " \n";
-            std::cout << weather << " \n";
 			create_boss = WinterBoss::createWinterBossEntt;
 		}
+        std::cout << round_json[round_number]["season"] << " \n";
+        std::cout << "weather "<<weather << " \n";
 	}
 }
 
@@ -449,6 +433,10 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			Mix_PlayChannel(-1, impact_sound, 0);
 
 			animal.health -= projectile.damage;
+
+			auto& hit_reaction = registry.get<HitReaction>(entity_j);
+			hit_reaction.counter_ms = 750; //ms duration used by health bar
+
 			registry.destroy(entity_i);
 			if (animal.health <= 0)
 			{
