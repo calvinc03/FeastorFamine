@@ -84,13 +84,9 @@ bool isValidPosition(GridMap& current_map, ivec2 coord)
     if ((coord.x >= 0) && (coord.x < WINDOW_SIZE_IN_COORD.x) &&
             (coord.y >= 0) && (coord.y < WINDOW_SIZE_IN_COORD.y)) {
         int occupancy = current_map.node_matrix[coord.x][coord.y].occupancy;
-        if (!(occupancy == GRID_VACANT || occupancy == GRID_FOREST || occupancy == GRID_VILLAGE)) {
-            return false;
-        }
-        return true;
-    } else {
-        return false;
+        return occupancy == GRID_VACANT || occupancy == GRID_FOREST || occupancy == GRID_VILLAGE;
     }
+    return false;
 }
 
 float get_distance(ivec2 coord1, ivec2 coord2) {
