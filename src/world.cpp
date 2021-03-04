@@ -264,6 +264,19 @@ void WorldSystem::step(float elapsed_ms)
 		screen.darken_screen_factor = 0;
 		restart();
 	}
+
+
+	//DEBUG LINES: path of bosses/mobs
+	//TODO can display entire path.
+	auto view_monster = registry.view<Monster>();
+	for (auto [entity, monster] : view_monster.each())
+	{
+		auto& monster = registry.get<Monster>(entity);
+		auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
+		ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
+		float len = length(GridMap::coordToPixel(current_path_coord) - GridMap::coordToPixel(next_path_coord));
+		DebugSystem::createDirectedLine(GridMap::coordToPixel(current_path_coord), GridMap::coordToPixel(next_path_coord), vec2(len, 5));
+	}
 }
 
 void un_highlight() {
@@ -373,7 +386,6 @@ void WorldSystem::restart()
 
 	// Reading json file of rounds 
 	// TODO : This uses the absolute path. I have no idea how to get it with relative path. The json file is currently in the src dir because it doesn't work elsewhere
-	auto absolute_path =  "data/monster_rounds/rounds.json";
 	std::ifstream input_stream("data/monster_rounds/rounds.json");
 	
 	
