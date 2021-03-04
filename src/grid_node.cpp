@@ -1,6 +1,5 @@
 #include "grid_node.hpp"
 
-std::string key = "grid_node";
 
 entt::entity GridNode::createGridNode(int terran, vec2 coord)
 {
@@ -11,11 +10,12 @@ entt::entity GridNode::createGridNode(int terran, vec2 coord)
     node.coord = coord;
 
     // set up mesh components
+    const std::string& key = terran_str.at(terran);
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path(terran_texture_path.at(terran)), "grid");
+        RenderSystem::createSprite(resource, textures_path(terran_texture_path.at(terran)), key);
     }
     registry.emplace<ShadedMeshRef>(entity, resource);
 
@@ -32,11 +32,13 @@ entt::entity GridNode::createGridNode(int terran, vec2 coord)
 }
 
 void GridNode::setTerran(int terran) {
+    this->terran = terran;
+    const std::string& key = terran_str.at(terran);
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path(terran_texture_path.at(terran)), "grid");
+        RenderSystem::createSprite(resource, textures_path(terran_texture_path.at(terran)), key);
     }
     else
     {

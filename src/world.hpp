@@ -89,30 +89,9 @@ private:
 	float current_speed;
 	float next_boss_spawn;
 	float next_mob_spawn;
-    
-    // Season
-    int season;
-    
-    enum season
-    {
-        SPRING = 0,
-        SUMMER = 1,
-        FALL = 2,
-        WINTER = 3,
-    };
-        
-    // Weather
-    int weather;
 
-    
-    enum weather
-    {
-        CLEAR = 0,
-        RAIN = 1,
-        DROUGHT = 2,
-        FOG = 3,
-        SNOW = 4,
-    };
+    int season;
+    int weather;
     
 	float next_greenhouse_production;
 	int num_mobs_spawned;
