@@ -35,7 +35,7 @@ enum grid_terran
     GRID_GRASS = 0,
     GRID_PAVEMENT = 1,
     GRID_MUD = 2,
-    GRID_WATER = 3,
+    GRID_PUDDLE = 3,
 };
 
 enum grid_occupancy
@@ -66,13 +66,6 @@ enum weather
     DROUGHT = 2,
     FOG = 3,
     SNOW = 4,
-};
-
-static const std::map<int, std::string> terran_texture_path = {
-        {GRID_GRASS, "grid/grass.png"},
-        {GRID_PAVEMENT, "grid/pavement.png"},
-        {GRID_MUD, "grid/mud.png"},
-        {GRID_WATER, "grid/water.png"}
 };
 
 // Simple utility functions to avoid mistyping directory name
@@ -162,4 +155,10 @@ extern entt::registry registry;
 extern entt::entity screen_state_entity;
 // for camera view; zoom & pan
 extern entt::entity camera;
+
 vec2 mouse_in_world_coord(vec2 mouse_pos);
+// add offset so that pixel is centered on grid
+
+vec2 coordToPixel(ivec2 grid_coord);
+
+ivec2 pixelToCoord(vec2 pixel_coord);

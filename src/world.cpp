@@ -61,6 +61,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	num_mobs_spawned(0),
 	num_bosses_spawned(0),
 	next_greenhouse_production(3000.f),
+
 	set_up_timer(SET_UP_TIME),
 	round_number(0) {
 	// Seeding rng with random device
@@ -208,11 +209,11 @@ void WorldSystem::step(float elapsed_ms) {
         auto &current_path_coord = monster_path_coords.at(monster.current_path_index);
 
         // check that the monster is indeed within the current path node
-        ivec2 coord = GridMap::pixelToCoord(motion.position);
+        ivec2 coord = pixelToCoord(motion.position);
 
         // if we are on the last node, stop the monster and remove entity
         // TODO: make disappearance fancier
-        if (GridMap::pixelToCoord(motion.position) == VILLAGE_COORD
+        if (pixelToCoord(motion.position) == VILLAGE_COORD
             || monster.current_path_index >= monster_path_coords.size() - 1) {
             health -= monster.damage;
             motion.velocity *= 0;
@@ -225,14 +226,14 @@ void WorldSystem::step(float elapsed_ms) {
         motion.velocity = length(motion.velocity) * move_direction;
         motion.angle = atan(move_direction.y / move_direction.x);
         // if we will reach the next node in the next step, increase path index for next step
-        ivec2 next_step_coord = GridMap::pixelToCoord(motion.position + (elapsed_ms / 1000.f) * motion.velocity);
+        ivec2 next_step_coord = pixelToCoord(motion.position + (elapsed_ms / 1000.f) * motion.velocity);
         if (next_step_coord == next_path_coord) {
             monster.current_path_index++;
         }
 
 		if (DebugSystem::in_debug_mode)
 		{
-			DebugSystem::createDirectedLine(GridMap::coordToPixel(current_path_coord), GridMap::coordToPixel(next_path_coord), 5);
+			DebugSystem::createDirectedLine(coordToPixel(current_path_coord), coordToPixel(next_path_coord), 5);
 		}
     }
 
@@ -270,8 +271,8 @@ void WorldSystem::step(float elapsed_ms) {
 //		auto& monster = registry.get<Monster>(entity);
 //		auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
 //		ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
-//		float len = length(GridMap::coordToPixel(current_path_coord) - GridMap::coordToPixel(next_path_coord));
-//		DebugSystem::createDirectedLine(GridMap::coordToPixel(current_path_coord), GridMap::coordToPixel(next_path_coord), vec2(len, 5));
+//		float len = length(coordToPixel(current_path_coord) - coordToPixel(next_path_coord));
+//		DebugSystem::createDirectedLine(coordToPixel(current_path_coord), coordToPixel(next_path_coord), vec2(len, 5));
 //	}
 
 }
@@ -413,7 +414,7 @@ void WorldSystem::restart()
 
     // create grid map
     current_map = registry.get<GridMap>(GridMap::createGridMap());
-
+    current_map.node_matrix[3][3].setTerran(GRID_PAVEMENT);
     // create village
 	village = Village::createVillage();
 
@@ -641,7 +642,7 @@ void WorldSystem::scroll_callback(double xoffset, double yoffset)
 void grid_highlight_system(vec2 mouse_pos, std::string unit_selected, GridMap current_map) {
 	auto view_ui = registry.view<Motion, HighlightBool>(); 
 	
-	GridNode& node = GridMap::getNodeAtCoord(current_map, GridMap::pixelToCoord(mouse_pos));
+	GridNode& node = GridMap::getNodeAtCoord(current_map, pixelToCoord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each()) {
 		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == GRID_VACANT) {
 			highlight.highlight = true;
@@ -775,7 +776,7 @@ void WorldSystem::in_game_click_handle(double mouse_pos_x, double mouse_pos_y, i
 		// Mouse click for placing units 
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "" && in_game_area)
 		{
-			GridNode& node = GridMap::getNodeAtCoord(current_map, GridMap::pixelToCoord(vec2(x, y)));
+			GridNode& node = GridMap::getNodeAtCoord(current_map, pixelToCoord(vec2(x, y)));
 
 			if (node.occupancy == GRID_VACANT) {
 				if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)

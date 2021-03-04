@@ -103,6 +103,7 @@ private:
         
     // Weather
     int weather;
+
     
     enum weather
     {
