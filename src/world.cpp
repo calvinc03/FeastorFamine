@@ -29,6 +29,7 @@
 #include <fstream>
 
 #include "json.hpp"
+
 // Game configuration
 size_t MAX_MOBS = 20;
 size_t MOB_DELAY_MS = 8000;
@@ -61,8 +62,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	num_mobs_spawned(0),
 	num_bosses_spawned(0),
 	next_greenhouse_production(3000.f),
-//    current_season(0),
-//    current_weather(0),
+
 	set_up_timer(SET_UP_TIME),
 	round_number(0) {
 	// Seeding rng with random device
@@ -189,7 +189,6 @@ void WorldSystem::step(float elapsed_ms) {
     if (num_bosses_spawned < MAX_BOSS && next_boss_spawn < 0.f) {
         // Reset spawn timer and spawn boss
         next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
-        //FallBoss::createFallBossEntt();
         create_boss();
         num_bosses_spawned += 1;
     }
@@ -305,6 +304,7 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 		un_highlight();
         // set path
         monster_path_coords = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
+
 		MAX_MOBS = round_json[round_number]["max_mobs"];
 		MOB_DELAY_MS = round_json[round_number]["mob_delay_ms"];
 		MAX_BOSS = round_json[round_number]["max_bosses"];
@@ -428,7 +428,6 @@ void WorldSystem::restart()
 	camera = Camera::createCamera();
 
 	// Reading json file of rounds 
-	// TODO : This uses the absolute path. I have no idea how to get it with relative path. The json file is currently in the src dir because it doesn't work elsewhere
 	std::ifstream input_stream("data/monster_rounds/rounds.json");
 	
 	
