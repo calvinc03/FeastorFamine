@@ -146,9 +146,15 @@ struct DeathTimer
 struct HitReaction
 {
 	bool hit_bool;
+	float counter_ms = 0;
 };
 //for ui 
 struct HighlightBool
 {
 	bool highlight = false;
+};
+
+//health bar tag
+struct HealthComponent
+{
 };

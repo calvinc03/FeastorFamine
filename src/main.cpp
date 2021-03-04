@@ -17,6 +17,7 @@
 #include "ai.hpp"
 
 #include "debug.hpp"
+#include "health_bar.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
 // Note, here the window will show a width x height part of the game world, measured in px. 
@@ -56,6 +57,7 @@ int main()
 		t = now;
 
 		DebugSystem::clearDebugComponents();
+		HealthSystem::updateHealthComponents(elapsed_ms);
 		if (world.game_state == WorldSystem::in_game) {
 			if (world.player_state == WorldSystem::set_up_stage) {
 				world.set_up_step(elapsed_ms);
