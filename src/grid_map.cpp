@@ -21,7 +21,7 @@ entt::entity GridMap::createGridMap()
         map.node_entity_matrix[x].resize(WINDOW_SIZE_IN_COORD.y);
         map.node_matrix[x].resize(WINDOW_SIZE_IN_COORD.y);
         for (int y = 0; y < WINDOW_SIZE_IN_COORD.y; y++){
-            int terran = GRID_DEFAULT;
+            int terran = GRID_GRASS;
             map.node_entity_matrix[x][y] = GridNode::createGridNode(terran, vec2(x, y));
             map.node_matrix[x][y] = registry.get<GridNode>(map.node_entity_matrix[x][y]);
         }
