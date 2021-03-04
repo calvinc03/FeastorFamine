@@ -331,10 +331,10 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			}
 		}
 	}
-    if (registry.has<Monster>(entity_i)) {
-        if (registry.has<Village>(entity_j)) {
-            auto& animal = registry.get<Monster>(entity_i);
-            auto& village = registry.get<Food>(entity_j);
+    if (registry.has<Village>(entity_i)) {
+        if (registry.has<Monster>(entity_j)) {
+            auto& village = registry.get<Food>(entity_i);
+            auto& animal = registry.get<Monster>(entity_j);
             village.food -= animal.damage;
         }
     }
