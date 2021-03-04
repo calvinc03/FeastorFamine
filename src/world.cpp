@@ -38,7 +38,7 @@ size_t BOSS_DELAY_MS = 20000;
 const size_t ANIMATION_FPS = 12;
 const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 
-const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
+const size_t SET_UP_TIME = 10 * 1000; // 15 seconds to setup
 
 const size_t WATCHTOWER_COST = 200;
 const size_t GREENHOUSE_COST = 300;
@@ -204,28 +204,28 @@ void WorldSystem::step(float elapsed_ms)
     for(auto entity: registry.view<Monster>()) {
         auto& monster = registry.get<Monster>(entity);
         auto& motion = registry.get<Motion>(entity);
-        auto& current_path_node = monster_path.at(monster.current_path_index);
+        auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
 
         // check that the monster is indeed within the current path node
         ivec2 coord = GridMap::pixelToCoord(motion.position);
-        //assert(GridMap::pixelToCoord(motion.position) == current_path_node.coord);
 
         // if we are on the last node, stop the monster and remove entity
         // TODO: make disappearance fancier
-        if (monster.current_path_index >= monster_path.size() - 1) {
+        if (GridMap::pixelToCoord(motion.position) == VILLAGE_COORD
+                || monster.current_path_index >= monster_path_coords.size() - 1) {
             health -= monster.damage;
             motion.velocity *= 0;
             registry.destroy(entity);
             continue;
         }
 
-        GridNode next_path_node = monster_path.at(monster.current_path_index + 1);
-        vec2 move_direction = normalize((vec2)(next_path_node.coord - current_path_node.coord));
+        ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
+        vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
         motion.velocity = length(motion.velocity) * move_direction;
         motion.angle = atan(move_direction.y / move_direction.x);
         // if we will reach the next node in the next step, increase path index for next step
         ivec2 next_step_coord = GridMap::pixelToCoord(motion.position + (elapsed_ms / 1000.f) * motion.velocity);
-        if (next_step_coord == next_path_node.coord) {
+        if (next_step_coord == next_path_coord) {
             monster.current_path_index++;
         }
     }
@@ -290,7 +290,8 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 		player_state = battle_stage;
 		set_up_timer = SET_UP_TIME;
 		un_highlight();
-
+        // set path
+        monster_path_coords = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
 		MAX_MOBS = round_json[round_number]["max_mobs"];
 		MOB_DELAY_MS = round_json[round_number]["mob_delay_ms"];
 		MAX_BOSS = round_json[round_number]["max_bosses"];
@@ -360,14 +361,6 @@ void WorldSystem::restart()
 
     // create grid map
     current_map = registry.get<GridMap>(GridMap::createGridMap());
-    // set path
-    std::vector<ivec2> path_coords = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
-    monster_path = GridMap::getNodesFromCoords(current_map, path_coords);
-
-	for (GridNode node : monster_path) {
-		GridNode& new_node = GridMap::getNodeAtCoord(current_map, node.coord);
-		new_node.occupancy = GRID_BLOCKED;
-	}
 
     // create village
 	village = Village::createVillage();

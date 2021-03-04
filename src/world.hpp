@@ -96,7 +96,7 @@ private:
 
     // Monster path
 	GridMap current_map;
-    std::vector<GridNode> monster_path = {};
+    std::vector<ivec2> monster_path_coords = {};
 
 	// round and set up
 	int round_number;

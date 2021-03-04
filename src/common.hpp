@@ -33,8 +33,8 @@ enum grid_terran
 {
     GRID_DEFAULT = 0,
     GRID_GRASS = 1,
-    GRID_DIRT = 1,
-    GRID_WATER = 1,
+    GRID_DIRT = 2,
+    GRID_WATER = 3,
 };
 
 enum grid_occupancy
