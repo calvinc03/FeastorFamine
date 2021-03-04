@@ -61,8 +61,8 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	num_mobs_spawned(0),
 	num_bosses_spawned(0),
 	next_greenhouse_production(3000.f),
-    current_season(0),
-    current_weather(0),
+//    current_season(0),
+//    current_weather(0),
 	set_up_timer(SET_UP_TIME),
 	round_number(0) {
 	// Seeding rng with random device
