@@ -89,6 +89,31 @@ private:
 	float current_speed;
 	float next_boss_spawn;
 	float next_mob_spawn;
+    
+    // Season
+    int season;
+    
+    enum season
+    {
+        SPRING = 0,
+        SUMMER = 1,
+        FALL = 2,
+        WINTER = 3,
+    };
+        
+    // Weather
+    int weather;
+
+    
+    enum weather
+    {
+        CLEAR = 0,
+        RAIN = 1,
+        DROUGHT = 2,
+        FOG = 3,
+        SNOW = 4,
+    };
+    
 	float next_greenhouse_production;
 	int num_mobs_spawned;
 	int num_bosses_spawned; 
@@ -96,7 +121,7 @@ private:
 
     // Monster path
 	GridMap current_map;
-    std::vector<GridNode> monster_path = {};
+    std::vector<ivec2> monster_path_coords = {};
 
 	// round and set up
 	int round_number;
@@ -122,4 +147,6 @@ private:
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+
+
 };

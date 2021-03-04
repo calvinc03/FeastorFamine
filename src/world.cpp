@@ -6,6 +6,7 @@
 #include "bosses/spring_boss.hpp"
 #include "bosses/fall_boss.hpp"
 #include "bosses/summer_boss.hpp"
+#include "bosses/burrow_boss.hpp"
 #include "bosses/winter_boss.hpp"
 #include "mob.hpp"
 #include <projectile.hpp>
@@ -26,7 +27,8 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
-#include <../ext/nlohmann/json.hpp>
+
+#include "json.hpp"
 
 // Game configuration
 size_t MAX_MOBS = 20;
@@ -34,11 +36,10 @@ size_t MOB_DELAY_MS = 8000;
 size_t MAX_BOSS = 2;
 size_t BOSS_DELAY_MS = 20000;
 
-
 const size_t ANIMATION_FPS = 12;
 const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 
-const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
+const size_t SET_UP_TIME = 10 * 1000; // 15 seconds to setup
 
 const size_t WATCHTOWER_COST = 200;
 const size_t GREENHOUSE_COST = 300;
@@ -48,8 +49,9 @@ const std::string WATCHTOWER_NAME = "watchtower";
 const std::string GREENHOUSE_NAME = "greenhouse";
 const std::string HUNTER_NAME = "hunter";
 const std::string WALL_NAME = "wall";
-
+void debug_path(std::vector<ivec2> monster_path_coords);
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
+
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	game_state(start_menu),
 	player_state(set_up_stage),
@@ -60,6 +62,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	num_mobs_spawned(0),
 	num_bosses_spawned(0),
 	next_greenhouse_production(3000.f),
+
 	set_up_timer(SET_UP_TIME),
 	round_number(0) {
 	// Seeding rng with random device
@@ -79,6 +82,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
+
 #if __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
@@ -158,111 +162,119 @@ void WorldSystem::init_audio()
 
 }
 
+
 // Update our game world
-void WorldSystem::step(float elapsed_ms)
-{
-	// Updating window title with health
-	std::stringstream title_ss;
-	title_ss << "Battle stage... Food: " << health << " Round: " << round_number << " fps: " << 1000.0/elapsed_ms;
-	glfwSetWindowTitle(window, title_ss.str().c_str());
+void WorldSystem::step(float elapsed_ms) {
+    // Updating window title with health
+    std::stringstream title_ss;
+    title_ss << "Battle stage... Food: " << health << " Round: " << round_number << " fps: " << 1000.0 / elapsed_ms;
+    glfwSetWindowTitle(window, title_ss.str().c_str());
 
-	// animation
+    // animation
 
-	fps_ms -= elapsed_ms;
-	if (fps_ms < 0.f) {
-		for (auto entity : registry.view<Animate>()) {
-			auto& animate = registry.get<Animate>(entity);
-			animate.frame += 1;
-			animate.frame = (int)animate.frame % (int)animate.frame_num;
-		}
-		fps_ms = 1000 / ANIMATION_FPS;
-	}
-	
-
-
-	//Spawning new boss
-	next_boss_spawn -= elapsed_ms * current_speed;
-	if (num_bosses_spawned < MAX_BOSS && next_boss_spawn < 0.f)
-	{
-		// Reset spawn timer and spawn boss
-		next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
-		//FallBoss::createFallBossEntt();
-		create_boss();
-		num_bosses_spawned += 1;
-	}
-
-	// Spawning new mobs
-    next_mob_spawn -= elapsed_ms * current_speed;
-    if (num_mobs_spawned < MAX_MOBS && next_mob_spawn < 0.f)
-    {
-        next_mob_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
-        Mob::createMobEntt();
-		num_mobs_spawned += 1;
+    fps_ms -= elapsed_ms;
+    if (fps_ms < 0.f) {
+        for (auto entity : registry.view<Animate>()) {
+            auto &animate = registry.get<Animate>(entity);
+            animate.frame += 1;
+            animate.frame = (int) animate.frame % (int) animate.frame_num;
+        }
+        fps_ms = 1000 / ANIMATION_FPS;
     }
 
+
+
+    //Spawning new boss
+    next_boss_spawn -= elapsed_ms * current_speed;
+    if (num_bosses_spawned < MAX_BOSS && next_boss_spawn < 0.f) {
+        // Reset spawn timer and spawn boss
+        next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
+        create_boss();
+        num_bosses_spawned += 1;
+    }
+
+    // Spawning new mobs
+    next_mob_spawn -= elapsed_ms * current_speed;
+    if (num_mobs_spawned < MAX_MOBS && next_mob_spawn < 0.f) {
+        next_mob_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
+        Mob::createMobEntt();
+        num_mobs_spawned += 1;
+    }
+
+	
     // update velocity for every monster
-    for(auto entity: registry.view<Monster>()) {
-        auto& monster = registry.get<Monster>(entity);
-        auto& motion = registry.get<Motion>(entity);
-        auto& current_path_node = monster_path.at(monster.current_path_index);
+    for (auto entity: registry.view<Monster>()) {
+        auto &monster = registry.get<Monster>(entity);
+        auto &motion = registry.get<Motion>(entity);
+        auto &current_path_coord = monster_path_coords.at(monster.current_path_index);
 
         // check that the monster is indeed within the current path node
-        ivec2 coord = GridMap::pixelToCoord(motion.position);
-        //assert(GridMap::pixelToCoord(motion.position) == current_path_node.coord);
+        ivec2 coord = pixelToCoord(motion.position);
 
         // if we are on the last node, stop the monster and remove entity
         // TODO: make disappearance fancier
-        if (monster.current_path_index >= monster_path.size() - 1) {
+        if (pixelToCoord(motion.position) == VILLAGE_COORD
+            || monster.current_path_index >= monster_path_coords.size() - 1) {
             health -= monster.damage;
             motion.velocity *= 0;
             registry.destroy(entity);
             continue;
         }
-
-        GridNode next_path_node = monster_path.at(monster.current_path_index + 1);
-        vec2 move_direction = normalize((vec2)(next_path_node.coord - current_path_node.coord));
+		
+        ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
+        vec2 move_direction = normalize((vec2) (next_path_coord - current_path_coord));
         motion.velocity = length(motion.velocity) * move_direction;
         motion.angle = atan(move_direction.y / move_direction.x);
         // if we will reach the next node in the next step, increase path index for next step
-        ivec2 next_step_coord = GridMap::pixelToCoord(motion.position + (elapsed_ms / 1000.f) * motion.velocity);
-        if (next_step_coord == next_path_node.coord) {
+        ivec2 next_step_coord = pixelToCoord(motion.position + (elapsed_ms / 1000.f) * motion.velocity);
+        if (next_step_coord == next_path_coord) {
             monster.current_path_index++;
+        }
+
+		if (DebugSystem::in_debug_mode)
+		{
+			DebugSystem::createDirectedLine(coordToPixel(current_path_coord), coordToPixel(next_path_coord), 5);
+		}
+    }
+
+    // removes projectiles that are out of the screen
+    for (auto projectile : registry.view<Projectile>()) {
+        auto &pos = registry.get<Motion>(projectile);
+        if (pos.position.x > WINDOW_SIZE_IN_PX.x || pos.position.y > WINDOW_SIZE_IN_PX.y || pos.position.x < 0 ||
+            pos.position.y < 0) {
+            registry.destroy(projectile);
         }
     }
 
-	// removes projectiles that are out of the screen
-	for (auto projectile : registry.view<Projectile>()) {
-		auto& pos = registry.get<Motion>(projectile);
-		if (pos.position.x > WINDOW_SIZE_IN_PX.x || pos.position.y > WINDOW_SIZE_IN_PX.y || pos.position.x < 0 || pos.position.y < 0) {
-			registry.destroy(projectile);
-		}
-	}
+    // greenhouse food production
+    next_greenhouse_production -= elapsed_ms * current_speed;
+    if (next_greenhouse_production < 0.f) {
+        health += registry.view<GreenHouse>().size() * 20;
+        next_greenhouse_production = GREENHOUSE_PRODUCTION_DELAY;
+    }
 
-	// greenhouse food production
-	next_greenhouse_production -= elapsed_ms * current_speed;
-	if (next_greenhouse_production < 0.f) {
-		health += registry.view<GreenHouse>().size() * 20;
-		next_greenhouse_production = GREENHOUSE_PRODUCTION_DELAY;
-	}
+    // Increment round number if all enemies are not on the map and projectiles are removed
+    if (num_bosses_spawned == MAX_BOSS && num_mobs_spawned == MAX_MOBS) {
+        if (registry.view<Monster>().empty() && registry.view<Projectile>().empty()) {
+            round_number++;
+            player_state = set_up_stage;
+            num_bosses_spawned = 0;
+            num_mobs_spawned = 0;
+        }
+    }
 
-	// Increment round number if all enemies are not on the map and projectiles are removed
-	if (num_bosses_spawned == MAX_BOSS && num_mobs_spawned == MAX_MOBS) {
-		if (registry.view<Monster>().empty() && registry.view<Projectile>().empty()) {
-			round_number++;
-			player_state = set_up_stage;
-			num_bosses_spawned = 0;
-			num_mobs_spawned = 0;
-		}
-	}
+//	//DEBUG LINES: path of bosses/mobs
+//	//TODO can display entire path.
+//	auto view_monster = registry.view<Monster>();
+//	for (auto [entity, mob] : view_monster.each())
+//	{
+//		auto& monster = registry.get<Monster>(entity);
+//		auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
+//		ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
+//		float len = length(coordToPixel(current_path_coord) - coordToPixel(next_path_coord));
+//		DebugSystem::createDirectedLine(coordToPixel(current_path_coord), coordToPixel(next_path_coord), vec2(len, 5));
+//	}
 
-	// TODO polish death scene of village
-	if (health < 0) // using < vs <= so we don't die if we spend all the food
-	{
-		auto& screen = registry.get<ScreenState>(screen_state_entity);
-		//screen.darken_screen_factor = 1-elapsed_ms/3000.f;
-		screen.darken_screen_factor = 0;
-		restart();
-	}
 }
 
 void un_highlight() {
@@ -290,31 +302,74 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 		player_state = battle_stage;
 		set_up_timer = SET_UP_TIME;
 		un_highlight();
+        // set path
+        monster_path_coords = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
 
 		MAX_MOBS = round_json[round_number]["max_mobs"];
 		MOB_DELAY_MS = round_json[round_number]["mob_delay_ms"];
 		MAX_BOSS = round_json[round_number]["max_bosses"];
 		BOSS_DELAY_MS = round_json[round_number]["boss_delay_ms"];
-		
-		if (round_json[round_number]["season"] == "spring") {
-			std::cout << "Spring season! \n";
+		std::string season_str = round_json[round_number]["season"];
+        
+        std::cout << season_str << " season_str! \n";
+
+		if (season_str == "spring") {
+		    season = SPRING;
+            // Uncomment when done with weather testing
+//            int weather_int = rand() % 5 + 1;
+//            if (weather_int % 5 == 1)
+//            {
+//                weather = RAIN;
+//            } else {
+//                weather = CLEAR;
+//            }
+            // comment out when done testing
+            weather = RAIN;
+            std::cout << season << " \n";
+            std::cout << weather << " \n";
 			create_boss = SpringBoss::createSpringBossEntt;
-
 		}
-		else if (round_json[round_number]["season"] == "summer") {
-			std::cout << "Summer season! \n";
+		else if (season_str == "summer") {
+		    season = SUMMER;
+//            int weather_int = rand() % 5 + 1;
+//            if (weather_int % 5 == 1)
+//            {
+//                weather = DROUGHT;
+//            } else {
+//                weather = CLEAR;
+//            }
+            weather = DROUGHT;
+            std::cout << season << " \n";
+            std::cout << weather << " \n";
 			create_boss = SummerBoss::createSummerBossEntt;
-
 		}
-		else if (round_json[round_number]["season"] == "fall") {
-			std::cout << "Fall season! \n";
-			create_boss = FallBoss::createFallBossEntt;
-
+		else if (season_str == "fall") {
+			season = FALL;
+            int weather_int = rand() % 5 + 1;
+//            if (weather_int % 5 == 1)
+//            {
+//                weather = FOG;
+//            } else {
+//                weather = CLEAR;
+//            }
+            weather = FOG;
+            std::cout << season << " \n";
+            std::cout << weather << " \n";
+		    create_boss = FallBoss::createFallBossEntt;
 		}
-		else if (round_json[round_number]["season"] == "winter") {
-			std::cout << "Winter season! \n";
+		else if (season_str == "winter") {
+		    season = WINTER;
+//            int weather_int = rand() % 5 + 1;
+//            if (weather_int % 5 == 1)
+//            {
+//                weather = SNOW;
+//            } else {
+//                weather = CLEAR;
+//            }
+            weather = SNOW;
+            std::cout << season << " \n";
+            std::cout << weather << " \n";
 			create_boss = WinterBoss::createWinterBossEntt;
-
 		}
 	}
 }
@@ -360,16 +415,8 @@ void WorldSystem::restart()
 
     // create grid map
     current_map = registry.get<GridMap>(GridMap::createGridMap());
-    // set path
-    std::vector<ivec2> path_coords = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
-    monster_path = GridMap::getNodesFromCoords(current_map, path_coords);
-	
-	for (GridNode node : monster_path) {
-		GridNode& new_node = GridMap::getNodeAtCoord(current_map, node.coord);
-		new_node.occupancy = GRID_BLOCKED;
-	}
-	
-	// create village
+    current_map.node_matrix[3][3].setTerran(GRID_PAVEMENT);
+    // create village
 	village = Village::createVillage();
 
 	current_map.setGridOccupancy(current_map, VILLAGE_COORD, GRID_VILLAGE);
@@ -380,10 +427,9 @@ void WorldSystem::restart()
 	camera = Camera::createCamera();
 
 	// Reading json file of rounds 
-	// TODO : This uses the absolute path. I have no idea how to get it with relative path. The json file is currently in the src dir because it doesn't work elsewhere
-	auto absolute_path = "C:\\Users\\calvi\\OneDrive\\Desktop\\XD\\Feast-or-Famine\\src\\rounds.json";
-	std::ifstream input_stream(absolute_path);
-
+	std::ifstream input_stream("data/monster_rounds/rounds.json");
+	
+	
 	if (input_stream.fail()) {
 		std::cout << "Not reading json file \n";
 	}
@@ -405,7 +451,15 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			registry.destroy(entity_i);
 			if (animal.health <= 0)
 			{
-				health += 30;
+                if (season == 3) {
+                    health += 30 * 2;
+                }
+                else if (season == 4) {
+                    health += 30 / 2;
+                }
+                else {
+                    health += 30;
+                }
 				registry.destroy(entity_j);
 			}
 		}
@@ -588,7 +642,7 @@ void WorldSystem::scroll_callback(double xoffset, double yoffset)
 void grid_highlight_system(vec2 mouse_pos, std::string unit_selected, GridMap current_map) {
 	auto view_ui = registry.view<Motion, HighlightBool>(); 
 	
-	GridNode& node = GridMap::getNodeAtCoord(current_map, GridMap::pixelToCoord(mouse_pos));
+	GridNode& node = GridMap::getNodeAtCoord(current_map, pixelToCoord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each()) {
 		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == GRID_VACANT) {
 			highlight.highlight = true;
@@ -722,7 +776,7 @@ void WorldSystem::in_game_click_handle(double mouse_pos_x, double mouse_pos_y, i
 		// Mouse click for placing units 
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "" && in_game_area)
 		{
-			GridNode& node = GridMap::getNodeAtCoord(current_map, GridMap::pixelToCoord(vec2(x, y)));
+			GridNode& node = GridMap::getNodeAtCoord(current_map, pixelToCoord(vec2(x, y)));
 
 			if (node.occupancy == GRID_VACANT) {
 				if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
@@ -780,4 +834,5 @@ void WorldSystem::in_game_click_handle(double mouse_pos_x, double mouse_pos_y, i
 
 		// handle clicks in the start menu
 	}
+
 }
