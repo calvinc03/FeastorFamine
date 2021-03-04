@@ -6,6 +6,7 @@
 #include "bosses/spring_boss.hpp"
 #include "bosses/fall_boss.hpp"
 #include "bosses/summer_boss.hpp"
+#include "bosses/burrow_boss.hpp"
 #include "bosses/winter_boss.hpp"
 #include "mob.hpp"
 #include <projectile.hpp>

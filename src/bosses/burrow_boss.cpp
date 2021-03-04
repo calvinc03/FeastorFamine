@@ -1,23 +1,23 @@
 // Header
 #include "render.hpp"
-#include "spring_boss.hpp"
+#include "burrow_boss.hpp"
 
-const std::string WALK_SPRITE = "eagle/eagle_walk.png";
-const std::string RUN_SPRITE = "NA";
-const std::string ATTACK_SPRITE = "eagle/eagle_attack.png";
-const std::string DEATH_SPRITE = "eagle/eagle_death.png";
-const size_t WALK_FRAMES = 4.f;
+const std::string WALK_SPRITE = "burrow/burrow_walk.png";
+const std::string RUN_SPRITE = "burrow/burrow_run.png";
+const std::string ATTACK_SPRITE = "burrow/burrow_eat.png";
+const std::string DEATH_SPRITE = "burrow/burrow_death.png";
+const size_t WALK_FRAMES = 13.f;
 const size_t RUN_FRAMES = 0.f;
-const size_t ATTACK_FRAMES = 0.f;
+const size_t ATTACK_FRAMES = 4.f;
 const size_t DEATH_FRAMES = 0.f;
 
-entt::entity SpringBoss::createSpringBossEntt()
+entt::entity BurrowBoss::createBurrowBossEntt()
 {
     // Reserve en entity
     auto entity = registry.create();
 
     // Create the rendering components
-    std::string key = "spring_boss";
+    std::string key = "burrow_boss";
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {
@@ -32,20 +32,20 @@ entt::entity SpringBoss::createSpringBossEntt()
     //auto& motion = ECS::registry<Motion>.emplace(entity);
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 50.f, 0 };
+    motion.velocity = { 150.f, 0 };
     motion.position = GridMap::coordToPixel(FOREST_COORD);
-    motion.scale = vec2({ 1, 1 }) * static_cast<vec2>(resource.texture.size);
+    motion.scale = vec2({ 3, 3 }) * static_cast<vec2>(resource.texture.size);
     // scale down bounding box from .png file based on number of frames
     motion.boundingbox = vec2({ motion.scale.x * (1 / WALK_FRAMES), motion.scale.y });
 
     auto& monster = registry.emplace<Monster>(entity);
-    monster.health = 120;
-    monster.damage = 20;
-    monster.reward = 50;
+    monster.health = 20;
+    monster.damage = 10;
+    monster.reward = 10;
 
     auto& boss = registry.emplace<Boss>(entity);
     boss.hit = false;
-    boss.speed_multiplier = 1.f;
+    boss.speed_multiplier = 6.f;
     boss.sprite = WALK_SPRITE;
     boss.frames = WALK_FRAMES;
     boss.attack_frames = ATTACK_FRAMES;
@@ -60,10 +60,10 @@ entt::entity SpringBoss::createSpringBossEntt()
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0.f;
     animate.state = 0.f;
-    animate.frame_num = WALK_FRAMES;
+    animate.frame_num = boss.frames;
     animate.state_num = 1.f;
 
-    registry.emplace<SpringBoss>(entity);
+    registry.emplace<BurrowBoss>(entity);
     registry.emplace<HitReaction>(entity);
 
     return entity;
