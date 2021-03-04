@@ -221,16 +221,18 @@ void WorldSystem::step(float elapsed_ms) {
             registry.destroy(entity);
             continue;
         }
-		
+
         ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
         vec2 move_direction = normalize((vec2) (next_path_coord - current_path_coord));
         motion.velocity = length(motion.velocity) * move_direction;
         motion.angle = atan(move_direction.y / move_direction.x);
-        // if we will reach the next node in the next step, increase path index for next step
-        ivec2 next_step_coord = pixelToCoord(motion.position + (elapsed_ms / 1000.f) * motion.velocity);
-        if (next_step_coord == next_path_coord) {
-            monster.current_path_index++;
-        }
+
+        // if we will reach the middle of next node in the next step, increase path index for next step
+		vec2 next_step_pos = motion.position + (elapsed_ms / 1000.f) * motion.velocity;
+		vec2 current_node_pos = coordToPixel(next_path_coord);
+		if (abs(next_step_pos.x - current_node_pos.x) < 10 && abs(next_step_pos.x - current_node_pos.x) < 10) {
+			monster.current_path_index++;
+		}
 
 		if (DebugSystem::in_debug_mode)
 		{
@@ -426,7 +428,7 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 {
 	if (registry.has<Projectile>(entity_i)) {
 		if (registry.has<Monster>(entity_j)) {
-			//std::cout << "A monster was hit" << "\n";
+
 			auto& animal = registry.get<Monster>(entity_j);
 			auto& projectile = registry.get<Projectile_Dmg>(entity_i);
 
@@ -453,6 +455,17 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			}
 		}
 	}
+
+	/*if (registry.has<Village>(entity_i)) {
+		if (registry.has<Monster>(entity_j)) {
+			auto& monster = registry.get<Monster>(entity_j);
+			auto& motion = registry.get<Motion>(entity_j);
+
+			health -= monster.damage;
+			motion.velocity *= 0;
+			registry.destroy(entity_j);
+		}
+	}*/
 }
 
 // Should the game be over ?
