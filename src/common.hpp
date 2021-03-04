@@ -57,11 +57,11 @@ enum season
     WINTER = 3
 };
 
-static const std::map<grid_terran, std::string> terran_str_map = {
-        {GRID_GRASS, "grass"},
-        {GRID_PAVEMENT, "pavement"},
-        {GRID_MUD, "mud"},
-        {GRID_WATER, "water"}
+static const std::map<int, std::string> terran_texture_path = {
+        {GRID_GRASS, "grid/grass.png"},
+        {GRID_PAVEMENT, "grid/pavement.png"},
+        {GRID_MUD, "grid/mud.png"},
+        {GRID_WATER, "grid/water.png"}
 };
 
 // Simple utility functions to avoid mistyping directory name

@@ -271,7 +271,7 @@ void WorldSystem::step(float elapsed_ms)
 	auto view_monster = registry.view<Monster>();
 	for (auto [entity, monster] : view_monster.each())
 	{
-		auto& monster = registry.get<Monster>(entity);
+		monster = registry.get<Monster>(entity);
 		auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
 		ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
 		float len = length(GridMap::coordToPixel(current_path_coord) - GridMap::coordToPixel(next_path_coord));
