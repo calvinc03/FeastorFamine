@@ -23,7 +23,8 @@ static const float PI = 3.14159265359f;
 static const size_t FIRING_RATE = 3000;
 static const int GRID_CELL_SIZE = 100;
 static const ivec2 GRID_OFFSET =  ivec2(GRID_CELL_SIZE/2 , GRID_CELL_SIZE/2);
-static const ivec2 WINDOW_SIZE_IN_PX = {1200, 900};
+static const ivec2 WINDOW_SIZE_IN_PX = {1200, 700};
+
 static const ivec2 WINDOW_SIZE_IN_COORD = WINDOW_SIZE_IN_PX / GRID_CELL_SIZE;
 static const ivec2 FOREST_COORD = ivec2(0, 0);
 // bottom right position (TODO offset this by village size)
@@ -31,10 +32,10 @@ static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
 
 enum grid_terran
 {
-    GRID_DEFAULT = 0,
-    GRID_GRASS = 1,
-    GRID_DIRT = 1,
-    GRID_WATER = 1,
+    GRID_GRASS = 0,
+    GRID_PAVEMENT = 1,
+    GRID_MUD = 2,
+    GRID_PUDDLE = 3,
 };
 
 enum grid_occupancy
@@ -47,6 +48,24 @@ enum grid_occupancy
     GRID_TOWER = 4,
     GRID_WALL = 5,
     GRID_HUNTER = 6,
+};
+
+enum season
+{
+    SPRING = 0,
+    SUMMER = 1,
+    FALL = 2,
+    WINTER = 3
+};
+
+// Weather
+enum weather
+{
+    CLEAR = 0,
+    RAIN = 1,
+    DROUGHT = 2,
+    FOG = 3,
+    SNOW = 4,
 };
 
 // Simple utility functions to avoid mistyping directory name
@@ -136,4 +155,10 @@ extern entt::registry registry;
 extern entt::entity screen_state_entity;
 // for camera view; zoom & pan
 extern entt::entity camera;
+
 vec2 mouse_in_world_coord(vec2 mouse_pos);
+// add offset so that pixel is centered on grid
+
+vec2 coordToPixel(ivec2 grid_coord);
+
+ivec2 pixelToCoord(vec2 pixel_coord);

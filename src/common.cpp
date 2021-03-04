@@ -45,3 +45,11 @@ vec2 mouse_in_world_coord(vec2 mouse_pos)
 								  (mouse_pos.y + camera_motion.position.y) / camera_motion.scale.y });
 	return mouse_world_pos;
 }
+
+vec2 coordToPixel(ivec2 grid_coord) {
+    return grid_coord * GRID_CELL_SIZE + GRID_OFFSET;
+}
+
+ivec2 pixelToCoord(vec2 pixel_coord) {
+    return (ivec2)pixel_coord / GRID_CELL_SIZE;
+}

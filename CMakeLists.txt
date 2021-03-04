@@ -33,8 +33,9 @@ if (IS_OS_MAC)
   link_directories(/usr/local/lib)
 endif()
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES}  "src/Observer.hpp" "src/bosses/winter_boss.cpp" "src/bosses/winter_boss.hpp" "src/bosses/summer_boss.cpp" "src/bosses/summer_boss.hpp" "src/bosses/fall_boss.cpp" "src/bosses/fall_boss.hpp" "src/bosses/spring_boss.cpp" "src/bosses/spring_boss.hpp"  )
+add_executable(${PROJECT_NAME} ${SOURCE_FILES}  "src/Observer.hpp" "src/bosses/winter_boss.cpp" "src/bosses/winter_boss.hpp" "src/bosses/summer_boss.cpp" "src/bosses/summer_boss.hpp" "src/bosses/fall_boss.cpp" "src/bosses/fall_boss.hpp" "src/bosses/spring_boss.cpp" "src/bosses/spring_boss.hpp"   "src/bosses/burrow_boss.cpp" "src/bosses/burrow_boss.hpp")
 target_include_directories(${PROJECT_NAME} PUBLIC src/)
+target_include_directories(${PROJECT_NAME} PUBLIC ext/nlohmann)
 
 # Added this so policy CMP0065 doesn't scream
 set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS 0)
@@ -43,6 +44,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS 0)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/stb_image/)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/gl3w)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/entt)
+target_include_directories(${PROJECT_NAME} PUBLIC ext/nlohmann)
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
