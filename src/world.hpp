@@ -91,6 +91,10 @@ private:
 	float current_speed;
 	float next_boss_spawn;
 	float next_mob_spawn;
+
+    int current_season;
+    int current_weather;
+
 	float next_greenhouse_production;
 	int num_mobs_spawned;
 	int num_bosses_spawned; 

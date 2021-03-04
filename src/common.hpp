@@ -23,7 +23,8 @@ static const float PI = 3.14159265359f;
 static const size_t FIRING_RATE = 3000;
 static const int GRID_CELL_SIZE = 100;
 static const ivec2 GRID_OFFSET =  ivec2(GRID_CELL_SIZE/2 , GRID_CELL_SIZE/2);
-static const ivec2 WINDOW_SIZE_IN_PX = {1200, 900};
+static const ivec2 WINDOW_SIZE_IN_PX = {1200, 700};
+
 static const ivec2 WINDOW_SIZE_IN_COORD = WINDOW_SIZE_IN_PX / GRID_CELL_SIZE;
 static const ivec2 FOREST_COORD = ivec2(0, 0);
 // bottom right position (TODO offset this by village size)
@@ -55,6 +56,16 @@ enum season
     SUMMER = 1,
     FALL = 2,
     WINTER = 3
+};
+
+// Weather
+enum weather
+{
+    CLEAR = 0,
+    RAIN = 1,
+    DROUGHT = 2,
+    FOG = 3,
+    SNOW = 4,
 };
 
 static const std::map<int, std::string> terran_texture_path = {

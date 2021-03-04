@@ -51,6 +51,7 @@ const std::string HUNTER_NAME = "hunter";
 const std::string WALL_NAME = "wall";
 
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
+
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	game_state(start_menu),
 	player_state(set_up_stage),
@@ -61,6 +62,8 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	num_mobs_spawned(0),
 	num_bosses_spawned(0),
 	next_greenhouse_production(3000.f),
+    current_season(0),
+    current_weather(0),
 	set_up_timer(SET_UP_TIME),
 	round_number(0) {
 	// Seeding rng with random device
@@ -80,6 +83,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
+
 #if __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
@@ -160,52 +164,49 @@ void WorldSystem::init_audio()
 }
 
 // Update our game world
-void WorldSystem::step(float elapsed_ms)
-{
-	// Updating window title with health
-	std::stringstream title_ss;
-	title_ss << "Battle stage... Food: " << health << " Round: " << round_number << " fps: " << 1000.0/elapsed_ms;
-	glfwSetWindowTitle(window, title_ss.str().c_str());
+void WorldSystem::step(float elapsed_ms) {
+    // Updating window title with health
+    std::stringstream title_ss;
+    title_ss << "Battle stage... Food: " << health << " Round: " << round_number << " fps: " << 1000.0 / elapsed_ms;
+    glfwSetWindowTitle(window, title_ss.str().c_str());
 
-	// animation
+    // animation
 
-	fps_ms -= elapsed_ms;
-	if (fps_ms < 0.f) {
-		for (auto entity : registry.view<Animate>()) {
-			auto& animate = registry.get<Animate>(entity);
-			animate.frame += 1;
-			animate.frame = (int)animate.frame % (int)animate.frame_num;
-		}
-		fps_ms = 1000 / ANIMATION_FPS;
-	}
-	
+    fps_ms -= elapsed_ms;
+    if (fps_ms < 0.f) {
+        for (auto entity : registry.view<Animate>()) {
+            auto &animate = registry.get<Animate>(entity);
+            animate.frame += 1;
+            animate.frame = (int) animate.frame % (int) animate.frame_num;
+        }
+        fps_ms = 1000 / ANIMATION_FPS;
+    }
 
 
-	//Spawning new boss
-	next_boss_spawn -= elapsed_ms * current_speed;
-	if (num_bosses_spawned < MAX_BOSS && next_boss_spawn < 0.f)
-	{
-		// Reset spawn timer and spawn boss
-		next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
-		//FallBoss::createFallBossEntt();
-		create_boss();
-		num_bosses_spawned += 1;
-	}
 
-	// Spawning new mobs
+    //Spawning new boss
+    next_boss_spawn -= elapsed_ms * current_speed;
+    if (num_bosses_spawned < MAX_BOSS && next_boss_spawn < 0.f) {
+        // Reset spawn timer and spawn boss
+        next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
+        //FallBoss::createFallBossEntt();
+        create_boss();
+        num_bosses_spawned += 1;
+    }
+
+    // Spawning new mobs
     next_mob_spawn -= elapsed_ms * current_speed;
-    if (num_mobs_spawned < MAX_MOBS && next_mob_spawn < 0.f)
-    {
+    if (num_mobs_spawned < MAX_MOBS && next_mob_spawn < 0.f) {
         next_mob_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
         Mob::createMobEntt();
-		num_mobs_spawned += 1;
+        num_mobs_spawned += 1;
     }
 
     // update velocity for every monster
-    for(auto entity: registry.view<Monster>()) {
-        auto& monster = registry.get<Monster>(entity);
-        auto& motion = registry.get<Motion>(entity);
-        auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
+    for (auto entity: registry.view<Monster>()) {
+        auto &monster = registry.get<Monster>(entity);
+        auto &motion = registry.get<Motion>(entity);
+        auto &current_path_coord = monster_path_coords.at(monster.current_path_index);
 
         // check that the monster is indeed within the current path node
         ivec2 coord = GridMap::pixelToCoord(motion.position);
@@ -213,7 +214,7 @@ void WorldSystem::step(float elapsed_ms)
         // if we are on the last node, stop the monster and remove entity
         // TODO: make disappearance fancier
         if (GridMap::pixelToCoord(motion.position) == VILLAGE_COORD
-                || monster.current_path_index >= monster_path_coords.size() - 1) {
+            || monster.current_path_index >= monster_path_coords.size() - 1) {
             health -= monster.damage;
             motion.velocity *= 0;
             registry.destroy(entity);
@@ -221,7 +222,7 @@ void WorldSystem::step(float elapsed_ms)
         }
 
         ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
-        vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
+        vec2 move_direction = normalize((vec2) (next_path_coord - current_path_coord));
         motion.velocity = length(motion.velocity) * move_direction;
         motion.angle = atan(move_direction.y / move_direction.x);
         // if we will reach the next node in the next step, increase path index for next step
@@ -231,53 +232,53 @@ void WorldSystem::step(float elapsed_ms)
         }
     }
 
-	// removes projectiles that are out of the screen
-	for (auto projectile : registry.view<Projectile>()) {
-		auto& pos = registry.get<Motion>(projectile);
-		if (pos.position.x > WINDOW_SIZE_IN_PX.x || pos.position.y > WINDOW_SIZE_IN_PX.y || pos.position.x < 0 || pos.position.y < 0) {
-			registry.destroy(projectile);
-		}
-	}
+    // removes projectiles that are out of the screen
+    for (auto projectile : registry.view<Projectile>()) {
+        auto &pos = registry.get<Motion>(projectile);
+        if (pos.position.x > WINDOW_SIZE_IN_PX.x || pos.position.y > WINDOW_SIZE_IN_PX.y || pos.position.x < 0 ||
+            pos.position.y < 0) {
+            registry.destroy(projectile);
+        }
+    }
 
-	// greenhouse food production
-	next_greenhouse_production -= elapsed_ms * current_speed;
-	if (next_greenhouse_production < 0.f) {
-		health += registry.view<GreenHouse>().size() * 20;
-		next_greenhouse_production = GREENHOUSE_PRODUCTION_DELAY;
-	}
+    // greenhouse food production
+    next_greenhouse_production -= elapsed_ms * current_speed;
+    if (next_greenhouse_production < 0.f) {
+        health += registry.view<GreenHouse>().size() * 20;
+        next_greenhouse_production = GREENHOUSE_PRODUCTION_DELAY;
+    }
 
-	// Increment round number if all enemies are not on the map and projectiles are removed
-	if (num_bosses_spawned == MAX_BOSS && num_mobs_spawned == MAX_MOBS) {
-		if (registry.view<Monster>().empty() && registry.view<Projectile>().empty()) {
-			round_number++;
-			player_state = set_up_stage;
-			num_bosses_spawned = 0;
-			num_mobs_spawned = 0;
-		}
-	}
+    // Increment round number if all enemies are not on the map and projectiles are removed
+    if (num_bosses_spawned == MAX_BOSS && num_mobs_spawned == MAX_MOBS) {
+        if (registry.view<Monster>().empty() && registry.view<Projectile>().empty()) {
+            round_number++;
+            player_state = set_up_stage;
+            num_bosses_spawned = 0;
+            num_mobs_spawned = 0;
+        }
+    }
 
-	// TODO polish death scene of village
-	if (health < 0) // using < vs <= so we don't die if we spend all the food
-	{
-		auto& screen = registry.get<ScreenState>(screen_state_entity);
-		//screen.darken_screen_factor = 1-elapsed_ms/3000.f;
-		screen.darken_screen_factor = 0;
-		restart();
-	}
-
-
-	//DEBUG LINES: path of bosses/mobs
-	//TODO can display entire path.
-	auto view_monster = registry.view<Monster>();
-	for (auto [entity, monster] : view_monster.each())
-	{
-		monster = registry.get<Monster>(entity);
-		auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
-		ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
-		float len = length(GridMap::coordToPixel(current_path_coord) - GridMap::coordToPixel(next_path_coord));
-		DebugSystem::createDirectedLine(GridMap::coordToPixel(current_path_coord), GridMap::coordToPixel(next_path_coord), vec2(len, 5));
-	}
+    // TODO polish death scene of village
+    if (health < 0) // using < vs <= so we don't die if we spend all the food
+    {
+        auto &screen = registry.get<ScreenState>(screen_state_entity);
+        //screen.darken_screen_factor = 1-elapsed_ms/3000.f;
+        screen.darken_screen_factor = 0;
+        restart();
+    }
 }
+//	//DEBUG LINES: path of bosses/mobs
+//	//TODO can display entire path.
+//	auto view_monster = registry.view<Monster>();
+//	for (auto [entity, mob] : view_monster.each())
+//	{
+//		auto& monster = registry.get<Monster>(entity);
+//		auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
+//		ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
+//		float len = length(GridMap::coordToPixel(current_path_coord) - GridMap::coordToPixel(next_path_coord));
+//		DebugSystem::createDirectedLine(GridMap::coordToPixel(current_path_coord), GridMap::coordToPixel(next_path_coord), vec2(len, 5));
+//	}
+
 
 void un_highlight() {
 	auto view_ui = registry.view< HighlightBool>();
@@ -310,7 +311,7 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 		MOB_DELAY_MS = round_json[round_number]["mob_delay_ms"];
 		MAX_BOSS = round_json[round_number]["max_bosses"];
 		BOSS_DELAY_MS = round_json[round_number]["boss_delay_ms"];
-		std::string season_str = round_json[round_number]["season_str"];
+		std::string season_str = round_json[round_number]["season"];
         std::cout << season_str << " season_str! \n";
 
 		if (season_str == "spring") {
@@ -410,7 +411,15 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			registry.destroy(entity_i);
 			if (animal.health <= 0)
 			{
-				health += 30;
+                if (current_season == 3) {
+                    health += 30 * 2;
+                }
+                else if (current_season == 4) {
+                    health += 30 / 2;
+                }
+                else {
+                    health += 30;
+                }
 				registry.destroy(entity_j);
 			}
 		}
