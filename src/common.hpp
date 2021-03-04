@@ -32,9 +32,9 @@ static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
 
 enum grid_terran
 {
-    GRID_DEFAULT = 0,
-    GRID_GRASS = 1,
-    GRID_DIRT = 2,
+    GRID_GRASS = 0,
+    GRID_PAVEMENT = 1,
+    GRID_MUD = 2,
     GRID_WATER = 3,
 };
 
@@ -56,6 +56,23 @@ enum season
     SUMMER = 1,
     FALL = 2,
     WINTER = 3
+};
+
+// Weather
+enum weather
+{
+    CLEAR = 0,
+    RAIN = 1,
+    DROUGHT = 2,
+    FOG = 3,
+    SNOW = 4,
+};
+
+static const std::map<int, std::string> terran_texture_path = {
+        {GRID_GRASS, "grid/grass.png"},
+        {GRID_PAVEMENT, "grid/pavement.png"},
+        {GRID_MUD, "grid/mud.png"},
+        {GRID_WATER, "grid/water.png"}
 };
 
 // Simple utility functions to avoid mistyping directory name
