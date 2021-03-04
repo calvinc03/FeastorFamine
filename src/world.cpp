@@ -35,7 +35,6 @@ size_t MOB_DELAY_MS = 8000;
 size_t MAX_BOSS = 2;
 size_t BOSS_DELAY_MS = 20000;
 
-
 const size_t ANIMATION_FPS = 12;
 const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 
@@ -315,22 +314,65 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 		MAX_BOSS = round_json[round_number]["max_bosses"];
 		BOSS_DELAY_MS = round_json[round_number]["boss_delay_ms"];
 		std::string season_str = round_json[round_number]["season"];
+        
         std::cout << season_str << " season_str! \n";
 
 		if (season_str == "spring") {
 		    season = SPRING;
+            // Uncomment when done with weather testing
+//            int weather_int = rand() % 5 + 1;
+//            if (weather_int % 5 == 1)
+//            {
+//                weather = RAIN;
+//            } else {
+//                weather = CLEAR;
+//            }
+            // comment out when done testing
+            weather = RAIN;
+            std::cout << season << " \n";
+            std::cout << weather << " \n";
 			create_boss = SpringBoss::createSpringBossEntt;
 		}
 		else if (season_str == "summer") {
 		    season = SUMMER;
+//            int weather_int = rand() % 5 + 1;
+//            if (weather_int % 5 == 1)
+//            {
+//                weather = DROUGHT;
+//            } else {
+//                weather = CLEAR;
+//            }
+            weather = DROUGHT;
+            std::cout << season << " \n";
+            std::cout << weather << " \n";
 			create_boss = SummerBoss::createSummerBossEntt;
 		}
 		else if (season_str == "fall") {
 			season = FALL;
+            int weather_int = rand() % 5 + 1;
+//            if (weather_int % 5 == 1)
+//            {
+//                weather = FOG;
+//            } else {
+//                weather = CLEAR;
+//            }
+            weather = FOG;
+            std::cout << season << " \n";
+            std::cout << weather << " \n";
 		    create_boss = FallBoss::createFallBossEntt;
 		}
 		else if (season_str == "winter") {
 		    season = WINTER;
+//            int weather_int = rand() % 5 + 1;
+//            if (weather_int % 5 == 1)
+//            {
+//                weather = SNOW;
+//            } else {
+//                weather = CLEAR;
+//            }
+            weather = SNOW;
+            std::cout << season << " \n";
+            std::cout << weather << " \n";
 			create_boss = WinterBoss::createWinterBossEntt;
 		}
 	}
@@ -414,10 +456,10 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			registry.destroy(entity_i);
 			if (animal.health <= 0)
 			{
-                if (current_season == 3) {
+                if (season == 3) {
                     health += 30 * 2;
                 }
-                else if (current_season == 4) {
+                else if (season == 4) {
                     health += 30 / 2;
                 }
                 else {

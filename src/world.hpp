@@ -82,8 +82,6 @@ private:
 	// health of the village
 	int health;
 
-	int season;
-
 	// json object for rounds
 	nlohmann::json round_json;
 
@@ -93,6 +91,8 @@ private:
 	float next_mob_spawn;
     
     // Season
+    int season;
+    
     enum season
     {
         SPRING = 0,
@@ -100,10 +100,10 @@ private:
         FALL = 2,
         WINTER = 3,
     };
-    
-    int current_season;
-    
+        
     // Weather
+    int weather;
+    
     enum weather
     {
         CLEAR = 0,
@@ -112,9 +112,6 @@ private:
         FOG = 3,
         SNOW = 4,
     };
-    
-    int current_weather;
-    
     
 	float next_greenhouse_production;
 	int num_mobs_spawned;
