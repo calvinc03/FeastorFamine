@@ -21,6 +21,7 @@
 #include "button.hpp"
 #include "ui.hpp"
 #include "ai.hpp"
+
 // stlib
 #include <string.h>
 #include <cassert>
@@ -263,17 +264,6 @@ void WorldSystem::step(float elapsed_ms) {
         }
     }
 
-//	//DEBUG LINES: path of bosses/mobs
-//	//TODO can display entire path.
-//	auto view_monster = registry.view<Monster>();
-//	for (auto [entity, mob] : view_monster.each())
-//	{
-//		auto& monster = registry.get<Monster>(entity);
-//		auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
-//		ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
-//		float len = length(coordToPixel(current_path_coord) - coordToPixel(next_path_coord));
-//		DebugSystem::createDirectedLine(coordToPixel(current_path_coord), coordToPixel(next_path_coord), vec2(len, 5));
-//	}
 
 }
 
@@ -448,6 +438,10 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			Mix_PlayChannel(-1, impact_sound, 0);
 
 			animal.health -= projectile.damage;
+
+			auto& hit_reaction = registry.get<HitReaction>(entity_j);
+			hit_reaction.counter_ms = 750; //ms duration used by health bar
+
 			registry.destroy(entity_i);
 			if (animal.health <= 0)
 			{
