@@ -54,7 +54,7 @@ void GridMap::setGridOccupancy(GridMap& current_map, vec2 grid_coord, int occupa
     getNodeAtCoord(current_map, grid_coord).occupancy= occupancy;
 }
 
-entt::entity GridMap::getEntityAtCoord(GridMap& current_map, ivec2 grid_coord) {
+entt::entity& GridMap::getEntityAtCoord(GridMap& current_map, ivec2 grid_coord) {
     return current_map.node_entity_matrix[grid_coord.x][grid_coord.y];
 }
 
@@ -62,7 +62,7 @@ GridNode& GridMap::getNodeAtCoord(GridMap& current_map, ivec2 grid_coord) {
     return registry.get<GridNode>(getEntityAtCoord(current_map, grid_coord));
 }
 
-std::vector<entt::entity> GridMap::getNodeEntitiesFromCoords(GridMap& current_map, std::vector<ivec2>& grid_coords){
+std::vector<entt::entity>& GridMap::getNodeEntitiesFromCoords(GridMap& current_map, std::vector<ivec2>& grid_coords){
     std::vector<entt::entity> path_nodes = {};
     for(vec2 grid_coord : grid_coords) {
         entt::entity node = current_map.node_entity_matrix[grid_coord.x][grid_coord.y];
@@ -71,7 +71,7 @@ std::vector<entt::entity> GridMap::getNodeEntitiesFromCoords(GridMap& current_ma
     return path_nodes;
 }
 
-std::vector<GridNode> GridMap::getNodesFromCoords(GridMap& current_map, std::vector<ivec2>& grid_coords){
+std::vector<GridNode>& GridMap::getNodesFromCoords(GridMap& current_map, std::vector<ivec2>& grid_coords){
     std::vector<GridNode> path_nodes = {};
     for(vec2 grid_coord : grid_coords) {
         GridNode node = current_map.node_matrix[grid_coord.x][grid_coord.y];
