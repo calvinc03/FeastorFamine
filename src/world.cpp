@@ -270,17 +270,17 @@ void WorldSystem::step(float elapsed_ms)
 	}
 
 
-	//DEBUG LINES: path of bosses/mobs
-	//TODO can display entire path.
-	auto view_monster = registry.view<Monster>();
-	for (auto [entity, monster] : view_monster.each())
-	{
-		auto& monster = registry.get<Monster>(entity);
-		auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
-		ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
-		float len = length(GridMap::coordToPixel(current_path_coord) - GridMap::coordToPixel(next_path_coord));
-		DebugSystem::createDirectedLine(GridMap::coordToPixel(current_path_coord), GridMap::coordToPixel(next_path_coord), vec2(len, 5));
-	}
+//	//DEBUG LINES: path of bosses/mobs
+//	//TODO can display entire path.
+//	auto view_monster = registry.view<Monster>();
+//	for (auto [entity, mob] : view_monster.each())
+//	{
+//		auto& monster = registry.get<Monster>(entity);
+//		auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
+//		ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
+//		float len = length(GridMap::coordToPixel(current_path_coord) - GridMap::coordToPixel(next_path_coord));
+//		DebugSystem::createDirectedLine(GridMap::coordToPixel(current_path_coord), GridMap::coordToPixel(next_path_coord), vec2(len, 5));
+//	}
 }
 
 void un_highlight() {
@@ -314,7 +314,7 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 		MOB_DELAY_MS = round_json[round_number]["mob_delay_ms"];
 		MAX_BOSS = round_json[round_number]["max_bosses"];
 		BOSS_DELAY_MS = round_json[round_number]["boss_delay_ms"];
-		std::string season_str = round_json[round_number]["season_str"];
+		std::string season_str = round_json[round_number]["season"];
         std::cout << season_str << " season_str! \n";
 
 		if (season_str == "spring") {
@@ -427,14 +427,6 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			}
 		}
 	}
-    if (registry.has<Village>(entity_i)) {
-        if (registry.has<Monster>(entity_j)) {
-            auto& village = registry.get<Food>(entity_i);
-            auto& animal = registry.get<Monster>(entity_j);
-            village.food -= animal.damage;
-        }
-    }
-    
 }
 
 // Should the game be over ?

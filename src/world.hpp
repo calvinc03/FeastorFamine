@@ -115,7 +115,7 @@ private:
     
     int current_weather;
     
-    //
+    
 	float next_greenhouse_production;
 	int num_mobs_spawned;
 	int num_bosses_spawned; 
