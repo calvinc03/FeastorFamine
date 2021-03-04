@@ -33,7 +33,7 @@ entt::entity BurrowBoss::createBurrowBossEntt()
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
     motion.velocity = { 150.f, 0 };
-    motion.position = GridMap::coordToPixel(FOREST_COORD);
+    motion.position = coordToPixel(FOREST_COORD);
     motion.scale = vec2({ 3, 3 }) * static_cast<vec2>(resource.texture.size);
     // scale down bounding box from .png file based on number of frames
     motion.boundingbox = vec2({ motion.scale.x * (1 / WALK_FRAMES), motion.scale.y });
