@@ -49,7 +49,7 @@ const std::string WATCHTOWER_NAME = "watchtower";
 const std::string GREENHOUSE_NAME = "greenhouse";
 const std::string HUNTER_NAME = "hunter";
 const std::string WALL_NAME = "wall";
-
+void debug_path(std::vector<ivec2> monster_path_coords);
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
@@ -163,6 +163,7 @@ void WorldSystem::init_audio()
 
 }
 
+
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
@@ -205,6 +206,7 @@ void WorldSystem::step(float elapsed_ms)
 		num_mobs_spawned += 1;
     }
 
+	
     // update velocity for every monster
     for(auto entity: registry.view<Monster>()) {
         auto& monster = registry.get<Monster>(entity);
@@ -223,7 +225,7 @@ void WorldSystem::step(float elapsed_ms)
             registry.destroy(entity);
             continue;
         }
-
+		
         ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
         vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
         motion.velocity = length(motion.velocity) * move_direction;
@@ -233,6 +235,11 @@ void WorldSystem::step(float elapsed_ms)
         if (next_step_coord == next_path_coord) {
             monster.current_path_index++;
         }
+
+		if (DebugSystem::in_debug_mode)
+		{
+			DebugSystem::createDirectedLine(GridMap::coordToPixel(current_path_coord), GridMap::coordToPixel(next_path_coord), 5);
+		}
     }
 
 	// removes projectiles that are out of the screen
@@ -270,17 +277,7 @@ void WorldSystem::step(float elapsed_ms)
 	}
 
 
-//	//DEBUG LINES: path of bosses/mobs
-//	//TODO can display entire path.
-//	auto view_monster = registry.view<Monster>();
-//	for (auto [entity, mob] : view_monster.each())
-//	{
-//		auto& monster = registry.get<Monster>(entity);
-//		auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
-//		ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
-//		float len = length(GridMap::coordToPixel(current_path_coord) - GridMap::coordToPixel(next_path_coord));
-//		DebugSystem::createDirectedLine(GridMap::coordToPixel(current_path_coord), GridMap::coordToPixel(next_path_coord), vec2(len, 5));
-//	}
+
 }
 
 void un_highlight() {
@@ -797,4 +794,5 @@ void WorldSystem::in_game_click_handle(double mouse_pos_x, double mouse_pos_y, i
 
 		// handle clicks in the start menu
 	}
+
 }
