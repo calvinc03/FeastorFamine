@@ -57,8 +57,8 @@ entt::entity UI_background::createUI_background()
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "in_game_ui_background";
-	ui_element.scale = vec2(WINDOW_SIZE_IN_PX.x, WINDOW_SIZE_IN_PX.y / 10.0f);
-	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x/2, WINDOW_SIZE_IN_PX.y - ui_element.scale.y/2.0f);
+	ui_element.scale = vec2(WINDOW_SIZE_IN_PX.x, WINDOW_SIZE_IN_PX.y / 10.0f + 18);
+	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x/2,WINDOW_SIZE_IN_PX.y - ui_element.scale.y/2.0f);
 
 	
 	registry.emplace<UI_background>(entity);
@@ -92,7 +92,7 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag)
 			RenderSystem::createSprite(resource, textures_path("upgrade_icon.png"), "ui");
 		}
 		else if (button == save_button) {
-			RenderSystem::createSprite(resource, textures_path("buttons/save_button.png"), "ui");
+			RenderSystem::createSprite(resource, textures_path("buttons/save_button2.png"), "ui");
 		}
 	}
 
