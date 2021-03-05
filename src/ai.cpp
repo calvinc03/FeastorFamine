@@ -19,6 +19,14 @@ void AISystem::step(float elapsed_ms)
 {
 	//(void)elapsed_ms; // placeholder to silence unused warning until implemented
 	
+	for (auto& unit : registry.view<Unit>()) {
+		auto hunter = entt::to_entity(registry, unit);
+		auto& placeable_unit = registry.get<Unit>(hunter);
+
+		// TODO: scale projectile spawn with the current speed of the game 
+		placeable_unit.next_projectile_spawn -= elapsed_ms;
+	}
+
 	// Attack mobs if in range of hunter
 	for (auto monster : registry.view<Monster>()) {
 		auto animal = entt::to_entity(registry, monster);
@@ -32,15 +40,10 @@ void AISystem::step(float elapsed_ms)
 			float adjacent = motion_m.position.x - motion_h.position.x;
 			float distance = sqrt(pow(adjacent, 2) + pow(opposite, 2));
 
-			if (distance <= placeable_unit.attack_range) {
-				// TODO: scale projectile spawn with the current speed of the game 
-				placeable_unit.next_projectile_spawn -= elapsed_ms;
-				if (placeable_unit.next_projectile_spawn < 0.f) {
-					placeable_unit.next_projectile_spawn = FIRING_RATE;
-					Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, placeable_unit.damage);
-					motion_h.angle = atan2(opposite, adjacent);
-				}
-
+			if (distance <= placeable_unit.attack_range && placeable_unit.next_projectile_spawn < 0.f) {
+				placeable_unit.next_projectile_spawn = FIRING_RATE;
+				Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, placeable_unit.damage);
+				motion_h.angle = atan2(opposite, adjacent);
 			}
 		}
 	}
@@ -79,28 +82,16 @@ void AISystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 	}
 }
 
-bool isWalkable(GridMap& current_map, ivec2 coord)
-{
-    if (is_inbounds(coord)) {
-        int occupancy = current_map.node_matrix[coord.x][coord.y].occupancy;
-        return occupancy == GRID_VACANT || occupancy == GRID_FOREST || occupancy == GRID_VILLAGE;
-    }
-    return false;
-}
+// with diagonals
+std::vector<ivec2> nbr_walk = {ivec2(1,0), ivec2(1,-1),ivec2(1,1),
+                  ivec2(0,-1),ivec2(0,1),
+                  ivec2(-1,0),ivec2(-1,1),ivec2(-1,-1)};
 
 float get_distance(ivec2 coord1, ivec2 coord2) {
     return length((vec2)(coord1 - coord2));
 }
 
-// with diagonals
-//int col_neighbor[] = {1, 1, 1, 0, 0, -1, -1, -1};
-//int row_neighbor[] = {0, -1, 1, -1, 1, 0, 1, -1};
-
-// no diagonal version
-int col_neighbor[] = {1, -1, 0, 0, };
-int row_neighbor[] = {0, 0, 1, -1,};
-
-std::vector<ivec2> AISystem::PathFinder::find_path(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord) {
+std::vector<ivec2> AISystem::MapAI::find_path_BFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2)) {
     std::vector<std::vector<bool>> visited(WINDOW_SIZE_IN_COORD.x, std::vector<bool> (WINDOW_SIZE_IN_COORD.y, false));
     std::vector<std::vector<std::tuple<ivec2, float>>> parent(WINDOW_SIZE_IN_COORD.x,
                                                               std::vector<std::tuple<ivec2, float>> (WINDOW_SIZE_IN_COORD.y, std::make_tuple(vec2(-1, -1), -1)));
@@ -127,17 +118,18 @@ std::vector<ivec2> AISystem::PathFinder::find_path(GridMap& current_map, ivec2 s
         queue.pop();
         // check neighbors
         for (int i = 0; i < 8; i++) {
-            ivec2 next_coord = std::get<0>(current_qnode) + ivec2(row_neighbor[i], col_neighbor[i]);
-            if (!isWalkable(current_map, next_coord) || visited[next_coord.x][next_coord.y]) {
+            ivec2 nbr_coord = std::get<0>(current_qnode) + nbr_walk.at(i);
+            if (!is_valid(current_map, nbr_coord) || visited[nbr_coord.x][nbr_coord.y]) {
                 continue;
             }
-            std::tuple<ivec2, float> next_qnode = std::make_tuple(next_coord, std::get<1>(current_qnode) + get_distance(next_coord, std::get<0>(current_qnode)));
-            visited[next_coord.x][next_coord.y] = true;
+            std::tuple<ivec2, float> next_qnode = std::make_tuple(nbr_coord, std::get<1>(current_qnode) + get_distance(nbr_coord, std::get<0>(current_qnode)));
+            visited[nbr_coord.x][nbr_coord.y] = true;
             queue.emplace(next_qnode);
-            parent[next_coord.x][next_coord.y] = current_qnode;
+            parent[nbr_coord.x][nbr_coord.y] = current_qnode;
         }
     }
-    // a path does not exist between start and end. should not reach this point
-    assert(false);
-    return std::vector<ivec2>({start_coord});
+    // a path does not exist between start and end.
+    // should NOT reach this point for monster travel path with random map generation is in place
+    std::cout<<"Debug: no path exist \n";
+    return std::vector<ivec2>();
 }

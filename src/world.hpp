@@ -8,7 +8,6 @@
 
 // stlib
 #include <vector>
-#include <random>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -118,9 +117,6 @@ private:
 	int boss_delay_ms;
 	int max_boss;
 
-    int season;
-    int weather;
-    
 	float next_greenhouse_production;
 	int num_mobs_spawned;
 	int num_bosses_spawned;
@@ -149,14 +145,8 @@ private:
 	void settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void unit_upgrade_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	// music references
-	Mix_Music *background_music;
-	Mix_Chunk *salmon_dead_sound;
-	Mix_Chunk *salmon_eat_sound;
-	Mix_Chunk *impact_sound;
-
-	// C++ random number generator
-	std::default_random_engine rng;
-	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
-
-
+	Mix_Music* background_music;
+	Mix_Chunk* salmon_dead_sound;
+	Mix_Chunk* salmon_eat_sound;
+	Mix_Chunk* impact_sound;
 };

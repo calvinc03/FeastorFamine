@@ -292,6 +292,15 @@ void un_highlight()
 		highlight.highlight = false;
 	}
 }
+// set path
+bool is_walkable(GridMap& current_map, ivec2 coord)
+{
+    if (is_inbounds(coord)) {
+        int occupancy = current_map.node_matrix[coord.x][coord.y].occupancy;
+        return occupancy == OCCUPANCY_VACANT || occupancy == OCCUPANCY_FOREST || occupancy == OCCUPANCY_VILLAGE;
+    }
+    return false;
+}
 
 void WorldSystem::set_up_step(float elapsed_ms)
 {
@@ -315,7 +324,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		set_up_timer = SET_UP_TIME;
 		un_highlight();
 		// set path
-		monster_path_coords = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
+		monster_path_coords = AISystem::MapAI::find_path_BFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
 
 
 		std::cout << season_str << " season! \n";
@@ -413,22 +422,16 @@ void WorldSystem::restart()
 
 	// create grid map
 	current_map = registry.get<GridMap>(GridMap::createGridMap());
-	// set path
-	std::vector<ivec2> path_coords = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
-	//monster_path = GridMap::getNodesFromCoords(current_map, path_coords);
 
-	// create grid map
-	current_map = registry.get<GridMap>(GridMap::createGridMap());
-	current_map.setGridTerran(ivec2(2, 2), GRID_PAVEMENT);
-	// create village
+    // create village
 	village = Village::createVillage();
-	current_map.setGridOccupancy(VILLAGE_COORD, GRID_VILLAGE);
-	current_map.setGridOccupancy(VILLAGE_COORD + ivec2(1, 0), GRID_VILLAGE);
-	current_map.setGridOccupancy(VILLAGE_COORD + ivec2(0, 1), GRID_VILLAGE);
-	current_map.setGridOccupancy(VILLAGE_COORD + ivec2(1, 1), GRID_VILLAGE);
+	current_map.setGridOccupancy(VILLAGE_COORD, OCCUPANCY_VILLAGE);
+	current_map.setGridOccupancy(VILLAGE_COORD + ivec2(1, 0), OCCUPANCY_VILLAGE);
+	current_map.setGridOccupancy(VILLAGE_COORD + ivec2(0, 1), OCCUPANCY_VILLAGE);
+	current_map.setGridOccupancy(VILLAGE_COORD + ivec2(1, 1), OCCUPANCY_VILLAGE);
 
 	// TODO: create forest
-	current_map.setGridOccupancy(FOREST_COORD, GRID_FOREST);
+	current_map.setGridOccupancy(FOREST_COORD, OCCUPANCY_FOREST);
 	camera = Camera::createCamera();
 
 	// set up variables for first round
@@ -703,7 +706,8 @@ void grid_highlight_system(vec2 mouse_pos, std::string unit_selected, GridMap cu
 
 	auto& node = current_map.getNodeAtCoord(pixelToCoord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each()) {
-		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == GRID_VACANT) {
+		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f
+		        && node.occupancy == OCCUPANCY_VACANT && node.terrain >= TERRAIN_DEFAULT) {
 			highlight.highlight = true;
 		}
 		else
@@ -1057,37 +1061,33 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		{
 			auto& node = current_map.getNodeAtCoord(pixelToCoord(vec2(x, y)));
 
-			if (node.occupancy == GRID_VACANT)
-			{
+			if (node.occupancy == OCCUPANCY_VACANT && node.terrain >= TERRAIN_DEFAULT)
+               {
 				if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
 				{
 					entt::entity entity = Hunter::createHunter({ x, y });
 					health -= HUNTER_COST;
-					unit_selected = "";
-					node.occupancy = GRID_HUNTER;
+					node.occupancy = OCCUPANCY_HUNTER;
 				}
 				else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
 				{
 					entt::entity entity = GreenHouse::createGreenHouse({ x, y });
 					health -= GREENHOUSE_COST;
-					unit_selected = "";
-					node.occupancy = GRID_GREENHOUSE;
+					node.occupancy = OCCUPANCY_GREENHOUSE;
 				}
 				else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
 				{
 					entt::entity entity = WatchTower::createWatchTower({ x, y });
 					health -= WATCHTOWER_COST;
-					unit_selected = "";
-					node.occupancy = GRID_TOWER;
+					node.occupancy = OCCUPANCY_TOWER;
 				}
 				else if (unit_selected == WALL_NAME && health >= WALL_COST)
 				{
 					entt::entity entity = Wall::createWall({ x, y }, false);
 					health -= WALL_COST;
-					unit_selected = "";
-					node.occupancy = GRID_WALL;
+					node.occupancy = OCCUPANCY_WALL;
 				}
-
+                unit_selected = "";
 				un_highlight();
 			}
 		}
