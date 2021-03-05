@@ -323,7 +323,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		set_up_timer = SET_UP_TIME;
 		un_highlight();
 		// set path
-		monster_path_coords = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
+		monster_path_coords = AISystem::MapAI::find_path_BFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
 
 		max_mobs = round_json["max_mobs"];
 		mob_delay_ms = round_json["mob_delay_ms"];
@@ -425,12 +425,6 @@ void WorldSystem::restart()
 
 	// create grid map
 	current_map = registry.get<GridMap>(GridMap::createGridMap());
-	// set path
-	std::vector<ivec2> path_coords = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
-	//monster_path = GridMap::getNodesFromCoords(current_map, path_coords);
-
-    // create grid map
-    current_map = registry.get<GridMap>(GridMap::createGridMap());
 
     // create village
 	village = Village::createVillage();
@@ -722,7 +716,8 @@ void grid_highlight_system(vec2 mouse_pos, std::string unit_selected, GridMap cu
 
 	auto& node = current_map.getNodeAtCoord(pixelToCoord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each()) {
-		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == OCCUPANCY_VACANT) {
+		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f
+		        && node.occupancy == OCCUPANCY_VACANT && node.terran != TERRAN_PAVEMENT) {
 			highlight.highlight = true;
 		}
 		else
