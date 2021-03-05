@@ -227,12 +227,18 @@ void WorldSystem::step(float elapsed_ms) {
         motion.velocity = length(motion.velocity) * move_direction;
         motion.angle = atan(move_direction.y / move_direction.x);
 
-        // if we will reach the middle of next node in the next step, increase path index for next step
-		vec2 next_step_pos = motion.position + (elapsed_ms / 1000.f) * motion.velocity;
-		vec2 current_node_pos = coordToPixel(next_path_coord);
-		if (abs(next_step_pos.x - current_node_pos.x) < 10 && abs(next_step_pos.x - current_node_pos.x) < 10) {
+		// if we will reach the next node in the next step, increase path index for next step
+		ivec2 next_step_coord = pixelToCoord(motion.position + (elapsed_ms / 1000.f) * motion.velocity);
+		if (next_step_coord == next_path_coord) {
 			monster.current_path_index++;
 		}
+
+        // if we will reach the middle of next node in the next step, increase path index for next step
+		//vec2 next_step_pos = motion.position + (elapsed_ms / 1000.f) * motion.velocity;
+		//vec2 current_node_pos = coordToPixel(next_path_coord);
+		//if (abs(next_step_pos.x - current_node_pos.x) < 10 && abs(next_step_pos.x - current_node_pos.x) < 10) {
+		//	monster.current_path_index++;
+		//}
 
 		if (DebugSystem::in_debug_mode)
 		{
@@ -296,6 +302,10 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 		un_highlight();
         // set path
         monster_path_coords = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
+		std::vector<GridNode> nodes = current_map.GridMap::getNodesFromCoords(monster_path_coords);
+		for (GridNode node : nodes) {
+			std::cout << node.coord.x << ", " << node.coord.y << "\n";
+		}
 
 		MAX_MOBS = round_json[round_number]["max_mobs"];
 		MOB_DELAY_MS = round_json[round_number]["mob_delay_ms"];
