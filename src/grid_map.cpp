@@ -73,8 +73,57 @@ void set_random_terran_path(GridMap& map, ivec2 start_coord, ivec2 end_coord, in
     map.setGridTerran(end_coord, terran);
 }
 
-void set_random_weather_terran(GridMap& map) {
+std::map<int, float> weather_tile_prob = {
+        {TERRAIN_MUD,      1},
+        {TERRAIN_PUDDLE,   1}
+};
 
+int get_weather_terran() {
+    // grid_change_prob is the probability to set grid to special terrain
+    float grid_change_prob = 0.7;
+    // start with <rand * grid_change prob> chance for each happening
+    for (auto& [terran, prob] : weather_tile_prob) {
+        prob = uniform_dist(rng) * grid_change_prob;
+    }
+    if (weather == RAIN) {
+        weather_tile_prob[TERRAIN_PUDDLE] *= 1.2;
+        weather_tile_prob[TERRAIN_MUD] *= 1.1;
+    }
+    else if (weather == DROUGHT) {
+        weather_tile_prob[TERRAIN_PUDDLE] *= 0.75;
+        weather_tile_prob[TERRAIN_MUD] *= 0.8;
+    }
+    else if (weather == FOG) {
+
+    }
+    else if (weather == SNOW) {
+
+    }
+
+    vec2 max_prob(-1, -1);
+
+    for (auto& [terran, prob] : weather_tile_prob) {
+        if (prob > max_prob.y){
+            max_prob.x = terran;
+            max_prob.y = prob;
+        }
+    }
+
+    if (max_prob.y > 0.5) {
+        return max_prob.x;
+    }
+    return TERRAIN_DEFAULT;
+}
+
+void set_random_weather_terran(GridMap& map) {
+    for (int i = 0; i < WINDOW_SIZE_IN_COORD.x; i++) {
+        for (int j = 0; j < WINDOW_SIZE_IN_COORD.y; j++) {
+            int weather_terran = get_weather_terran();
+            if (weather_terran != TERRAIN_DEFAULT && map.node_matrix[i][j].terran != TERRAIN_PAVEMENT) {
+                map.setGridTerran(ivec2(i,j), weather_terran);
+            }
+        }
+    }
 }
 
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.

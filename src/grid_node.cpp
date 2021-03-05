@@ -1,13 +1,13 @@
 #include "grid_node.hpp"
 
-static const std::map<int, std::string> terran_texture_path = {
+const std::map<int, std::string> terran_texture_path = {
         {TERRAIN_DEFAULT,  "grid/grass.png"},
         {TERRAIN_PAVEMENT, "grid/pavement.png"},
         {TERRAIN_MUD,      "grid/mud.png"},
         {TERRAIN_PUDDLE,   "grid/puddle.png"}
 };
 
-static const std::map<int, std::string> terran_str = {
+const std::map<int, std::string> terran_str = {
         {TERRAIN_DEFAULT,  "grass"},
         {TERRAIN_PAVEMENT, "pavement"},
         {TERRAIN_MUD,      "mud"},

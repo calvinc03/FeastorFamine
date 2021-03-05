@@ -110,9 +110,6 @@ private:
 	int boss_delay_ms;
 	int max_boss;
 
-    int season;
-    int weather;
-    
 	float next_greenhouse_production;
 	int num_mobs_spawned;
 	int num_bosses_spawned;

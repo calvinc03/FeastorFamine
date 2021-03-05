@@ -28,8 +28,11 @@ static const ivec2 WINDOW_SIZE_IN_PX = {1200, 700};
 
 static const ivec2 WINDOW_SIZE_IN_COORD = WINDOW_SIZE_IN_PX / GRID_CELL_SIZE;
 static const ivec2 FOREST_COORD = ivec2(0, 0);
-// bottom right position (TODO offset this by village size)
 static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
+
+static int season;
+static int weather;
+
 // C++ random number generator
 static std::default_random_engine rng;
 static std::uniform_real_distribution<float> uniform_dist; // number between 0..1
