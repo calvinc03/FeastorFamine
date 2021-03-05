@@ -8,14 +8,13 @@
 #include "grid_map.hpp"
 #include <iostream>
 
-
 #include "mob.hpp"
 void RenderSystem::animate(entt::entity entity)
 {
-	
-	auto& animate = registry.get<Animate>(entity);
 
-	auto& sprite = *registry.get<ShadedMeshRef>(entity).reference_to_cache;
+	auto &animate = registry.get<Animate>(entity);
+
+	auto &sprite = *registry.get<ShadedMeshRef>(entity).reference_to_cache;
 
 	float state_num = animate.state_num;
 	float frame_num = animate.frame_num;
@@ -23,33 +22,31 @@ void RenderSystem::animate(entt::entity entity)
 	float curr_state = animate.state;
 	float curr_frame = animate.frame;
 
-	vec2 scale_pos = { 1.f, 1.f };
-	vec2 scale_tex = { 1.f, 1.f };
-	
-	// vec2 offset_pos = { 0.f, 0.f };
-	vec2 offset_tex = { 0.f, 0.f };
+	vec2 scale_pos = {1.f, 1.f};
+	vec2 scale_tex = {1.f, 1.f};
 
-	scale_tex = { 1 / frame_num, 1 / state_num };
-	scale_pos = { 1 / frame_num, 1 / state_num };
-	offset_tex = { curr_frame / frame_num, curr_state / state_num };
+	// vec2 offset_pos = { 0.f, 0.f };
+	vec2 offset_tex = {0.f, 0.f};
+
+	scale_tex = {1 / frame_num, 1 / state_num};
+	scale_pos = {1 / frame_num, 1 / state_num};
+	offset_tex = {curr_frame / frame_num, curr_state / state_num};
 	// offset_pos = { 0 / frame_num, 0 / state_num };
 
 	// The position corresponds to the center of the texture.
 	TexturedVertex vertices[4];
 
-	vertices[0].position = { -1.f / 2 * scale_pos.x, +1.f / 2 * scale_pos.y, 0.f };
-	vertices[1].position = { +1.f / 2 * scale_pos.x, +1.f / 2 * scale_pos.y, 0.f };
-	vertices[2].position = { +1.f / 2 * scale_pos.x, -1.f / 2 * scale_pos.y, 0.f };
-	vertices[3].position = { -1.f / 2 * scale_pos.x, -1.f / 2 * scale_pos.y, 0.f };
-	vertices[0].texcoord = { 0.f * scale_tex.x + offset_tex.x, 1.f * scale_tex.y + offset_tex.y };
-	vertices[1].texcoord = { 1.f * scale_tex.x + offset_tex.x, 1.f * scale_tex.y + offset_tex.y };
-	vertices[2].texcoord = { 1.f * scale_tex.x + offset_tex.x, 0.f * scale_tex.y + offset_tex.y };
-	vertices[3].texcoord = { 0.f * scale_tex.x + offset_tex.x, 0.f * scale_tex.y + offset_tex.y };
+	vertices[0].position = {-1.f / 2 * scale_pos.x, +1.f / 2 * scale_pos.y, 0.f};
+	vertices[1].position = {+1.f / 2 * scale_pos.x, +1.f / 2 * scale_pos.y, 0.f};
+	vertices[2].position = {+1.f / 2 * scale_pos.x, -1.f / 2 * scale_pos.y, 0.f};
+	vertices[3].position = {-1.f / 2 * scale_pos.x, -1.f / 2 * scale_pos.y, 0.f};
+	vertices[0].texcoord = {0.f * scale_tex.x + offset_tex.x, 1.f * scale_tex.y + offset_tex.y};
+	vertices[1].texcoord = {1.f * scale_tex.x + offset_tex.x, 1.f * scale_tex.y + offset_tex.y};
+	vertices[2].texcoord = {1.f * scale_tex.x + offset_tex.x, 0.f * scale_tex.y + offset_tex.y};
+	vertices[3].texcoord = {0.f * scale_tex.x + offset_tex.x, 0.f * scale_tex.y + offset_tex.y};
 
 	// Counterclockwise as it's the default opengl front winding direction.
-	uint16_t indices[] = { 0, 3, 1, 1, 3, 2 };
-
-
+	uint16_t indices[] = {0, 3, 1, 1, 3, 2};
 
 	// Vertex Buffer creation
 	glBindBuffer(GL_ARRAY_BUFFER, sprite.mesh.vbo);
@@ -64,45 +61,47 @@ void RenderSystem::animate(entt::entity entity)
 	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
 }
 
-void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
+void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 {
 	vec2 position = vec2();
 	vec2 scale = vec2(1.0, 1.0);
 	float angle = 0.f;
 
-	if (registry.has<Motion>(entity)) {
-		auto& motion = registry.get<Motion>(entity);
+	if (registry.has<Motion>(entity))
+	{
+		auto &motion = registry.get<Motion>(entity);
 		position = motion.position;
 		scale = motion.scale;
 		angle = motion.angle;
 	}
-	else if (registry.has<UI_element>(entity)) {
-		auto& ui_element = registry.get<UI_element>(entity);
+	else if (registry.has<UI_element>(entity))
+	{
+		auto &ui_element = registry.get<UI_element>(entity);
 		position = ui_element.position;
 		scale = ui_element.scale;
 	}
 
 	// camera zoom
 	auto view = registry.view<Motion>();
-	auto& camera_scale = view.get<Motion>(camera).scale;
+	auto &camera_scale = view.get<Motion>(camera).scale;
 	//std::cout << camera_scale.x << ", " << camera_scale.y << "\n";
-	auto& texmesh = *registry.get<ShadedMeshRef>(entity).reference_to_cache;
+	auto &texmesh = *registry.get<ShadedMeshRef>(entity).reference_to_cache;
 
 	// Transformation code, see Rendering and Transformation in the template specification for more info
 	// Incrementally updates transformation matrix, thus ORDER IS IMPORTANT
 	Transform transform;
-	if (registry.has<UI_element>(entity)) {
+	if (registry.has<UI_element>(entity))
+	{
 		transform.translate(position);
 		transform.rotate(angle);
 		transform.scale(scale);
 	}
-	else {
-		transform.translate(vec2({ position.x * camera_scale.x, position.y * camera_scale.y }));
+	else
+	{
+		transform.translate(vec2({position.x * camera_scale.x, position.y * camera_scale.y}));
 		transform.rotate(angle);
-		transform.scale(vec2({ scale.x * camera_scale.x, scale.y * camera_scale.y }));
+		transform.scale(vec2({scale.x * camera_scale.x, scale.y * camera_scale.y}));
 	}
-
-
 
 	// Setting shaders
 	glUseProgram(texmesh.effect.program);
@@ -110,7 +109,8 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 	gl_has_errors();
 
 	// Enabling alpha channel for textures
-	glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST);
 	gl_has_errors();
 
@@ -130,9 +130,9 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 	if (in_texcoord_loc >= 0)
 	{
 		glEnableVertexAttribArray(in_position_loc);
-		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), reinterpret_cast<void*>(0));
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), reinterpret_cast<void *>(0));
 		glEnableVertexAttribArray(in_texcoord_loc);
-		glVertexAttribPointer(in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), reinterpret_cast<void*>(sizeof(vec3))); // note the stride to skip the preceeding vertex position
+		glVertexAttribPointer(in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), reinterpret_cast<void *>(sizeof(vec3))); // note the stride to skip the preceeding vertex position
 		// Enabling and binding texture to slot 0
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texmesh.texture.texture_id);
@@ -140,11 +140,9 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 	else if (in_color_loc >= 0)
 	{
 		glEnableVertexAttribArray(in_position_loc);
-		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(ColoredVertex), reinterpret_cast<void*>(0));
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(ColoredVertex), reinterpret_cast<void *>(0));
 		glEnableVertexAttribArray(in_color_loc);
-		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE, sizeof(ColoredVertex), reinterpret_cast<void*>(sizeof(vec3)));
-
-
+		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE, sizeof(ColoredVertex), reinterpret_cast<void *>(sizeof(vec3)));
 	}
 	else
 	{
@@ -155,26 +153,31 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 	if (registry.has<HighlightBool>(entity))
 	{
 		GLint highlight_uloc = glGetUniformLocation(texmesh.effect.program, "highlight");
-		if (highlight_uloc >= 0) {
+		if (highlight_uloc >= 0)
+		{
 
-			if (registry.get<HighlightBool>(entity).highlight) { //check bool
+			if (registry.get<HighlightBool>(entity).highlight)
+			{ //check bool
 				glUniform1i(highlight_uloc, 1);
 			}
-			else {
+			else
+			{
 				glUniform1i(highlight_uloc, 0);
 			}
-
 		}
 	}
 
-	if (registry.has<HitReaction>(entity)) {
+	if (registry.has<HitReaction>(entity))
+	{
 		GLint hit_bool_uloc = glGetUniformLocation(texmesh.effect.program, "hit_bool");
-		auto& hit_reaction = registry.get<HitReaction>(entity);
-		if (hit_reaction.hit_bool) {
+		auto &hit_reaction = registry.get<HitReaction>(entity);
+		if (hit_reaction.hit_bool)
+		{
 			glUniform1i(hit_bool_uloc, 1);
 			hit_reaction.hit_bool = false;
 		}
-		else {
+		else
+		{
 			glUniform1i(hit_bool_uloc, 0);
 		}
 	}
@@ -183,7 +186,7 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(texmesh.effect.program, "fcolor");
-	glUniform3fv(color_uloc, 1, (float*)&texmesh.texture.color);
+	glUniform3fv(color_uloc, 1, (float *)&texmesh.texture.color);
 	gl_has_errors();
 
 	// Get number of indices from index buffer, which has elements uint16_t
@@ -194,8 +197,8 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 	//GLsizei num_triangles = num_indices / 3;
 
 	// Setting uniform values to the currently bound program
-	glUniformMatrix3fv(transform_uloc, 1, GL_FALSE, (float*)&transform.mat);
-	glUniformMatrix3fv(projection_uloc, 1, GL_FALSE, (float*)&projection);
+	glUniformMatrix3fv(transform_uloc, 1, GL_FALSE, (float *)&transform.mat);
+	glUniformMatrix3fv(projection_uloc, 1, GL_FALSE, (float *)&projection);
 	gl_has_errors();
 
 	// Drawing of num_indices/3 triangles specified in the index buffer
@@ -204,7 +207,7 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3& projection)
 }
 
 // Draw the intermediate texture to the screen, with some distortion to simulate water
-void RenderSystem::drawToScreen() 
+void RenderSystem::drawToScreen()
 {
 	// Setting shaders
 	glUseProgram(screen_sprite.effect.program);
@@ -221,7 +224,7 @@ void RenderSystem::drawToScreen()
 	glClearDepth(1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	gl_has_errors();
-	
+
 	// Disable alpha channel for mapping the screen texture onto the real screen
 	glDisable(GL_BLEND); // we have a single texture without transparency. Areas with alpha <1 cab arise around the texture transparency boundary, enabling blending would make them visible.
 	glDisable(GL_DEPTH_TEST);
@@ -234,22 +237,22 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 
 	// Set clock
-	GLuint time_uloc       = glGetUniformLocation(screen_sprite.effect.program, "time");
+	GLuint time_uloc = glGetUniformLocation(screen_sprite.effect.program, "time");
 	GLuint dead_timer_uloc = glGetUniformLocation(screen_sprite.effect.program, "darken_screen_factor");
 	glUniform1f(time_uloc, static_cast<float>(glfwGetTime() * 10.0f));
 
 	auto view = registry.view<ScreenState>();
-	auto& screen = view.get<ScreenState>(screen_state_entity);
+	auto &screen = view.get<ScreenState>(screen_state_entity);
 	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
 	gl_has_errors();
 
 	// Set the vertex position and vertex texture coordinates (both stored in the same VBO)
 	GLint in_position_loc = glGetAttribLocation(screen_sprite.effect.program, "in_position");
 	glEnableVertexAttribArray(in_position_loc);
-	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)0);
+	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void *)0);
 	GLint in_texcoord_loc = glGetAttribLocation(screen_sprite.effect.program, "in_texcoord");
 	glEnableVertexAttribArray(in_texcoord_loc);
-	glVertexAttribPointer(in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void*)sizeof(vec3)); // note the stride to skip the preceeding vertex position
+	glVertexAttribPointer(in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), (void *)sizeof(vec3)); // note the stride to skip the preceeding vertex position
 	gl_has_errors();
 
 	// Bind our texture in Texture Unit 0
@@ -283,7 +286,7 @@ void RenderSystem::draw()
 	gl_has_errors();
 
 	auto view = registry.view<Motion>();
-	auto& camera_motion = view.get<Motion>(camera);
+	auto &camera_motion = view.get<Motion>(camera);
 	//std::cout << camera_motion.position.x << ", " << camera_motion.position.y << " | " << camera_motion.velocity.x << ", " << camera_motion.velocity.y << "\n";
 	// Fake projection matrix, scales with respect to window coordinates
 	float left = 0.f + camera_motion.position.x;
@@ -295,7 +298,7 @@ void RenderSystem::draw()
 	float sy = 2.f / (top - bottom);
 	float tx = -(right + left) / (right - left);
 	float ty = -(top + bottom) / (top - bottom);
-	mat3 projection_2D{ { sx, 0.f, 0.f },{ 0.f, sy, 0.f },{ tx, ty, 1.f } };
+	mat3 projection_2D{{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
 
 	// some repeated code for the ui matrix -- any suggestions on how to avoid this?
 	float left_ui = 0.f;
@@ -307,42 +310,45 @@ void RenderSystem::draw()
 	float sy_ui = 2.f / (top_ui - bottom_ui);
 	float tx_ui = -(right_ui + left_ui) / (right_ui - left_ui);
 	float ty_ui = -(top_ui + bottom_ui) / (top_ui - bottom_ui);
-	mat3 projection_2D_ui{ { sx_ui, 0.f, 0.f },{ 0.f, sy_ui, 0.f },{ tx_ui, ty_ui, 1.f } };
+	mat3 projection_2D_ui{{sx_ui, 0.f, 0.f}, {0.f, sy_ui, 0.f}, {tx_ui, ty_ui, 1.f}};
 
-	
 	auto view_mesh_ref_motion = registry.view<ShadedMeshRef, Motion>();
-	auto view_mesh_ref_ui = registry.view<UI_element>();
+	auto view_mesh_ref_ui = registry.view<UI_element, ShadedMeshRef>();
+
 	auto view_nodes = registry.view<GridNode>();
 
-	// draw the nodes first
-	for (entt::entity entity : view_nodes)
+	auto view_mesh_ref = registry.view<ShadedMeshRef>();
+	std::vector<std::vector<entt::entity>> sort_by_layer = {};
+
+	// 100 layers
+	sort_by_layer.resize(100);
+
+	for (entt::entity entity : view_mesh_ref)
 	{
-		drawTexturedMesh(entity, projection_2D);
-		gl_has_errors();
+		int layer = view_mesh_ref.get<ShadedMeshRef>(entity).layer;
+		sort_by_layer[layer].push_back(entity);
 	}
-
-	//// render everything that has motion and that is not a grid node/
-	for (entt::entity entity : view_mesh_ref_motion) {
-		if (registry.has<GridNode>(entity)) {
-			continue;
+	for (auto entities : sort_by_layer)
+	{
+		for (auto entity : entities)
+		{
+			if (view_mesh_ref.get<ShadedMeshRef>(entity).show)
+			{
+				if (registry.has<Animate>(entity))
+				{
+					animate(entity);
+				}
+				if (registry.has<UI_element>(entity))
+				{
+					drawTexturedMesh(entity, projection_2D_ui);
+				}
+				else
+				{
+					drawTexturedMesh(entity, projection_2D);
+				}
+				gl_has_errors();
+			}
 		}
-		if (registry.has<Animate>(entity)) {
-			animate(entity);
-		}
-		drawTexturedMesh(entity, projection_2D);
-		gl_has_errors();
-	}
-	
-	// draw ui last
-	for (entt::entity entity : view_mesh_ref_ui) {
-		drawTexturedMesh(entity, projection_2D_ui);
-		gl_has_errors();
-	}
-
-	auto view_health = registry.view<HealthComponent>();
-	for (entt::entity entity : view_health) {
-		drawTexturedMesh(entity, projection_2D);
-		gl_has_errors();
 	}
 
 	// Truely render to the screen
@@ -358,8 +364,8 @@ void gl_has_errors()
 
 	if (error == GL_NO_ERROR)
 		return;
-	
-	const char* error_str = "";
+
+	const char *error_str = "";
 	while (error != GL_NO_ERROR)
 	{
 		switch (error)

@@ -41,7 +41,8 @@ int main()
 	WorldSystem world(WINDOW_SIZE_IN_PX, &physics);
 	RenderSystem renderer(*world.window);
 	
-	world.setup_start_menu();
+	world.menu_setup();
+	world.create_start_menu();
 	// Set all states to default
 	//world.restart();
 	auto t = Clock::now();
