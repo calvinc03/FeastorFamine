@@ -50,9 +50,11 @@ entt::entity UI_background::createUI_background()
 	}
 	
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	registry.emplace<ShadedMeshRef>(entity, resource);
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 98;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = "in_game_ui_background";
 	ui_element.scale = vec2(WINDOW_SIZE_IN_PX.x, WINDOW_SIZE_IN_PX.y / 10.0f);
 	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x/2, WINDOW_SIZE_IN_PX.y - ui_element.scale.y/2.0f);
 
@@ -62,7 +64,8 @@ entt::entity UI_background::createUI_background()
 	return entity;
 }
 
-entt::entity UI_button::createUI_button(int pos, Button button) {
+entt::entity UI_button::createUI_button(int pos, Button button, std::string tag)
+{
 	auto entity = registry.create();
 
 	// Create rendering primitives
@@ -74,25 +77,29 @@ entt::entity UI_button::createUI_button(int pos, Button button) {
 		if (button == tower_button) {
 			RenderSystem::createSprite(resource, textures_path("tower_icon.png"), "ui");
 		}
-		else if (button  == green_house_button) {
+		else if (button == green_house_button) {
 			RenderSystem::createSprite(resource, textures_path("green_house_icon.png"), "ui");
 		}
 		else if (button == stick_figure_button) {
 			RenderSystem::createSprite(resource, textures_path("stickfigure.png"), "ui");
 		}
-		else if (button ==wall_button) {
+		else if (button == wall_button) {
 			RenderSystem::createSprite(resource, textures_path("wall_icon.png"), "ui");
+		}
+		else if (button == upgrade_button) {
+			RenderSystem::createSprite(resource, textures_path("upgrade_icon.png"), "ui");
 		}
 	}
 
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	registry.emplace<ShadedMeshRef>(entity, resource);
-
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 99;
 	// Setting initial ui_element values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = tag;
 	ui_element.scale = vec2({ 1.0f, 1.0f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
-	ui_element.position = vec2( 200+ pos * ui_element.scale.x, WINDOW_SIZE_IN_PX.y  - ui_element.scale.y/2.0f);
+	ui_element.position = vec2(200 + pos * ui_element.scale.x, WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
 
 
 	registry.emplace<HighlightBool>(entity);

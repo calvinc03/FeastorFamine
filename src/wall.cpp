@@ -2,7 +2,6 @@
 
 #include "wall.hpp"
 #include "render.hpp"
-#include "grid_map.hpp"
 
 entt::entity Wall::createWall(vec2 position, bool rotate) // rotation should be based on direction of path
 {
@@ -20,7 +19,8 @@ entt::entity Wall::createWall(vec2 position, bool rotate) // rotation should be 
 	}
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	registry.emplace<ShadedMeshRef>(entity, resource);
+	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh_ref.layer = 40;
 
 	// Setting initial motion values
 	Motion& motion = registry.emplace<Motion>(entity);

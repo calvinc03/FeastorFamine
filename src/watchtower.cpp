@@ -14,11 +14,12 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("watchtower.png"), "textured");
+        RenderSystem::createSprite(resource, textures_path("watchtower.png"), "unit");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-    registry.emplace<ShadedMeshRef>(entity, resource);
+    ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+    shaded_mesh.layer = 50;
 
     // Initialize the position component
     auto& motion = registry.emplace<Motion>(entity);
@@ -33,6 +34,8 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     unit.workers = 0;
 
     registry.emplace<WatchTower>(entity);
+    registry.emplace<Selectable>(entity);
+    registry.emplace<HighlightBool>(entity);
 
     return entity;
 }
