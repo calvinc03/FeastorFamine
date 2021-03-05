@@ -92,7 +92,7 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag)
 			RenderSystem::createSprite(resource, textures_path("upgrade_icon.png"), "ui");
 		}
 		else if (button == save_button) {
-			RenderSystem::createSprite(resource, textures_path("buttons/save_button.png"), "ui");
+			RenderSystem::createSprite(resource, textures_path("buttons/save_button2.png"), "ui");
 		}
 	}
 
