@@ -73,6 +73,10 @@ void set_random_terran_path(GridMap& map, ivec2 start_coord, ivec2 end_coord, in
     map.setGridTerran(end_coord, terran);
 }
 
+void set_random_weather_terran(GridMap& map) {
+
+}
+
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 entt::entity GridMap::createGridMap()
 {
