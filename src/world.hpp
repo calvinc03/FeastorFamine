@@ -34,6 +34,8 @@ public:
 	// restart level
 	void restart();
 
+	nlohmann::json get_json(std::string json_path);
+
 	// helper for path to round jsons
 	std::string get_json_path_for_round_number(int round_number);
 
@@ -103,6 +105,11 @@ private:
 	float current_speed;
 	float next_boss_spawn;
 	float next_mob_spawn;
+
+	int mob_delay_ms;
+	int max_mobs;
+	int boss_delay_ms;
+	int max_boss;
 
     int season;
     int weather;

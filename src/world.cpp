@@ -32,12 +32,6 @@
 
 #include "json.hpp"
 
-// Game configuration
-size_t MAX_MOBS = 20;
-size_t MOB_DELAY_MS = 8000;
-size_t MAX_BOSS = 2;
-size_t BOSS_DELAY_MS = 20000;
-
 const size_t ANIMATION_FPS = 12;
 const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 
@@ -48,7 +42,7 @@ const size_t WATCHTOWER_COST = 200;
 const size_t GREENHOUSE_COST = 300;
 const size_t HUNTER_COST = 150;
 const size_t WALL_COST = 100;
-const size_t HUNTER_UPGRADE_COST= 50;
+const size_t HUNTER_UPGRADE_COST = 50;
 const std::string WATCHTOWER_NAME = "watchtower";
 const std::string GREENHOUSE_NAME = "greenhouse";
 const std::string HUNTER_NAME = "hunter";
@@ -86,7 +80,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 
 	///////////////////////////////////////
 	// Initialize GLFW
-	auto glfw_err_callback = [](int error, const char *desc) { std::cerr << "OpenGL:" << error << desc << std::endl; };
+	auto glfw_err_callback = [](int error, const char* desc) { std::cerr << "OpenGL:" << error << desc << std::endl; };
 	glfwSetErrorCallback(glfw_err_callback);
 	if (!glfwInit())
 		throw std::runtime_error("Failed to initialize GLFW");
@@ -114,10 +108,10 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	// Input is handled using GLFW, for more info see
 	// http://www.glfw.org/docs/latest/input_guide.html
 	glfwSetWindowUserPointer(window, this);
-	auto key_redirect = [](GLFWwindow *wnd, int _0, int _1, int _2, int _3) { ((WorldSystem *)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
-	auto cursor_pos_redirect = [](GLFWwindow *wnd, double _0, double _1) { ((WorldSystem *)glfwGetWindowUserPointer(wnd))->on_mouse_move({_0, _1}); };
-	auto mouse_button_redirect = [](GLFWwindow *wnd, int _0, int _1, int _2) { ((WorldSystem *)glfwGetWindowUserPointer(wnd))->on_mouse_click(_0, _1, _2); };
-	auto scroll_redirect = [](GLFWwindow *wnd, double xoffset, double yoffset) { ((WorldSystem *)glfwGetWindowUserPointer(wnd))->scroll_callback(xoffset, yoffset); };
+	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
+	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
+	auto mouse_button_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_click(_0, _1, _2); };
+	auto scroll_redirect = [](GLFWwindow* wnd, double xoffset, double yoffset) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->scroll_callback(xoffset, yoffset); };
 	glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 	glfwSetMouseButtonCallback(window, mouse_button_redirect);
@@ -170,75 +164,75 @@ void WorldSystem::init_audio()
 	impact_sound = Mix_LoadWAV(audio_path("impact.wav").c_str());
 	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr || impact_sound == nullptr)
 		throw std::runtime_error("Failed to load sounds make sure the data directory is present: " +
-								 audio_path("music2.wav") +
-								 audio_path("impact.wav") +
-								 audio_path("salmon_dead.wav") +
-								 audio_path("salmon_eat.wav"));
+			audio_path("music2.wav") +
+			audio_path("impact.wav") +
+			audio_path("salmon_dead.wav") +
+			audio_path("salmon_eat.wav"));
 }
 
 
 // Update our game world
 void WorldSystem::step(float elapsed_ms) {
-    // Updating window title with health
-    std::stringstream title_ss;
-    title_ss << "Battle stage... Food: " << health << " Round: " << round_number << " fps: " << 1000.0 / elapsed_ms;
-    glfwSetWindowTitle(window, title_ss.str().c_str());
+	// Updating window title with health
+	std::stringstream title_ss;
+	title_ss << "Battle stage... Food: " << health << " Round: " << round_number << " fps: " << 1000.0 / elapsed_ms;
+	glfwSetWindowTitle(window, title_ss.str().c_str());
 
-    // animation
+	// animation
 
-    fps_ms -= elapsed_ms;
-    if (fps_ms < 0.f) {
-        for (auto entity : registry.view<Animate>()) {
-            auto &animate = registry.get<Animate>(entity);
-            animate.frame += 1;
-            animate.frame = (int) animate.frame % (int) animate.frame_num;
-        }
-        fps_ms = 1000 / ANIMATION_FPS;
-    }
+	fps_ms -= elapsed_ms;
+	if (fps_ms < 0.f) {
+		for (auto entity : registry.view<Animate>()) {
+			auto& animate = registry.get<Animate>(entity);
+			animate.frame += 1;
+			animate.frame = (int)animate.frame % (int)animate.frame_num;
+		}
+		fps_ms = 1000 / ANIMATION_FPS;
+	}
 
 
 
-    //Spawning new boss
-    next_boss_spawn -= elapsed_ms * current_speed;
-    if (num_bosses_spawned < MAX_BOSS && next_boss_spawn < 0.f) {
-        // Reset spawn timer and spawn boss
-        next_boss_spawn = (BOSS_DELAY_MS / 2) + uniform_dist(rng) * (BOSS_DELAY_MS / 2);
-        create_boss();
-        num_bosses_spawned += 1;
-    }
+	//Spawning new boss
+	next_boss_spawn -= elapsed_ms * current_speed;
+	if (num_bosses_spawned < max_boss && next_boss_spawn < 0.f) {
+		// Reset spawn timer and spawn boss
+		next_boss_spawn = (boss_delay_ms / 2) + uniform_dist(rng) * (boss_delay_ms / 2);
+		create_boss();
+		num_bosses_spawned += 1;
+	}
 
-    // Spawning new mobs
-    next_mob_spawn -= elapsed_ms * current_speed;
-    if (num_mobs_spawned < MAX_MOBS && next_mob_spawn < 0.f) {
-        next_mob_spawn = (MOB_DELAY_MS / 2) + uniform_dist(rng) * (MOB_DELAY_MS / 2);
-        Mob::createMobEntt();
-        num_mobs_spawned += 1;
-    }
+	// Spawning new mobs
+	next_mob_spawn -= elapsed_ms * current_speed;
+	if (num_mobs_spawned < max_mobs && next_mob_spawn < 0.f) {
+		next_mob_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
+		Mob::createMobEntt();
+		num_mobs_spawned += 1;
+	}
 
-	
-    // update velocity for every monster
-    for (auto entity: registry.view<Monster>()) {
-        auto &monster = registry.get<Monster>(entity);
-        auto &motion = registry.get<Motion>(entity);
-        auto &current_path_coord = monster_path_coords.at(monster.current_path_index);
 
-        // check that the monster is indeed within the current path node
-        ivec2 coord = pixelToCoord(motion.position);
+	// update velocity for every monster
+	for (auto entity : registry.view<Monster>()) {
+		auto& monster = registry.get<Monster>(entity);
+		auto& motion = registry.get<Motion>(entity);
+		auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
 
-        // if we are on the last node, stop the monster and remove entity
-        // TODO: make disappearance fancier
-        if (pixelToCoord(motion.position) == VILLAGE_COORD
-            || monster.current_path_index >= monster_path_coords.size() - 1) {
-            health -= monster.damage;
-            motion.velocity *= 0;
-            registry.destroy(entity);
-            continue;
-        }
+		// check that the monster is indeed within the current path node
+		ivec2 coord = pixelToCoord(motion.position);
 
-        ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
-        vec2 move_direction = normalize((vec2) (next_path_coord - current_path_coord));
-        motion.velocity = length(motion.velocity) * move_direction;
-        motion.angle = atan(move_direction.y / move_direction.x);
+		// if we are on the last node, stop the monster and remove entity
+		// TODO: make disappearance fancier
+		if (pixelToCoord(motion.position) == VILLAGE_COORD
+			|| monster.current_path_index >= monster_path_coords.size() - 1) {
+			health -= monster.damage;
+			motion.velocity *= 0;
+			registry.destroy(entity);
+			continue;
+		}
+
+		ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
+		vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
+		motion.velocity = length(motion.velocity) * move_direction;
+		motion.angle = atan(move_direction.y / move_direction.x);
 
 		//// if we will reach the next node in the next step, increase path index for next step
 		//ivec2 next_step_coord = pixelToCoord(motion.position + (elapsed_ms / 1000.f) * motion.velocity);
@@ -257,45 +251,36 @@ void WorldSystem::step(float elapsed_ms) {
 		{
 			DebugSystem::createDirectedLine(coordToPixel(current_path_coord), coordToPixel(next_path_coord), 5);
 		}
-    }
+	}
 
-    // removes projectiles that are out of the screen
-    for (auto projectile : registry.view<Projectile>()) {
-        auto &pos = registry.get<Motion>(projectile);
-        if (pos.position.x > WINDOW_SIZE_IN_PX.x || pos.position.y > WINDOW_SIZE_IN_PX.y || pos.position.x < 0 ||
-            pos.position.y < 0) {
-            registry.destroy(projectile);
-        }
-    }
+	// removes projectiles that are out of the screen
+	for (auto projectile : registry.view<Projectile>()) {
+		auto& pos = registry.get<Motion>(projectile);
+		if (pos.position.x > WINDOW_SIZE_IN_PX.x || pos.position.y > WINDOW_SIZE_IN_PX.y || pos.position.x < 0 ||
+			pos.position.y < 0) {
+			registry.destroy(projectile);
+		}
+	}
 
-    // greenhouse food production
-    next_greenhouse_production -= elapsed_ms * current_speed;
-    if (next_greenhouse_production < 0.f) {
-        health += registry.view<GreenHouse>().size() * 20;
-        next_greenhouse_production = GREENHOUSE_PRODUCTION_DELAY;
-    }
+	// greenhouse food production
+	next_greenhouse_production -= elapsed_ms * current_speed;
+	if (next_greenhouse_production < 0.f) {
+		health += registry.view<GreenHouse>().size() * 20;
+		next_greenhouse_production = GREENHOUSE_PRODUCTION_DELAY;
+	}
 
-    // Increment round number if all enemies are not on the map and projectiles are removed
-    if (num_bosses_spawned == MAX_BOSS && num_mobs_spawned == MAX_MOBS) {
-        if (registry.view<Monster>().empty() && registry.view<Projectile>().empty()) {
-            round_number++;
+	// Increment round number if all enemies are not on the map and projectiles are removed
+	if (num_bosses_spawned == max_boss && num_mobs_spawned == max_mobs) {
+		if (registry.view<Monster>().empty() && registry.view<Projectile>().empty()) {
+			round_number++;
 
-			std::ifstream input_stream(get_json_path_for_round_number(round_number));
+			round_json = get_json(get_json_path_for_round_number(round_number));
 
-			if (input_stream.fail())
-			{
-				std::cout << "Not reading json file \n";
-			}
-
-			round_json = nlohmann::json::parse(input_stream);
-
-            player_state = set_up_stage;
-            num_bosses_spawned = 0;
-            num_mobs_spawned = 0;
-        }
-    }
-
-
+			player_state = set_up_stage;
+			num_bosses_spawned = 0;
+			num_mobs_spawned = 0;
+		}
+	}
 }
 
 void un_highlight()
@@ -328,20 +313,20 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		player_state = battle_stage;
 		set_up_timer = SET_UP_TIME;
 		un_highlight();
-        // set path
-        monster_path_coords = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
+		// set path
+		monster_path_coords = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
 
-		MAX_MOBS = round_json["max_mobs"];
-		MOB_DELAY_MS = round_json["mob_delay_ms"];
-		MAX_BOSS = round_json["max_bosses"];
-		BOSS_DELAY_MS = round_json["boss_delay_ms"];
+		max_mobs = round_json["max_mobs"];
+		mob_delay_ms = round_json["mob_delay_ms"];
+		max_boss = round_json["max_bosses"];
+		boss_delay_ms = round_json["boss_delay_ms"];
 		std::string season_str = round_json["season"];
-        
-        std::cout << season_str << " season! \n";
+
+		std::cout << season_str << " season! \n";
 
 		if (season_str == SPRING_TITLE) {
-		    season = SPRING;
-            // Uncomment when done with weather testing
+			season = SPRING;
+			// Uncomment when done with weather testing
 //            int weather_int = rand() % 5 + 1;
 //            if (weather_int % 5 == 1)
 //            {
@@ -349,48 +334,48 @@ void WorldSystem::set_up_step(float elapsed_ms)
 //            } else {
 //                weather = CLEAR;
 //            }
-            // comment out when done testing
-            weather = RAIN;
+			// comment out when done testing
+			weather = RAIN;
 			create_boss = SpringBoss::createSpringBossEntt;
 		}
 		else if (season_str == SUMMER_TITLE) {
-		    season = SUMMER;
-//            int weather_int = rand() % 5 + 1;
-//            if (weather_int % 5 == 1)
-//            {
-//                weather = DROUGHT;
-//            } else {
-//                weather = CLEAR;
-//            }
-            weather = DROUGHT;
+			season = SUMMER;
+			//            int weather_int = rand() % 5 + 1;
+			//            if (weather_int % 5 == 1)
+			//            {
+			//                weather = DROUGHT;
+			//            } else {
+			//                weather = CLEAR;
+			//            }
+			weather = DROUGHT;
 			create_boss = SummerBoss::createSummerBossEntt;
 		}
 		else if (season_str == FALL_TITLE) {
 			season = FALL;
-            int weather_int = rand() % 5 + 1;
-//            if (weather_int % 5 == 1)
-//            {
-//                weather = FOG;
-//            } else {
-//                weather = CLEAR;
-//            }
-            weather = FOG;
-		    create_boss = FallBoss::createFallBossEntt;
+			int weather_int = rand() % 5 + 1;
+			//            if (weather_int % 5 == 1)
+			//            {
+			//                weather = FOG;
+			//            } else {
+			//                weather = CLEAR;
+			//            }
+			weather = FOG;
+			create_boss = FallBoss::createFallBossEntt;
 		}
 		else if (season_str == WINTER_TITLE) {
-		    season = WINTER;
-//            int weather_int = rand() % 5 + 1;
-//            if (weather_int % 5 == 1)
-//            {
-//                weather = SNOW;
-//            } else {
-//                weather = CLEAR;
-//            }
-            weather = SNOW;
+			season = WINTER;
+			//            int weather_int = rand() % 5 + 1;
+			//            if (weather_int % 5 == 1)
+			//            {
+			//                weather = SNOW;
+			//            } else {
+			//                weather = CLEAR;
+			//            }
+			weather = SNOW;
 			create_boss = WinterBoss::createWinterBossEntt;
 		}
-        std::cout << round_json["season"] << " \n";
-        std::cout << "weather "<<weather << " \n";
+		std::cout << round_json["season"] << " \n";
+		std::cout << "weather " << weather << " \n";
 	}
 }
 
@@ -412,7 +397,7 @@ void WorldSystem::restart()
 
 	// Reset the game state
 	current_speed = 1.f;
-	health = STARTING_HEALTH;		//reset health
+	health = 500;		//reset health
 	unit_selected = ""; // no initial selection
 	round_number = 0;
 
@@ -426,7 +411,7 @@ void WorldSystem::restart()
 	UI_button::createUI_button(1, green_house_button);
 	UI_button::createUI_button(2, stick_figure_button);
 	UI_button::createUI_button(3, wall_button);
-	UI_button::createUI_button(7, upgrade_button, UPGRADE_BUTTON_TITLE);
+	UI_button::createUI_button(7, upgrade_button, "upgrade_button");
 	UI_background::createUI_background();
 
 	// create grid map
@@ -435,10 +420,10 @@ void WorldSystem::restart()
 	std::vector<ivec2> path_coords = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
 	//monster_path = GridMap::getNodesFromCoords(current_map, path_coords);
 
-    // create grid map
-    current_map = registry.get<GridMap>(GridMap::createGridMap());
-    current_map.setGridTerran(ivec2(2, 2), GRID_PAVEMENT);
-    // create village
+	// create grid map
+	current_map = registry.get<GridMap>(GridMap::createGridMap());
+	current_map.setGridTerran(ivec2(2, 2), GRID_PAVEMENT);
+	// create village
 	village = Village::createVillage();
 	current_map.setGridOccupancy(VILLAGE_COORD, GRID_VILLAGE);
 	current_map.setGridOccupancy(VILLAGE_COORD + ivec2(1, 0), GRID_VILLAGE);
@@ -450,14 +435,31 @@ void WorldSystem::restart()
 	camera = Camera::createCamera();
 
 	// Reading json file of rounds 
-	std::ifstream input_stream(get_json_path_for_round_number(0));
+	std::ifstream input_stream("data/monster_rounds/rounds.json");
 
 	if (input_stream.fail())
 	{
 		std::cout << "Not reading json file \n";
 	}
 
-	round_json = nlohmann::json::parse(input_stream);
+	// Reading json file for first round
+	round_json = get_json(get_json_path_for_round_number(0));
+	max_mobs = round_json["max_mobs"];
+	mob_delay_ms = round_json["mob_delay_ms"];
+	max_boss = round_json["max_bosses"];
+	boss_delay_ms = round_json["boss_delay_ms"];
+}
+
+nlohmann::json WorldSystem::get_json(std::string json_path)
+{
+	std::ifstream input_stream(json_path);
+
+	if (input_stream.fail())
+	{
+		std::cout << "Not reading json file \n";
+	}
+
+	return nlohmann::json::parse(input_stream);
 }
 
 std::string WorldSystem::get_json_path_for_round_number(int round_number)
@@ -483,15 +485,15 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			registry.destroy(entity_i);
 			if (animal.health <= 0)
 			{
-                if (season == 3) {
-                    health += 30 * 2;
-                }
-                else if (season == 4) {
-                    health += 30 / 2;
-                }
-                else {
-                    health += 30;
-                }
+				if (season == 3) {
+					health += 30 * 2;
+				}
+				else if (season == 4) {
+					health += 30 / 2;
+				}
+				else {
+					health += 30;
+				}
 				registry.destroy(entity_j);
 			}
 		}
@@ -532,8 +534,8 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		}
 		else if (player_state == battle_stage)
 		{
-			num_bosses_spawned = MAX_BOSS;
-			num_mobs_spawned = MAX_MOBS;
+			num_bosses_spawned = max_boss;
+			num_mobs_spawned = max_mobs;
 			for (entt::entity projectile : registry.view<Projectile>())
 			{
 				registry.destroy(projectile);
@@ -548,16 +550,16 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	if (action == GLFW_PRESS && key == GLFW_KEY_SPACE)
 	{
 		auto view = registry.view<Motion, MouseMovement>();
-		auto &cam_motion = view.get<Motion>(camera);
-		auto &mouse_move = view.get<MouseMovement>(camera);
+		auto& cam_motion = view.get<Motion>(camera);
+		auto& mouse_move = view.get<MouseMovement>(camera);
 		mouse_move.mouse_start = mouse_move.mouse_pos + cam_motion.position;
 		mouse_move.is_pan_state = 1;
 	}
 	else if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE)
 	{
 		auto view = registry.view<Motion, MouseMovement>();
-		auto &motion = view.get<Motion>(camera);
-		auto &mouse_move = view.get<MouseMovement>(camera);
+		auto& motion = view.get<Motion>(camera);
+		auto& mouse_move = view.get<MouseMovement>(camera);
 		mouse_move.is_pan_state = 0;
 	}
 
@@ -618,19 +620,19 @@ bool mouse_in_game_area(vec2 mouse_pos)
 void WorldSystem::scroll_callback(double xoffset, double yoffset)
 {
 	auto view = registry.view<Motion, MouseMovement>();
-	auto &camera_motion = view.get<Motion>(camera);
-	auto &camera_scale = camera_motion.scale;
-	auto &camera_position = camera_motion.position;
+	auto& camera_motion = view.get<Motion>(camera);
+	auto& camera_scale = camera_motion.scale;
+	auto& camera_position = camera_motion.position;
 
-	auto &mouse_movement = view.get<MouseMovement>(camera);
+	auto& mouse_movement = view.get<MouseMovement>(camera);
 
 	double temp_scale = 20.0f;
 
 	// zoom out limit
 	if (camera_scale.y + (yoffset / temp_scale) < 1)
 	{
-		camera_scale = {1.f, 1.f};
-		camera_motion.position = {0.f, 0.f};
+		camera_scale = { 1.f, 1.f };
+		camera_motion.position = { 0.f, 0.f };
 		return;
 	}
 
@@ -707,8 +709,8 @@ void WorldSystem::scroll_callback(double xoffset, double yoffset)
 //will move this eventually
 //atm this is repeated code because ui uses a different position/scale than gridnode 
 void grid_highlight_system(vec2 mouse_pos, std::string unit_selected, GridMap current_map) {
-	auto view_ui = registry.view<Motion, HighlightBool>(); 
-	
+	auto view_ui = registry.view<Motion, HighlightBool>();
+
 	auto& node = current_map.getNodeAtCoord(pixelToCoord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each()) {
 		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == GRID_VACANT) {
@@ -737,8 +739,8 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 
 	// camera control
 	auto view = registry.view<Motion, MouseMovement>();
-	auto &cam_motion = view.get<Motion>(camera);
-	auto &mouse_move = view.get<MouseMovement>(camera);
+	auto& cam_motion = view.get<Motion>(camera);
+	auto& mouse_move = view.get<MouseMovement>(camera);
 	mouse_move.mouse_pos = mouse_pos;
 	if (mouse_move.is_pan_state == 1)
 	{
@@ -784,7 +786,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
 	glfwGetCursorPos(window, &xpos, &ypos);
 
 	//some debugging print outs
-	/*if (in_game_area) { 
+	/*if (in_game_area) {
 		std::cout << "in game area" << std::endl;
 	}
 	else {
@@ -893,30 +895,26 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 	std::string button_tag = "";
 	if (action == GLFW_PRESS)
 	{
-		button_tag = on_click_button({mouse_pos_x, mouse_pos_y});
+		button_tag = on_click_button({ mouse_pos_x, mouse_pos_y });
 		//std::cout << button_tag << "\n";
 	}
 
-	if (button_tag == EXIT)
+	if (button_tag == "exit")
 	{
 		// close window
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 	}
-	else if (button_tag == NEW_GAME)
+	else if (button_tag == "new_game")
 	{
 		remove_menu_buttons();
 		game_state = in_game;
 		restart();
 	}
-	else if (button_tag == SETTINGS_MENU)
+	else if (button_tag == "settings_menu")
 	{
 		remove_menu_buttons();
 		game_state = settings_menu;
 		create_settings_menu();
-	}
-	else if (button_tag == LOAD_GAME)
-	{
-
 	}
 }
 
@@ -925,7 +923,7 @@ void WorldSystem::settings_menu_click_handle(double mouse_pos_x, double mouse_po
 	std::string button_tag = "";
 	if (action == GLFW_PRESS)
 	{
-		button_tag = on_click_button({mouse_pos_x, mouse_pos_y});
+		button_tag = on_click_button({ mouse_pos_x, mouse_pos_y });
 		//std::cout << button_tag << "\n";
 	}
 
@@ -965,16 +963,16 @@ void WorldSystem::menu_setup()
 void WorldSystem::create_start_menu()
 {
 	std::cout << "In Start Menu\n";
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 1 / 5, NEW_GAME, new_game_button);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 2 / 5, LOAD_GAME, load_game_button);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 3 / 5, SETTINGS_MENU, settings_button);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 5, EXIT, exit_button);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 1 / 5, "new_game", new_game_button);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 2 / 5, "load_game", load_game_button);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 3 / 5, "settings_menu", settings_button);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 5, "exit", exit_button);
 }
 
 void WorldSystem::create_settings_menu()
 {
 	std::cout << "In Settings Menu\n";
-	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, SETTINGS_MENU, Menu_texture::settings, 98, {0.5, 0.5});
+	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "settings", Menu_texture::settings, 98, { 0.5, 0.5 });
 	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 5, "back", back_button);
 }
 
@@ -1002,7 +1000,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
 
 	//un_highlight(); // turn off highlights for grid node on click
-	
+
 	if (player_state == set_up_stage)
 	{
 		// Mouse click for placing units
@@ -1014,28 +1012,28 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			{
 				if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
 				{
-					entt::entity entity = Hunter::createHunter({x, y});
+					entt::entity entity = Hunter::createHunter({ x, y });
 					health -= HUNTER_COST;
 					unit_selected = "";
 					node.occupancy = GRID_HUNTER;
 				}
 				else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
 				{
-					entt::entity entity = GreenHouse::createGreenHouse({x, y});
+					entt::entity entity = GreenHouse::createGreenHouse({ x, y });
 					health -= GREENHOUSE_COST;
 					unit_selected = "";
 					node.occupancy = GRID_GREENHOUSE;
 				}
 				else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
 				{
-					entt::entity entity = WatchTower::createWatchTower({x, y});
+					entt::entity entity = WatchTower::createWatchTower({ x, y });
 					health -= WATCHTOWER_COST;
 					unit_selected = "";
 					node.occupancy = GRID_TOWER;
 				}
 				else if (unit_selected == WALL_NAME && health >= WALL_COST)
 				{
-					entt::entity entity = Wall::createWall({x, y}, false);
+					entt::entity entity = Wall::createWall({ x, y }, false);
 					health -= WALL_COST;
 					unit_selected = "";
 					node.occupancy = GRID_WALL;
@@ -1079,7 +1077,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					}
 				}
 			}
-			else
+			else 
 			{
 				unit_selected = "";
 			}
