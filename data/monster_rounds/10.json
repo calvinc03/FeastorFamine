@@ -1,0 +1,8 @@
+{
+  "round_num": 10,
+  "max_mobs": 10,
+  "mob_delay_ms": 8000,
+  "max_bosses": 0,
+  "boss_delay_ms": 20000,
+  "season": "spring"
+}

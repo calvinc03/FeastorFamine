@@ -43,6 +43,7 @@ const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 
 const size_t SET_UP_TIME = 10 * 1000; // 15 seconds to setup
 
+const size_t STARTING_HEALTH = 300;
 const size_t WATCHTOWER_COST = 200;
 const size_t GREENHOUSE_COST = 300;
 const size_t HUNTER_COST = 150;
@@ -54,6 +55,18 @@ const std::string HUNTER_NAME = "hunter";
 const std::string WALL_NAME = "wall";
 void debug_path(std::vector<ivec2> monster_path_coords);
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
+
+const std::string NEW_GAME = "new_game";
+const std::string LOAD_GAME = "load_game";
+const std::string SETTINGS_MENU = "settings_menu";
+const std::string EXIT = "exit";
+const std::string UPGRADE_BUTTON_TITLE = "upgrade_button";
+const std::string SPRING_TITLE = "spring";
+const std::string SUMMER_TITLE = "summer";
+const std::string FALL_TITLE = "fall";
+const std::string WINTER_TITLE = "winter";
+const std::string INPUT_PATH = "data/monster_rounds/";
+const std::string JSON_EXTENSION = ".json";
 
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	game_state(start_menu),
@@ -266,6 +279,16 @@ void WorldSystem::step(float elapsed_ms) {
     if (num_bosses_spawned == MAX_BOSS && num_mobs_spawned == MAX_MOBS) {
         if (registry.view<Monster>().empty() && registry.view<Projectile>().empty()) {
             round_number++;
+
+			std::ifstream input_stream(get_json_path_for_round_number(round_number));
+
+			if (input_stream.fail())
+			{
+				std::cout << "Not reading json file \n";
+			}
+
+			round_json = nlohmann::json::parse(input_stream);
+
             player_state = set_up_stage;
             num_bosses_spawned = 0;
             num_mobs_spawned = 0;
@@ -308,15 +331,15 @@ void WorldSystem::set_up_step(float elapsed_ms)
         // set path
         monster_path_coords = AISystem::PathFinder::find_path(current_map, FOREST_COORD, VILLAGE_COORD);
 
-		MAX_MOBS = round_json[round_number]["max_mobs"];
-		MOB_DELAY_MS = round_json[round_number]["mob_delay_ms"];
-		MAX_BOSS = round_json[round_number]["max_bosses"];
-		BOSS_DELAY_MS = round_json[round_number]["boss_delay_ms"];
-		std::string season_str = round_json[round_number]["season"];
+		MAX_MOBS = round_json["max_mobs"];
+		MOB_DELAY_MS = round_json["mob_delay_ms"];
+		MAX_BOSS = round_json["max_bosses"];
+		BOSS_DELAY_MS = round_json["boss_delay_ms"];
+		std::string season_str = round_json["season"];
         
         std::cout << season_str << " season! \n";
 
-		if (season_str == "spring") {
+		if (season_str == SPRING_TITLE) {
 		    season = SPRING;
             // Uncomment when done with weather testing
 //            int weather_int = rand() % 5 + 1;
@@ -330,7 +353,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
             weather = RAIN;
 			create_boss = SpringBoss::createSpringBossEntt;
 		}
-		else if (season_str == "summer") {
+		else if (season_str == SUMMER_TITLE) {
 		    season = SUMMER;
 //            int weather_int = rand() % 5 + 1;
 //            if (weather_int % 5 == 1)
@@ -342,7 +365,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
             weather = DROUGHT;
 			create_boss = SummerBoss::createSummerBossEntt;
 		}
-		else if (season_str == "fall") {
+		else if (season_str == FALL_TITLE) {
 			season = FALL;
             int weather_int = rand() % 5 + 1;
 //            if (weather_int % 5 == 1)
@@ -354,7 +377,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
             weather = FOG;
 		    create_boss = FallBoss::createFallBossEntt;
 		}
-		else if (season_str == "winter") {
+		else if (season_str == WINTER_TITLE) {
 		    season = WINTER;
 //            int weather_int = rand() % 5 + 1;
 //            if (weather_int % 5 == 1)
@@ -366,7 +389,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
             weather = SNOW;
 			create_boss = WinterBoss::createWinterBossEntt;
 		}
-        std::cout << round_json[round_number]["season"] << " \n";
+        std::cout << round_json["season"] << " \n";
         std::cout << "weather "<<weather << " \n";
 	}
 }
@@ -378,10 +401,7 @@ void WorldSystem::setup_start_menu()
 	registry.clear();
 	screen_state_entity = registry.create();
 	registry.emplace<ScreenState>(screen_state_entity);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 1 / 5, "new_game", new_game_button);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 2 / 5, "load_game", load_game_button);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 3 / 5, "settings", settings_button);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 5, "exit", exit_button);
+	create_start_menu();
 	camera = Camera::createCamera();
 }
 
@@ -392,7 +412,7 @@ void WorldSystem::restart()
 
 	// Reset the game state
 	current_speed = 1.f;
-	health = 500;		//reset health
+	health = STARTING_HEALTH;		//reset health
 	unit_selected = ""; // no initial selection
 	round_number = 0;
 
@@ -406,7 +426,7 @@ void WorldSystem::restart()
 	UI_button::createUI_button(1, green_house_button);
 	UI_button::createUI_button(2, stick_figure_button);
 	UI_button::createUI_button(3, wall_button);
-	UI_button::createUI_button(7, upgrade_button, "upgrade_button");
+	UI_button::createUI_button(7, upgrade_button, UPGRADE_BUTTON_TITLE);
 	UI_background::createUI_background();
 
 	// create grid map
@@ -430,7 +450,7 @@ void WorldSystem::restart()
 	camera = Camera::createCamera();
 
 	// Reading json file of rounds 
-	std::ifstream input_stream("data/monster_rounds/rounds.json");
+	std::ifstream input_stream(get_json_path_for_round_number(0));
 
 	if (input_stream.fail())
 	{
@@ -438,6 +458,11 @@ void WorldSystem::restart()
 	}
 
 	round_json = nlohmann::json::parse(input_stream);
+}
+
+std::string WorldSystem::get_json_path_for_round_number(int round_number)
+{
+	return INPUT_PATH + std::to_string(round_number) + JSON_EXTENSION;
 }
 
 void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
@@ -872,22 +897,26 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 		//std::cout << button_tag << "\n";
 	}
 
-	if (button_tag == "exit")
+	if (button_tag == EXIT)
 	{
 		// close window
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 	}
-	else if (button_tag == "new_game")
+	else if (button_tag == NEW_GAME)
 	{
 		remove_menu_buttons();
 		game_state = in_game;
 		restart();
 	}
-	else if (button_tag == "settings_menu")
+	else if (button_tag == SETTINGS_MENU)
 	{
 		remove_menu_buttons();
 		game_state = settings_menu;
 		create_settings_menu();
+	}
+	else if (button_tag == LOAD_GAME)
+	{
+
 	}
 }
 
@@ -936,16 +965,16 @@ void WorldSystem::menu_setup()
 void WorldSystem::create_start_menu()
 {
 	std::cout << "In Start Menu\n";
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 1 / 5, "new_game", new_game_button);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 2 / 5, "load_game", load_game_button);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 3 / 5, "settings_menu", settings_button);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 5, "exit", exit_button);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 1 / 5, NEW_GAME, new_game_button);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 2 / 5, LOAD_GAME, load_game_button);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 3 / 5, SETTINGS_MENU, settings_button);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 5, EXIT, exit_button);
 }
 
 void WorldSystem::create_settings_menu()
 {
 	std::cout << "In Settings Menu\n";
-	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "settings", Menu_texture::settings, 98, {0.5, 0.5});
+	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, SETTINGS_MENU, Menu_texture::settings, 98, {0.5, 0.5});
 	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 5, "back", back_button);
 }
 

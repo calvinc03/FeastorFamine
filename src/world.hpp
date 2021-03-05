@@ -34,6 +34,9 @@ public:
 	// restart level
 	void restart();
 
+	// helper for path to round jsons
+	std::string get_json_path_for_round_number(int round_number);
+
 	// Check for collisions
 	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
 
