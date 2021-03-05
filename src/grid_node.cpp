@@ -1,5 +1,18 @@
 #include "grid_node.hpp"
 
+static const std::map<int, std::string> terran_texture_path = {
+        {TERRAN_DEFAULT,  "grid/grass.png"},
+        {TERRAN_PAVEMENT, "grid/pavement.png"},
+        {TERRAN_MUD,      "grid/mud.png"},
+        {TERRAN_PUDDLE, "grid/puddle.png"}
+};
+
+static const std::map<int, std::string> terran_str = {
+        {TERRAN_DEFAULT,  "grass"},
+        {TERRAN_PAVEMENT, "pavement"},
+        {TERRAN_MUD,      "mud"},
+        {TERRAN_PUDDLE, "puddle"}
+};
 
 entt::entity GridNode::createGridNode(int terran, vec2 coord)
 {
@@ -34,18 +47,20 @@ entt::entity GridNode::createGridNode(int terran, vec2 coord)
 void GridNode::setTerran(entt::entity entity, int new_terran) {
     this->terran = new_terran;
     const std::string& key = terran_str.at(new_terran);
+
+    auto& shaded_mesh_ref = registry.get<ShadedMeshRef>(entity);
     ShadedMesh& resource = cache_resource(key);
+
     if (resource.effect.program.resource == 0)
     {
-        auto& shaded_mesh_ref = registry.get<ShadedMeshRef>(entity);
         resource = ShadedMesh();
         RenderSystem::createSprite(resource, textures_path(terran_texture_path.at(new_terran)), key);
-        shaded_mesh_ref.reference_to_cache = &resource;
     }
     else
     {
-        resource.texture.load_from_file(textures_path(terran_texture_path.at(new_terran)));
+        resource.texture.load_from_file(textures_path(terran_texture_path.at(new_terran)).c_str());
     }
+    shaded_mesh_ref.reference_to_cache = &resource;
 }
 
 void GridNode::setOccupancy(int new_occupancy) {

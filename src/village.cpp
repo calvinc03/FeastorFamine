@@ -2,7 +2,6 @@
 
 #include "village.hpp"
 #include "render.hpp"
-#include "grid_map.hpp"
 
 entt::entity Village::createVillage()
 {

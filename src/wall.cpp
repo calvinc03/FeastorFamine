@@ -2,7 +2,6 @@
 
 #include "wall.hpp"
 #include "render.hpp"
-#include "grid_map.hpp"
 
 entt::entity Wall::createWall(vec2 position, bool rotate) // rotation should be based on direction of path
 {

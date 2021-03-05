@@ -4,8 +4,6 @@
 #include "common.hpp"
 #include "grid_node.hpp"
 
-// A simple physics system that moves rigid bodies and checks for collision
-
 class GridMap
 {
 public:

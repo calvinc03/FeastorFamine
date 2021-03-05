@@ -21,9 +21,9 @@ public:
 	void step(float elapsed_ms);
 	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
 
-	struct PathFinder {
-        static std::vector<ivec2> find_path(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord);
-    };
+	struct MapAI {
+        static std::vector<ivec2> find_path_BFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2));
+	};
 
 private:
 	// PhysicsSystem handle
