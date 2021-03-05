@@ -399,7 +399,7 @@ void WorldSystem::restart()
 
     // create grid map
     current_map = registry.get<GridMap>(GridMap::createGridMap());
-    current_map.setGridTerran(ivec2(2, 2), GRID_PAVEMENT);
+
     // create village
 	village = Village::createVillage();
 	current_map.setGridOccupancy(VILLAGE_COORD, GRID_VILLAGE);

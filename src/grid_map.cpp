@@ -31,7 +31,8 @@ void GridMap::setGridTerran(ivec2 grid_coord, int terran) {
         return;
     }
     auto& node = getNodeAtCoord(grid_coord);
-    node.setTerran(terran);
+    auto& entity = getEntityAtCoord(grid_coord);
+    node.setTerran(entity, terran);
 }
 
 void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy) {

@@ -22,8 +22,8 @@ public:
     int occupancy = GRID_VACANT;
 
     static entt::entity createGridNode(int terran, vec2 coord);
-    void setTerran(int terran);
-    void setOccupancy(int occupancy);
+    void setTerran(entt::entity, int new_terran);
+    void setOccupancy(int new_occupancy);
 };
 
 

@@ -31,21 +31,23 @@ entt::entity GridNode::createGridNode(int terran, vec2 coord)
     return entity;
 }
 
-void GridNode::setTerran(int terran) {
-    this->terran = terran;
-    const std::string& key = terran_str.at(terran);
+void GridNode::setTerran(entt::entity entity, int new_terran) {
+    this->terran = new_terran;
+    const std::string& key = terran_str.at(new_terran);
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {
+        auto& shaded_mesh_ref = registry.get<ShadedMeshRef>(entity);
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path(terran_texture_path.at(terran)), key);
+        RenderSystem::createSprite(resource, textures_path(terran_texture_path.at(new_terran)), key);
+        shaded_mesh_ref.reference_to_cache = &resource;
     }
     else
     {
-        resource.texture.load_from_file(textures_path(terran_texture_path.at(terran)));
+        resource.texture.load_from_file(textures_path(terran_texture_path.at(new_terran)));
     }
 }
 
-void GridNode::setOccupancy(int occupancy) {
-    this->occupancy = occupancy;
+void GridNode::setOccupancy(int new_occupancy) {
+    this->occupancy = new_occupancy;
 }
