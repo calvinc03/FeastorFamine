@@ -6,6 +6,7 @@
 #include <vector>
 #include <stdexcept>
 #include <map>
+#include <random>
 
 // glfw (OpenGL)
 #define NOMINMAX
@@ -27,27 +28,35 @@ static const ivec2 WINDOW_SIZE_IN_PX = {1200, 700};
 
 static const ivec2 WINDOW_SIZE_IN_COORD = WINDOW_SIZE_IN_PX / GRID_CELL_SIZE;
 static const ivec2 FOREST_COORD = ivec2(0, 0);
-// bottom right position (TODO offset this by village size)
 static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
 
-enum grid_terran
+static int season;
+static int weather;
+
+// C++ random number generator
+static std::default_random_engine rng;
+static std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+
+// Terrains with neg value are ones that cannot be placed on
+// May be refactored later if too hard to keep track
+enum grid_terrain
 {
-    GRID_GRASS = 0,
-    GRID_PAVEMENT = 1,
-    GRID_MUD = 2,
-    GRID_PUDDLE = 3,
+    TERRAIN_PUDDLE = -2,
+    TERRAIN_PAVEMENT = -1,
+    TERRAIN_DEFAULT = 0,
+    TERRAIN_MUD = 1,
 };
 
 enum grid_occupancy
 {
-    GRID_BLOCKED = -1,
-    GRID_VACANT = 0,
-    GRID_FOREST = 1,
-    GRID_VILLAGE = 2,
-    GRID_GREENHOUSE = 3,
-    GRID_TOWER = 4,
-    GRID_WALL = 5,
-    GRID_HUNTER = 6,
+    OCCUPANCY_BLOCKED = -1,
+    OCCUPANCY_VACANT = 0,
+    OCCUPANCY_FOREST = 1,
+    OCCUPANCY_VILLAGE = 2,
+    OCCUPANCY_GREENHOUSE = 3,
+    OCCUPANCY_TOWER = 4,
+    OCCUPANCY_WALL = 5,
+    OCCUPANCY_HUNTER = 6,
 };
 
 enum season

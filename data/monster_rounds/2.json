@@ -1,0 +1,8 @@
+{
+  "round_num": 2,
+  "max_mobs": 8,
+  "mob_delay_ms": 2000,
+  "max_bosses": 0,
+  "boss_delay_ms": 20000,
+  "season": "summer"
+}

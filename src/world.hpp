@@ -8,7 +8,6 @@
 
 // stlib
 #include <vector>
-#include <random>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -33,6 +32,11 @@ public:
 
 	// restart level
 	void restart();
+
+	nlohmann::json get_json(std::string json_path);
+
+	// helper for path to round jsons
+	std::string get_json_path_for_round_number(int round_number);
 
 	// Check for collisions
 	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
@@ -101,9 +105,11 @@ private:
 	float next_boss_spawn;
 	float next_mob_spawn;
 
-    int season;
-    int weather;
-    
+	int mob_delay_ms;
+	int max_mobs;
+	int boss_delay_ms;
+	int max_boss;
+
 	float next_greenhouse_production;
 	int num_mobs_spawned;
 	int num_bosses_spawned;
@@ -132,14 +138,8 @@ private:
 	void settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void unit_upgrade_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	// music references
-	Mix_Music *background_music;
-	Mix_Chunk *salmon_dead_sound;
-	Mix_Chunk *salmon_eat_sound;
-	Mix_Chunk *impact_sound;
-
-	// C++ random number generator
-	std::default_random_engine rng;
-	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
-
-
+	Mix_Music* background_music;
+	Mix_Chunk* salmon_dead_sound;
+	Mix_Chunk* salmon_eat_sound;
+	Mix_Chunk* impact_sound;
 };
