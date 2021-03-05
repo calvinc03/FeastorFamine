@@ -34,12 +34,14 @@ static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
 static std::default_random_engine rng;
 static std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
-enum grid_terran
+// Terrains with neg value are ones that cannot be placed on
+// May be refactored later if too hard to keep track
+enum grid_terrain
 {
-    TERRAN_DEFAULT = 0,
-    TERRAN_PAVEMENT = 1,
-    TERRAN_MUD = 2,
-    TERRAN_PUDDLE = 3,
+    TERRAIN_PUDDLE = -2,
+    TERRAIN_PAVEMENT = -1,
+    TERRAIN_DEFAULT = 0,
+    TERRAIN_MUD = 1,
 };
 
 enum grid_occupancy

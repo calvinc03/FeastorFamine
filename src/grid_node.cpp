@@ -1,17 +1,17 @@
 #include "grid_node.hpp"
 
 static const std::map<int, std::string> terran_texture_path = {
-        {TERRAN_DEFAULT,  "grid/grass.png"},
-        {TERRAN_PAVEMENT, "grid/pavement.png"},
-        {TERRAN_MUD,      "grid/mud.png"},
-        {TERRAN_PUDDLE, "grid/puddle.png"}
+        {TERRAIN_DEFAULT,  "grid/grass.png"},
+        {TERRAIN_PAVEMENT, "grid/pavement.png"},
+        {TERRAIN_MUD,      "grid/mud.png"},
+        {TERRAIN_PUDDLE,   "grid/puddle.png"}
 };
 
 static const std::map<int, std::string> terran_str = {
-        {TERRAN_DEFAULT,  "grass"},
-        {TERRAN_PAVEMENT, "pavement"},
-        {TERRAN_MUD,      "mud"},
-        {TERRAN_PUDDLE, "puddle"}
+        {TERRAIN_DEFAULT,  "grass"},
+        {TERRAIN_PAVEMENT, "pavement"},
+        {TERRAIN_MUD,      "mud"},
+        {TERRAIN_PUDDLE,   "puddle"}
 };
 
 entt::entity GridNode::createGridNode(int terran, vec2 coord)

@@ -33,7 +33,7 @@ bool is_valid_terran_path(GridMap& current_map, ivec2 coord)
     if (is_inbounds(coord)) {
         int terran = current_map.node_matrix[coord.x][coord.y].terran;
         int occupancy = current_map.node_matrix[coord.x][coord.y].occupancy;
-        return terran != TERRAN_PAVEMENT && occupancy == OCCUPANCY_VACANT;
+        return terran != TERRAIN_PAVEMENT && occupancy == OCCUPANCY_VACANT;
     }
     return false;
 }
@@ -53,7 +53,7 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord) {
         ivec2 nbr_coord = current_coord + nbr_path.at(index);
         visited[index] = true;
         if (nbr_coord == end_coord ||
-                (is_inbounds(nbr_coord) && map.node_matrix[nbr_coord.x][nbr_coord.y].terran != TERRAN_PAVEMENT
+                (is_inbounds(nbr_coord) && map.node_matrix[nbr_coord.x][nbr_coord.y].terran != TERRAIN_PAVEMENT
                 && !AISystem::MapAI::find_path_BFS(map, nbr_coord, VILLAGE_COORD, is_valid_terran_path).empty())) {
             return nbr_coord;
         }
@@ -62,7 +62,7 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord) {
     assert(false);
 }
 
-void set_random_terran_path(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terran = TERRAN_PAVEMENT) {
+void set_random_terran_path(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terran = TERRAIN_PAVEMENT) {
     ivec2 rand_nbr = get_random_neighbor(map, start_coord, end_coord);
     map.setGridTerran(start_coord, terran);
     // randomly step toward end_coord
@@ -83,14 +83,14 @@ entt::entity GridMap::createGridMap()
     // fill node_entity_matrix with default type grid node
     for (int x = 0; x < WINDOW_SIZE_IN_COORD.x; x++){
         for (int y = 0; y < WINDOW_SIZE_IN_COORD.y; y++){
-            int terran = TERRAN_DEFAULT;
+            int terran = TERRAIN_DEFAULT;
             map.node_entity_matrix[x][y] = GridNode::createGridNode(terran, vec2(x, y));
             map.node_matrix[x][y] = registry.get<GridNode>(map.node_entity_matrix[x][y]);
         }
     }
 
-    set_random_terran_path(map, FOREST_COORD, VILLAGE_COORD, TERRAN_PAVEMENT);
-
+    set_random_terran_path(map, FOREST_COORD, VILLAGE_COORD, TERRAIN_PAVEMENT);
+    set_random_weather_terran(map);
     return entity;
 }
 
