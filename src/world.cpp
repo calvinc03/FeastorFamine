@@ -940,22 +940,22 @@ void WorldSystem::load_game(std::string save_path)
 		if (type == WATCHTOWER_NAME)
 		{
 			WatchTower::createWatchTower({ x, y });
-			node.occupancy = GRID_TOWER;
+			node.occupancy = OCCUPANCY_TOWER;
 		}
 		else if (type == GREENHOUSE_NAME)
 		{
 			GreenHouse::createGreenHouse({ x, y });
-			node.occupancy = GRID_TOWER;
+			node.occupancy = OCCUPANCY_TOWER;
 		}
 		else if (type == WALL_NAME)
 		{
 			Wall::createWall({ x, y }, unit["rotate"]);
-			node.occupancy = GRID_TOWER;
+			node.occupancy = OCCUPANCY_TOWER;
 		}
 		else if (type == HUNTER_NAME)
 		{
 			Hunter::createHunter({ x, y });
-			node.occupancy = GRID_TOWER;
+			node.occupancy = OCCUPANCY_TOWER;
 		}
 	}
 }
