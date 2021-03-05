@@ -145,6 +145,13 @@ struct Tag {
 	std::string tag;
 };
 
+struct Selectable {
+	bool selected = false;
+};
+
+struct Upgradeable {
+	int rank = 0;
+};
 
 //detects if mouse is within the a rectangle of size scale at position entity_pos
 float sdBox(vec2 mouse_pos_grid, vec2 entity_pos, vec2 scale);

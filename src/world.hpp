@@ -15,7 +15,7 @@
 #include <SDL_mixer.h>
 #include <../ext/nlohmann/json.hpp>
 
-// Container for all our entities and game logic. Individual rendering / update is 
+// Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
 class WorldSystem : public Observer
 {
@@ -27,6 +27,8 @@ public:
 	~WorldSystem();
 
 	// menu
+	void menu_setup();
+	void create_start_menu();
 	void setup_start_menu();
 
 	// restart level
@@ -48,21 +50,30 @@ public:
 	bool is_over() const;
 
 	// OpenGL window handle
-	GLFWwindow* window;
+	GLFWwindow *window;
 
 	// game state
 	int game_state;
 
 	// Menu
-	enum GameState { start_menu, in_game };
+	enum GameState
+	{
+		start_menu,
+		in_game,
+		settings_menu
+	};
 
 	// state for set_up and monster_rounds
 	int player_state;
-	enum PlayerState { set_up_stage, battle_stage };
-	
+	enum PlayerState
+	{
+		set_up_stage,
+		battle_stage
+	};
+
 private:
 	// PhysicsSystem handle
-	PhysicsSystem* physics;
+	PhysicsSystem *physics;
 
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -95,10 +106,10 @@ private:
     
 	float next_greenhouse_production;
 	int num_mobs_spawned;
-	int num_bosses_spawned; 
+	int num_bosses_spawned;
 	entt::entity (*create_boss)();
 
-    // Monster path
+	// Monster path
 	GridMap current_map;
     std::vector<ivec2> monster_path_coords = {};
 
@@ -111,17 +122,20 @@ private:
 
 	std::string unit_selected;
 
-
+	// remove entities from start menu
+	void remove_menu_buttons();
+	void create_settings_menu();
 
 	// helper for start menu mouse click and in_game mouse click
 	void start_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void in_game_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
-
+	void settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
+	void unit_upgrade_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	// music references
-	Mix_Music* background_music;
-	Mix_Chunk* salmon_dead_sound;
-	Mix_Chunk* salmon_eat_sound;
-	Mix_Chunk* impact_sound;
+	Mix_Music *background_music;
+	Mix_Chunk *salmon_dead_sound;
+	Mix_Chunk *salmon_eat_sound;
+	Mix_Chunk *impact_sound;
 
 	// C++ random number generator
 	std::default_random_engine rng;

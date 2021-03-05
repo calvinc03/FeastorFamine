@@ -128,6 +128,8 @@ ShadedMesh& cache_resource(std::string key);
 // A wrapper that health to the ShadedMesh in the resource_cache
 struct ShadedMeshRef
 {
+	bool show = true;
+	int layer = 0;
 	ShadedMesh* reference_to_cache;
 	ShadedMeshRef(ShadedMesh& mesh);
 };
