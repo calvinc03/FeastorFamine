@@ -28,12 +28,12 @@ int get_random_index () {
 }
 
 // set path
-bool is_valid_terran_path(GridMap& current_map, ivec2 coord)
+bool is_valid_terrain_path(GridMap& current_map, ivec2 coord)
 {
     if (is_inbounds(coord)) {
-        int terran = current_map.node_matrix[coord.x][coord.y].terran;
+        int terrain = current_map.node_matrix[coord.x][coord.y].terrain;
         int occupancy = current_map.node_matrix[coord.x][coord.y].occupancy;
-        return terran != TERRAIN_PAVEMENT && occupancy == OCCUPANCY_VACANT;
+        return terrain != TERRAIN_PAVEMENT && occupancy == OCCUPANCY_VACANT;
     }
     return false;
 }
@@ -53,8 +53,8 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord) {
         ivec2 nbr_coord = current_coord + nbr_path.at(index);
         visited[index] = true;
         if (nbr_coord == end_coord ||
-                (is_inbounds(nbr_coord) && map.node_matrix[nbr_coord.x][nbr_coord.y].terran != TERRAIN_PAVEMENT
-                && !AISystem::MapAI::find_path_BFS(map, nbr_coord, VILLAGE_COORD, is_valid_terran_path).empty())) {
+                (is_inbounds(nbr_coord) && map.node_matrix[nbr_coord.x][nbr_coord.y].terrain != TERRAIN_PAVEMENT
+                && !AISystem::MapAI::find_path_BFS(map, nbr_coord, VILLAGE_COORD, is_valid_terrain_path).empty())) {
             return nbr_coord;
         }
     }
@@ -62,15 +62,15 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord) {
     assert(false);
 }
 
-void set_random_terran_path(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terran = TERRAIN_PAVEMENT) {
+void set_random_terrain_path(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain = TERRAIN_PAVEMENT) {
     ivec2 rand_nbr = get_random_neighbor(map, start_coord, end_coord);
-    map.setGridTerran(start_coord, terran);
+    map.setGridterrain(start_coord, terrain);
     // randomly step toward end_coord
     while (rand_nbr != end_coord) {
-        map.setGridTerran(rand_nbr, terran);
+        map.setGridterrain(rand_nbr, terrain);
         rand_nbr = get_random_neighbor(map, rand_nbr, end_coord);
     }
-    map.setGridTerran(end_coord, terran);
+    map.setGridterrain(end_coord, terrain);
 }
 
 std::map<int, float> weather_tile_prob = {
@@ -78,11 +78,11 @@ std::map<int, float> weather_tile_prob = {
         {TERRAIN_PUDDLE,   1}
 };
 
-int get_weather_terran() {
+int get_weather_terrain() {
     // grid_change_prob is the probability to set grid to special terrain
     float grid_change_prob = 0.7;
     // start with <rand * grid_change prob> chance for each happening
-    for (auto& [terran, prob] : weather_tile_prob) {
+    for (auto& [terrain, prob] : weather_tile_prob) {
         prob = uniform_dist(rng) * grid_change_prob;
     }
     if (weather == RAIN) {
@@ -102,9 +102,9 @@ int get_weather_terran() {
 
     vec2 max_prob(-1, -1);
 
-    for (auto& [terran, prob] : weather_tile_prob) {
+    for (auto& [terrain, prob] : weather_tile_prob) {
         if (prob > max_prob.y){
-            max_prob.x = terran;
+            max_prob.x = terrain;
             max_prob.y = prob;
         }
     }
@@ -115,12 +115,12 @@ int get_weather_terran() {
     return TERRAIN_DEFAULT;
 }
 
-void set_random_weather_terran(GridMap& map) {
+void set_random_weather_terrain(GridMap& map) {
     for (int i = 0; i < WINDOW_SIZE_IN_COORD.x; i++) {
         for (int j = 0; j < WINDOW_SIZE_IN_COORD.y; j++) {
-            int weather_terran = get_weather_terran();
-            if (weather_terran != TERRAIN_DEFAULT && map.node_matrix[i][j].terran != TERRAIN_PAVEMENT) {
-                map.setGridTerran(ivec2(i,j), weather_terran);
+            int weather_terrain = get_weather_terrain();
+            if (weather_terrain != TERRAIN_DEFAULT && map.node_matrix[i][j].terrain != TERRAIN_PAVEMENT) {
+                map.setGridterrain(ivec2(i,j), weather_terrain);
             }
         }
     }
@@ -136,25 +136,25 @@ entt::entity GridMap::createGridMap()
     // fill node_entity_matrix with default type grid node
     for (int x = 0; x < WINDOW_SIZE_IN_COORD.x; x++){
         for (int y = 0; y < WINDOW_SIZE_IN_COORD.y; y++){
-            int terran = TERRAIN_DEFAULT;
-            map.node_entity_matrix[x][y] = GridNode::createGridNode(terran, vec2(x, y));
+            int terrain = TERRAIN_DEFAULT;
+            map.node_entity_matrix[x][y] = GridNode::createGridNode(terrain, vec2(x, y));
             map.node_matrix[x][y] = registry.get<GridNode>(map.node_entity_matrix[x][y]);
         }
     }
 
-    set_random_terran_path(map, FOREST_COORD, VILLAGE_COORD, TERRAIN_PAVEMENT);
-    set_random_weather_terran(map);
+    set_random_terrain_path(map, FOREST_COORD, VILLAGE_COORD, TERRAIN_PAVEMENT);
+    set_random_weather_terrain(map);
     return entity;
 }
 
-void GridMap::setGridTerran(ivec2 grid_coord, int terran) {
+void GridMap::setGridterrain(ivec2 grid_coord, int terrain) {
     if (!is_inbounds(grid_coord)) {
         std::cout<<"Debug: out of bounds"<< std::endl;
         return;
     }
     auto& node = getNodeAtCoord(grid_coord);
     auto& entity = getEntityAtCoord(grid_coord);
-    node.setTerran(entity, terran);
+    node.setterrain(entity, terrain);
 }
 
 void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy) {

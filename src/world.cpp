@@ -717,7 +717,7 @@ void grid_highlight_system(vec2 mouse_pos, std::string unit_selected, GridMap cu
 	auto& node = current_map.getNodeAtCoord(pixelToCoord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each()) {
 		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f
-		        && node.occupancy == OCCUPANCY_VACANT && node.terran >= TERRAIN_DEFAULT) {
+		        && node.occupancy == OCCUPANCY_VACANT && node.terrain >= TERRAIN_DEFAULT) {
 			highlight.highlight = true;
 		}
 		else
@@ -1012,7 +1012,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		{
 			auto& node = current_map.getNodeAtCoord(pixelToCoord(vec2(x, y)));
 
-			if (node.occupancy == OCCUPANCY_VACANT && node.terran >= TERRAIN_DEFAULT)
+			if (node.occupancy == OCCUPANCY_VACANT && node.terrain >= TERRAIN_DEFAULT)
                {
 				if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
 				{
