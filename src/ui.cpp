@@ -34,6 +34,8 @@ std::string button_to_string(int button) {
 		return "stick_figure_button";
 	case wall_button:
 		return "wall_button";
+	case save_button:
+		return "save_button";
 	}
 	return "no button / invalid button / or this method is broken!";
 }
@@ -88,6 +90,9 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag)
 		}
 		else if (button == upgrade_button) {
 			RenderSystem::createSprite(resource, textures_path("upgrade_icon.png"), "ui");
+		}
+		else if (button == save_button) {
+			RenderSystem::createSprite(resource, textures_path("buttons/save_button.png"), "ui");
 		}
 	}
 
