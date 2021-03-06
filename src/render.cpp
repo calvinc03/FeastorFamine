@@ -350,7 +350,10 @@ void RenderSystem::draw()
 				{
 					drawTexturedMesh(entity, projection_2D);
 				}
+				if (registry.has<Text>(entity)) {
 
+					drawText(registry.get<Text>(entity), frame_buffer_size);
+				}
 				gl_has_errors();
 			}
 
@@ -359,10 +362,10 @@ void RenderSystem::draw()
 	}
 
 	//render text always on top. Text doesn't have the shaded mesh ref component.
-	auto view_text = registry.view<Text>();
-	for (auto [entity, text] : view_text.each()) 	{
-		drawText(text, frame_buffer_size);
-	}
+	//auto view_text = registry.view<Text>();
+	//for (auto [entity, text] : view_text.each()) 	{
+	//	drawText(text, frame_buffer_size);
+	//}
 
 	// Truely render to the screen
 	drawToScreen();
