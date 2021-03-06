@@ -6,6 +6,12 @@
 #include <render_components.hpp>
 #include <cstring>
 #include <queue>
+#include <BehaviorTree.cpp>
+#include <BehaviorTree.hpp>
+#include <bosses/spring_boss.hpp>
+#include <bosses/summer_boss.hpp>
+#include <bosses/fall_boss.hpp>
+#include <bosses/winter_boss.hpp>
 
 AISystem::AISystem(PhysicsSystem* physics) 
 {
@@ -132,4 +138,45 @@ std::vector<ivec2> AISystem::MapAI::find_path_BFS(GridMap& current_map, ivec2 st
     // should NOT reach this point for monster travel path with random map generation is in place
     std::cout<<"Debug: no path exist \n";
     return std::vector<ivec2>();
+}
+
+
+std::shared_ptr<onCollisionSelector> AISystem::MonstersAI::create_collision_tree() {
+	std::shared_ptr <BTNode> donothing = std::make_unique<DoNothing>();
+	std::shared_ptr <BTNode> grow = std::make_unique<Grow>();
+	std::shared_ptr <BTNode> stop = std::make_unique<Stop>();
+	std::shared_ptr <BTNode> run = std::make_unique<Run>();
+	std::shared_ptr <BTNode> knockback = std::make_unique<Knockback>();
+
+	std::shared_ptr <BTIfCondition> conditional_donothing = std::make_unique<BTIfCondition>(
+		donothing,
+		[](entt::entity e) {return registry.has<Mob>(e); }
+	);
+	std::shared_ptr <BTIfCondition> conditional_grow = std::make_unique<BTIfCondition>(
+		grow,
+		[](entt::entity e) {return registry.has<SpringBoss>(e); }
+	);
+	std::shared_ptr <BTIfCondition> conditional_stop = std::make_unique<BTIfCondition>(
+		stop,
+		[](entt::entity e) {return registry.has<SummerBoss>(e); }
+	);
+	std::shared_ptr <BTIfCondition> conditional_run = std::make_unique<BTIfCondition>(
+		run,
+		[](entt::entity e) {return registry.has<FallBoss>(e); }
+	);
+	std::shared_ptr <BTIfCondition> conditional_knockback = std::make_unique<BTIfCondition>(
+		knockback,
+		[](entt::entity e) {return registry.has<WinterBoss>(e); }
+	);
+
+	std::vector<std::shared_ptr<BTIfCondition>> cond_nodes;
+	cond_nodes.push_back(conditional_donothing);
+	cond_nodes.push_back(conditional_grow);
+	cond_nodes.push_back(conditional_stop);
+	cond_nodes.push_back(conditional_run);
+	cond_nodes.push_back(conditional_knockback);
+
+	std::shared_ptr<onCollisionSelector> root = std::make_unique<onCollisionSelector>(cond_nodes);
+
+	return root;
 }

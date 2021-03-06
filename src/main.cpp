@@ -28,12 +28,11 @@ struct Description {
 	Description(const char* str) : name(str) {};
 };
 
+
 // Entry point
 int main()
 {
-	
-	//entt::registry reg;
-	
+
 
 	// Initialize the main systems
 	PhysicsSystem physics;

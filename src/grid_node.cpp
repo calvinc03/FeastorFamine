@@ -1,10 +1,10 @@
 #include "grid_node.hpp"
 
 const std::map<int, std::string> terrain_texture_path = {
-        {TERRAIN_DEFAULT,  "grid/grass.png"},
-        {TERRAIN_PAVEMENT, "grid/pavement.png"},
-        {TERRAIN_MUD,      "grid/mud.png"},
-        {TERRAIN_PUDDLE,   "grid/puddle.png"}
+        {TERRAIN_DEFAULT,  "map/grass.png"},
+        {TERRAIN_PAVEMENT, "map/pavement.png"},
+        {TERRAIN_MUD,      "map/mud.png"},
+        {TERRAIN_PUDDLE,   "map/puddle.png"}
 };
 
 const std::map<int, std::string> terrain_str = {
@@ -30,7 +30,8 @@ entt::entity GridNode::createGridNode(int terrain, vec2 coord)
         resource = ShadedMesh();
         RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(terrain)), key);
     }
-    registry.emplace<ShadedMeshRef>(entity, resource);
+    ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+    shaded_mesh.layer = 1;
 
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;

@@ -8,6 +8,7 @@
 #include "grid_map.hpp"
 #include "Observer.hpp"
 #include "physics.hpp"
+#include <BehaviorTree.cpp>
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // DON'T WORRY ABOUT THIS CLASS UNTIL ASSIGNMENT 3
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -23,6 +24,10 @@ public:
 
 	struct MapAI {
         static std::vector<ivec2> find_path_BFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2));
+	};
+
+	struct MonstersAI {
+		static std::shared_ptr<onCollisionSelector> create_collision_tree();
 	};
 
 private:

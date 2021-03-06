@@ -22,6 +22,7 @@
 #include "menu.hpp"
 #include "ui.hpp"
 #include "ai.hpp"
+#include <BehaviorTree.hpp>
 
 // stlib
 #include <string.h>
@@ -123,6 +124,8 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	// Attaching World Observer to Physics observerlist
 	this->physics = physics;
 	this->physics->attach(this);
+
+	BTCollision = AISystem::MonstersAI::create_collision_tree();
 }
 
 WorldSystem::~WorldSystem()
@@ -177,7 +180,6 @@ void WorldSystem::step(float elapsed_ms) {
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// animation
-
 	fps_ms -= elapsed_ms;
 	if (fps_ms < 0.f) {
 		for (auto entity : registry.view<Animate>()) {
@@ -195,21 +197,26 @@ void WorldSystem::step(float elapsed_ms) {
 	if (num_bosses_spawned < max_boss && next_boss_spawn < 0.f) {
 		// Reset spawn timer and spawn boss
 		next_boss_spawn = (boss_delay_ms / 2) + uniform_dist(rng) * (boss_delay_ms / 2);
-		create_boss();
+		entt::entity boss = create_boss();
 		num_bosses_spawned += 1;
+		BTCollision->init(boss);
 	}
 
 	// Spawning new mobs
 	next_mob_spawn -= elapsed_ms * current_speed;
 	if (num_mobs_spawned < max_mobs && next_mob_spawn < 0.f) {
 		next_mob_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
-		Mob::createMobEntt();
+		entt::entity mob = Mob::createMobEntt();
 		num_mobs_spawned += 1;
+		BTCollision->init(mob);
 	}
 
 
 	// update velocity for every monster
 	for (auto entity : registry.view<Monster>()) {
+		auto state = BTCollision->process(entity);
+		if (state == BTState::Stopped) continue;
+
 		auto& monster = registry.get<Monster>(entity);
 		auto& motion = registry.get<Motion>(entity);
 		auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
@@ -299,9 +306,10 @@ bool is_walkable(GridMap& current_map, ivec2 coord)
     return false;
 }
 
+
 void WorldSystem::set_up_step(float elapsed_ms)
 {
-
+	
 	// Restart/End game after max rounds
 	if (round_number > 16)
 	{
@@ -384,17 +392,22 @@ void WorldSystem::set_up_step(float elapsed_ms)
 // Start Menu
 void WorldSystem::setup_start_menu()
 {
+	
 	std::cout << "In Start Menu\n";
 	registry.clear();
 	screen_state_entity = registry.create();
 	registry.emplace<ScreenState>(screen_state_entity);
+
 	create_start_menu();
 	camera = Camera::createCamera();
+	
+	
 }
 
 // Reset the world state to its initial state
 void WorldSystem::restart()
 {
+	
 	std::cout << "Restarting\n";
 
 	// Reset the game state
@@ -409,12 +422,12 @@ void WorldSystem::restart()
 	registry.emplace<ScreenState>(screen_state_entity);
 
 	//create UI	-- needs to be at the top of restart for rendering order.
-	UI_button::createUI_button(0, tower_button);
-	UI_button::createUI_button(1, green_house_button);
-	UI_button::createUI_button(2, stick_figure_button);
-	UI_button::createUI_button(3, wall_button);
-	UI_button::createUI_button(7, upgrade_button, "upgrade_button");
-	UI_button::createUI_button(8, save_button, "save_button");
+	UI_button::createUI_button(0, tower_button, WATCHTOWER_COST );
+	UI_button::createUI_button(1, green_house_button, GREENHOUSE_COST);
+	UI_button::createUI_button(2, stick_figure_button, HUNTER_COST);
+	UI_button::createUI_button(3, wall_button, WALL_COST);
+	UI_button::createUI_button(7, upgrade_button, HUNTER_COST, "upgrade_button"); 
+	UI_button::createUI_button(8, save_button,0, "save_button");
 	UI_background::createUI_background();
 
 	// create grid map
@@ -433,6 +446,7 @@ void WorldSystem::restart()
 
 	// set up variables for first round
 	setup_round_from_round_number(0);
+
 }
 
 nlohmann::json WorldSystem::get_json(std::string json_path)
@@ -468,6 +482,7 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			Mix_PlayChannel(-1, impact_sound, 0);
 
 			animal.health -= projectile.damage;
+			animal.collided = true;
 
 			auto& hit_reaction = registry.get<HitReaction>(entity_j);
 			hit_reaction.counter_ms = 750; //ms duration used by health bar
@@ -488,17 +503,6 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			}
 		}
 	}
-
-	/*if (registry.has<Village>(entity_i)) {
-		if (registry.has<Monster>(entity_j)) {
-			auto& monster = registry.get<Monster>(entity_j);
-			auto& motion = registry.get<Motion>(entity_j);
-
-			health -= monster.damage;
-			motion.velocity *= 0;
-			registry.destroy(entity_j);
-		}
-	}*/
 }
 
 // Should the game be over ?
