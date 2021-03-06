@@ -43,10 +43,6 @@ const size_t GREENHOUSE_COST = 300;
 const size_t HUNTER_COST = 150;
 const size_t WALL_COST = 100;
 const size_t HUNTER_UPGRADE_COST = 50;
-const std::string WATCHTOWER_NAME = "watchtower";
-const std::string GREENHOUSE_NAME = "greenhouse";
-const std::string HUNTER_NAME = "hunter";
-const std::string WALL_NAME = "wall";
 void debug_path(std::vector<ivec2> monster_path_coords);
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
@@ -61,7 +57,8 @@ const std::string SUMMER_TITLE = "summer";
 const std::string FALL_TITLE = "fall";
 const std::string WINTER_TITLE = "winter";
 const std::string INPUT_PATH = "data/monster_rounds/";
-const std::string JSON_EXTENSION = ".json";
+const std::string JSON_EXTENSION = ".json"; \
+const std::string SAVE_PATH = "data/save_files/save_state.json";
 
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	game_state(start_menu),
@@ -913,17 +910,16 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 	else if (button_tag == "load_game")
 	{
 		restart();
-		std::string save_path = "data/save_files/test.json";
 		remove_menu_buttons();
-		load_game(save_path);
+		load_game();
 		game_state = in_game;
 	}
 }
 
-void WorldSystem::load_game(std::string save_path)
+void WorldSystem::load_game()
 {
 	// hardcoded for now
-	nlohmann::json save_json = get_json(save_path);
+	nlohmann::json save_json = get_json(SAVE_PATH);
 
 	health = save_json["health"];
 	round_number = save_json["round_number"];
@@ -936,39 +932,35 @@ void WorldSystem::load_game(std::string save_path)
 		int y = unit["y_coord"];
 		auto& node = current_map.getNodeAtCoord(pixelToCoord(vec2(x, y)));
 		std::string type = unit["type"];
-
+		entt::entity entity;
 		if (type == WATCHTOWER_NAME)
 		{
-			WatchTower::createWatchTower({ x, y });
+			entity = WatchTower::createWatchTower({ x, y });
 			node.occupancy = OCCUPANCY_TOWER;
 		}
 		else if (type == GREENHOUSE_NAME)
 		{
-			GreenHouse::createGreenHouse({ x, y });
+			entity = GreenHouse::createGreenHouse({ x, y });
 			node.occupancy = OCCUPANCY_TOWER;
 		}
 		else if (type == WALL_NAME)
 		{
-			Wall::createWall({ x, y }, unit["rotate"]);
+			entity = Wall::createWall({ x, y }, unit["rotate"]);
 			node.occupancy = OCCUPANCY_TOWER;
 		}
 		else if (type == HUNTER_NAME)
 		{
-			Hunter::createHunter({ x, y });
+			entity = Hunter::createHunter({ x, y });
 			node.occupancy = OCCUPANCY_TOWER;
 		}
-	}
-}
 
-void WorldSystem::save_game()
-{
-	std::cout << "yooooooooo" << std::endl;
-	std::string test_path = "data/save_files/test.json";
-	nlohmann::json save_json;
-	save_json["round_number"] = round_number;
-	save_json["health"] = health;
-	
-	// TODO finish implementing, may need to edit unit struct
+		auto view_unit = registry.view<Unit>();
+		auto& curr_unit = view_unit.get<Unit>(entity);
+		for (int i = 0; i < unit["upgrades"]; i++)
+		{
+			upgrade_unit(curr_unit);
+		}
+	}
 }
 
 void WorldSystem::settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
@@ -1120,7 +1112,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					if (view_selectable.get<Selectable>(entity).selected)
 					{
 						auto& unit = view_unit.get<Unit>(entity);
-						unit.damage *= 2;
+						upgrade_unit(unit);
 						health -= HUNTER_UPGRADE_COST;
 						std::cout << "damage x2\n";
 					}
@@ -1141,6 +1133,55 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		// handle clicks in the start menu
 	}
 
+}
+
+void WorldSystem::upgrade_unit(Unit unit)
+{
+	unit.damage *= 2;
+	unit.upgrades++;
+}
+
+void WorldSystem::save_game()
+{
+	nlohmann::json save_json;
+	save_json["round_number"] = round_number;
+	save_json["health"] = health;
+	
+	// TODO finish implementing, may need to edit unit struct
+	auto view_unit = registry.view<Unit>();
+	auto view_motion = registry.view<Motion>();
+	auto view_selectable = registry.view<Selectable>();
+	std::vector<nlohmann::json> unit_list(view_selectable.size());
+
+	int i = 0;
+	for (auto& entity : view_selectable)
+	{
+		nlohmann::json curr_unit;
+		auto unit = view_unit.get<Unit>(entity);
+		auto motion = view_motion.get<Motion>(entity);
+
+		curr_unit["type"] = unit.type;
+		curr_unit["x_coord"] = motion.position.x;
+		curr_unit["y_coord"] = motion.position.y;
+		curr_unit["upgrades"] = unit.upgrades;
+		curr_unit["rotate"] = unit.rotate;
+
+		unit_list[i++] = curr_unit;
+	}
+
+	save_json["units"] = unit_list;
+	std::ofstream file(SAVE_PATH);
+	file << save_json.dump(4);
+	file.close();
+
+	if (!file.fail()) 
+	{
+		std::cout << "Game saved!" << std::endl;
+	}
+	else
+	{
+		std::cout << "Game failed to save" << std::endl;
+	}
 }
 
 

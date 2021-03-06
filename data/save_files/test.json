@@ -13,14 +13,14 @@
       "type": "wall",
       "x_coord": 350,
       "y_coord": 450,
-      "upgrades": 0,
+      "upgrades": 1,
       "rotate": true
     },
     {
       "type": "wall",
       "x_coord": 250,
       "y_coord": 650,
-      "upgrades": 0,
+      "upgrades": 5,
       "rotate": false
     }
   ]

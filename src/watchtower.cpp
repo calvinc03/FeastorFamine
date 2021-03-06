@@ -9,7 +9,7 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     auto entity = registry.create();
 
     // Create the rendering components
-    std::string key = "watchtower";
+    std::string key = WATCHTOWER_NAME;
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {
@@ -32,6 +32,8 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     unit.attack_rate = 10000;
     unit.attack_range = 400;
     unit.workers = 0;
+    unit.upgrades = 0;
+    unit.type = key;
 
     registry.emplace<WatchTower>(entity);
     registry.emplace<Selectable>(entity);

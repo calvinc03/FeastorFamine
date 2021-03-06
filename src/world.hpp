@@ -37,10 +37,12 @@ public:
 	nlohmann::json get_json(std::string json_path);
 
 	// helper to load game from save game path
-	void load_game(std::string save_path);
+	void load_game();
 
 	// helper to save game to disk
 	void save_game();
+
+	void upgrade_unit(Unit unit);
 
 	// helper for path to round jsons
 	void setup_round_from_round_number(int round_number);

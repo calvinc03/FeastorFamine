@@ -24,23 +24,23 @@ entt::entity Wall::createWall(vec2 position, bool rotate) // rotation should be 
 
 	// Setting initial motion values
 	Motion& motion = registry.emplace<Motion>(entity);
-
 	motion.position = position;
 	motion.angle = 0.f;
-
-	
 	motion.velocity = { 0.f, 0.f };
 	motion.scale = vec2({0.5f,0.5f }) * static_cast<vec2>(resource.texture.size);
 
-
-	//animate breakdown of wall
-	//Animate& animate = registry.emplace<Animate>(entity);
-	//animate.frame = 0.f;
-	//animate.state = 0.f;
-	//animate.frame_num = 1.f;
-	//animate.state_num = 1.f;
+	auto& unit = registry.emplace<Unit>(entity);
+	unit.damage = 0;
+	unit.attack_rate = 0;
+	unit.attack_range = 0;
+	unit.workers = 0;
+	unit.upgrades = 0;
+	unit.type = WALL_NAME;
+	unit.rotate = rotate;
 
 	registry.emplace<Wall>(entity);
+	registry.emplace<Selectable>(entity);
+	registry.emplace<HighlightBool>(entity);
 
 	return entity;
 }
