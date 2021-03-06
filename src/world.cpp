@@ -183,7 +183,6 @@ void WorldSystem::step(float elapsed_ms) {
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// animation
-
 	fps_ms -= elapsed_ms;
 	if (fps_ms < 0.f) {
 		for (auto entity : registry.view<Animate>()) {
@@ -310,9 +309,10 @@ bool is_walkable(GridMap& current_map, ivec2 coord)
     return false;
 }
 
+
 void WorldSystem::set_up_step(float elapsed_ms)
 {
-
+	
 	// Restart/End game after max rounds
 	if (round_number > 16)
 	{
@@ -395,17 +395,22 @@ void WorldSystem::set_up_step(float elapsed_ms)
 // Start Menu
 void WorldSystem::setup_start_menu()
 {
+	
 	std::cout << "In Start Menu\n";
 	registry.clear();
 	screen_state_entity = registry.create();
 	registry.emplace<ScreenState>(screen_state_entity);
+
 	create_start_menu();
 	camera = Camera::createCamera();
+	
+	
 }
 
 // Reset the world state to its initial state
 void WorldSystem::restart()
 {
+	
 	std::cout << "Restarting\n";
 
 	// Reset the game state
@@ -420,12 +425,12 @@ void WorldSystem::restart()
 	registry.emplace<ScreenState>(screen_state_entity);
 
 	//create UI	-- needs to be at the top of restart for rendering order.
-	UI_button::createUI_button(0, tower_button);
-	UI_button::createUI_button(1, green_house_button);
-	UI_button::createUI_button(2, stick_figure_button);
-	UI_button::createUI_button(3, wall_button);
-	UI_button::createUI_button(7, upgrade_button, "upgrade_button");
-	UI_button::createUI_button(8, save_button, "save_button");
+	UI_button::createUI_button(0, tower_button, WATCHTOWER_COST );
+	UI_button::createUI_button(1, green_house_button, GREENHOUSE_COST);
+	UI_button::createUI_button(2, stick_figure_button, HUNTER_COST);
+	UI_button::createUI_button(3, wall_button, WALL_COST);
+	UI_button::createUI_button(7, upgrade_button, HUNTER_COST, "upgrade_button"); 
+	UI_button::createUI_button(8, save_button,0, "save_button");
 	UI_background::createUI_background();
 
 	// create grid map
@@ -444,6 +449,7 @@ void WorldSystem::restart()
 
 	// set up variables for first round
 	setup_round_from_round_number(0);
+
 }
 
 nlohmann::json WorldSystem::get_json(std::string json_path)
