@@ -5,6 +5,7 @@
 #include "grid_map.hpp"
 #include "Observer.hpp"
 #include "physics.hpp"
+#include <BehaviorTree.hpp>
 
 // stlib
 #include <vector>
@@ -125,6 +126,8 @@ private:
 	// Monster path
 	GridMap current_map;
     std::vector<ivec2> monster_path_coords = {};
+
+	std::shared_ptr<BTNode> BTCollision;
 
 	// round and set up
 	int round_number;
