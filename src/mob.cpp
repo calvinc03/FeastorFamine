@@ -30,7 +30,8 @@ entt::entity Mob::createMobEntt()
     //motion.boundingbox = vec2({ motion.scale.x , motion.scale.y });
     motion.boundingbox = vec2({ motion.scale.x*0.13f , motion.scale.y });
     auto& monster = registry.emplace<Monster>(entity);
-    monster.health = 30;
+    monster.max_health = 30;
+    monster.health = monster.max_health;
     monster.damage = 5;
     monster.reward = 20;
 

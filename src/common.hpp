@@ -126,6 +126,7 @@ struct Boss {
 };
 
 struct Monster {
+	int max_health; //useful for displaying health bars
     int health;
     int damage;
     int current_path_index = 0;
