@@ -22,6 +22,7 @@
 #include "menu.hpp"
 #include "ui.hpp"
 #include "ai.hpp"
+#include <BehaviorTree.hpp>
 
 // stlib
 #include <string.h>
@@ -126,6 +127,8 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	// Attaching World Observer to Physics observerlist
 	this->physics = physics;
 	this->physics->attach(this);
+
+	BTCollision = AISystem::MonstersAI::create_collision_tree();
 }
 
 WorldSystem::~WorldSystem()
@@ -198,21 +201,26 @@ void WorldSystem::step(float elapsed_ms) {
 	if (num_bosses_spawned < max_boss && next_boss_spawn < 0.f) {
 		// Reset spawn timer and spawn boss
 		next_boss_spawn = (boss_delay_ms / 2) + uniform_dist(rng) * (boss_delay_ms / 2);
-		create_boss();
+		entt::entity boss = create_boss();
 		num_bosses_spawned += 1;
+		BTCollision->init(boss);
 	}
 
 	// Spawning new mobs
 	next_mob_spawn -= elapsed_ms * current_speed;
 	if (num_mobs_spawned < max_mobs && next_mob_spawn < 0.f) {
 		next_mob_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
-		Mob::createMobEntt();
+		entt::entity mob = Mob::createMobEntt();
 		num_mobs_spawned += 1;
+		BTCollision->init(mob);
 	}
 
 
 	// update velocity for every monster
 	for (auto entity : registry.view<Monster>()) {
+		auto state = BTCollision->process(entity);
+		if (state == BTState::Stopped) continue;
+
 		auto& monster = registry.get<Monster>(entity);
 		auto& motion = registry.get<Motion>(entity);
 		auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
@@ -471,6 +479,7 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			Mix_PlayChannel(-1, impact_sound, 0);
 
 			animal.health -= projectile.damage;
+			animal.collided = true;
 
 			auto& hit_reaction = registry.get<HitReaction>(entity_j);
 			hit_reaction.counter_ms = 750; //ms duration used by health bar
@@ -491,17 +500,6 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			}
 		}
 	}
-
-	/*if (registry.has<Village>(entity_i)) {
-		if (registry.has<Monster>(entity_j)) {
-			auto& monster = registry.get<Monster>(entity_j);
-			auto& motion = registry.get<Motion>(entity_j);
-
-			health -= monster.damage;
-			motion.velocity *= 0;
-			registry.destroy(entity_j);
-		}
-	}*/
 }
 
 // Should the game be over ?
