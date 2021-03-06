@@ -162,13 +162,18 @@ void WorldSystem::init_audio()
 	background_music = Mix_LoadMUS(audio_path("music2.wav").c_str());
 	salmon_dead_sound = Mix_LoadWAV(audio_path("salmon_dead.wav").c_str());
 	salmon_eat_sound = Mix_LoadWAV(audio_path("salmon_eat.wav").c_str());
+	ui_sound_bottle_pop = Mix_LoadWAV(audio_path("bottle_pop.wav").c_str());
+	ui_sound_tick = Mix_LoadWAV(audio_path("tick.wav").c_str());
+	ui_sound_hollow_tick = Mix_LoadWAV(audio_path("hollow_tick.wav").c_str());
+	ui_sound_negative_tick = Mix_LoadWAV(audio_path("negative_tick.wav").c_str());
 	impact_sound = Mix_LoadWAV(audio_path("impact.wav").c_str());
-	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr || impact_sound == nullptr)
+	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr || impact_sound == nullptr || ui_sound_bottle_pop == nullptr)
 		throw std::runtime_error("Failed to load sounds make sure the data directory is present: " +
 			audio_path("music2.wav") +
 			audio_path("impact.wav") +
 			audio_path("salmon_dead.wav") +
-			audio_path("salmon_eat.wav"));
+			audio_path("salmon_eat.wav") +
+			audio_path("ui_sound_bottle_pop.wav"));
 }
 
 
@@ -999,6 +1004,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 	y += GRID_CELL_SIZE / 2.0;
 
 	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
+
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
 
 	//un_highlight(); // turn off highlights for grid node on click
@@ -1017,24 +1023,32 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					entt::entity entity = Hunter::createHunter({ x, y });
 					health -= HUNTER_COST;
 					node.occupancy = OCCUPANCY_HUNTER;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
 				{
 					entt::entity entity = GreenHouse::createGreenHouse({ x, y });
 					health -= GREENHOUSE_COST;
 					node.occupancy = OCCUPANCY_GREENHOUSE;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
 				{
 					entt::entity entity = WatchTower::createWatchTower({ x, y });
 					health -= WATCHTOWER_COST;
 					node.occupancy = OCCUPANCY_TOWER;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (unit_selected == WALL_NAME && health >= WALL_COST)
 				{
 					entt::entity entity = Wall::createWall({ x, y }, false);
 					health -= WALL_COST;
 					node.occupancy = OCCUPANCY_WALL;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
+				}
+				else {
+					//insufficent funds -- should feedback be given here, or when the button is pressed?
+					Mix_PlayChannel(-1, ui_sound_negative_tick, 0);
 				}
                 unit_selected = "";
 				un_highlight();
@@ -1045,14 +1059,17 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 			if (ui_button == Button::tower_button)
 			{
+				
 				unit_selected = WATCHTOWER_NAME;
 			}
 			else if (ui_button == Button::green_house_button)
 			{
+				
 				unit_selected = GREENHOUSE_NAME;
 			}
 			else if (ui_button == Button::stick_figure_button)
 			{
+				
 				unit_selected = HUNTER_NAME;
 			}
 			else if (ui_button == Button::wall_button)
@@ -1061,6 +1078,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			}
 			else if (ui_button == Button::upgrade_button && health >= HUNTER_UPGRADE_COST)
 			{
+			
 				// upgrade button is hit
 				auto view_selectable = registry.view<Selectable>();
 				auto view_unit = registry.view<Unit>();
@@ -1081,6 +1099,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			}
 			else 
 			{
+				
 				unit_selected = "";
 			}
 		}

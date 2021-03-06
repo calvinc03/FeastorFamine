@@ -154,4 +154,8 @@ private:
 	Mix_Chunk* salmon_dead_sound;
 	Mix_Chunk* salmon_eat_sound;
 	Mix_Chunk* impact_sound;
+	Mix_Chunk* ui_sound_bottle_pop;
+	Mix_Chunk* ui_sound_tick;
+	Mix_Chunk* ui_sound_negative_tick;
+	Mix_Chunk* ui_sound_hollow_tick;
 };
