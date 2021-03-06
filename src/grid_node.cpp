@@ -14,6 +14,8 @@ const std::map<int, std::string> terrain_str = {
         {TERRAIN_PUDDLE,   "puddle"}
 };
 
+const std::string node_shader = "node";
+
 entt::entity GridNode::createGridNode(int terrain, vec2 coord)
 {
     // get up node components
@@ -28,7 +30,7 @@ entt::entity GridNode::createGridNode(int terrain, vec2 coord)
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(terrain)), key);
+        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(terrain)), node_shader);
     }
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
     shaded_mesh.layer = 1;
@@ -45,7 +47,7 @@ entt::entity GridNode::createGridNode(int terrain, vec2 coord)
     return entity;
 }
 
-void GridNode::set_terrain(entt::entity entity, int new_terrain) {
+void GridNode::setTerrain(entt::entity entity, int new_terrain) {
     this->terrain = new_terrain;
     const std::string& key = terrain_str.at(new_terrain);
 
@@ -55,7 +57,7 @@ void GridNode::set_terrain(entt::entity entity, int new_terrain) {
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(new_terrain)), key);
+        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(new_terrain)), node_shader);
     }
     else
     {
@@ -64,6 +66,6 @@ void GridNode::set_terrain(entt::entity entity, int new_terrain) {
     shaded_mesh_ref.reference_to_cache = &resource;
 }
 
-void GridNode::set_occupancy(int new_occupancy) {
+void GridNode::setOccupancy(int new_occupancy) {
     this->occupancy = new_occupancy;
 }

@@ -55,7 +55,7 @@ void GridMap::setGridterrain(ivec2 grid_coord, int terrain) {
     }
     auto& node = getNodeAtCoord(grid_coord);
     auto& entity = getEntityAtCoord(grid_coord);
-    node.set_terrain(entity, terrain);
+    node.setTerrain(entity, terrain);
 }
 
 void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy) {
@@ -64,7 +64,7 @@ void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy) {
         return;
     }
     auto& node = getNodeAtCoord(grid_coord);
-    node.set_occupancy(occupancy);
+    node.setOccupancy(occupancy);
 }
 
 GridNode& GridMap::getNodeAtCoord(ivec2 grid_coord) {

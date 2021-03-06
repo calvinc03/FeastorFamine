@@ -8,8 +8,8 @@ public:
     int occupancy = OCCUPANCY_VACANT;
 
     static entt::entity createGridNode(int terrain, vec2 coord);
-    void set_terrain(entt::entity entity, int new_terrain);
-    void set_occupancy(int new_occupancy);
+    void setTerrain(entt::entity entity, int new_terrain);
+    void setOccupancy(int new_occupancy);
 };
 
 
