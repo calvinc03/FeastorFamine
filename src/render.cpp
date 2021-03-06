@@ -3,7 +3,7 @@
 #include "render_components.hpp"
 #include "camera.hpp"
 #include "ui.hpp"
-
+#include "text.hpp"
 #include "entt.hpp"
 #include "grid_map.hpp"
 #include <iostream>
@@ -345,6 +345,12 @@ void RenderSystem::draw()
 				else
 				{
 					drawTexturedMesh(entity, projection_2D);
+				}
+				// Draw text components to the screen
+				if (registry.has<Text>(entity))
+				{
+					auto& text = registry.get<Text>(entity);
+					drawText(text, frame_buffer_size);
 				}
 				gl_has_errors();
 			}
