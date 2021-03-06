@@ -27,8 +27,8 @@ entt::entity Mob::createMobEntt()
     motion.position = coordToPixel(FOREST_COORD);
     motion.scale = vec2({ 0.25f, 0.25f }) * static_cast<vec2>(resource.texture.size);
     // temporary fix
-    motion.boundingbox = vec2({ motion.scale.x , motion.scale.y });
-
+    //motion.boundingbox = vec2({ motion.scale.x , motion.scale.y });
+    motion.boundingbox = vec2({ motion.scale.x*0.13f , motion.scale.y });
     auto& monster = registry.emplace<Monster>(entity);
     monster.health = 30;
     monster.damage = 5;

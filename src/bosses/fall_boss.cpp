@@ -37,7 +37,7 @@ entt::entity FallBoss::createFallBossEntt()
     motion.position = coordToPixel(FOREST_COORD);
     motion.scale = vec2({ 1, 1 }) * static_cast<vec2>(resource.texture.size);
     // scale down bounding box from .png file based on number of frames
-    motion.boundingbox = vec2({ motion.scale.x * (1 / WALK_FRAMES), motion.scale.y });
+    motion.boundingbox = vec2({ motion.scale.x *0.85f / WALK_FRAMES, motion.scale.y });
 
     auto& monster = registry.emplace<Monster>(entity);
     monster.health = 120;
