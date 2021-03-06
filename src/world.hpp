@@ -43,7 +43,7 @@ public:
 	// helper to save game to disk
 	void save_game();
 
-	void upgrade_unit(Unit unit);
+	void upgrade_unit(Unit& unit);
 
 	// helper for path to round jsons
 	void setup_round_from_round_number(int round_number);

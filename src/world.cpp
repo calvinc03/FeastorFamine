@@ -920,53 +920,6 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 	}
 }
 
-void WorldSystem::load_game()
-{
-	// hardcoded for now
-	nlohmann::json save_json = get_json(SAVE_PATH);
-
-	health = save_json["health"];
-	round_number = save_json["round_number"];
-
-	setup_round_from_round_number(round_number);
-	
-	for (nlohmann::json unit : save_json["units"])
-	{
-		int x = unit["x_coord"];
-		int y = unit["y_coord"];
-		auto& node = current_map.getNodeAtCoord(pixelToCoord(vec2(x, y)));
-		std::string type = unit["type"];
-		entt::entity entity;
-		if (type == WATCHTOWER_NAME)
-		{
-			entity = WatchTower::createWatchTower({ x, y });
-			node.occupancy = OCCUPANCY_TOWER;
-		}
-		else if (type == GREENHOUSE_NAME)
-		{
-			entity = GreenHouse::createGreenHouse({ x, y });
-			node.occupancy = OCCUPANCY_TOWER;
-		}
-		else if (type == WALL_NAME)
-		{
-			entity = Wall::createWall({ x, y }, unit["rotate"]);
-			node.occupancy = OCCUPANCY_TOWER;
-		}
-		else if (type == HUNTER_NAME)
-		{
-			entity = Hunter::createHunter({ x, y });
-			node.occupancy = OCCUPANCY_TOWER;
-		}
-
-		auto view_unit = registry.view<Unit>();
-		auto& curr_unit = view_unit.get<Unit>(entity);
-		for (int i = 0; i < unit["upgrades"]; i++)
-		{
-			upgrade_unit(curr_unit);
-		}
-	}
-}
-
 void WorldSystem::settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
 {
 	std::string button_tag = "";
@@ -1139,7 +1092,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 }
 
-void WorldSystem::upgrade_unit(Unit unit)
+void WorldSystem::upgrade_unit(Unit& unit)
 {
 	unit.damage *= 2;
 	unit.upgrades++;
@@ -1188,4 +1141,49 @@ void WorldSystem::save_game()
 	}
 }
 
+void WorldSystem::load_game()
+{
+	// hardcoded for now
+	nlohmann::json save_json = get_json(SAVE_PATH);
 
+	health = save_json["health"];
+	round_number = save_json["round_number"];
+
+	setup_round_from_round_number(round_number);
+
+	for (nlohmann::json unit : save_json["units"])
+	{
+		int x = unit["x_coord"];
+		int y = unit["y_coord"];
+		auto& node = current_map.getNodeAtCoord(pixelToCoord(vec2(x, y)));
+		std::string type = unit["type"];
+		entt::entity entity;
+		if (type == WATCHTOWER_NAME)
+		{
+			entity = WatchTower::createWatchTower({ x, y });
+			node.occupancy = OCCUPANCY_TOWER;
+		}
+		else if (type == GREENHOUSE_NAME)
+		{
+			entity = GreenHouse::createGreenHouse({ x, y });
+			node.occupancy = OCCUPANCY_TOWER;
+		}
+		else if (type == WALL_NAME)
+		{
+			entity = Wall::createWall({ x, y }, unit["rotate"]);
+			node.occupancy = OCCUPANCY_TOWER;
+		}
+		else if (type == HUNTER_NAME)
+		{
+			entity = Hunter::createHunter({ x, y });
+			node.occupancy = OCCUPANCY_TOWER;
+		}
+
+		auto view_unit = registry.view<Unit>();
+		auto& curr_unit = view_unit.get<Unit>(entity);
+		for (int i = 0; i < unit["upgrades"]; i++)
+		{
+			upgrade_unit(curr_unit);
+		}
+	}
+}
