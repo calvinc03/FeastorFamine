@@ -134,6 +134,26 @@ entt::entity GridMap::createGridMap()
     // maintain a GridMap registry (we might want to have multiple maps later)
     auto& map = registry.emplace<GridMap>(entity);
 
+    std::string key = "gridmap";
+    ShadedMesh& resource = cache_resource(key);
+    if (resource.effect.program.resource == 0)
+    {
+        resource = ShadedMesh();
+        RenderSystem::createSprite(resource, textures_path("map/gridmap.png"), key);
+    }
+
+    // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+    //ECS::registry<ShadedMeshRef>.emplace(entity, resource);
+    ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+    shaded_mesh.layer = 0;
+
+    auto& motion = registry.emplace<Motion>(entity);
+    motion.angle = 0.f;
+    motion.velocity = { 0, 0 };
+    motion.position = WINDOW_SIZE_IN_PX/2;
+    // Setting initial values, scale is 1
+    motion.scale = vec2({ 1, 1 }) * (vec2)WINDOW_SIZE_IN_PX;
+
     // fill node_entity_matrix with default type grid node
     for (int x = 0; x < WINDOW_SIZE_IN_COORD.x; x++){
         for (int y = 0; y < WINDOW_SIZE_IN_COORD.y; y++){
