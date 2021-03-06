@@ -25,6 +25,14 @@ void AISystem::step(float elapsed_ms)
 {
 	//(void)elapsed_ms; // placeholder to silence unused warning until implemented
 	
+	for (auto& unit : registry.view<Unit>()) {
+		auto hunter = entt::to_entity(registry, unit);
+		auto& placeable_unit = registry.get<Unit>(hunter);
+
+		// TODO: scale projectile spawn with the current speed of the game 
+		placeable_unit.next_projectile_spawn -= elapsed_ms;
+	}
+
 	// Attack mobs if in range of hunter
 	for (auto monster : registry.view<Monster>()) {
 		auto animal = entt::to_entity(registry, monster);
@@ -38,15 +46,10 @@ void AISystem::step(float elapsed_ms)
 			float adjacent = motion_m.position.x - motion_h.position.x;
 			float distance = sqrt(pow(adjacent, 2) + pow(opposite, 2));
 
-			if (distance <= placeable_unit.attack_range) {
-				// TODO: scale projectile spawn with the current speed of the game 
-				placeable_unit.next_projectile_spawn -= elapsed_ms;
-				if (placeable_unit.next_projectile_spawn < 0.f) {
-					placeable_unit.next_projectile_spawn = FIRING_RATE;
-					Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, placeable_unit.damage);
-					motion_h.angle = atan2(opposite, adjacent);
-				}
-
+			if (distance <= placeable_unit.attack_range && placeable_unit.next_projectile_spawn < 0.f) {
+				placeable_unit.next_projectile_spawn = FIRING_RATE;
+				Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, placeable_unit.damage);
+				motion_h.angle = atan2(opposite, adjacent);
 			}
 		}
 	}

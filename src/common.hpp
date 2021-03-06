@@ -45,6 +45,7 @@ enum grid_terrain
     TERRAIN_PAVEMENT = -1,
     TERRAIN_DEFAULT = 0,
     TERRAIN_MUD = 1,
+    TERRAIN_ICE = 2,
 };
 
 enum grid_occupancy

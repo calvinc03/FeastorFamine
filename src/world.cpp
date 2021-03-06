@@ -52,6 +52,7 @@ void debug_path(std::vector<ivec2> monster_path_coords);
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
 const std::string NEW_GAME = "new_game";
+const std::string SAVE_GAME = "save_game";
 const std::string LOAD_GAME = "load_game";
 const std::string SETTINGS_MENU = "settings_menu";
 const std::string EXIT = "exit";
@@ -282,7 +283,7 @@ void WorldSystem::step(float elapsed_ms) {
 		if (registry.view<Monster>().empty() && registry.view<Projectile>().empty()) {
 			round_number++;
 
-			round_json = get_json(get_json_path_for_round_number(round_number));
+			setup_round_from_round_number(round_number);
 
 			player_state = set_up_stage;
 			num_bosses_spawned = 0;
@@ -333,11 +334,6 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		// set path
 		monster_path_coords = AISystem::MapAI::find_path_BFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
 
-		max_mobs = round_json["max_mobs"];
-		mob_delay_ms = round_json["mob_delay_ms"];
-		max_boss = round_json["max_bosses"];
-		boss_delay_ms = round_json["boss_delay_ms"];
-		std::string season_str = round_json["season"];
 
 		std::cout << season_str << " season! \n";
 
@@ -391,7 +387,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 			weather = SNOW;
 			create_boss = WinterBoss::createWinterBossEntt;
 		}
-		std::cout << round_json["season"] << " \n";
+		std::cout << season_str << " \n";
 		std::cout << "weather " << weather << " \n";
 	}
 }
@@ -429,6 +425,7 @@ void WorldSystem::restart()
 	UI_button::createUI_button(2, stick_figure_button);
 	UI_button::createUI_button(3, wall_button);
 	UI_button::createUI_button(7, upgrade_button, "upgrade_button");
+	UI_button::createUI_button(8, save_button, "save_button");
 	UI_background::createUI_background();
 
 	// create grid map
@@ -445,20 +442,8 @@ void WorldSystem::restart()
 	current_map.setGridOccupancy(FOREST_COORD, OCCUPANCY_FOREST);
 	camera = Camera::createCamera();
 
-	// Reading json file of rounds 
-	std::ifstream input_stream("data/monster_rounds/rounds.json");
-
-	if (input_stream.fail())
-	{
-		std::cout << "Not reading json file \n";
-	}
-
-	// Reading json file for first round
-	round_json = get_json(get_json_path_for_round_number(0));
-	max_mobs = round_json["max_mobs"];
-	mob_delay_ms = round_json["mob_delay_ms"];
-	max_boss = round_json["max_bosses"];
-	boss_delay_ms = round_json["boss_delay_ms"];
+	// set up variables for first round
+	setup_round_from_round_number(0);
 }
 
 nlohmann::json WorldSystem::get_json(std::string json_path)
@@ -467,15 +452,20 @@ nlohmann::json WorldSystem::get_json(std::string json_path)
 
 	if (input_stream.fail())
 	{
-		std::cout << "Not reading json file \n";
+		std::cout << "Not reading json file for path \"" + json_path + "\" \n";
 	}
 
 	return nlohmann::json::parse(input_stream);
 }
 
-std::string WorldSystem::get_json_path_for_round_number(int round_number)
+void WorldSystem::setup_round_from_round_number(int round_number)
 {
-	return INPUT_PATH + std::to_string(round_number) + JSON_EXTENSION;
+	nlohmann::json round_json = get_json(INPUT_PATH + std::to_string(round_number) + JSON_EXTENSION);
+	max_mobs = round_json["max_mobs"];
+	mob_delay_ms = round_json["mob_delay_ms"];
+	max_boss = round_json["max_bosses"];
+	boss_delay_ms = round_json["boss_delay_ms"];
+	season_str = round_json["season"];
 }
 
 void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
@@ -918,6 +908,65 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 		game_state = settings_menu;
 		create_settings_menu();
 	}
+	else if (button_tag == "load_game")
+	{
+		restart();
+		std::string save_path = "data/save_files/test.json";
+		remove_menu_buttons();
+		load_game(save_path);
+		game_state = in_game;
+	}
+}
+
+void WorldSystem::load_game(std::string save_path)
+{
+	// hardcoded for now
+	nlohmann::json save_json = get_json(save_path);
+
+	health = save_json["health"];
+	round_number = save_json["round_number"];
+
+	setup_round_from_round_number(round_number);
+	
+	for (nlohmann::json unit : save_json["units"])
+	{
+		int x = unit["x_coord"];
+		int y = unit["y_coord"];
+		auto& node = current_map.getNodeAtCoord(pixelToCoord(vec2(x, y)));
+		std::string type = unit["type"];
+
+		if (type == WATCHTOWER_NAME)
+		{
+			WatchTower::createWatchTower({ x, y });
+			node.occupancy = OCCUPANCY_TOWER;
+		}
+		else if (type == GREENHOUSE_NAME)
+		{
+			GreenHouse::createGreenHouse({ x, y });
+			node.occupancy = OCCUPANCY_TOWER;
+		}
+		else if (type == WALL_NAME)
+		{
+			Wall::createWall({ x, y }, unit["rotate"]);
+			node.occupancy = OCCUPANCY_TOWER;
+		}
+		else if (type == HUNTER_NAME)
+		{
+			Hunter::createHunter({ x, y });
+			node.occupancy = OCCUPANCY_TOWER;
+		}
+	}
+}
+
+void WorldSystem::save_game()
+{
+	std::cout << "yooooooooo" << std::endl;
+	std::string test_path = "data/save_files/test.json";
+	nlohmann::json save_json;
+	save_json["round_number"] = round_number;
+	save_json["health"] = health;
+	
+	// TODO finish implementing, may need to edit unit struct
 }
 
 void WorldSystem::settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
@@ -1075,6 +1124,10 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					}
 				}
 			}
+			else if (ui_button == Button::save_button)
+			{
+				save_game();
+			}
 			else 
 			{
 				unit_selected = "";
@@ -1087,3 +1140,5 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 	}
 
 }
+
+

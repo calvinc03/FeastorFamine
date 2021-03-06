@@ -34,10 +34,17 @@ public:
 	// restart level
 	void restart();
 
+	// helper to load json from disk
 	nlohmann::json get_json(std::string json_path);
 
+	// helper to load game from save game path
+	void load_game(std::string save_path);
+
+	// helper to save game to disk
+	void save_game();
+
 	// helper for path to round jsons
-	std::string get_json_path_for_round_number(int round_number);
+	void setup_round_from_round_number(int round_number);
 
 	// Check for collisions
 	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
@@ -99,7 +106,7 @@ private:
 	int health;
 
 	// json object for rounds
-	nlohmann::json round_json;
+	std::string season_str;
 
 	// Game state
 	float current_speed;

@@ -3,7 +3,7 @@
 #include "render_components.hpp"
 #include "camera.hpp"
 #include "ui.hpp"
-
+#include "text.hpp"
 #include "entt.hpp"
 #include "grid_map.hpp"
 #include <iostream>
@@ -318,6 +318,9 @@ void RenderSystem::draw()
 	auto view_nodes = registry.view<GridNode>();
 
 	auto view_mesh_ref = registry.view<ShadedMeshRef>();
+
+
+	
 	std::vector<std::vector<entt::entity>> sort_by_layer = {};
 
 	// 100 layers
@@ -327,6 +330,7 @@ void RenderSystem::draw()
 	{
 		int layer = view_mesh_ref.get<ShadedMeshRef>(entity).layer;
 		sort_by_layer[layer].push_back(entity);
+
 	}
 	for (auto entities : sort_by_layer)
 	{
@@ -346,9 +350,18 @@ void RenderSystem::draw()
 				{
 					drawTexturedMesh(entity, projection_2D);
 				}
+
 				gl_has_errors();
 			}
+
 		}
+
+	}
+
+	//render text always on top. Text doesn't have the shaded mesh ref component.
+	auto view_text = registry.view<Text>();
+	for (auto [entity, text] : view_text.each()) 	{
+		drawText(text, frame_buffer_size);
 	}
 
 	// Truely render to the screen
