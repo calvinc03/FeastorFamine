@@ -361,11 +361,12 @@ void RenderSystem::draw()
 
 	}
 
-	//render text always on top. Text doesn't have the shaded mesh ref component.
-	//auto view_text = registry.view<Text>();
-	//for (auto [entity, text] : view_text.each()) 	{
-	//	drawText(text, frame_buffer_size);
-	//}
+	//useful for rendering entities with only text and no ShadedMeshRef
+	auto view_text = registry.view<Text>();
+	for (auto [entity, text] : view_text.each()) 	{
+		if(!registry.has<ShadedMeshRef>(entity))
+			drawText(text, frame_buffer_size);
+	}
 
 	// Truely render to the screen
 	drawToScreen();

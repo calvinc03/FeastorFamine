@@ -291,7 +291,16 @@ void WorldSystem::step(float elapsed_ms) {
 			num_mobs_spawned = 0;
 		}
 	}
+
+	//stage text is set once per step... 
+	auto& stage_text = registry.get<Text>(stage_text_entity);
+	stage_text.content = "BATTLE";
+	stage_text.colour = { 1.0f, 0.1f, 0.1f };
+
+	registry.get<Text>(round_text_entity).content = "round: " + std::to_string(round_number);
+	registry.get<Text>(food_text_entity).content =  "food: " + std::to_string(health);
 }
+
 
 void un_highlight()
 {
@@ -392,6 +401,11 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		std::cout << season_str << " \n";
 		std::cout << "weather " << weather << " \n";
 	}
+	auto& stage_text = registry.get<Text>(stage_text_entity);
+	stage_text.content = "PREPARE";
+	stage_text.colour = {1.0f, 1.0f, 1.0f};
+	registry.get<Text>(round_text_entity).content = "round: " + std::to_string(round_number);
+	registry.get<Text>(food_text_entity).content =  "food: " + std::to_string(health);
 }
 
 // Start Menu
@@ -430,10 +444,15 @@ void WorldSystem::restart()
 	UI_button::createUI_button(0, tower_button, WATCHTOWER_COST );
 	UI_button::createUI_button(1, green_house_button, GREENHOUSE_COST);
 	UI_button::createUI_button(2, stick_figure_button, HUNTER_COST);
-	UI_button::createUI_button(3, wall_button, WALL_COST);
+	UI_button::createUI_button(4, wall_button, WALL_COST);
 	UI_button::createUI_button(7, upgrade_button, HUNTER_COST, "upgrade_button"); 
-	UI_button::createUI_button(8, save_button,0, "save_button");
+	UI_button::createUI_button(10, save_button,0, "save_button");
 	UI_background::createUI_background();
+
+	stage_text_entity = create_ui_text(vec2(5, 65), "PREPARE");
+	round_text_entity = create_ui_text(vec2(5,50), "");
+	food_text_entity = create_ui_text(vec2(5, 35), "");
+	
 
 	// create grid map
 	current_map = registry.get<GridMap>(GridMap::createGridMap());

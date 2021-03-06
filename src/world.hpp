@@ -6,7 +6,7 @@
 #include "Observer.hpp"
 #include "physics.hpp"
 #include <BehaviorTree.hpp>
-
+#include "text.hpp"
 // stlib
 #include <vector>
 
@@ -136,9 +136,11 @@ private:
 	float set_up_timer;
 
 	//UI
-	entt::entity ui;
-
+	entt::entity round_text_entity;
+	entt::entity food_text_entity;
+	entt::entity stage_text_entity;
 	std::string unit_selected;
+
 
 	// remove entities from start menu
 	void remove_menu_buttons();
