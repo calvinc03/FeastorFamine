@@ -128,7 +128,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	this->physics = physics;
 	this->physics->attach(this);
 
-	BTCollision = AISystem::MonstersAI::create_collision_tree();
+	BTCollision = AISystem::MonstersAI::createCollisionTree();
 }
 
 WorldSystem::~WorldSystem()
@@ -332,7 +332,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		set_up_timer = SET_UP_TIME;
 		un_highlight();
 		// set path
-		monster_path_coords = AISystem::MapAI::find_path_BFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
+		monster_path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
 
 
 		std::cout << season_str << " season! \n";
