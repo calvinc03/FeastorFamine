@@ -1,7 +1,6 @@
 #include "ui.hpp"
 #include "render.hpp"
 #include <string>
-#include "text.hpp"
 
 void UI_highlight_system(vec2 mouse_pos) {
 	auto view_ui = registry.view<UI_element, HighlightBool>(); //may make separate registry for UI elements. Could have position+scale instead of motion component
@@ -41,6 +40,16 @@ std::string button_to_string(int button) {
 	return "no button / invalid button / or this method is broken!";
 }
 
+//creates text that is independent of aspect ratio and resolution
+entt::entity create_ui_text(vec2 position, std::string content) {
+	auto entity = registry.create();
+	auto notoRegular = Font::load("data/fonts/Noto/NotoSans-Regular.ttf");
+	auto& ui_text = registry.emplace<Text>(entity, Text(content, notoRegular, position));
+	ui_text.scale = 0.3f;
+	ui_text.colour = { 1.0f,1.0f,1.0f };
+	return entity;
+}
+
 entt::entity UI_background::createUI_background()
 {
 	auto entity = registry.create();
@@ -61,7 +70,9 @@ entt::entity UI_background::createUI_background()
 	ui_element.scale = vec2(WINDOW_SIZE_IN_PX.x, WINDOW_SIZE_IN_PX.y / 10.0f + 18);
 	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x/2,WINDOW_SIZE_IN_PX.y - ui_element.scale.y/2.0f);
 
-	
+
+
+
 	registry.emplace<UI_background>(entity);
 
 	return entity;
