@@ -36,10 +36,11 @@ entt::entity SummerBoss::createSummerBossEntt()
     motion.velocity = { 50.f, 0 };
     motion.position = coordToPixel(FOREST_COORD);
     motion.scale = vec2({ 1, 1 }) * static_cast<vec2>(resource.texture.size);
-    motion.boundingbox = vec2({ motion.scale.x * (1 / WALK_FRAMES), motion.scale.y });
-
+   // motion.boundingbox = vec2({ motion.scale.x * (1 / WALK_FRAMES), motion.scale.y });
+    motion.boundingbox = vec2({ motion.scale.x * 0.85f / WALK_FRAMES, motion.scale.y });
     auto& monster = registry.emplace<Monster>(entity);
-    monster.health = 60;
+    monster.max_health = 60;
+    monster.health = monster.max_health;
     monster.damage = 10;
     monster.reward = 50;
 

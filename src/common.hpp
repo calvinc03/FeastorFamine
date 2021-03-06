@@ -29,9 +29,15 @@ static const ivec2 WINDOW_SIZE_IN_PX = {1200, 700};
 static const ivec2 WINDOW_SIZE_IN_COORD = WINDOW_SIZE_IN_PX / GRID_CELL_SIZE;
 static const ivec2 FOREST_COORD = ivec2(0, 0);
 static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
+static const int MAX_TILES = 84;
 
 static int season;
 static int weather;
+
+const std::string WATCHTOWER_NAME = "watchtower";
+const std::string GREENHOUSE_NAME = "greenhouse";
+const std::string HUNTER_NAME = "hunter";
+const std::string WALL_NAME = "wall";
 
 // C++ random number generator
 static std::default_random_engine rng;
@@ -120,18 +126,23 @@ struct Boss {
 };
 
 struct Monster {
+	int max_health; //useful for displaying health bars
     int health;
     int damage;
     int current_path_index = 0;
 	int reward;
+	bool collided = false;
 };
 
 struct Unit {
+	std::string type;
 	int damage;
 	size_t attack_rate;
 	float next_projectile_spawn;
 	int attack_range;
 	int workers;
+	int upgrades;
+	bool rotate;
 };
 
 struct Food {

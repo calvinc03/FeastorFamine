@@ -22,6 +22,7 @@
 #include "menu.hpp"
 #include "ui.hpp"
 #include "ai.hpp"
+#include <BehaviorTree.hpp>
 
 // stlib
 #include <string.h>
@@ -43,10 +44,6 @@ const size_t GREENHOUSE_COST = 300;
 const size_t HUNTER_COST = 150;
 const size_t WALL_COST = 100;
 const size_t HUNTER_UPGRADE_COST = 50;
-const std::string WATCHTOWER_NAME = "watchtower";
-const std::string GREENHOUSE_NAME = "greenhouse";
-const std::string HUNTER_NAME = "hunter";
-const std::string WALL_NAME = "wall";
 void debug_path(std::vector<ivec2> monster_path_coords);
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
@@ -61,7 +58,8 @@ const std::string SUMMER_TITLE = "summer";
 const std::string FALL_TITLE = "fall";
 const std::string WINTER_TITLE = "winter";
 const std::string INPUT_PATH = "data/monster_rounds/";
-const std::string JSON_EXTENSION = ".json";
+const std::string JSON_EXTENSION = ".json"; \
+const std::string SAVE_PATH = "data/save_files/save_state.json";
 
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	game_state(start_menu),
@@ -126,6 +124,8 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	// Attaching World Observer to Physics observerlist
 	this->physics = physics;
 	this->physics->attach(this);
+
+	BTCollision = AISystem::MonstersAI::createCollisionTree();
 }
 
 WorldSystem::~WorldSystem()
@@ -162,13 +162,18 @@ void WorldSystem::init_audio()
 	background_music = Mix_LoadMUS(audio_path("music2.wav").c_str());
 	salmon_dead_sound = Mix_LoadWAV(audio_path("salmon_dead.wav").c_str());
 	salmon_eat_sound = Mix_LoadWAV(audio_path("salmon_eat.wav").c_str());
+	ui_sound_bottle_pop = Mix_LoadWAV(audio_path("bottle_pop.wav").c_str());
+	ui_sound_tick = Mix_LoadWAV(audio_path("tick.wav").c_str());
+	ui_sound_hollow_tick = Mix_LoadWAV(audio_path("hollow_tick.wav").c_str());
+	ui_sound_negative_tick = Mix_LoadWAV(audio_path("negative_tick.wav").c_str());
 	impact_sound = Mix_LoadWAV(audio_path("impact.wav").c_str());
-	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr || impact_sound == nullptr)
+	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr || impact_sound == nullptr || ui_sound_bottle_pop == nullptr)
 		throw std::runtime_error("Failed to load sounds make sure the data directory is present: " +
 			audio_path("music2.wav") +
 			audio_path("impact.wav") +
 			audio_path("salmon_dead.wav") +
-			audio_path("salmon_eat.wav"));
+			audio_path("salmon_eat.wav") +
+			audio_path("ui_sound_bottle_pop.wav"));
 }
 
 
@@ -180,7 +185,6 @@ void WorldSystem::step(float elapsed_ms) {
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// animation
-
 	fps_ms -= elapsed_ms;
 	if (fps_ms < 0.f) {
 		for (auto entity : registry.view<Animate>()) {
@@ -198,21 +202,26 @@ void WorldSystem::step(float elapsed_ms) {
 	if (num_bosses_spawned < max_boss && next_boss_spawn < 0.f) {
 		// Reset spawn timer and spawn boss
 		next_boss_spawn = (boss_delay_ms / 2) + uniform_dist(rng) * (boss_delay_ms / 2);
-		create_boss();
+		entt::entity boss = create_boss();
 		num_bosses_spawned += 1;
+		BTCollision->init(boss);
 	}
 
 	// Spawning new mobs
 	next_mob_spawn -= elapsed_ms * current_speed;
 	if (num_mobs_spawned < max_mobs && next_mob_spawn < 0.f) {
 		next_mob_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
-		Mob::createMobEntt();
+		entt::entity mob = Mob::createMobEntt();
 		num_mobs_spawned += 1;
+		BTCollision->init(mob);
 	}
 
 
 	// update velocity for every monster
 	for (auto entity : registry.view<Monster>()) {
+		auto state = BTCollision->process(entity);
+		if (state == BTState::Stopped) continue;
+
 		auto& monster = registry.get<Monster>(entity);
 		auto& motion = registry.get<Motion>(entity);
 		auto& current_path_coord = monster_path_coords.at(monster.current_path_index);
@@ -302,9 +311,10 @@ bool is_walkable(GridMap& current_map, ivec2 coord)
     return false;
 }
 
+
 void WorldSystem::set_up_step(float elapsed_ms)
 {
-
+	
 	// Restart/End game after max rounds
 	if (round_number > 16)
 	{
@@ -324,7 +334,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		set_up_timer = SET_UP_TIME;
 		un_highlight();
 		// set path
-		monster_path_coords = AISystem::MapAI::find_path_BFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
+		monster_path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
 
 
 		std::cout << season_str << " season! \n";
@@ -387,17 +397,22 @@ void WorldSystem::set_up_step(float elapsed_ms)
 // Start Menu
 void WorldSystem::setup_start_menu()
 {
+	
 	std::cout << "In Start Menu\n";
 	registry.clear();
 	screen_state_entity = registry.create();
 	registry.emplace<ScreenState>(screen_state_entity);
+
 	create_start_menu();
 	camera = Camera::createCamera();
+	
+	
 }
 
 // Reset the world state to its initial state
 void WorldSystem::restart()
 {
+	
 	std::cout << "Restarting\n";
 
 	// Reset the game state
@@ -412,12 +427,12 @@ void WorldSystem::restart()
 	registry.emplace<ScreenState>(screen_state_entity);
 
 	//create UI	-- needs to be at the top of restart for rendering order.
-	UI_button::createUI_button(0, tower_button);
-	UI_button::createUI_button(1, green_house_button);
-	UI_button::createUI_button(2, stick_figure_button);
-	UI_button::createUI_button(3, wall_button);
-	UI_button::createUI_button(7, upgrade_button, "upgrade_button");
-	UI_button::createUI_button(8, save_button, "save_button");
+	UI_button::createUI_button(0, tower_button, WATCHTOWER_COST );
+	UI_button::createUI_button(1, green_house_button, GREENHOUSE_COST);
+	UI_button::createUI_button(2, stick_figure_button, HUNTER_COST);
+	UI_button::createUI_button(3, wall_button, WALL_COST);
+	UI_button::createUI_button(7, upgrade_button, HUNTER_COST, "upgrade_button"); 
+	UI_button::createUI_button(8, save_button,0, "save_button");
 	UI_background::createUI_background();
 
 	// create grid map
@@ -436,6 +451,7 @@ void WorldSystem::restart()
 
 	// set up variables for first round
 	setup_round_from_round_number(0);
+
 }
 
 nlohmann::json WorldSystem::get_json(std::string json_path)
@@ -471,6 +487,7 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			Mix_PlayChannel(-1, impact_sound, 0);
 
 			animal.health -= projectile.damage;
+			animal.collided = true;
 
 			auto& hit_reaction = registry.get<HitReaction>(entity_j);
 			hit_reaction.counter_ms = 750; //ms duration used by health bar
@@ -491,17 +508,6 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			}
 		}
 	}
-
-	/*if (registry.has<Village>(entity_i)) {
-		if (registry.has<Monster>(entity_j)) {
-			auto& monster = registry.get<Monster>(entity_j);
-			auto& motion = registry.get<Motion>(entity_j);
-
-			health -= monster.damage;
-			motion.velocity *= 0;
-			registry.destroy(entity_j);
-		}
-	}*/
 }
 
 // Should the game be over ?
@@ -913,62 +919,10 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 	else if (button_tag == "load_game")
 	{
 		restart();
-		std::string save_path = "data/save_files/test.json";
 		remove_menu_buttons();
-		load_game(save_path);
+		load_game();
 		game_state = in_game;
 	}
-}
-
-void WorldSystem::load_game(std::string save_path)
-{
-	// hardcoded for now
-	nlohmann::json save_json = get_json(save_path);
-
-	health = save_json["health"];
-	round_number = save_json["round_number"];
-
-	setup_round_from_round_number(round_number);
-	
-	for (nlohmann::json unit : save_json["units"])
-	{
-		int x = unit["x_coord"];
-		int y = unit["y_coord"];
-		auto& node = current_map.getNodeAtCoord(pixelToCoord(vec2(x, y)));
-		std::string type = unit["type"];
-
-		if (type == WATCHTOWER_NAME)
-		{
-			WatchTower::createWatchTower({ x, y });
-			node.occupancy = OCCUPANCY_TOWER;
-		}
-		else if (type == GREENHOUSE_NAME)
-		{
-			GreenHouse::createGreenHouse({ x, y });
-			node.occupancy = OCCUPANCY_TOWER;
-		}
-		else if (type == WALL_NAME)
-		{
-			Wall::createWall({ x, y }, unit["rotate"]);
-			node.occupancy = OCCUPANCY_TOWER;
-		}
-		else if (type == HUNTER_NAME)
-		{
-			Hunter::createHunter({ x, y });
-			node.occupancy = OCCUPANCY_TOWER;
-		}
-	}
-}
-
-void WorldSystem::save_game()
-{
-	std::cout << "yooooooooo" << std::endl;
-	std::string test_path = "data/save_files/test.json";
-	nlohmann::json save_json;
-	save_json["round_number"] = round_number;
-	save_json["health"] = health;
-	
-	// TODO finish implementing, may need to edit unit struct
 }
 
 void WorldSystem::settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
@@ -1050,6 +1004,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 	y += GRID_CELL_SIZE / 2.0;
 
 	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
+
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
 
 	//un_highlight(); // turn off highlights for grid node on click
@@ -1068,24 +1023,32 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					entt::entity entity = Hunter::createHunter({ x, y });
 					health -= HUNTER_COST;
 					node.occupancy = OCCUPANCY_HUNTER;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
 				{
 					entt::entity entity = GreenHouse::createGreenHouse({ x, y });
 					health -= GREENHOUSE_COST;
 					node.occupancy = OCCUPANCY_GREENHOUSE;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
 				{
 					entt::entity entity = WatchTower::createWatchTower({ x, y });
 					health -= WATCHTOWER_COST;
 					node.occupancy = OCCUPANCY_TOWER;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (unit_selected == WALL_NAME && health >= WALL_COST)
 				{
 					entt::entity entity = Wall::createWall({ x, y }, false);
 					health -= WALL_COST;
 					node.occupancy = OCCUPANCY_WALL;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
+				}
+				else {
+					//insufficent funds -- should feedback be given here, or when the button is pressed?
+					Mix_PlayChannel(-1, ui_sound_negative_tick, 0);
 				}
                 unit_selected = "";
 				un_highlight();
@@ -1096,14 +1059,17 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 			if (ui_button == Button::tower_button)
 			{
+				
 				unit_selected = WATCHTOWER_NAME;
 			}
 			else if (ui_button == Button::green_house_button)
 			{
+				
 				unit_selected = GREENHOUSE_NAME;
 			}
 			else if (ui_button == Button::stick_figure_button)
 			{
+				
 				unit_selected = HUNTER_NAME;
 			}
 			else if (ui_button == Button::wall_button)
@@ -1112,6 +1078,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			}
 			else if (ui_button == Button::upgrade_button && health >= HUNTER_UPGRADE_COST)
 			{
+			
 				// upgrade button is hit
 				auto view_selectable = registry.view<Selectable>();
 				auto view_unit = registry.view<Unit>();
@@ -1120,7 +1087,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					if (view_selectable.get<Selectable>(entity).selected)
 					{
 						auto& unit = view_unit.get<Unit>(entity);
-						unit.damage *= 2;
+						upgrade_unit(unit);
 						health -= HUNTER_UPGRADE_COST;
 						std::cout << "damage x2\n";
 					}
@@ -1132,6 +1099,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			}
 			else 
 			{
+				
 				unit_selected = "";
 			}
 		}
@@ -1143,4 +1111,98 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 }
 
+void WorldSystem::upgrade_unit(Unit& unit)
+{
+	unit.damage *= 2;
+	unit.upgrades++;
+}
 
+void WorldSystem::save_game()
+{
+	nlohmann::json save_json;
+	save_json["round_number"] = round_number;
+	save_json["health"] = health;
+	
+	// TODO finish implementing, may need to edit unit struct
+	auto view_unit = registry.view<Unit>();
+	auto view_motion = registry.view<Motion>();
+	auto view_selectable = registry.view<Selectable>();
+	std::vector<nlohmann::json> unit_list(view_selectable.size());
+
+	int i = 0;
+	for (auto& entity : view_selectable)
+	{
+		nlohmann::json curr_unit;
+		auto unit = view_unit.get<Unit>(entity);
+		auto motion = view_motion.get<Motion>(entity);
+
+		curr_unit["type"] = unit.type;
+		curr_unit["x_coord"] = motion.position.x;
+		curr_unit["y_coord"] = motion.position.y;
+		curr_unit["upgrades"] = unit.upgrades;
+		curr_unit["rotate"] = unit.rotate;
+
+		unit_list[i++] = curr_unit;
+	}
+
+	save_json["units"] = unit_list;
+	std::ofstream file(SAVE_PATH);
+	file << save_json.dump(4);
+	file.close();
+
+	if (!file.fail()) 
+	{
+		std::cout << "Game saved!" << std::endl;
+	}
+	else
+	{
+		std::cout << "Game failed to save" << std::endl;
+	}
+}
+
+void WorldSystem::load_game()
+{
+	// hardcoded for now
+	nlohmann::json save_json = get_json(SAVE_PATH);
+
+	health = save_json["health"];
+	round_number = save_json["round_number"];
+
+	setup_round_from_round_number(round_number);
+
+	for (nlohmann::json unit : save_json["units"])
+	{
+		int x = unit["x_coord"];
+		int y = unit["y_coord"];
+		auto& node = current_map.getNodeAtCoord(pixelToCoord(vec2(x, y)));
+		std::string type = unit["type"];
+		entt::entity entity;
+		if (type == WATCHTOWER_NAME)
+		{
+			entity = WatchTower::createWatchTower({ x, y });
+			node.occupancy = OCCUPANCY_TOWER;
+		}
+		else if (type == GREENHOUSE_NAME)
+		{
+			entity = GreenHouse::createGreenHouse({ x, y });
+			node.occupancy = OCCUPANCY_TOWER;
+		}
+		else if (type == WALL_NAME)
+		{
+			entity = Wall::createWall({ x, y }, unit["rotate"]);
+			node.occupancy = OCCUPANCY_TOWER;
+		}
+		else if (type == HUNTER_NAME)
+		{
+			entity = Hunter::createHunter({ x, y });
+			node.occupancy = OCCUPANCY_TOWER;
+		}
+
+		auto view_unit = registry.view<Unit>();
+		auto& curr_unit = view_unit.get<Unit>(entity);
+		for (int i = 0; i < unit["upgrades"]; i++)
+		{
+			upgrade_unit(curr_unit);
+		}
+	}
+}

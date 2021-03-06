@@ -1,10 +1,10 @@
 #include "grid_node.hpp"
 
 const std::map<int, std::string> terrain_texture_path = {
-        {TERRAIN_DEFAULT,  "grid/grass.png"},
-        {TERRAIN_PAVEMENT, "grid/pavement.png"},
-        {TERRAIN_MUD,      "grid/mud.png"},
-        {TERRAIN_PUDDLE,   "grid/puddle.png"}
+        {TERRAIN_DEFAULT,  "map/grass.png"},
+        {TERRAIN_PAVEMENT, "map/pavement.png"},
+        {TERRAIN_MUD,      "map/mud.png"},
+        {TERRAIN_PUDDLE,   "map/puddle.png"}
 };
 
 const std::map<int, std::string> terrain_str = {
@@ -13,6 +13,8 @@ const std::map<int, std::string> terrain_str = {
         {TERRAIN_MUD,      "mud"},
         {TERRAIN_PUDDLE,   "puddle"}
 };
+
+const std::string node_shader = "node";
 
 entt::entity GridNode::createGridNode(int terrain, vec2 coord)
 {
@@ -28,9 +30,10 @@ entt::entity GridNode::createGridNode(int terrain, vec2 coord)
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(terrain)), key);
+        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(terrain)), node_shader);
     }
-    registry.emplace<ShadedMeshRef>(entity, resource);
+    ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+    shaded_mesh.layer = 1;
 
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
@@ -44,7 +47,7 @@ entt::entity GridNode::createGridNode(int terrain, vec2 coord)
     return entity;
 }
 
-void GridNode::setterrain(entt::entity entity, int new_terrain) {
+void GridNode::setTerrain(entt::entity entity, int new_terrain) {
     this->terrain = new_terrain;
     const std::string& key = terrain_str.at(new_terrain);
 
@@ -54,7 +57,7 @@ void GridNode::setterrain(entt::entity entity, int new_terrain) {
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(new_terrain)), key);
+        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(new_terrain)), node_shader);
     }
     else
     {

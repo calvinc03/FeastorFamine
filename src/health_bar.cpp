@@ -13,7 +13,7 @@ namespace HealthSystem
 {
 
 	//NOTE: currently, health is not percentage based.
-	void createHealthBar(vec2 position,  int health) {
+	void createHealthBar(vec2 position,  int health, int max_health) {
 		auto entity = registry.create();
 
 		std::string key = "health bar";
@@ -57,7 +57,7 @@ namespace HealthSystem
 		motion.angle = 0.f;
 		motion.velocity = { 0, 0 };
 		motion.position = position + vec2(0, 50);
-		motion.scale = vec2(health, 5);
+		motion.scale = vec2((float)health/ (float)max_health * 50.0f, 5);
 
 		registry.emplace<HealthComponent>(entity);
 
@@ -73,7 +73,7 @@ namespace HealthSystem
 		for (auto [entity, hit, motion, monster] : view_hit_reactions.each()) {
 			hit.counter_ms -= elapsed_ms;
 			if (hit.counter_ms > 0) {
-				createHealthBar(motion.position,monster.health);
+				createHealthBar(motion.position, monster.health,monster.max_health );
 			}
 		}
 		

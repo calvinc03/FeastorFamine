@@ -1,6 +1,7 @@
 #include "ui.hpp"
 #include "render.hpp"
 #include <string>
+#include "text.hpp"
 
 void UI_highlight_system(vec2 mouse_pos) {
 	auto view_ui = registry.view<UI_element, HighlightBool>(); //may make separate registry for UI elements. Could have position+scale instead of motion component
@@ -66,7 +67,8 @@ entt::entity UI_background::createUI_background()
 	return entity;
 }
 
-entt::entity UI_button::createUI_button(int pos, Button button, std::string tag)
+#include "world.hpp"
+entt::entity UI_button::createUI_button(int pos, Button button, size_t cost, std::string tag) //later: reference vars for cost in world.
 {
 	auto entity = registry.create();
 
@@ -92,7 +94,7 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag)
 			RenderSystem::createSprite(resource, textures_path("upgrade_icon.png"), "ui");
 		}
 		else if (button == save_button) {
-			RenderSystem::createSprite(resource, textures_path("buttons/save_button2.png"), "ui");
+			RenderSystem::createSprite(resource, textures_path("buttons/save_button.png"), "ui");
 		}
 	}
 
@@ -110,6 +112,20 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag)
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);
 	registry.emplace<UI_button>(entity);
+	if (cost != 0) {
+		auto notoRegular = Font::load("data/fonts/Noto/NotoSans-Regular.ttf");
+		auto& t = registry.emplace<Text>(entity, Text(std::to_string(cost), notoRegular, vec2(ui_element.position.x, WINDOW_SIZE_IN_PX.y - ui_element.position.y - 40)));
+		t.scale = 0.3f;
+		t.colour = { 1.0f,1.0f,1.0f };
+	}
 
 	return entity;
 }
+
+
+
+	//auto entity = registry.create();
+	//auto notoRegular = Font::load("data/fonts/Noto/NotoSans-Regular.ttf");
+	//auto& t = registry.emplace<Text>(entity, Text("Hello, world!", notoRegular, { 300.0f, 300.0f }));
+	//t.colour = vec3(1.0f, 1.0f, 1.0f);
+

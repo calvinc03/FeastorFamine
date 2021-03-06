@@ -5,6 +5,7 @@
 #include "grid_map.hpp"
 #include "Observer.hpp"
 #include "physics.hpp"
+#include <BehaviorTree.hpp>
 
 // stlib
 #include <vector>
@@ -37,10 +38,12 @@ public:
 	nlohmann::json get_json(std::string json_path);
 
 	// helper to load game from save game path
-	void load_game(std::string save_path);
+	void load_game();
 
 	// helper to save game to disk
 	void save_game();
+
+	void upgrade_unit(Unit& unit);
 
 	// helper for path to round jsons
 	void setup_round_from_round_number(int round_number);
@@ -126,6 +129,8 @@ private:
 	GridMap current_map;
     std::vector<ivec2> monster_path_coords = {};
 
+	std::shared_ptr<BTNode> BTCollision;
+
 	// round and set up
 	int round_number;
 	float set_up_timer;
@@ -149,4 +154,8 @@ private:
 	Mix_Chunk* salmon_dead_sound;
 	Mix_Chunk* salmon_eat_sound;
 	Mix_Chunk* impact_sound;
+	Mix_Chunk* ui_sound_bottle_pop;
+	Mix_Chunk* ui_sound_tick;
+	Mix_Chunk* ui_sound_negative_tick;
+	Mix_Chunk* ui_sound_hollow_tick;
 };
