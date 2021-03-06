@@ -123,6 +123,7 @@ struct Monster {
     int damage;
     int current_path_index = 0;
 	int reward;
+	bool collided = false;
 };
 
 struct Unit {

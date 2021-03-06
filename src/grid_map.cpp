@@ -60,6 +60,9 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord) {
     }
     // cannot find a valid neighbor; should NOT happen
     assert(false);
+
+    // placeholder to remove error
+    return ivec2(0, 0);
 }
 
 void set_random_terrain_path(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain = TERRAIN_PAVEMENT) {
