@@ -250,12 +250,12 @@ void WorldSystem::step(float elapsed_ms) {
 		//	monster.current_path_index++;
 		//}
 
-		// if we will reach the middle of next node in the next step, increase path index for next step
-		vec2 next_step_pos = motion.position + (elapsed_ms / 1000.f) * motion.velocity;
-		vec2 next_node_pos = coordToPixel(next_path_coord);
-		if (abs(next_step_pos.x - next_node_pos.x) < 10 && abs(next_step_pos.y - next_node_pos.y) < 10) {
-			monster.current_path_index++;
-		}
+        assert(monster_path_coords[monster.current_path_index] == current_path_coord);
+        
+        ivec2 next_step_coord = pixelToCoord(motion.position + (elapsed_ms / 1000.f) * motion.velocity);
+        if (next_step_coord == next_path_coord) {
+            monster.current_path_index++;
+        }
 
 		if (DebugSystem::in_debug_mode)
 		{
