@@ -1,23 +1,39 @@
 #include "grid_node.hpp"
 
-std::string key = "grid_node";
+const std::map<int, std::string> terrain_texture_path = {
+        {TERRAIN_DEFAULT,  "map/grass.png"},
+        {TERRAIN_PAVEMENT, "map/pavement.png"},
+        {TERRAIN_MUD,      "map/mud.png"},
+        {TERRAIN_PUDDLE,   "map/puddle.png"}
+};
 
-entt::entity GridNode::createGridNode(int terran, vec2 coord)
+const std::map<int, std::string> terrain_str = {
+        {TERRAIN_DEFAULT,  "grass"},
+        {TERRAIN_PAVEMENT, "pavement"},
+        {TERRAIN_MUD,      "mud"},
+        {TERRAIN_PUDDLE,   "puddle"}
+};
+
+const std::string node_shader = "node";
+
+entt::entity GridNode::createGridNode(int terrain, vec2 coord)
 {
     // get up node components
     auto entity = registry.create();
     auto& node = registry.emplace<GridNode>(entity);
-    node.terran = terran;
+    node.terrain = terrain;
     node.coord = coord;
 
     // set up mesh components
+    const std::string& key = terrain_str.at(terrain);
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path(terran_texture_path.at(terran)), "grid");
+        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(terrain)), node_shader);
     }
-    registry.emplace<ShadedMeshRef>(entity, resource);
+    ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+    shaded_mesh.layer = 1;
 
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
@@ -31,15 +47,25 @@ entt::entity GridNode::createGridNode(int terran, vec2 coord)
     return entity;
 }
 
-void GridNode::setTerran(int terran) {
+void GridNode::setTerrain(entt::entity entity, int new_terrain) {
+    this->terrain = new_terrain;
+    const std::string& key = terrain_str.at(new_terrain);
+
+    auto& shaded_mesh_ref = registry.get<ShadedMeshRef>(entity);
     ShadedMesh& resource = cache_resource(key);
+
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path(terran_texture_path.at(terran)), "grid");
+        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(new_terrain)), node_shader);
     }
     else
     {
-        resource.texture.load_from_file(textures_path(terran_texture_path.at(terran)));
+        resource.texture.load_from_file(textures_path(terrain_texture_path.at(new_terrain)).c_str());
     }
+    shaded_mesh_ref.reference_to_cache = &resource;
+}
+
+void GridNode::setOccupancy(int new_occupancy) {
+    this->occupancy = new_occupancy;
 }

@@ -6,6 +6,7 @@
 #include <vector>
 #include <stdexcept>
 #include <map>
+#include <random>
 
 // glfw (OpenGL)
 #define NOMINMAX
@@ -27,31 +28,44 @@ static const ivec2 WINDOW_SIZE_IN_PX = {1200, 700};
 
 static const ivec2 WINDOW_SIZE_IN_COORD = WINDOW_SIZE_IN_PX / GRID_CELL_SIZE;
 static const ivec2 FOREST_COORD = ivec2(0, 0);
-// bottom right position (TODO offset this by village size)
 static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
-
+static const int MAX_TILES = 84;
 static const int MAX_PARTICLES = 10000;
 static const int PARTICLE_COUNT = 0;
 
+static int season;
+static int weather;
 
-enum grid_terran
+const std::string WATCHTOWER_NAME = "watchtower";
+const std::string GREENHOUSE_NAME = "greenhouse";
+const std::string HUNTER_NAME = "hunter";
+const std::string WALL_NAME = "wall";
+
+// C++ random number generator
+static std::default_random_engine rng;
+static std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+
+// Terrains with neg value are ones that cannot be placed on
+// May be refactored later if too hard to keep track
+enum grid_terrain
 {
-    GRID_GRASS = 0,
-    GRID_PAVEMENT = 1,
-    GRID_MUD = 2,
-    GRID_PUDDLE = 3,
+    TERRAIN_PAVEMENT = -1,
+    TERRAIN_DEFAULT = 0,
+    TERRAIN_MUD = 1,
+    TERRAIN_ICE = 2,
+    TERRAIN_PUDDLE = 3,
 };
 
 enum grid_occupancy
 {
-    GRID_BLOCKED = -1,
-    GRID_VACANT = 0,
-    GRID_FOREST = 1,
-    GRID_VILLAGE = 2,
-    GRID_GREENHOUSE = 3,
-    GRID_TOWER = 4,
-    GRID_WALL = 5,
-    GRID_HUNTER = 6,
+    OCCUPANCY_BLOCKED = -1,
+    OCCUPANCY_VACANT = 0,
+    OCCUPANCY_FOREST = 1,
+    OCCUPANCY_VILLAGE = 2,
+    OCCUPANCY_GREENHOUSE = 3,
+    OCCUPANCY_TOWER = 4,
+    OCCUPANCY_WALL = 5,
+    OCCUPANCY_HUNTER = 6,
 };
 
 enum season
@@ -114,18 +128,23 @@ struct Boss {
 };
 
 struct Monster {
+	int max_health; //useful for displaying health bars
     int health;
     int damage;
     int current_path_index = 0;
 	int reward;
+	bool collided = false;
 };
 
 struct Unit {
+	std::string type;
 	int damage;
 	size_t attack_rate;
 	float next_projectile_spawn;
 	int attack_range;
 	int workers;
+	int upgrades;
+	bool rotate;
 };
 
 struct Food {
@@ -150,6 +169,13 @@ struct Tag {
 	std::string tag;
 };
 
+struct Selectable {
+	bool selected = false;
+};
+
+struct Upgradeable {
+	int rank = 0;
+};
 
 //detects if mouse is within the a rectangle of size scale at position entity_pos
 float sdBox(vec2 mouse_pos_grid, vec2 entity_pos, vec2 scale);
@@ -166,4 +192,6 @@ vec2 mouse_in_world_coord(vec2 mouse_pos);
 
 vec2 coordToPixel(ivec2 grid_coord);
 
-ivec2 pixelToCoord(vec2 pixel_coord);
+ivec2 pixelToCoord(vec2 pixel_position);
+
+bool is_inbounds(ivec2 coord);

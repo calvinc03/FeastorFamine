@@ -26,20 +26,20 @@ entt::entity FallBoss::createFallBossEntt()
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-    //ECS::registry<ShadedMeshRef>.emplace(entity, resource);
-    registry.emplace<ShadedMeshRef>(entity, resource);
+    ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+    shaded_mesh.layer = 11;
     // Initialize the position, scale, and physics components
-    //auto& motion = ECS::registry<Motion>.emplace(entity);
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
     motion.velocity = { 50.f, 0 };
     motion.position = coordToPixel(FOREST_COORD);
     motion.scale = vec2({ 1, 1 }) * static_cast<vec2>(resource.texture.size);
     // scale down bounding box from .png file based on number of frames
-    motion.boundingbox = vec2({ motion.scale.x * (1 / WALK_FRAMES), motion.scale.y });
+    motion.boundingbox = vec2({ motion.scale.x *0.85f / WALK_FRAMES, motion.scale.y });
 
     auto& monster = registry.emplace<Monster>(entity);
-    monster.health = 120;
+    monster.max_health = 120;
+    monster.health = monster.max_health;
     monster.damage = 20;
     monster.reward = 50;
 

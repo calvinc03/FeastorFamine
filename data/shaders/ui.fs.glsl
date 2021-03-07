@@ -17,13 +17,13 @@ void main()
 	if(highlight == 0)
 	{
 		//color = vec4(1.0, 0.0, 0.0, 1.0);
-		color = vec4(fcolor, 0.1) * texture(sampler0, vec2(texcoord.x, texcoord.y));
+		color = vec4(fcolor, 0.5) * texture(sampler0, vec2(texcoord.x, texcoord.y));
 		
 	} 
 	else
 	{
 		//color = vec4(1.0, 1.0,  0.0, 1.0);
-		color = vec4(fcolor, 0.5) * texture(sampler0, vec2(texcoord.x, texcoord.y));
+		color = vec4(fcolor, 1.0) * texture(sampler0, vec2(texcoord.x, texcoord.y));
 		color += vec4(0.1,0.1,0.1,0.1);
 	}
 

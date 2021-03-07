@@ -17,7 +17,8 @@ entt::entity Mob::createMobEntt()
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-    registry.emplace<ShadedMeshRef>(entity, resource);
+    ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+    shaded_mesh.layer = 10;
 
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
@@ -26,10 +27,11 @@ entt::entity Mob::createMobEntt()
     motion.position = coordToPixel(FOREST_COORD);
     motion.scale = vec2({ 0.25f, 0.25f }) * static_cast<vec2>(resource.texture.size);
     // temporary fix
-    motion.boundingbox = vec2({ motion.scale.x * 0.12, motion.scale.y * 0.7});
-
+    //motion.boundingbox = vec2({ motion.scale.x , motion.scale.y });
+    motion.boundingbox = vec2({ motion.scale.x*0.13f , motion.scale.y });
     auto& monster = registry.emplace<Monster>(entity);
-    monster.health = 30;
+    monster.max_health = 30;
+    monster.health = monster.max_health;
     monster.damage = 5;
     monster.reward = 20;
 

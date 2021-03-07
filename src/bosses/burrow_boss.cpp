@@ -36,10 +36,11 @@ entt::entity BurrowBoss::createBurrowBossEntt()
     motion.position = coordToPixel(FOREST_COORD);
     motion.scale = vec2({ 3, 3 }) * static_cast<vec2>(resource.texture.size);
     // scale down bounding box from .png file based on number of frames
-    motion.boundingbox = vec2({ motion.scale.x * (1 / WALK_FRAMES), motion.scale.y });
+    motion.boundingbox = vec2({ motion.scale.x * (1.0f / WALK_FRAMES), motion.scale.y });
 
     auto& monster = registry.emplace<Monster>(entity);
-    monster.health = 20;
+    monster.max_health = 20;
+    monster.health = monster.max_health;
     monster.damage = 10;
     monster.reward = 10;
 

@@ -27,7 +27,8 @@ entt::entity WinterBoss::createWinterBossEntt()
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     //ECS::registry<ShadedMeshRef>.emplace(entity, resource);
-    registry.emplace<ShadedMeshRef>(entity, resource);
+    ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+    shaded_mesh.layer = 11;
     // Initialize the position, scale, and physics components
     //auto& motion = ECS::registry<Motion>.emplace(entity);
     auto& motion = registry.emplace<Motion>(entity);
@@ -36,11 +37,13 @@ entt::entity WinterBoss::createWinterBossEntt()
     motion.position = coordToPixel(FOREST_COORD);
     motion.scale = vec2({ 1, 1 }) * static_cast<vec2>(resource.texture.size);
     // scale down bounding box from .png file based on number of frames
-    motion.boundingbox = vec2({ motion.scale.x * (1 / WALK_FRAMES), motion.scale.y });
-
+    //motion.boundingbox = vec2({ motion.scale.x * (1 / WALK_FRAMES), motion.scale.y });
+    motion.boundingbox = vec2({ motion.scale.x * 0.85f / WALK_FRAMES, motion.scale.y });
     auto& monster = registry.emplace<Monster>(entity);
-    monster.health = 120;
-    monster.damage = 20;
+
+    monster.max_health = 1000000;
+    monster.health = monster.max_health;
+    monster.damage = 1000;
     monster.reward = 50;
 
     auto& boss = registry.emplace<Boss>(entity);
