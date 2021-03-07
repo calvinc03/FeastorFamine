@@ -44,6 +44,7 @@ const int GREENHOUSE_COST = 300;
 const int HUNTER_COST = 150;
 const int WALL_COST = 100;
 const int HUNTER_UPGRADE_COST = 50;
+const int HUNTER_SELL_COST = 100;
 void debug_path(std::vector<ivec2> monster_path_coords);
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
@@ -434,7 +435,7 @@ void WorldSystem::restart()
 	// Reset the game state
 	current_speed = 1.f;
 	health = 500;		//reset health
-	unit_selected = ""; // no initial selection
+	placement_unit_selected = ""; // no initial selection
 	round_number = 0;
 
 	registry.clear(); // Remove all entities that we created
@@ -447,7 +448,8 @@ void WorldSystem::restart()
 	UI_button::createUI_button(1, green_house_button, GREENHOUSE_COST);
 	UI_button::createUI_button(2, stick_figure_button, HUNTER_COST);
 	UI_button::createUI_button(4, wall_button, WALL_COST);
-	UI_button::createUI_button(7, upgrade_button, HUNTER_UPGRADE_COST, "upgrade_button", false); 
+	UI_button::createUI_button(7, upgrade_button, HUNTER_UPGRADE_COST, "upgrade_button", false);
+	UI_button::createUI_button(8, sell_button, HUNTER_SELL_COST, "sell_button", false);
 	UI_button::createUI_button(10, save_button,0, "save_button");
 	UI_background::createUI_background();
 
@@ -595,15 +597,15 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	// Hot keys for selecting placeable units
 	else if (action == GLFW_PRESS && key == GLFW_KEY_1)
 	{
-		unit_selected = "watchtower";
+		placement_unit_selected = "watchtower";
 	}
 	else if (action == GLFW_PRESS && key == GLFW_KEY_2)
 	{
-		unit_selected = "greenhouse";
+		placement_unit_selected = "greenhouse";
 	}
 	if (action == GLFW_PRESS && key == GLFW_KEY_3)
 	{
-		unit_selected = "hunter";
+		placement_unit_selected = "hunter";
 	}
 
 	// Resetting game
@@ -759,8 +761,8 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 	UI_highlight_system(mouse_pos);
 
 	bool in_game_area = mouse_in_game_area(mouse_pos);
-	if (in_game_area && unit_selected != "" && player_state == set_up_stage)
-		grid_highlight_system(mouse_pos, unit_selected, current_map);
+	if (in_game_area && placement_unit_selected != "" && player_state == set_up_stage)
+		grid_highlight_system(mouse_pos, placement_unit_selected, current_map);
 
 	// if village is alive
 	if (health > 0)
@@ -833,7 +835,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
 		settings_menu_click_handle(xpos, ypos, button, action, mod);
 		break;
 	case in_game:
-		unit_upgrade_click_handle(xpos, ypos, button, action, mod);
+		unit_select_click_handle(xpos, ypos, button, action, mod);
 		in_game_click_handle(xpos, ypos, button, action, mod);
 		break;
 	case help_menu:
@@ -861,42 +863,77 @@ void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y,
 	}
 }
 
-void WorldSystem::unit_upgrade_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
+
+void WorldSystem::sell_unit_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
+{
+
+}
+
+
+void WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
 {
 	if (action == GLFW_PRESS)
 	{
-		bool upgrading = false;
-		// get upgrade button position
-		auto view_ui = registry.view<UI_element>();
-		UI_element ui_element;
-		for (auto entity : view_ui)
-		{
-			ui_element = view_ui.get<UI_element>(entity);
-			if (ui_element.tag == "upgrade_button") {
-				break;
-			}
-		}
+		bool unit_selected = false;
+		bool sell_clicked = false;
 		auto view_unit = registry.view<Unit>();
 		auto view_highlight = registry.view<HighlightBool>();
 		auto view_selectable = registry.view<Selectable, Motion>();
+		auto view_ui_mesh = registry.view<UI_element, ShadedMeshRef>();
 		vec2 mouse_pos = mouse_in_world_coord({ mouse_pos_x, mouse_pos_y });
-		
-		// check if something is being selected and if the upgrade button is clicked
-		if (sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f) < 0.0f)
+
+		// 
+
+
+		// get the unit modification buttons 
+		auto view_ui = registry.view<UI_element>();
+		UI_element unit_mod_buttons;
+		for (auto entity : view_ui)
 		{
-			// check if something is already selected
-			for (auto [entity, selectable, motion] : view_selectable.each())
+			unit_mod_buttons = view_ui.get<UI_element>(entity);
+			if (unit_mod_buttons.tag == "upgrade_button" || unit_mod_buttons.tag == "sell_button")
 			{
-				if (selectable.selected)
+				
+				if (sdBox(mouse_pos, unit_mod_buttons.position, unit_mod_buttons.scale / 2.0f) < 0.0f)
 				{
-					upgrading = true;
-					break;
+					// check if something is already selected
+					for (auto [entity, selectable, motion] : view_selectable.each())
+					{
+						if (selectable.selected)
+						{
+							unit_selected = true;
+							break;
+						}
+					}
+					if (unit_mod_buttons.tag == "sell_button")
+					{
+						sell_clicked = true;
+					}
 				}
+				
+
+			}
+			if (unit_selected) {
+				break;
 			}
 		}
-		else
+		
+		// check if the upgrade button is clicked
+		//if (sdBox(mouse_pos, unit_mod_buttons.position, unit_mod_buttons.scale / 2.0f) < 0.0f)
+		//{
+		//	// check if something is already selected
+		//	for (auto [entity, selectable, motion] : view_selectable.each())
+		//	{
+		//		if (selectable.selected)
+		//		{
+		//			unit_selected = true;
+		//			break;
+		//		}
+		//	}
+		//}
+		//else
+		if (!unit_selected)
 		{
-			// check if a unit is selected
 			for (auto [entity, selectable, motion] : view_selectable.each())
 			{
 				// check click on units
@@ -911,7 +948,7 @@ void WorldSystem::unit_upgrade_click_handle(double mouse_pos_x, double mouse_pos
 					std::cout << "attack range: " << unit_stats.attack_range << "\n";
 
 					if (registry.has<Unit>(entity)) {
-						upgrading = true;
+						unit_selected = true;
 					}
 				}
 				else
@@ -920,19 +957,15 @@ void WorldSystem::unit_upgrade_click_handle(double mouse_pos_x, double mouse_pos
 					selectable.selected = false;
 				}
 			}
-		}
+		}		
 
 		
-
-		
-
-		auto view_ui_mesh = registry.view<UI_element, ShadedMeshRef>();
-		if (upgrading)
+		if (unit_selected && !sell_clicked)
 		{
 			for (auto entity : view_ui_mesh)
 			{
 				auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
-				if (view_ui_mesh.get<UI_element>(entity).tag == "upgrade_button")
+				if (view_ui_mesh.get<UI_element>(entity).tag == "upgrade_button" || view_ui_mesh.get<UI_element>(entity).tag == "sell_button")
 				{
 					shaded_mesh_ref.show = true;
 				}
@@ -943,7 +976,7 @@ void WorldSystem::unit_upgrade_click_handle(double mouse_pos_x, double mouse_pos
 			for (auto entity : view_ui_mesh)
 			{
 				auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
-				if (view_ui_mesh.get<UI_element>(entity).tag == "upgrade_button")
+				if (view_ui_mesh.get<UI_element>(entity).tag == "upgrade_button" || view_ui_mesh.get<UI_element>(entity).tag == "sell_button")
 				{
 					//std::cout << "not upgrading\n";
 					shaded_mesh_ref.show = false;
@@ -1083,34 +1116,34 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 	if (player_state == set_up_stage)
 	{
 		// Mouse click for placing units
-		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && unit_selected != "" && in_game_area)
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && placement_unit_selected != "" && in_game_area)
 		{
 			auto& node = current_map.getNodeAtCoord(pixelToCoord(vec2(x, y)));
 
 			if (node.occupancy == OCCUPANCY_VACANT && node.terrain >= TERRAIN_DEFAULT)
                {
-				if (unit_selected == HUNTER_NAME && health >= HUNTER_COST)
+				if (placement_unit_selected == HUNTER_NAME && health >= HUNTER_COST)
 				{
 					entt::entity entity = Hunter::createHunter({ x, y });
 					health -= HUNTER_COST;
 					node.occupancy = OCCUPANCY_HUNTER;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
-				else if (unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
+				else if (placement_unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
 				{
 					entt::entity entity = GreenHouse::createGreenHouse({ x, y });
 					health -= GREENHOUSE_COST;
 					node.occupancy = OCCUPANCY_GREENHOUSE;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
-				else if (unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
+				else if (placement_unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
 				{
 					entt::entity entity = WatchTower::createWatchTower({ x, y });
 					health -= WATCHTOWER_COST;
 					node.occupancy = OCCUPANCY_TOWER;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
-				else if (unit_selected == WALL_NAME && health >= WALL_COST)
+				else if (placement_unit_selected == WALL_NAME && health >= WALL_COST)
 				{
 					entt::entity entity = Wall::createWall({ x, y }, false);
 					health -= WALL_COST;
@@ -1121,7 +1154,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					//insufficent funds -- should feedback be given here, or when the button is pressed?
 					Mix_PlayChannel(-1, ui_sound_negative_tick, 0);
 				}
-                unit_selected = "";
+                placement_unit_selected = "";
 				un_highlight();
 			}
 		}
@@ -1131,21 +1164,35 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			if (ui_button == Button::tower_button)
 			{
 				
-				unit_selected = WATCHTOWER_NAME;
+				placement_unit_selected = WATCHTOWER_NAME;
 			}
 			else if (ui_button == Button::green_house_button)
 			{
 				
-				unit_selected = GREENHOUSE_NAME;
+				placement_unit_selected = GREENHOUSE_NAME;
 			}
 			else if (ui_button == Button::stick_figure_button)
 			{
 				
-				unit_selected = HUNTER_NAME;
+				placement_unit_selected = HUNTER_NAME;
 			}
 			else if (ui_button == Button::wall_button)
 			{
-				unit_selected = WALL_NAME;
+				placement_unit_selected = WALL_NAME;
+			}
+			else if (ui_button == Button::sell_button)
+			{
+				auto view_selectable = registry.view<Selectable>();
+				auto view_unit = registry.view<Unit>();
+				for (auto entity : view_selectable)
+				{
+					if (view_selectable.get<Selectable>(entity).selected)
+					{
+						sell_unit(entity);
+						health += HUNTER_SELL_COST;
+						std::cout << "hunter sold (killed)\n";
+					}
+				}
 			}
 			else if (ui_button == Button::upgrade_button && health >= HUNTER_UPGRADE_COST)
 			{
@@ -1170,8 +1217,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			}
 			else 
 			{
-				
-				unit_selected = "";
+				placement_unit_selected = "";
 			}
 		}
 
@@ -1180,6 +1226,11 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		// handle clicks in the start menu
 	}
 
+}
+
+void WorldSystem::sell_unit(entt::entity& entity)
+{
+	registry.destroy(entity);
 }
 
 void WorldSystem::upgrade_unit(Unit& unit)

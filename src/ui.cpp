@@ -104,6 +104,9 @@ entt::entity UI_button::createUI_button(int pos, Button button, size_t cost, std
 		else if (button == upgrade_button) {
 			RenderSystem::createSprite(resource, textures_path("upgrade_icon.png"), "ui");
 		}
+		else if (button == sell_button) {
+			RenderSystem::createSprite(resource, textures_path("sell_button.png"), "ui");
+		}
 		else if (button == save_button) {
 			RenderSystem::createSprite(resource, textures_path("buttons/save_button.png"), "ui");
 		}
