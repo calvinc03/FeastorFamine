@@ -447,7 +447,7 @@ void WorldSystem::restart()
 	UI_button::createUI_button(1, green_house_button, GREENHOUSE_COST);
 	UI_button::createUI_button(2, stick_figure_button, HUNTER_COST);
 	UI_button::createUI_button(4, wall_button, WALL_COST);
-	UI_button::createUI_button(7, upgrade_button, HUNTER_COST, "upgrade_button", false); 
+	UI_button::createUI_button(7, upgrade_button, HUNTER_UPGRADE_COST, "upgrade_button", false); 
 	UI_button::createUI_button(10, save_button,0, "save_button");
 	UI_background::createUI_background();
 
