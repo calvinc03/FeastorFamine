@@ -252,7 +252,7 @@ void WorldSystem::step(float elapsed_ms) {
         ivec2 next_step_coord = pixelToCoord(next_step_position);
 
         // change direction if reached the middle of the this node
-        if (abs(length(coordToPixel(current_path_coord) - motion.position)) <= length(motion.velocity) * elapsed_ms / 1000.f) {
+        if (abs(length(coordToPixel(current_path_coord) - motion.position)) < length(motion.velocity) * elapsed_ms / 1000.f) {
             vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
             motion.velocity = length(motion.velocity) * move_direction;
             motion.angle = atan(move_direction.y / move_direction.x);
@@ -260,6 +260,9 @@ void WorldSystem::step(float elapsed_ms) {
 
         if (next_step_coord == next_path_coord) {
             monster.current_path_index++;
+            // update monster count (for terrain distortion effects)
+            current_map.getNodeAtCoord(current_path_coord).num_monsters--;
+            current_map.getNodeAtCoord(next_path_coord).num_monsters++;
         }
 
         if (DebugSystem::in_debug_mode)
