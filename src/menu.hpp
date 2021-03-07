@@ -5,7 +5,7 @@
 #include "common.hpp"
 #include "ui.hpp"
 
-enum Menu_texture { settings, default_menu };
+enum Menu_texture { title_screen, settings, default_menu, help_menu };
 
 struct Menu
 {

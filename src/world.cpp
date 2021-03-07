@@ -36,7 +36,7 @@
 const size_t ANIMATION_FPS = 12;
 const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 
-const size_t SET_UP_TIME = 10 * 1000; // 15 seconds to setup
+const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
 
 const size_t STARTING_HEALTH = 300;
 const size_t WATCHTOWER_COST = 200;
@@ -326,7 +326,6 @@ bool is_walkable(GridMap& current_map, ivec2 coord)
     return false;
 }
 
-
 void WorldSystem::set_up_step(float elapsed_ms)
 {
 	
@@ -424,8 +423,6 @@ void WorldSystem::setup_start_menu()
 
 	create_start_menu();
 	camera = Camera::createCamera();
-	
-	
 }
 
 // Reset the world state to its initial state
@@ -450,7 +447,7 @@ void WorldSystem::restart()
 	UI_button::createUI_button(1, green_house_button, GREENHOUSE_COST);
 	UI_button::createUI_button(2, stick_figure_button, HUNTER_COST);
 	UI_button::createUI_button(4, wall_button, WALL_COST);
-	UI_button::createUI_button(7, upgrade_button, HUNTER_COST, "upgrade_button"); 
+	UI_button::createUI_button(7, upgrade_button, HUNTER_COST, "upgrade_button", false); 
 	UI_button::createUI_button(10, save_button,0, "save_button");
 	UI_background::createUI_background();
 
@@ -568,6 +565,15 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 				registry.destroy(monster);
 			}
 		}
+	}
+
+	// hotkey for controls 
+	if (action == GLFW_RELEASE && key == GLFW_KEY_H)
+	{
+		// help menu
+		auto help_menu_entity = create_help_menu();
+		ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(help_menu_entity);
+		game_state = help_menu;
 	}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_SPACE)
@@ -830,6 +836,9 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
 		unit_upgrade_click_handle(xpos, ypos, button, action, mod);
 		in_game_click_handle(xpos, ypos, button, action, mod);
 		break;
+	case help_menu:
+		help_menu_click_handle(xpos, ypos, button, action, mod);
+		break;
 	}
 
 	//std::cout << "selected: " << unit_selected << std::endl;
@@ -838,9 +847,22 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
 	//std::cout << "Game State: " << game_state << "\n";
 }
 
+void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
+{
+	if (action == GLFW_RELEASE)
+	{
+		auto view = registry.view<Menu, ShadedMeshRef>();
+		for (auto entity : view)
+		{
+			auto& shaded_mesh_ref = view.get<ShadedMeshRef>(entity);
+			shaded_mesh_ref.show = false;
+		}
+		game_state = in_game;
+	}
+}
+
 void WorldSystem::unit_upgrade_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
 {
-
 	if (action == GLFW_PRESS)
 	{
 		bool upgrading = false;
@@ -858,34 +880,52 @@ void WorldSystem::unit_upgrade_click_handle(double mouse_pos_x, double mouse_pos
 		auto view_highlight = registry.view<HighlightBool>();
 		auto view_selectable = registry.view<Selectable, Motion>();
 		vec2 mouse_pos = mouse_in_world_coord({ mouse_pos_x, mouse_pos_y });
-		for (auto [entity, selectable, motion] : view_selectable.each())
+		
+		// check if something is being selected and if the upgrade button is clicked
+		if (sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f) < 0.0f)
 		{
-			// check click on units
-			if (sdBox(mouse_pos, motion.position, motion.scale / 2.0f) < 0.0f)
+			// check if something is already selected
+			for (auto [entity, selectable, motion] : view_selectable.each())
 			{
-				selectable.selected = true;
-				view_highlight.get<HighlightBool>(entity).highlight = true;
-				auto unit_stats = view_unit.get<Unit>(entity);
-				std::cout << "=== Unit stats ===\n";
-				std::cout << "attack damage: " << unit_stats.damage << "\n";
-				std::cout << "attack rate: " << unit_stats.attack_rate << "\n";
-				std::cout << "attack range: " << unit_stats.attack_range << "\n";
-
-				if (registry.has<Unit>(entity)) {
+				if (selectable.selected)
+				{
 					upgrading = true;
+					break;
 				}
 			}
-			// click on upgrade button
-			else if (sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f) < 0.0f)
+		}
+		else
+		{
+			// check if a unit is selected
+			for (auto [entity, selectable, motion] : view_selectable.each())
 			{
-				upgrading = true;
-			}
-			else
-			{
-				view_highlight.get<HighlightBool>(entity).highlight = false;
-				selectable.selected = false;
+				// check click on units
+				if (sdBox(mouse_pos, motion.position, motion.scale / 2.0f) < 0.0f)
+				{
+					selectable.selected = true;
+					view_highlight.get<HighlightBool>(entity).highlight = true;
+					auto unit_stats = view_unit.get<Unit>(entity);
+					std::cout << "=== Unit stats ===\n";
+					std::cout << "attack damage: " << unit_stats.damage << "\n";
+					std::cout << "attack rate: " << unit_stats.attack_rate << "\n";
+					std::cout << "attack range: " << unit_stats.attack_range << "\n";
+
+					if (registry.has<Unit>(entity)) {
+						upgrading = true;
+					}
+				}
+				else
+				{
+					view_highlight.get<HighlightBool>(entity).highlight = false;
+					selectable.selected = false;
+				}
 			}
 		}
+
+		
+
+		
+
 		auto view_ui_mesh = registry.view<UI_element, ShadedMeshRef>();
 		if (upgrading)
 		{
@@ -942,10 +982,10 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 	}
 	else if (button_tag == "load_game")
 	{
-		restart();
 		remove_menu_buttons();
 		load_game();
 		game_state = in_game;
+		restart();
 	}
 }
 
@@ -982,7 +1022,7 @@ void WorldSystem::remove_menu_buttons()
 }
 
 //
-void WorldSystem::menu_setup()
+void WorldSystem::game_setup()
 {
 	registry.clear();
 	screen_state_entity = registry.create();
@@ -994,17 +1034,24 @@ void WorldSystem::menu_setup()
 void WorldSystem::create_start_menu()
 {
 	std::cout << "In Start Menu\n";
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 1 / 5, "new_game", new_game_button);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 2 / 5, "load_game", load_game_button);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 3 / 5, "settings_menu", settings_button);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 5, "exit", exit_button);
+	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "start_menu", Menu_texture::title_screen, 89, { 1.0, 0.9 });
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 3 / 7, "new_game", new_game_button);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 7, "load_game", load_game_button);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 5 / 7, "settings_menu", settings_button);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 6 / 7, "exit", exit_button);
 }
 
 void WorldSystem::create_settings_menu()
 {
 	std::cout << "In Settings Menu\n";
-	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "settings", Menu_texture::settings, 98, { 0.5, 0.5 });
+	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "settings", Menu_texture::settings, 90, { 0.5, 0.5 });
 	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 5, "back", back_button);
+}
+
+entt::entity WorldSystem::create_help_menu()
+{
+	std::cout << "In Help Menu\n";
+	return Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "help_menu", Menu_texture::help_menu, 98, { 0.5, 0.5 });
 }
 
 // helper for in game mouse click

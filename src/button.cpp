@@ -22,7 +22,7 @@ entt::entity MenuButton::create_button(double x, double y, std::string button_na
 		RenderSystem::createSprite(resource, textures_path(texture_file_name), "textured");
 	}
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh_ref.layer = 99;
+	shaded_mesh_ref.layer = 98;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = button_name;

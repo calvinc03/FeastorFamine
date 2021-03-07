@@ -14,8 +14,14 @@ entt::entity Menu::createMenu(double x, double y, std::string menu_name, Menu_te
 		std::string texture_file_name = "empty_button.png";
 		switch (texture)
 		{
+			case title_screen:
+				texture_file_name = "title_screen.png";
+				break;
 			case settings:
 				texture_file_name = "settings_background.png";
+				break;
+			case help_menu:
+				texture_file_name = "help_menu.png";
 				break;
 			default:
 				texture_file_name = "empty_button.png";
