@@ -35,8 +35,11 @@ private:
 
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
+    
 	void drawToScreen();
-
+    
+    void drawParticle(entt::entity particle, const mat3& projection);
+    
 	void animate(entt::entity entity);
 
 	// Window handle

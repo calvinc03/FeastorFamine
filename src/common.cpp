@@ -53,3 +53,4 @@ vec2 coordToPixel(ivec2 grid_coord) {
 ivec2 pixelToCoord(vec2 pixel_coord) {
     return (ivec2)pixel_coord / GRID_CELL_SIZE;
 }
+

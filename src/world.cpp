@@ -21,6 +21,7 @@
 #include "button.hpp"
 #include "ui.hpp"
 #include "ai.hpp"
+#include "particle.hpp"
 // stlib
 #include <string.h>
 #include <cassert>
@@ -34,11 +35,12 @@ size_t MAX_MOBS = 20;
 size_t MOB_DELAY_MS = 8000;
 size_t MAX_BOSS = 2;
 size_t BOSS_DELAY_MS = 20000;
+size_t PARTICLE_DELAY_MS = 1000;
 
 const size_t ANIMATION_FPS = 12;
 const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 
-const size_t SET_UP_TIME = 10 * 1000; // 15 seconds to setup
+const size_t SET_UP_TIME = 3 * 1000; // 15 seconds to setup
 
 const size_t WATCHTOWER_COST = 200;
 const size_t GREENHOUSE_COST = 300;
@@ -200,6 +202,15 @@ void WorldSystem::step(float elapsed_ms) {
         Mob::createMobEntt();
         num_mobs_spawned += 1;
     }
+    
+    if (weather == RAIN) {
+        next_particle_spawn -= elapsed_ms;
+        if (registry.view<ParticleSystem>().size() < MAX_PARTICLES && next_particle_spawn < 0.f)
+        {
+            next_particle_spawn = (PARTICLE_DELAY_MS / 2) + uniform_dist(rng) * (PARTICLE_DELAY_MS / 2);
+            ParticleSystem::createParticle();
+        }
+    }
 
 	
     // update velocity for every monster
@@ -262,6 +273,24 @@ void WorldSystem::step(float elapsed_ms) {
             num_mobs_spawned = 0;
         }
     }
+    
+    if (weather == RAIN) {
+        auto particle_view = registry.view<ParticleSystem>();
+        if (particle_view.size() < MAX_PARTICLES) {
+            int new_particles = (int)(56 * (elapsed_ms / 1000));
+            for (auto particle_entity : particle_view) {
+                auto& particle = registry.get<ParticleSystem>(particle_entity);
+                
+                particle.life -= elapsed_ms;
+                if (particle.life <= 0) {
+                    registry.destroy(particle_entity);
+                }
+            }
+            for (int i = 0; i < new_particles; i++) {
+                ParticleSystem::createParticle();
+            }
+        }
+    }
 
 //	//DEBUG LINES: path of bosses/mobs
 //	//TODO can display entire path.
@@ -297,6 +326,7 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 	std::stringstream title_ss;
 	title_ss << "Setup stage... Food: " << health << " Round: " << round_number << " Time left to setup: " << round(set_up_timer / 1000) << " fps: " << 1000.0 / elapsed_ms;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
+    weather = RAIN;
 
 	if (set_up_timer <= 0) {
 		player_state = battle_stage;
@@ -344,7 +374,7 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 		}
 		else if (season_str == "fall") {
 			season = FALL;
-            int weather_int = rand() % 5 + 1;
+//            int weather_int = rand() % 5 + 1;
 //            if (weather_int % 5 == 1)
 //            {
 //                weather = FOG;
@@ -371,6 +401,29 @@ void WorldSystem::set_up_step(float elapsed_ms) {
 			create_boss = WinterBoss::createWinterBossEntt;
 		}
 	}
+    
+//    if (weather == RAIN) {
+//        auto particle_view = registry.view<ParticleSystem>();
+//        if (particle_view.size() < MAX_PARTICLES) {
+//            int new_particles = (int)(10 * (elapsed_ms / 1000));
+//            if (new_particles > (int)(0.016f*10000.0f)) {
+//                new_particles = (int)(0.016f*10000.0f);
+//            }
+//            for (auto particle_entity : particle_view) {
+//                auto& particle = registry.get<ParticleSystem>(particle_entity);
+//
+//                particle.life -= elapsed_ms;
+//                std::cout << particle.life << " particle life \n";
+//                if (particle.life <= 0) {
+//                    registry.destroy(particle_entity);
+//                    std::cout << "particle destroyed \n";
+//                }
+//            }
+//            for (int i = 0; i < new_particles; i++) {
+//                ParticleSystem::createParticle();
+//            }
+//        }
+//    }
 }
 
 
@@ -451,10 +504,10 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			registry.destroy(entity_i);
 			if (animal.health <= 0)
 			{
-                if (season == 3) {
+                if (season == FALL) {
                     health += 30 * 2;
                 }
-                else if (season == 4) {
+                else if (season == WINTER) {
                     health += 30 / 2;
                 }
                 else {

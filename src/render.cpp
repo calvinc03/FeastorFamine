@@ -3,6 +3,7 @@
 #include "render_components.hpp"
 #include "camera.hpp"
 #include "ui.hpp"
+#include "particle.hpp"
 
 #include "entt.hpp"
 #include "grid_map.hpp"
@@ -262,6 +263,99 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 }
 
+void RenderSystem::drawParticle(entt::entity particle, const mat3& projection) {
+    
+    auto& texmesh = *registry.get<ShadedMeshRef>(particle).reference_to_cache;
+    auto& particle_m = registry.get<Motion>(particle);
+    
+    Transform transform;
+    transform.translate(particle_m.position);
+    transform.rotate(particle_m.angle);
+    transform.scale(particle_m.scale);
+
+    
+    // Setting shaders
+    glUseProgram(texmesh.effect.program);
+    glBindVertexArray(texmesh.mesh.vao);
+    gl_has_errors();
+
+    // Enabling alpha channel for textures
+    glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_DEPTH_TEST);
+    gl_has_errors();
+
+    GLint transform_uloc = glGetUniformLocation(texmesh.effect.program, "transform");
+    GLint projection_uloc = glGetUniformLocation(texmesh.effect.program, "projection");
+    gl_has_errors();
+
+    // Setting vertex and index buffers
+    glBindBuffer(GL_ARRAY_BUFFER, texmesh.mesh.vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, texmesh.mesh.ibo);
+    gl_has_errors();
+
+    // Input data location as in the vertex buffer
+    GLint in_position_loc = glGetAttribLocation(texmesh.effect.program, "in_position");
+    GLint in_texcoord_loc = glGetAttribLocation(texmesh.effect.program, "in_texcoord");
+    GLint in_color_loc = glGetAttribLocation(texmesh.effect.program, "in_color");
+    if (in_texcoord_loc >= 0)
+    {
+        glEnableVertexAttribArray(in_position_loc);
+        glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), reinterpret_cast<void*>(0));
+        glEnableVertexAttribArray(in_texcoord_loc);
+        glVertexAttribPointer(in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), reinterpret_cast<void*>(sizeof(vec3))); // note the stride to skip the preceeding vertex position
+        // Enabling and binding texture to slot 0
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texmesh.texture.texture_id);
+    }
+    else if (in_color_loc >= 0)
+    {
+        glEnableVertexAttribArray(in_position_loc);
+        glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(ColoredVertex), reinterpret_cast<void*>(0));
+        glEnableVertexAttribArray(in_color_loc);
+        glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE, sizeof(ColoredVertex), reinterpret_cast<void*>(sizeof(vec3)));
+    }
+    else
+    {
+        throw std::runtime_error("This type of entity is not yet supported");
+    }
+    
+    gl_has_errors();
+
+    // Getting uniform locations for glUniform* calls
+    GLint color_uloc = glGetUniformLocation(texmesh.effect.program, "fcolor");
+    glUniform3fv(color_uloc, 1, (float*)&texmesh.texture.color);
+    gl_has_errors();
+
+    // Get number of indices from index buffer, which has elements uint16_t
+    GLint size = 0;
+    glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+    gl_has_errors();
+    GLsizei num_indices = size / sizeof(uint16_t);
+    //GLsizei num_triangles = num_indices / 3;
+
+    // Setting uniform values to the currently bound program
+    glUniformMatrix3fv(transform_uloc, 1, GL_FALSE, (float*)&transform.mat);
+    glUniformMatrix3fv(projection_uloc, 1, GL_FALSE, (float*)&projection);
+    gl_has_errors();
+    
+    // These functions are specific to glDrawArrays*Instanced*.
+    // The first parameter is the attribute buffer we're talking about.
+    // The second parameter is the "rate at which generic vertex attributes advance when rendering multiple instances"
+    // http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribDivisor.xml
+//    glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
+//    glVertexAttribDivisor(1, 1); // positions : one per quad (its center) -> 1
+//    glVertexAttribDivisor(2, 1); // color : one per quad -> 1
+
+    // Draw the particules !
+    // This draws many times a small triangle_strip (which looks like a quad).
+    // This is equivalent to :
+    // for(i in ParticlesCount) : glDrawArrays(GL_TRIANGLE_STRIP, 0, 4),
+    // but faster.
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, PARTICLE_COUNT);
+    glBindVertexArray(0);
+
+}
+
 // Render our game world
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
 void RenderSystem::draw()
@@ -329,6 +423,10 @@ void RenderSystem::draw()
 		if (registry.has<Animate>(entity)) {
 			animate(entity);
 		}
+        if (registry.has<ParticleSystem>(entity)) {
+            drawParticle(entity, projection_2D);
+        }
+        
 		drawTexturedMesh(entity, projection_2D);
 		gl_has_errors();
 	}

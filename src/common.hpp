@@ -30,6 +30,10 @@ static const ivec2 FOREST_COORD = ivec2(0, 0);
 // bottom right position (TODO offset this by village size)
 static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
 
+static const int MAX_PARTICLES = 10000;
+static const int PARTICLE_COUNT = 0;
+
+
 enum grid_terran
 {
     GRID_GRASS = 0,
@@ -139,6 +143,7 @@ struct Animate {
 	float state_num = 1.f;
 	float frame_num = 1.f;
 };
+
 
 // id for entity
 struct Tag {

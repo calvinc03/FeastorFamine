@@ -89,6 +89,7 @@ private:
 	float current_speed;
 	float next_boss_spawn;
 	float next_mob_spawn;
+    float next_particle_spawn;
     
     // Season
     int season;
