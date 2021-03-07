@@ -103,6 +103,12 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	if (window == nullptr)
 		throw std::runtime_error("Failed to glfwCreateWindow");
 
+
+	GLFWimage images[1];
+	images[0].pixels = stbi_load("data/textures/icons/ff.png", &images[0].width, &images[0].height, 0, 4);
+	glfwSetWindowIcon(this->window, 1, images);
+	stbi_image_free(images[0].pixels);
+
 	// Setting callbacks to member functions (that's why the redirect is needed)
 	// Input is handled using GLFW, for more info see
 	// http://www.glfw.org/docs/latest/input_guide.html
@@ -180,9 +186,9 @@ void WorldSystem::init_audio()
 // Update our game world
 void WorldSystem::step(float elapsed_ms) {
 	// Updating window title with health
-	std::stringstream title_ss;
-	title_ss << "Battle stage... Food: " << health << " Round: " << round_number << " fps: " << 1000.0 / elapsed_ms;
-	glfwSetWindowTitle(window, title_ss.str().c_str());
+	//std::stringstream title_ss;
+	//title_ss << "Battle stage... Food: " << health << " Round: " << round_number << " fps: " << 1000.0 / elapsed_ms;
+	//glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// animation
 	fps_ms -= elapsed_ms;
@@ -333,9 +339,9 @@ void WorldSystem::set_up_step(float elapsed_ms)
 	set_up_timer -= elapsed_ms;
 
 	// Updating window title with health and setup timer
-	std::stringstream title_ss;
-	title_ss << "Setup stage... Food: " << health << " Round: " << round_number << " Time left to setup: " << round(set_up_timer / 1000) << " fps: " << 1000.0 / elapsed_ms;
-	glfwSetWindowTitle(window, title_ss.str().c_str());
+	//std::stringstream title_ss;
+	//title_ss << "Setup stage... Food: " << health << " Round: " << round_number << " Time left to setup: " << round(set_up_timer / 1000) << " fps: " << 1000.0 / elapsed_ms;
+	//glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	if (set_up_timer <= 0)
 	{
@@ -402,7 +408,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		std::cout << "weather " << weather << " \n";
 	}
 	auto& stage_text = registry.get<Text>(stage_text_entity);
-	stage_text.content = "PREPARE";
+	stage_text.content = "PREPARE: " + std::to_string((int)round(set_up_timer / 1000));
 	stage_text.colour = {1.0f, 1.0f, 1.0f};
 	registry.get<Text>(round_text_entity).content = "round: " + std::to_string(round_number);
 	registry.get<Text>(food_text_entity).content =  "food: " + std::to_string(health);

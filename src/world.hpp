@@ -12,9 +12,10 @@
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
+
 #include <SDL_mixer.h>
 #include <../ext/nlohmann/json.hpp>
-
+#include "stb_image.h"
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
 class WorldSystem : public Observer
