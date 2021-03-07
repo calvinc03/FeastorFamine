@@ -198,7 +198,7 @@ void AISystem::MapAI::setRandomGridsWeatherTerrain(GridMap &map, int max_grids) 
     for (int i = 0; i < max_grids; i++) {
      ivec2 random_coord(uniform_dist(rng)*WINDOW_SIZE_IN_COORD.x,  uniform_dist(rng)*WINDOW_SIZE_IN_COORD.y);
      auto& node = map.getNodeAtCoord(random_coord);
-     if (node.occupancy == OCCUPANCY_VACANT && node.terrain != TERRAIN_PAVEMENT) {
+     if (node.terrain != TERRAIN_PAVEMENT) {
          map.setGridterrain(random_coord, get_random_weather_terrain());
      }
     }

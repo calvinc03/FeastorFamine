@@ -47,11 +47,11 @@ static std::uniform_real_distribution<float> uniform_dist; // number between 0..
 // May be refactored later if too hard to keep track
 enum grid_terrain
 {
-    TERRAIN_PUDDLE = -2,
     TERRAIN_PAVEMENT = -1,
     TERRAIN_DEFAULT = 0,
     TERRAIN_MUD = 1,
     TERRAIN_ICE = 2,
+    TERRAIN_PUDDLE = 3,
 };
 
 enum grid_occupancy
