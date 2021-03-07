@@ -43,7 +43,7 @@ std::string button_to_string(int button) {
 //creates text that is independent of aspect ratio and resolution
 entt::entity create_ui_text(vec2 position, std::string content) {
 	auto entity = registry.create();
-	auto notoRegular = Font::load("data/fonts/Noto/NotoSans-Regular.ttf");
+	auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
 	auto& ui_text = registry.emplace<Text>(entity, Text(content, notoRegular, position));
 	ui_text.scale = 0.3f;
 	ui_text.colour = { 1.0f,1.0f,1.0f };
@@ -124,7 +124,7 @@ entt::entity UI_button::createUI_button(int pos, Button button, size_t cost, std
 	registry.emplace<Button>(entity, button);
 	registry.emplace<UI_button>(entity);
 	if (cost != 0) {
-		auto notoRegular = Font::load("data/fonts/Noto/NotoSans-Regular.ttf");
+		auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
 		auto& t = registry.emplace<Text>(entity, Text(std::to_string(cost), notoRegular, vec2(ui_element.position.x, WINDOW_SIZE_IN_PX.y - ui_element.position.y - 40)));
 		t.scale = 0.3f;
 		t.colour = { 1.0f,1.0f,1.0f };
