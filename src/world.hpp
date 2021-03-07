@@ -28,7 +28,7 @@ public:
 	~WorldSystem();
 
 	// menu
-	void menu_setup();
+	void game_setup();
 	void create_start_menu();
 	void setup_start_menu();
 
@@ -75,7 +75,8 @@ public:
 	{
 		start_menu,
 		in_game,
-		settings_menu
+		settings_menu,
+		help_menu
 	};
 
 	// state for set_up and monster_rounds
@@ -146,12 +147,15 @@ private:
 	// remove entities from start menu
 	void remove_menu_buttons();
 	void create_settings_menu();
+	entt::entity create_help_menu();
 
 	// helper for start menu mouse click and in_game mouse click
 	void start_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void in_game_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void unit_upgrade_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
+	void help_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
+
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* salmon_dead_sound;

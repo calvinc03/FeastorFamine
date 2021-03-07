@@ -32,15 +32,13 @@ struct Description {
 // Entry point
 int main()
 {
-
-
 	// Initialize the main systems
 	PhysicsSystem physics;
 	AISystem ai(&physics);
 	WorldSystem world(WINDOW_SIZE_IN_PX, &physics);
 	RenderSystem renderer(*world.window);
 	
-	world.menu_setup();
+	world.game_setup();
 	world.create_start_menu();
 	// Set all states to default
 	//world.restart();
@@ -74,6 +72,9 @@ int main()
 				world.step(elapsed_ms);
 				physics.step(elapsed_ms);
 			}
+		}
+		else if (world.game_state == WorldSystem::help_menu) {
+			
 		}
 		
 

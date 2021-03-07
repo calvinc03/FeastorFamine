@@ -63,7 +63,7 @@ entt::entity UI_background::createUI_background()
 	
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 98;
+	shaded_mesh.layer = 90;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "in_game_ui_background";
@@ -79,7 +79,7 @@ entt::entity UI_background::createUI_background()
 }
 
 #include "world.hpp"
-entt::entity UI_button::createUI_button(int pos, Button button, size_t cost, std::string tag) //later: reference vars for cost in world.
+entt::entity UI_button::createUI_button(int pos, Button button, size_t cost, std::string tag, bool show) //later: reference vars for cost in world.
 {
 	auto entity = registry.create();
 
@@ -112,7 +112,8 @@ entt::entity UI_button::createUI_button(int pos, Button button, size_t cost, std
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 99;
+	shaded_mesh.layer = 91;
+	shaded_mesh.show = show;
 	// Setting initial ui_element values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = tag;
