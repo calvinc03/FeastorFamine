@@ -103,6 +103,12 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem* physics) :
 	if (window == nullptr)
 		throw std::runtime_error("Failed to glfwCreateWindow");
 
+
+	GLFWimage images[1];
+	images[0].pixels = stbi_load("data/textures/icons/ff.png", &images[0].width, &images[0].height, 0, 4);
+	glfwSetWindowIcon(this->window, 1, images);
+	stbi_image_free(images[0].pixels);
+
 	// Setting callbacks to member functions (that's why the redirect is needed)
 	// Input is handled using GLFW, for more info see
 	// http://www.glfw.org/docs/latest/input_guide.html
@@ -180,9 +186,9 @@ void WorldSystem::init_audio()
 // Update our game world
 void WorldSystem::step(float elapsed_ms) {
 	// Updating window title with health
-	std::stringstream title_ss;
-	title_ss << "Battle stage... Food: " << health << " Round: " << round_number << " fps: " << 1000.0 / elapsed_ms;
-	glfwSetWindowTitle(window, title_ss.str().c_str());
+	//std::stringstream title_ss;
+	//title_ss << "Battle stage... Food: " << health << " Round: " << round_number << " fps: " << 1000.0 / elapsed_ms;
+	//glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// animation
 	fps_ms -= elapsed_ms;
@@ -239,25 +245,24 @@ void WorldSystem::step(float elapsed_ms) {
 			continue;
 		}
 
-		ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
-		vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
-		motion.velocity = length(motion.velocity) * move_direction;
-		motion.angle = atan(move_direction.y / move_direction.x);
-
-		//// if we will reach the next node in the next step, increase path index for next step
-		//ivec2 next_step_coord = pixelToCoord(motion.position + (elapsed_ms / 1000.f) * motion.velocity);
-		//if (next_step_coord == next_path_coord) {
-		//	monster.current_path_index++;
-		//}
-
         assert(monster_path_coords[monster.current_path_index] == current_path_coord);
-        
-        ivec2 next_step_coord = pixelToCoord(motion.position + (elapsed_ms / 1000.f) * motion.velocity);
+
+        ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
+        vec2 next_step_position = motion.position + (elapsed_ms / 1000.f) * motion.velocity;
+        ivec2 next_step_coord = pixelToCoord(next_step_position);
+
+        // change direction if reached the middle of the this node
+        if (abs(length(coordToPixel(current_path_coord) - motion.position)) <= length(motion.velocity) * elapsed_ms / 1000.f) {
+            vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
+            motion.velocity = length(motion.velocity) * move_direction;
+            motion.angle = atan(move_direction.y / move_direction.x);
+        }
+
         if (next_step_coord == next_path_coord) {
             monster.current_path_index++;
         }
 
-		if (DebugSystem::in_debug_mode)
+        if (DebugSystem::in_debug_mode)
 		{
 			DebugSystem::createDirectedLine(coordToPixel(current_path_coord), coordToPixel(next_path_coord), 5);
 		}
@@ -285,7 +290,8 @@ void WorldSystem::step(float elapsed_ms) {
 			round_number++;
 
 			setup_round_from_round_number(round_number);
-
+            // re-roll some weather terrains
+            AISystem::MapAI::setRandomGridsWeatherTerrain(current_map, 10);
 			player_state = set_up_stage;
 			num_bosses_spawned = 0;
 			num_mobs_spawned = 0;
@@ -314,7 +320,7 @@ void un_highlight()
 bool is_walkable(GridMap& current_map, ivec2 coord)
 {
     if (is_inbounds(coord)) {
-        int occupancy = current_map.node_matrix[coord.x][coord.y].occupancy;
+        int occupancy = current_map.getNodeAtCoord(coord).occupancy;
         return occupancy == OCCUPANCY_VACANT || occupancy == OCCUPANCY_FOREST || occupancy == OCCUPANCY_VILLAGE;
     }
     return false;
@@ -333,18 +339,17 @@ void WorldSystem::set_up_step(float elapsed_ms)
 	set_up_timer -= elapsed_ms;
 
 	// Updating window title with health and setup timer
-	std::stringstream title_ss;
-	title_ss << "Setup stage... Food: " << health << " Round: " << round_number << " Time left to setup: " << round(set_up_timer / 1000) << " fps: " << 1000.0 / elapsed_ms;
-	glfwSetWindowTitle(window, title_ss.str().c_str());
+	//std::stringstream title_ss;
+	//title_ss << "Setup stage... Food: " << health << " Round: " << round_number << " Time left to setup: " << round(set_up_timer / 1000) << " fps: " << 1000.0 / elapsed_ms;
+	//glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	if (set_up_timer <= 0)
 	{
 		player_state = battle_stage;
 		set_up_timer = SET_UP_TIME;
 		un_highlight();
-		// set path
+		// set path at start of battle phase
 		monster_path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
-
 
 		std::cout << season_str << " season! \n";
 
@@ -402,7 +407,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		std::cout << "weather " << weather << " \n";
 	}
 	auto& stage_text = registry.get<Text>(stage_text_entity);
-	stage_text.content = "PREPARE";
+	stage_text.content = "PREPARE: " + std::to_string((int)round(set_up_timer / 1000));
 	stage_text.colour = {1.0f, 1.0f, 1.0f};
 	registry.get<Text>(round_text_entity).content = "round: " + std::to_string(round_number);
 	registry.get<Text>(food_text_entity).content =  "food: " + std::to_string(health);

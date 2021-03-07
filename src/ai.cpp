@@ -145,7 +145,7 @@ std::map<int, float> weather_tile_prob = {
         {TERRAIN_PUDDLE,   1}
 };
 
-int get_weather_terrain() {
+int get_random_weather_terrain() {
     // grid_change_prob is the probability to set grid to special terrain
     float grid_change_prob = 0.7;
     // start with <rand * grid_change prob> chance for each happening
@@ -183,14 +183,24 @@ int get_weather_terrain() {
     return TERRAIN_DEFAULT;
 }
 
-void AISystem::MapAI::setRandomWeatherTerrain(GridMap& map) {
+void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map) {
     for (int i = 0; i < WINDOW_SIZE_IN_COORD.x; i++) {
         for (int j = 0; j < WINDOW_SIZE_IN_COORD.y; j++) {
-            int weather_terrain = get_weather_terrain();
-            if (weather_terrain != TERRAIN_DEFAULT && map.node_matrix[i][j].terrain != TERRAIN_PAVEMENT) {
+            int weather_terrain = get_random_weather_terrain();
+            if (weather_terrain != TERRAIN_DEFAULT && map.getNodeAtCoord(ivec2(i,j)).terrain != TERRAIN_PAVEMENT) {
                 map.setGridterrain(ivec2(i,j), weather_terrain);
             }
         }
+    }
+}
+
+void AISystem::MapAI::setRandomGridsWeatherTerrain(GridMap &map, int max_grids) {
+    for (int i = 0; i < max_grids; i++) {
+     ivec2 random_coord(uniform_dist(rng)*WINDOW_SIZE_IN_COORD.x,  uniform_dist(rng)*WINDOW_SIZE_IN_COORD.y);
+     auto& node = map.getNodeAtCoord(random_coord);
+     if (node.terrain != TERRAIN_PAVEMENT) {
+         map.setGridterrain(random_coord, get_random_weather_terrain());
+     }
     }
 }
 
@@ -218,8 +228,8 @@ int get_random_index () {
 bool is_valid_terrain_path(GridMap& current_map, ivec2 coord)
 {
     if (is_inbounds(coord)) {
-        int terrain = current_map.node_matrix[coord.x][coord.y].terrain;
-        int occupancy = current_map.node_matrix[coord.x][coord.y].occupancy;
+        int terrain = current_map.getNodeAtCoord(coord).terrain;
+        int occupancy = current_map.getNodeAtCoord(coord).occupancy;
         return terrain != TERRAIN_PAVEMENT && occupancy == OCCUPANCY_VACANT;
     }
     return false;
@@ -241,7 +251,7 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord) {
         ivec2 nbr_coord = current_coord + nbr_path.at(index);
         visited[index] = true;
         if (nbr_coord == end_coord ||
-            (is_inbounds(nbr_coord) && map.node_matrix[nbr_coord.x][nbr_coord.y].terrain != TERRAIN_PAVEMENT
+            (is_inbounds(nbr_coord) && map.getNodeAtCoord(nbr_coord).terrain != TERRAIN_PAVEMENT
              && !AISystem::MapAI::findPathBFS(map, nbr_coord, VILLAGE_COORD, is_valid_terrain_path).empty())) {
             return nbr_coord;
         }
@@ -251,7 +261,7 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord) {
     return ivec2(0, 0);
 }
 
-void AISystem::MapAI::setRandomPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain) {
+void AISystem::MapAI::setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain) {
     ivec2 rand_nbr = get_random_neighbor(map, start_coord, end_coord);
     map.setGridterrain(start_coord, terrain);
     // randomly step toward end_coord

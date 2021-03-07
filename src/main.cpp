@@ -53,10 +53,16 @@ int main()
 		// Processes system messages, if this wasn't present the window would become unresponsive
 		glfwPollEvents();
 
-//		// Calculating elapsed times in milliseconds from the previous iteration
-//		auto now = Clock::now();
-//		float elapsed_ms = static_cast<float>((std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count()) / 1000.f;
-//		t = now;
+		// Calculating elapsed times in milliseconds from the previous iteration
+		auto now = Clock::now();
+		float actual_ms = static_cast<float>((std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count()) / 1000.f;
+
+		while (actual_ms < elapsed_ms) {
+            now = Clock::now();
+            actual_ms = static_cast<float>((std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count()) / 1000.f;
+        }
+        t = now;
+
 		DebugSystem::clearDebugComponents();
 		HealthSystem::updateHealthComponents(elapsed_ms);
 		if (world.game_state == WorldSystem::in_game) {

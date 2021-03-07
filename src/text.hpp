@@ -12,7 +12,7 @@
 #include FT_FREETYPE_H
 
 // Forward declaration, see class definition below
-class Font;
+class TextFont;
 
 /**
  * `Text` is a basic class used for rendering text to the screen.
@@ -44,7 +44,7 @@ struct Text {
      * bottom edge of the screen, but some character with overhanging
      * features (such a 'g', 'j', 'q', etc) may appear cut off.
      */
-    Text(std::string content, std::shared_ptr<Font> font, glm::vec2 position, float scale = 1.0f, glm::vec3 colour = {0.0f, 0.0f, 0.0f}) noexcept;
+    Text(std::string content, std::shared_ptr<TextFont> font, glm::vec2 position, float scale = 1.0f, glm::vec3 colour = {0.0f, 0.0f, 0.0f}) noexcept;
 
     /**
      * Construct a Text object from a string, path to a TTF file, and a position.
@@ -60,7 +60,7 @@ struct Text {
 
     // A shared_ptr to the Text's font.
     // The font may be changed at any time, but must not be null.
-    std::shared_ptr<Font> font;
+    std::shared_ptr<TextFont> font;
 
     // The on-screen position of the left edge of the first glyph's baseline,
     // relative to the bottom left corner.
@@ -86,26 +86,26 @@ class FreeTypeContext;
  * specific use cases, such as scripts in European scripts, Asian
  * scripts, Indigenous scripts, mathematical symbols, Emoji, etc.
  */
-class Font {
+class TextFont {
 public:
     // A font must be constructed from a path to a valid TTF file.
     // An exception is thrown if any errors occur, such as the
     // file not existing.
     // NOTE: Font::load should be used for simplicity and to allow
     // fonts to be cached.
-    Font(const std::string& pathToTTF);
+    TextFont(const std::string& pathToTTF);
 
-    ~Font() noexcept;
+    ~TextFont() noexcept;
 
     // Fonts cannot be copied. Use `shared_ptr` font to reuse the same
     // font between `Text` objects, and see `Font::load` below.
-    Font(const Font&) = delete;
+    TextFont(const TextFont&) = delete;
 
     // Load a `Font` instance from a path to a TTF file and return
     // a shared_ptr to that font.
     // The font will be cached, so that multiple calls with the same
     // font path will not necessarily re-load the TTF file.
-    static std::shared_ptr<Font> load(const std::string& pathToTTF);
+    static std::shared_ptr<TextFont> load(const std::string& pathToTTF);
 
 private:
 

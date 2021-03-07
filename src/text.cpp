@@ -259,7 +259,7 @@ private:
 
 
 
-Text::Text(std::string content, std::shared_ptr<Font> font, glm::vec2 position, float scale, glm::vec3 colour) noexcept
+Text::Text(std::string content, std::shared_ptr<TextFont> font, glm::vec2 position, float scale, glm::vec3 colour) noexcept
     : content(std::move(content))
     , font(std::move(font))
     , position(position)
@@ -270,14 +270,14 @@ Text::Text(std::string content, std::shared_ptr<Font> font, glm::vec2 position, 
 
 Text::Text(std::string content, const std::string& pathToTTF, glm::vec2 position, float scale, glm::vec3 colour) noexcept
     : content(std::move(content))
-    , font(Font::load(pathToTTF))
+    , font(TextFont::load(pathToTTF))
     , position(position)
     , scale(scale)
     , colour(colour) {
 
 }
 
-Font::Font(const std::string& pathToTTF)
+TextFont::TextFont(const std::string& pathToTTF)
     : m_face{}
     , m_context(FreeTypeContext::get()) {
     
@@ -300,18 +300,18 @@ Font::Font(const std::string& pathToTTF)
 	}
 }
 
-Font::~Font() noexcept {
+TextFont::~TextFont() noexcept {
     // Clean up the font face
     FT_Check(FT_Done_Face(m_face));
 }
 
-std::shared_ptr<Font> Font::load(const std::string& pathToTTF) {
+std::shared_ptr<TextFont> TextFont::load(const std::string& pathToTTF) {
     // Static cache for fonts that have already been loaded.
     // fonts are used elsewhere using shared_ptr, but are stored
     // in the cache using weak_ptr. This allows fonts to be destroyed
     // when they are no longer used elsewhere, in which case the
     // weak_ptr will no longer be convertible to a valid shared_ptr.
-    static std::map<std::string, std::weak_ptr<Font>> s_fontCache;
+    static std::map<std::string, std::weak_ptr<TextFont>> s_fontCache;
 
     // Look for a matching font in the cache
     auto it = s_fontCache.find(pathToTTF);
@@ -323,7 +323,7 @@ std::shared_ptr<Font> Font::load(const std::string& pathToTTF) {
         }
     }
     // otherwise, if there is no match, construct a new shared_ptr for the font
-    auto sp = std::make_shared<Font>(pathToTTF);
+    auto sp = std::make_shared<TextFont>(pathToTTF);
 
     // cache the new font
     s_fontCache[pathToTTF] = sp;
@@ -331,7 +331,7 @@ std::shared_ptr<Font> Font::load(const std::string& pathToTTF) {
     return sp;
 }
 
-const Font::Character& Font::getCharacter(std::uint32_t codePoint) {
+const TextFont::Character& TextFont::getCharacter(std::uint32_t codePoint) {
     // Search for the code point in the cached character map
     auto it = m_characters.find(codePoint);
     if (it != end(m_characters)) {

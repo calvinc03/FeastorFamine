@@ -43,8 +43,8 @@ entt::entity GridMap::createGridMap()
         }
     }
 
-    AISystem::MapAI::setRandomPathTerran(map, FOREST_COORD, VILLAGE_COORD);
-    AISystem::MapAI::setRandomWeatherTerrain(map);
+    AISystem::MapAI::setRandomMapPathTerran(map, FOREST_COORD, VILLAGE_COORD);
+    AISystem::MapAI::setRandomMapWeatherTerrain(map);
     return entity;
 }
 
