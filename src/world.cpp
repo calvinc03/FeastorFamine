@@ -38,12 +38,12 @@ const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 
 const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
 
-const size_t STARTING_HEALTH = 300;
-const size_t WATCHTOWER_COST = 200;
-const size_t GREENHOUSE_COST = 300;
-const size_t HUNTER_COST = 150;
-const size_t WALL_COST = 100;
-const size_t HUNTER_UPGRADE_COST = 50;
+const int STARTING_HEALTH = 300;
+const int WATCHTOWER_COST = 200;
+const int GREENHOUSE_COST = 300;
+const int HUNTER_COST = 150;
+const int WALL_COST = 100;
+const int HUNTER_UPGRADE_COST = 50;
 void debug_path(std::vector<ivec2> monster_path_coords);
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
@@ -447,7 +447,7 @@ void WorldSystem::restart()
 	UI_button::createUI_button(1, green_house_button, GREENHOUSE_COST);
 	UI_button::createUI_button(2, stick_figure_button, HUNTER_COST);
 	UI_button::createUI_button(4, wall_button, WALL_COST);
-	UI_button::createUI_button(7, upgrade_button, HUNTER_COST, "upgrade_button", false); 
+	UI_button::createUI_button(7, upgrade_button, HUNTER_UPGRADE_COST, "upgrade_button", false); 
 	UI_button::createUI_button(10, save_button,0, "save_button");
 	UI_background::createUI_background();
 
