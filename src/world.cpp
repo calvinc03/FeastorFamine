@@ -1242,6 +1242,9 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 void WorldSystem::sell_unit(entt::entity &entity)
 {
+	auto& motion = registry.get<Motion>(entity);
+	auto& node = current_map.getNodeAtCoord(pixel_to_coord(motion.position));
+	node.occupancy = OCCUPANCY_VACANT;
 	registry.destroy(entity);
 }
 
