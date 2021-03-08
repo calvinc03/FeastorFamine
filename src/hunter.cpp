@@ -30,7 +30,7 @@ entt::entity Hunter::createHunter(vec2 pos)
 
     auto& unit = registry.emplace<Unit>(entity);
     unit.damage = 10;
-    unit.attack_rate = 3000;
+    unit.attack_rate = 1500;
     unit.attack_range = 400;
     unit.upgrades = 0;
     unit.type = key;
