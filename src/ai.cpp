@@ -47,7 +47,7 @@ void AISystem::step(float elapsed_ms)
 			float distance = sqrt(pow(adjacent, 2) + pow(opposite, 2));
 
 			if (distance <= placeable_unit.attack_range && placeable_unit.next_projectile_spawn < 0.f) {
-				placeable_unit.next_projectile_spawn = placeable_unit.attack_rate;
+				placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms;
 				Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, placeable_unit.damage);
 				motion_h.angle = atan2(opposite, adjacent);
 			}

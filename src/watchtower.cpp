@@ -29,7 +29,7 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
 
     auto& unit = registry.emplace<Unit>(entity);
     unit.damage = 10;
-    unit.attack_rate = 10000;
+    unit.attack_interval_ms = 800;
     unit.attack_range = 400;
     unit.workers = 0;
     unit.upgrades = 0;

@@ -970,7 +970,7 @@ void WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_
 					auto unit_stats = view_unit.get<Unit>(entity);
 					std::cout << "=== Unit stats ===\n";
 					std::cout << "attack damage: " << unit_stats.damage << "\n";
-					std::cout << "attack rate: " << unit_stats.attack_rate << "\n";
+					std::cout << "attack rate: " << unit_stats.attack_interval_ms << "\n";
 					std::cout << "attack range: " << unit_stats.attack_range << "\n";
 
 					if (registry.has<Unit>(entity))

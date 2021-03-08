@@ -140,7 +140,7 @@ struct Monster {
 struct Unit {
 	std::string type;
 	int damage;
-	size_t attack_rate;
+	size_t attack_interval_ms;
 	float next_projectile_spawn;
 	int attack_range;
 	int workers;
