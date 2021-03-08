@@ -40,7 +40,7 @@ entt::entity GridNode::createGridNode(int terrain, vec2 coord)
     motion.velocity = { 0, 0 };
     motion.position = coordToPixel(coord);
     // Setting initial values, scale is 1
-    motion.scale = vec2({ 1, 1 }) * static_cast<vec2>(resource.texture.size);
+    motion.scale = (vec2)GRID_CELL_SIZE;
 
     registry.emplace<HighlightBool>(entity); //component that stores whether this gridnode should be highlighted
 
