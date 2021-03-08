@@ -33,7 +33,7 @@
 
 #include "json.hpp"
 
-const size_t ANIMATION_FPS = 12;
+const size_t ANIMATION_FPS = 20;
 const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 
 const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
@@ -245,6 +245,8 @@ void WorldSystem::step(float elapsed_ms)
 			health -= monster.damage;
 			motion.velocity *= 0;
 			registry.destroy(entity);
+			if (health < 0) restart();
+
 			continue;
 		}
 
@@ -451,6 +453,10 @@ void WorldSystem::restart()
 	health = 500;				  //reset health
 	placement_unit_selected = ""; // no initial selection
 	round_number = 0;
+	num_bosses_spawned = 0;
+	num_mobs_spawned = 0;
+	player_state = set_up_stage;
+	set_up_timer = SET_UP_TIME;
 
 	registry.clear(); // Remove all entities that we created
 
@@ -580,6 +586,14 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 				registry.destroy(monster);
 			}
 		}
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
+	{
+		game_setup();
+		create_start_menu();
+		player_state = set_up_stage;
+		game_state = start_menu;
 	}
 
 	// hotkey for controls
