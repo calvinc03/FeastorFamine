@@ -66,7 +66,7 @@ void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy, vec2 scale) {
     vec2 over_hang = scale / (vec2)GRID_CELL_SIZE / 2.f;
     over_hang = vec2(ceil(over_hang.x), ceil(over_hang.y));
     for (int i = grid_coord.x - over_hang.x; i <= grid_coord.x + over_hang.x; i++) {
-        for (int j = grid_coord.y - over_hang.y; i <= grid_coord.y + over_hang.y; j++) {
+        for (int j = grid_coord.y - over_hang.y; j <= grid_coord.y + over_hang.y; j++) {
             ivec2 current_coord = ivec2(i, j);
             if (is_inbounds(current_coord)) {
                 auto& node = getNodeAtCoord(current_coord);

@@ -33,7 +33,6 @@ static const ivec2 MAP_SIZE_IN_COORD = MAP_SIZE_IN_PX / GRID_CELL_SIZE;
 
 static const ivec2 FOREST_COORD = ivec2(0, 0);
 static const ivec2 VILLAGE_COORD = MAP_SIZE_IN_COORD - ivec2(2, 2);
-static const int MAX_TILES = 84;
 
 static int season;
 static int weather;
