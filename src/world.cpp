@@ -196,7 +196,6 @@ bool is_walkable(GridMap& current_map, ivec2 coord)
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
-	if (health < 0) restart();
 
 	// animation
 	fps_ms -= elapsed_ms;
@@ -244,7 +243,7 @@ void WorldSystem::step(float elapsed_ms)
 	for (auto entity : registry.view<Monster>())
 	{
 		auto state = BTCollision->process(entity);
-
+		if (health < 0) restart();
 	}
 
 	// removes projectiles that are out of the screen
