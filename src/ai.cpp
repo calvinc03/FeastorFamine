@@ -98,9 +98,9 @@ float get_distance(ivec2 coord1, ivec2 coord2) {
 }
 
 std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2)) {
-    std::vector<std::vector<bool>> visited(WINDOW_SIZE_IN_COORD.x, std::vector<bool> (WINDOW_SIZE_IN_COORD.y, false));
-    std::vector<std::vector<std::tuple<ivec2, float>>> parent(WINDOW_SIZE_IN_COORD.x,
-                                                              std::vector<std::tuple<ivec2, float>> (WINDOW_SIZE_IN_COORD.y, std::make_tuple(vec2(-1, -1), -1)));
+    std::vector<std::vector<bool>> visited(MAP_SIZE_IN_COORD.x, std::vector<bool> (MAP_SIZE_IN_COORD.y, false));
+    std::vector<std::vector<std::tuple<ivec2, float>>> parent(MAP_SIZE_IN_COORD.x,
+                                                              std::vector<std::tuple<ivec2, float>> (MAP_SIZE_IN_COORD.y, std::make_tuple(vec2(-1, -1), -1)));
     std::tuple<ivec2, float> start_qnode = std::make_tuple(start_coord, 0.f);
 
     std::queue<std::tuple<ivec2, float>> queue;
@@ -184,8 +184,8 @@ int get_random_weather_terrain() {
 }
 
 void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map) {
-    for (int i = 0; i < WINDOW_SIZE_IN_COORD.x; i++) {
-        for (int j = 0; j < WINDOW_SIZE_IN_COORD.y; j++) {
+    for (int i = 0; i < MAP_SIZE_IN_COORD.x; i++) {
+        for (int j = 0; j < MAP_SIZE_IN_COORD.y; j++) {
             int weather_terrain = get_random_weather_terrain();
             if (weather_terrain != TERRAIN_DEFAULT && map.getNodeAtCoord(ivec2(i,j)).terrain != TERRAIN_PAVEMENT) {
                 map.setGridterrain(ivec2(i,j), weather_terrain);
@@ -196,7 +196,7 @@ void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map) {
 
 void AISystem::MapAI::setRandomGridsWeatherTerrain(GridMap &map, int max_grids) {
     for (int i = 0; i < max_grids; i++) {
-     ivec2 random_coord(uniform_dist(rng)*WINDOW_SIZE_IN_COORD.x,  uniform_dist(rng)*WINDOW_SIZE_IN_COORD.y);
+     ivec2 random_coord(uniform_dist(rng)*MAP_SIZE_IN_COORD.x,  uniform_dist(rng)*MAP_SIZE_IN_COORD.y);
      auto& node = map.getNodeAtCoord(random_coord);
      if (node.terrain != TERRAIN_PAVEMENT) {
          map.setGridterrain(random_coord, get_random_weather_terrain());

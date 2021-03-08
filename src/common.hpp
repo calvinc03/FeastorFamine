@@ -22,13 +22,17 @@
 using namespace glm;
 static const float PI = 3.14159265359f;
 static const size_t FIRING_RATE = 3000;
-static const int GRID_CELL_SIZE = 100;
-static const ivec2 GRID_OFFSET =  ivec2(GRID_CELL_SIZE/2 , GRID_CELL_SIZE/2);
-static const ivec2 WINDOW_SIZE_IN_PX = {1200, 700};
 
-static const ivec2 WINDOW_SIZE_IN_COORD = WINDOW_SIZE_IN_PX / GRID_CELL_SIZE;
+static const int GRID_CELL_SIZE = 70;
+static const ivec2 GRID_OFFSET =  ivec2(GRID_CELL_SIZE/2 , GRID_CELL_SIZE/2);
+static const int UI_TAB_HEIGHT = GRID_CELL_SIZE;
+
+static const ivec2 WINDOW_SIZE_IN_PX = {GRID_CELL_SIZE * 15, GRID_CELL_SIZE * 10};
+static const ivec2 MAP_SIZE_IN_PX = {WINDOW_SIZE_IN_PX.x, WINDOW_SIZE_IN_PX.y - UI_TAB_HEIGHT};
+static const ivec2 MAP_SIZE_IN_COORD = MAP_SIZE_IN_PX / GRID_CELL_SIZE;
+
 static const ivec2 FOREST_COORD = ivec2(0, 0);
-static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
+static const ivec2 VILLAGE_COORD = MAP_SIZE_IN_COORD - ivec2(2, 2);
 static const int MAX_TILES = 84;
 
 static int season;
@@ -187,8 +191,12 @@ extern entt::entity camera;
 vec2 mouse_in_world_coord(vec2 mouse_pos);
 // add offset so that pixel is centered on grid
 
-vec2 coordToPixel(ivec2 grid_coord);
+vec2 coord_to_pixel(ivec2 grid_coord);
 
-ivec2 pixelToCoord(vec2 pixel_position);
+ivec2 pixel_to_coord(vec2 pixel_position);
+
+vec2 scale_to_grid_units(vec2 original_scale, float cell_units);
+
+vec2 grid_to_pixel_velocity(vec2 unit_velocity);
 
 bool is_inbounds(ivec2 coord);

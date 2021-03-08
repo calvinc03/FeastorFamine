@@ -17,6 +17,6 @@ public:
     std::vector<GridNode> getNodesFromCoords(std::vector<ivec2>& grid_coords);
 
 private:
-    std::vector<std::vector<entt::entity>> node_entity_matrix = std::vector<std::vector<entt::entity>>(WINDOW_SIZE_IN_COORD.x, std::vector<entt::entity>(WINDOW_SIZE_IN_COORD.y));
-    std::vector<std::vector<GridNode>> node_matrix = std::vector<std::vector<GridNode>>(WINDOW_SIZE_IN_COORD.x, std::vector<GridNode>(WINDOW_SIZE_IN_COORD.y));
+    std::vector<std::vector<entt::entity>> node_entity_matrix = std::vector<std::vector<entt::entity>>(MAP_SIZE_IN_COORD.x, std::vector<entt::entity>(MAP_SIZE_IN_COORD.y));
+    std::vector<std::vector<GridNode>> node_matrix = std::vector<std::vector<GridNode>>(MAP_SIZE_IN_COORD.x, std::vector<GridNode>(MAP_SIZE_IN_COORD.y));
 };

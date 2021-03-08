@@ -46,14 +46,26 @@ vec2 mouse_in_world_coord(vec2 mouse_pos)
 	return mouse_world_pos;
 }
 
-vec2 coordToPixel(ivec2 grid_coord) {
+vec2 coord_to_pixel(ivec2 grid_coord) {
     return grid_coord * GRID_CELL_SIZE + GRID_OFFSET;
 }
 
-ivec2 pixelToCoord(vec2 pixel_position) {
+ivec2 pixel_to_coord(vec2 pixel_position) {
     return (ivec2)pixel_position / GRID_CELL_SIZE;
 }
 
+// convert original scale to some set multiple of cell units
+vec2 scale_to_grid_units(vec2 original_scale, float cell_units) {
+    vec2 unit_scale = original_scale / min(original_scale.x, original_scale.y);
+    return unit_scale * cell_units * (float) GRID_CELL_SIZE;
+}
+
+// unit_velocity: velocity as a multiple of grid cell units
+// eg. unit_velocity = vec2(1,1) means moving 1 grid right and 1 grid down every second
+vec2 grid_to_pixel_velocity(vec2 unit_velocity) {
+    return unit_velocity * (vec2) GRID_CELL_SIZE;
+}
+
 bool is_inbounds(ivec2 grid_coord) {
-    return grid_coord.x >= 0 && grid_coord.y >= 0 && grid_coord.x < WINDOW_SIZE_IN_COORD.x && grid_coord.y < WINDOW_SIZE_IN_COORD.y;
+    return grid_coord.x >= 0 && grid_coord.y >= 0 && grid_coord.x < MAP_SIZE_IN_COORD.x && grid_coord.y < MAP_SIZE_IN_COORD.y;
 }
