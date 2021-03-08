@@ -30,3 +30,4 @@ struct UI_button
 	static entt::entity createUI_button(int pos, Button button, size_t cost = 0, std::string tag = "default_ui_button_tag", bool show = true);
 };
 
+inline std::string ui_texture_path(const std::string& name) { return data_path() + "/textures/ui/" + name; };

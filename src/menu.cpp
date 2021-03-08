@@ -11,7 +11,7 @@ entt::entity Menu::createMenu(double x, double y, std::string menu_name, Menu_te
 	ShadedMesh& resource = cache_resource(key);
 	if (resource.effect.program.resource == 0) {
 		resource = ShadedMesh();
-		std::string texture_file_name = "empty_button.png";
+		std::string texture_file_name = "title_screen.png";
 		switch (texture)
 		{
 			case title_screen:
@@ -24,10 +24,10 @@ entt::entity Menu::createMenu(double x, double y, std::string menu_name, Menu_te
 				texture_file_name = "help_menu.png";
 				break;
 			default:
-				texture_file_name = "empty_button.png";
+				texture_file_name = "title_screen.png";
 				break;
 		}
-		RenderSystem::createSprite(resource, textures_path(texture_file_name), "textured");
+		RenderSystem::createSprite(resource, menu_texture_path(texture_file_name), "textured");
 	}
 	
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
