@@ -1152,28 +1152,28 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				{
 					entt::entity entity = Hunter::createHunter({x, y});
 					health -= HUNTER_COST;
-					node.occupancy = OCCUPANCY_HUNTER;
+					current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_HUNTER);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
 				{
 					entt::entity entity = GreenHouse::createGreenHouse({x, y});
 					health -= GREENHOUSE_COST;
-					node.occupancy = OCCUPANCY_GREENHOUSE;
+                    current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_GREENHOUSE);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
 				{
 					entt::entity entity = WatchTower::createWatchTower({x, y});
 					health -= WATCHTOWER_COST;
-					node.occupancy = OCCUPANCY_TOWER;
+                    current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_TOWER);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == WALL_NAME && health >= WALL_COST)
 				{
 					entt::entity entity = Wall::createWall({x, y}, false);
 					health -= WALL_COST;
-					node.occupancy = OCCUPANCY_WALL;
+                    current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_WALL);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else

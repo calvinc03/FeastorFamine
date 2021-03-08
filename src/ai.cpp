@@ -188,7 +188,7 @@ void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map) {
         for (int j = 0; j < MAP_SIZE_IN_COORD.y; j++) {
             int weather_terrain = get_random_weather_terrain();
             if (weather_terrain != TERRAIN_DEFAULT && map.getNodeAtCoord(ivec2(i,j)).terrain != TERRAIN_PAVEMENT) {
-                map.setGridterrain(ivec2(i,j), weather_terrain);
+                map.setGridTerrain(ivec2(i, j), weather_terrain);
             }
         }
     }
@@ -199,7 +199,7 @@ void AISystem::MapAI::setRandomGridsWeatherTerrain(GridMap &map, int max_grids) 
      ivec2 random_coord(uniform_dist(rng)*MAP_SIZE_IN_COORD.x,  uniform_dist(rng)*MAP_SIZE_IN_COORD.y);
      auto& node = map.getNodeAtCoord(random_coord);
      if (node.terrain != TERRAIN_PAVEMENT) {
-         map.setGridterrain(random_coord, get_random_weather_terrain());
+         map.setGridTerrain(random_coord, get_random_weather_terrain());
      }
     }
 }
@@ -263,13 +263,13 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord) {
 
 void AISystem::MapAI::setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain) {
     ivec2 rand_nbr = get_random_neighbor(map, start_coord, end_coord);
-    map.setGridterrain(start_coord, terrain);
+    map.setGridTerrain(start_coord, terrain);
     // randomly step toward end_coord
     while (rand_nbr != end_coord) {
-        map.setGridterrain(rand_nbr, terrain);
+        map.setGridTerrain(rand_nbr, terrain);
         rand_nbr = get_random_neighbor(map, rand_nbr, end_coord);
     }
-    map.setGridterrain(end_coord, terrain);
+    map.setGridTerrain(end_coord, terrain);
 }
 
 std::shared_ptr<onCollisionSelector> AISystem::MonstersAI::createCollisionTree() {

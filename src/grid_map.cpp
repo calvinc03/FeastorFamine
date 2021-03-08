@@ -32,7 +32,7 @@ entt::entity GridMap::createGridMap()
     motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
     motion.position = WINDOW_SIZE_IN_PX/2;
     // Setting initial values, scale is 1
-    motion.scale = vec2({ 1, 1 }) * (vec2)WINDOW_SIZE_IN_PX;
+    motion.scale = (vec2)WINDOW_SIZE_IN_PX;
 
     // fill node_entity_matrix with default type grid node
     for (int x = 0; x < MAP_SIZE_IN_COORD.x; x++){
@@ -48,7 +48,7 @@ entt::entity GridMap::createGridMap()
     return entity;
 }
 
-void GridMap::setGridterrain(ivec2 grid_coord, int terrain) {
+void GridMap::setGridTerrain(ivec2 grid_coord, int terrain) {
     if (!is_inbounds(grid_coord)) {
         std::cout<<"Debug: out of bounds"<< std::endl;
         return;
