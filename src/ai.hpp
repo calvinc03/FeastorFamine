@@ -20,7 +20,10 @@ public:
 	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
 
 	struct MapAI {
-        static std::vector<ivec2> findPathBFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2));
+        static std::vector<ivec2> findPathBFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2),
+                                              const std::vector<ivec2>& neighbors = {ivec2(1,0), ivec2(1,-1),ivec2(1,1),
+                                                                                    ivec2(0,-1),ivec2(0,1),
+                                                                                    ivec2(-1,0),ivec2(-1,1),ivec2(-1,-1)});
         static void setRandomMapWeatherTerrain(GridMap& map);
         static void setRandomGridsWeatherTerrain(GridMap& map, int max_grids);
         static void setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain = TERRAIN_PAVEMENT);

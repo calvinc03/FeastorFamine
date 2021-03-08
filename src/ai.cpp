@@ -88,16 +88,11 @@ void AISystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 	}
 }
 
-// with diagonals
-std::vector<ivec2> nbr_walk = {ivec2(1,0), ivec2(1,-1),ivec2(1,1),
-                  ivec2(0,-1),ivec2(0,1),
-                  ivec2(-1,0),ivec2(-1,1),ivec2(-1,-1)};
-
 float get_distance(ivec2 coord1, ivec2 coord2) {
     return length((vec2)(coord1 - coord2));
 }
 
-std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2)) {
+std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), const std::vector<ivec2>& neighbors) {
     std::vector<std::vector<bool>> visited(MAP_SIZE_IN_COORD.x, std::vector<bool> (MAP_SIZE_IN_COORD.y, false));
     std::vector<std::vector<std::tuple<ivec2, float>>> parent(MAP_SIZE_IN_COORD.x,
                                                               std::vector<std::tuple<ivec2, float>> (MAP_SIZE_IN_COORD.y, std::make_tuple(vec2(-1, -1), -1)));
@@ -123,8 +118,8 @@ std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 star
         }
         queue.pop();
         // check neighbors
-        for (int i = 0; i < 8; i++) {
-            ivec2 nbr_coord = std::get<0>(current_qnode) + nbr_walk.at(i);
+        for (int i = 0; i < neighbors.size(); i++) {
+            ivec2 nbr_coord = std::get<0>(current_qnode) + neighbors.at(i);
             if (!is_valid(current_map, nbr_coord) || visited[nbr_coord.x][nbr_coord.y]) {
                 continue;
             }
@@ -136,7 +131,6 @@ std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 star
     }
     // a path does not exist between start and end.
     // should NOT reach this point for monster travel path with random map generation is in place
-    std::cout<<"Debug: no path exist \n";
     return std::vector<ivec2>();
 }
 
@@ -204,11 +198,6 @@ void AISystem::MapAI::setRandomGridsWeatherTerrain(GridMap &map, int max_grids) 
     }
 }
 
-// no diagonal version
-// with diagonals
-std::vector<ivec2> nbr_path = {ivec2(0,-1),ivec2(-1,0),
-                               ivec2(1,0), ivec2(0,1)};
-
 int get_random_index () {
     float num = uniform_dist(rng);
     // 10% chance for UP and LEFT
@@ -236,7 +225,7 @@ bool is_valid_terrain_path(GridMap& current_map, ivec2 coord)
 }
 
 
-ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord) {
+ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord, std::vector<ivec2>& neighbors) {
     bool visited[4] = {false, false, false, false};
     int count = 0;
 
@@ -248,11 +237,11 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord) {
         }
         count++;
         // return this neighbor if it's in bounds and has an open path to village (don't want to block itself in)
-        ivec2 nbr_coord = current_coord + nbr_path.at(index);
+        ivec2 nbr_coord = current_coord + neighbors.at(index);
         visited[index] = true;
         if (nbr_coord == end_coord ||
             (is_inbounds(nbr_coord) && map.getNodeAtCoord(nbr_coord).terrain != TERRAIN_PAVEMENT
-             && !AISystem::MapAI::findPathBFS(map, nbr_coord, VILLAGE_COORD, is_valid_terrain_path).empty())) {
+             && !AISystem::MapAI::findPathBFS(map, nbr_coord, VILLAGE_COORD, is_valid_terrain_path, neighbors).empty())) {
             return nbr_coord;
         }
     }
@@ -262,14 +251,17 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord) {
 }
 
 void AISystem::MapAI::setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain) {
-    ivec2 rand_nbr = get_random_neighbor(map, start_coord, end_coord);
+    // no diagonal version
+    std::vector<ivec2> path_neighbors = {ivec2(0, -1), ivec2(-1, 0),
+                                         ivec2(1,0), ivec2(0,1)};
+
     map.setGridTerrain(start_coord, terrain);
+
     // randomly step toward end_coord
-    while (rand_nbr != end_coord) {
-        map.setGridTerrain(rand_nbr, terrain);
-        rand_nbr = get_random_neighbor(map, rand_nbr, end_coord);
+    while (start_coord != end_coord) {
+        start_coord = get_random_neighbor(map, start_coord, end_coord, path_neighbors);
+        map.setGridTerrain(start_coord, terrain);
     }
-    map.setGridTerrain(end_coord, terrain);
 }
 
 std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
