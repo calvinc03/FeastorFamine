@@ -9,9 +9,6 @@
 #include "Observer.hpp"
 #include "physics.hpp"
 #include <BehaviorTree.cpp>
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// DON'T WORRY ABOUT THIS CLASS UNTIL ASSIGNMENT 3
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 class AISystem : public Observer
 {
@@ -30,7 +27,7 @@ public:
 	};
 
 	struct MonstersAI {
-		static std::shared_ptr<onCollisionSelector> createCollisionTree();
+		static std::shared_ptr<BTSelector> createBehaviorTree();
 	};
 
 private:

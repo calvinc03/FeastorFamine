@@ -72,7 +72,7 @@ void AISystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 				}
 
 				auto& motion = registry.get<Motion>(entity_j);
-				motion.velocity *= boss.speed_multiplier;
+				//motion.velocity *= boss.speed_multiplier;
 
 			}
 		}
@@ -272,10 +272,10 @@ void AISystem::MapAI::setRandomMapPathTerran(GridMap& map, ivec2 start_coord, iv
     map.setGridTerrain(end_coord, terrain);
 }
 
-std::shared_ptr<onCollisionSelector> AISystem::MonstersAI::createCollisionTree() {
+std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
 	std::shared_ptr <BTNode> donothing = std::make_unique<DoNothing>();
 	std::shared_ptr <BTNode> grow = std::make_unique<Grow>();
-	std::shared_ptr <BTNode> stop = std::make_unique<Stop>();
+	//std::shared_ptr <BTNode> stop = std::make_unique<Stop>();
 	std::shared_ptr <BTNode> run = std::make_unique<Run>();
 	std::shared_ptr <BTNode> knockback = std::make_unique<Knockback>();
 
@@ -285,16 +285,20 @@ std::shared_ptr<onCollisionSelector> AISystem::MonstersAI::createCollisionTree()
 	);
 	std::shared_ptr <BTIfCondition> conditional_grow = std::make_unique<BTIfCondition>(
 		grow,
-		[](entt::entity e) {return registry.has<SpringBoss>(e); }
-	);
-	std::shared_ptr <BTIfCondition> conditional_stop = std::make_unique<BTIfCondition>(
-		stop,
-		[](entt::entity e) {return registry.has<SummerBoss>(e); }
-	);
-	std::shared_ptr <BTIfCondition> conditional_run = std::make_unique<BTIfCondition>(
-		run,
 		[](entt::entity e) {return registry.has<FallBoss>(e); }
 	);
+	/*std::shared_ptr <BTIfCondition> conditional_stop = std::make_unique<BTIfCondition>(
+		stop,
+		[](entt::entity e) {return registry.has<SummerBoss>(e); }
+	);*/
+	std::shared_ptr <BTIfCondition> conditional_run = std::make_unique<BTIfCondition>(
+		run,
+		[](entt::entity e) {return registry.has<SpringBoss>(e); }
+	);
+    std::shared_ptr <BTIfCondition> conditional_run_sum = std::make_unique<BTIfCondition>(
+        run,
+        [](entt::entity e) {return registry.has<SummerBoss>(e); }
+    );
 	std::shared_ptr <BTIfCondition> conditional_knockback = std::make_unique<BTIfCondition>(
 		knockback,
 		[](entt::entity e) {return registry.has<WinterBoss>(e); }
@@ -303,11 +307,29 @@ std::shared_ptr<onCollisionSelector> AISystem::MonstersAI::createCollisionTree()
 	std::vector<std::shared_ptr<BTIfCondition>> cond_nodes;
 	cond_nodes.push_back(conditional_donothing);
 	cond_nodes.push_back(conditional_grow);
-	cond_nodes.push_back(conditional_stop);
+	//cond_nodes.push_back(conditional_stop);
 	cond_nodes.push_back(conditional_run);
+    cond_nodes.push_back(conditional_run_sum);
 	cond_nodes.push_back(conditional_knockback);
 
-	std::shared_ptr<onCollisionSelector> root = std::make_unique<onCollisionSelector>(cond_nodes);
+	std::shared_ptr<BTSelector> selector = std::make_unique<BTSelector>(cond_nodes);
+    
+    std::shared_ptr <BTIfCondition> conditional_collided = std::make_unique<BTIfCondition>(
+        selector,
+        [](entt::entity e) {return registry.get<Monster>(e).collided; }
+    );
+
+    std::shared_ptr<BTNode> walk = std::make_unique<Walk>();
+    std::shared_ptr <BTIfCondition> conditional_walk = std::make_unique<BTIfCondition>(
+        walk,
+        [](entt::entity e) {return true; }
+    );
+
+    std::vector<std::shared_ptr<BTIfCondition>> walk_or_collide;
+    walk_or_collide.push_back(conditional_collided);
+    walk_or_collide.push_back(conditional_walk);
+
+    std::shared_ptr<BTSelector> root = std::make_unique<BTSelector>(walk_or_collide);
 
 	return root;
 }

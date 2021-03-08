@@ -135,6 +135,7 @@ struct Monster {
     int current_path_index = 0;
 	int reward;
 	bool collided = false;
+	std::vector<ivec2> path_coords;
 };
 
 struct Unit {

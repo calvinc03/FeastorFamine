@@ -37,6 +37,7 @@ const size_t ANIMATION_FPS = 20;
 const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 
 const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
+int WorldSystem::health = 500;
 
 const int STARTING_HEALTH = 300;
 const int WATCHTOWER_COST = 200;
@@ -65,13 +66,12 @@ const std::string SAVE_PATH = "data/save_files/save_state.json";
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_state(start_menu),
 																		 player_state(set_up_stage),
 																		 fps_ms(1000 / ANIMATION_FPS),
-																		 health(500),
+																		 //health(500),
 																		 next_boss_spawn(2000.f),
 																		 next_mob_spawn(3000.f),
 																		 num_mobs_spawned(0),
 																		 num_bosses_spawned(0),
 																		 next_greenhouse_production(3000.f),
-
 																		 set_up_timer(SET_UP_TIME),
 																		 round_number(0)
 {
@@ -131,7 +131,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
 	this->physics = physics;
 	this->physics->attach(this);
 
-	BTCollision = AISystem::MonstersAI::createCollisionTree();
+	BTCollision = AISystem::MonstersAI::createBehaviorTree();
 }
 
 WorldSystem::~WorldSystem()
@@ -182,13 +182,21 @@ void WorldSystem::init_audio()
 								 audio_path("ui_sound_bottle_pop.wav"));
 }
 
+// set path
+bool is_walkable(GridMap& current_map, ivec2 coord)
+{
+	if (is_inbounds(coord))
+	{
+		int occupancy = current_map.getNodeAtCoord(coord).occupancy;
+		return occupancy == OCCUPANCY_VACANT || occupancy == OCCUPANCY_FOREST || occupancy == OCCUPANCY_VILLAGE;
+	}
+	return false;
+}
+
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
-	// Updating window title with health
-	//std::stringstream title_ss;
-	//title_ss << "Battle stage... Food: " << health << " Round: " << round_number << " fps: " << 1000.0 / elapsed_ms;
-	//glfwSetWindowTitle(window, title_ss.str().c_str());
+	if (health < 0) restart();
 
 	// animation
 	fps_ms -= elapsed_ms;
@@ -210,6 +218,10 @@ void WorldSystem::step(float elapsed_ms)
 		// Reset spawn timer and spawn boss
 		next_boss_spawn = (boss_delay_ms / 2) + uniform_dist(rng) * (boss_delay_ms / 2);
 		entt::entity boss = create_boss();
+
+		auto& monster = registry.get<Monster>(boss);
+		monster.path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
+
 		num_bosses_spawned += 1;
 		BTCollision->init(boss);
 	}
@@ -220,6 +232,10 @@ void WorldSystem::step(float elapsed_ms)
 	{
 		next_mob_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
 		entt::entity mob = Mob::createMobEntt();
+
+		auto& monster = registry.get<Monster>(mob);
+		monster.path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
+
 		num_mobs_spawned += 1;
 		BTCollision->init(mob);
 	}
@@ -228,52 +244,7 @@ void WorldSystem::step(float elapsed_ms)
 	for (auto entity : registry.view<Monster>())
 	{
 		auto state = BTCollision->process(entity);
-		if (state == BTState::Stopped)
-			continue;
 
-		auto &monster = registry.get<Monster>(entity);
-		auto &motion = registry.get<Motion>(entity);
-		auto &current_path_coord = monster_path_coords.at(monster.current_path_index);
-
-		// check that the monster is indeed within the current path node
-		ivec2 coord = pixel_to_coord(motion.position);
-
-		// if we are on the last node, stop the monster and remove entity
-		// TODO: make disappearance fancier
-		if (pixel_to_coord(motion.position) == VILLAGE_COORD || monster.current_path_index >= monster_path_coords.size() - 1)
-		{
-			health -= monster.damage;
-			motion.velocity *= 0;
-			registry.destroy(entity);
-			if (health < 0) restart();
-
-			continue;
-		}
-
-		assert(monster_path_coords[monster.current_path_index] == current_path_coord);
-
-		ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
-		vec2 next_step_position = motion.position + (elapsed_ms / 1000.f) * motion.velocity;
-		ivec2 next_step_coord = pixel_to_coord(next_step_position);
-		
-        // change direction if reached the middle of the this node
-        if (abs(length(coord_to_pixel(current_path_coord) - motion.position)) < length(motion.velocity) * elapsed_ms / 1000.f) {
-            vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
-            motion.velocity = length(motion.velocity) * move_direction;
-            motion.angle = atan(move_direction.y / move_direction.x);
-        }
-
-        if (next_step_coord == next_path_coord) {
-            monster.current_path_index++;
-            // update monster count (for terrain distortion effects)
-            current_map.getNodeAtCoord(current_path_coord).num_monsters--;
-            current_map.getNodeAtCoord(next_path_coord).num_monsters++;
-        }
-
-		if (DebugSystem::in_debug_mode)
-		{
-			DebugSystem::createDirectedLine(coord_to_pixel(current_path_coord), coord_to_pixel(next_path_coord), 5);
-		}
 	}
 
 	// removes projectiles that are out of the screen
@@ -320,6 +291,10 @@ void WorldSystem::step(float elapsed_ms)
 	registry.get<Text>(food_text_entity).content = "food: " + std::to_string(health);
 }
 
+void WorldSystem::deduct_health(int num) {
+	
+}
+
 void un_highlight()
 {
 	auto view_ui = registry.view<HighlightBool>();
@@ -328,16 +303,7 @@ void un_highlight()
 		highlight.highlight = false;
 	}
 }
-// set path
-bool is_walkable(GridMap &current_map, ivec2 coord)
-{
-	if (is_inbounds(coord))
-	{
-		int occupancy = current_map.getNodeAtCoord(coord).occupancy;
-		return occupancy == OCCUPANCY_VACANT || occupancy == OCCUPANCY_FOREST || occupancy == OCCUPANCY_VILLAGE;
-	}
-	return false;
-}
+
 
 void WorldSystem::set_up_step(float elapsed_ms)
 {
@@ -1330,22 +1296,22 @@ void WorldSystem::load_game()
 		if (type == WATCHTOWER_NAME)
 		{
 			entity = WatchTower::createWatchTower({x, y});
-            current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_TOWER);
+			node.occupancy = OCCUPANCY_TOWER;
 		}
 		else if (type == GREENHOUSE_NAME)
 		{
 			entity = GreenHouse::createGreenHouse({x, y});
-            current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_GREENHOUSE);
+			node.occupancy = OCCUPANCY_TOWER;
 		}
 		else if (type == WALL_NAME)
 		{
 			entity = Wall::createWall({x, y}, unit["rotate"]);
-            current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_WALL);
+			node.occupancy = OCCUPANCY_TOWER;
 		}
 		else if (type == HUNTER_NAME)
 		{
 			entity = Hunter::createHunter({x, y});
-            current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_HUNTER);
+			node.occupancy = OCCUPANCY_TOWER;
 		}
 
 		auto view_unit = registry.view<Unit>();

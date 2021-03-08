@@ -11,6 +11,7 @@
 #include <debug.hpp>
 #include <BehaviorTree.hpp>
 #include <mob.hpp>
+#include <world.hpp>
 #pragma once
 
 // A composite node that loops through all children and exits when one fails
@@ -86,10 +87,9 @@ private:
 	std::function<bool(entt::entity)> m_condition;
 };
 
-
-class onCollisionSelector : public BTNode {
+class BTSelector : public BTNode {
 public:
-	onCollisionSelector(std::vector<std::shared_ptr<BTIfCondition>> children) :
+	BTSelector(std::vector<std::shared_ptr<BTIfCondition>> children) :
 		m_children(std::move(children)) {}
 
 	void init(entt::entity e) override {
@@ -99,21 +99,14 @@ public:
 	}
 
 	BTState process(entt::entity e) override {
-		auto& monster = registry.get<Monster>(e);
-		if (monster.collided) {
-			for (auto child : m_children) {
-				BTState state = child->process(e);
-
-				if (state == BTState::Failure) continue;
-				else {
-					return state;
-				}
+		for (auto child : m_children) {
+			BTState state = child->process(e);
+			if (state == BTState::Failure) continue;
+			else {
+				return state;
 			}
-			return BTState::Failure;
 		}
-		else {
-			return BTState::Moving;
-		}
+		return BTState::Failure;
 	}
 private:
 	std::vector<std::shared_ptr<BTIfCondition>> m_children;
@@ -126,7 +119,8 @@ public:
 	}
 
 	BTState process(entt::entity e) override {
-		// essentially does nothing
+		auto& monster = registry.get<Monster>(e);
+		monster.collided = false;
 		return BTState::Moving;
 	}
 };
@@ -149,9 +143,11 @@ public:
 			motion.scale *= 1.3;
 			monster.health += 200;
 			visited[e] = false;
+			auto& monster = registry.get<Monster>(e);
+			monster.collided = false;
+			return BTState::Moving;
 		}
-
-		return BTState::Moving;
+		return BTState::Failure;
 	}
 private:
 	std::map<entt::entity, bool> visited;
@@ -204,9 +200,11 @@ public:
 		if (visited[e]) {
 			motion.velocity *= 2;
 			visited[e] = false;
+			auto& monster = registry.get<Monster>(e);
+			monster.collided = false;
+			return BTState::Moving;
 		}
-
-		return BTState::Moving;
+		return BTState::Failure;
 	}
 private:
 	std::map<entt::entity, bool> visited;
@@ -214,21 +212,71 @@ private:
 
 class Knockback : public BTNode {
 public:
-	Knockback() noexcept {
-		visited = std::map<entt::entity, bool>();
-	}
+	Knockback() noexcept { }
 
-	void init(entt::entity e) override { visited[e] = true;  }
+	void init(entt::entity e) override { }
 
 	BTState process(entt::entity e) override {
 		auto& motion = registry.get<Motion>(e);
-		if (visited[e]) {
-			motion.position -= 0.5f * motion.velocity;
-			visited[e] = false;
+		auto& monster = registry.get<Monster>(e);
+		if (monster.collided) {
+			motion.position -= 0.25f * motion.velocity;
+			monster.collided = false;
 		}
+		return BTState::Failure;
+	}
+};
 
+class Walk : public BTNode {
+public:
+	Walk() noexcept {}
+
+	void init(entt::entity e) override { }
+
+	BTState process(entt::entity e) override {
+		increment_monster_step(e);
 		return BTState::Moving;
 	}
-private:
-	std::map<entt::entity, bool> visited;
 };
+
+void increment_monster_step(entt::entity entity) {
+
+	auto& monster = registry.get<Monster>(entity);
+	auto& motion = registry.get<Motion>(entity);
+	auto& current_path_coord = monster.path_coords.at(monster.current_path_index);
+
+	// check that the monster is indeed within the current path node
+	ivec2 coord = pixel_to_coord(motion.position);
+
+	// if we are on the last node, stop the monster and remove entity
+	// TODO: make disappearance fancier
+	if (pixel_to_coord(motion.position) == VILLAGE_COORD
+		|| monster.current_path_index >= monster.path_coords.size() - 1) {
+		WorldSystem::health -= monster.damage;
+		motion.velocity *= 0;
+		registry.destroy(entity);
+		return;
+	}
+
+	assert(monster.path_coords[monster.current_path_index] == current_path_coord);
+
+	ivec2 next_path_coord = monster.path_coords.at(monster.current_path_index + 1);
+	vec2 next_step_position = motion.position + (15 / 1000.f) * motion.velocity;
+	ivec2 next_step_coord = pixel_to_coord(next_step_position);
+
+	// change direction if reached the middle of the this node
+	if (abs(length(coord_to_pixel(current_path_coord) - motion.position)) <= length(motion.velocity) * 15 / 1000.f) {
+		vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
+		motion.velocity = length(motion.velocity) * move_direction;
+		motion.angle = atan(move_direction.y / move_direction.x);
+	}
+
+	if (next_step_coord == next_path_coord) {
+		monster.current_path_index++;
+	}
+
+	if (DebugSystem::in_debug_mode)
+	{
+		DebugSystem::createDirectedLine(coord_to_pixel(current_path_coord), coord_to_pixel(next_path_coord), 5);
+	}
+}

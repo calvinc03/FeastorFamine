@@ -66,6 +66,8 @@ public:
 	// Should the game be over ?
 	bool is_over() const;
 
+	static void deduct_health(int num);
+
 	// OpenGL window handle
 	GLFWwindow *window;
 
@@ -89,6 +91,9 @@ public:
 		battle_stage
 	};
 
+	// health of the village
+	static int health;
+
 private:
 	// PhysicsSystem handle
 	PhysicsSystem *physics;
@@ -107,9 +112,6 @@ private:
 
 	// animation fps
 	float fps_ms;
-
-	// health of the village
-	int health;
 
 	// json object for rounds
 	std::string season_str;
