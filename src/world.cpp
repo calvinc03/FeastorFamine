@@ -1316,22 +1316,22 @@ void WorldSystem::load_game()
 		if (type == WATCHTOWER_NAME)
 		{
 			entity = WatchTower::createWatchTower({x, y});
-			node.occupancy = OCCUPANCY_TOWER;
+            current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_TOWER);
 		}
 		else if (type == GREENHOUSE_NAME)
 		{
 			entity = GreenHouse::createGreenHouse({x, y});
-			node.occupancy = OCCUPANCY_TOWER;
+            current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_GREENHOUSE);
 		}
 		else if (type == WALL_NAME)
 		{
 			entity = Wall::createWall({x, y}, unit["rotate"]);
-			node.occupancy = OCCUPANCY_TOWER;
+            current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_WALL);
 		}
 		else if (type == HUNTER_NAME)
 		{
 			entity = Hunter::createHunter({x, y});
-			node.occupancy = OCCUPANCY_TOWER;
+            current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_HUNTER);
 		}
 
 		auto view_unit = registry.view<Unit>();

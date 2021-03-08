@@ -63,7 +63,7 @@ void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy, vec2 scale) {
         std::cout<<"Debug: out of bounds"<< std::endl;
         return;
     }
-    vec2 over_hang = scale / (vec2)GRID_CELL_SIZE / 2.f;
+    vec2 over_hang = (scale - (vec2)GRID_CELL_SIZE) / (vec2)GRID_CELL_SIZE / 2.f;
     over_hang = vec2(ceil(over_hang.x), ceil(over_hang.y));
     for (int i = grid_coord.x - over_hang.x; i <= grid_coord.x + over_hang.x; i++) {
         for (int j = grid_coord.y - over_hang.y; j <= grid_coord.y + over_hang.y; j++) {

@@ -194,7 +194,7 @@ vec2 coord_to_pixel(ivec2 grid_coord);
 
 ivec2 pixel_to_coord(vec2 pixel_position);
 
-vec2 scale_to_grid_units(vec2 original_scale, float cell_units);
+vec2 scale_to_grid_units(vec2 original_scale, float cell_units, int frames = 1);
 
 vec2 grid_to_pixel_velocity(vec2 unit_velocity);
 

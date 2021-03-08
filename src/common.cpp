@@ -55,8 +55,9 @@ ivec2 pixel_to_coord(vec2 pixel_position) {
 }
 
 // convert original scale to some set multiple of cell units
-vec2 scale_to_grid_units(vec2 original_scale, float cell_units) {
-    vec2 unit_scale = original_scale / min(original_scale.x, original_scale.y);
+vec2 scale_to_grid_units(vec2 original_scale, float cell_units, int frames) {
+    vec2 scale =  vec2(original_scale.x / (float)frames, original_scale.y);
+    vec2 unit_scale = original_scale / max(scale.x, scale.y);
     return unit_scale * cell_units * (float) GRID_CELL_SIZE;
 }
 
