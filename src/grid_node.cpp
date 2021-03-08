@@ -37,8 +37,8 @@ entt::entity GridNode::createGridNode(int terrain, vec2 coord)
 
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 0, 0 };
-    motion.position = coordToPixel(coord);
+    motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
+    motion.position = coord_to_pixel(coord);
     // Setting initial values, scale is 1
     motion.scale = (vec2)GRID_CELL_SIZE;
 

@@ -23,9 +23,9 @@ entt::entity Mob::createMobEntt()
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 100.f, 0 };
-    motion.position = coordToPixel(FOREST_COORD);
-    motion.scale = vec2({ 0.25f, 0.25f }) * static_cast<vec2>(resource.texture.size);
+    motion.velocity = grid_to_pixel_velocity(vec2(1, 0));
+    motion.position = coord_to_pixel(FOREST_COORD);
+    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 0.5);
     // temporary fix
     //motion.boundingbox = vec2({ motion.scale.x , motion.scale.y });
     motion.boundingbox = vec2({ motion.scale.x*0.13f , motion.scale.y });

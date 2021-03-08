@@ -55,7 +55,7 @@ namespace HealthSystem
 		// Create motion
 		auto& motion = registry.emplace<Motion>(entity);
 		motion.angle = 0.f;
-		motion.velocity = { 0, 0 };
+		motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
 		motion.position = position + vec2(0, 50);
 		motion.scale = vec2((float)health/ (float)max_health * 50.0f, 5);
 

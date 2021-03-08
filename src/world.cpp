@@ -236,11 +236,11 @@ void WorldSystem::step(float elapsed_ms)
 		auto &current_path_coord = monster_path_coords.at(monster.current_path_index);
 
 		// check that the monster is indeed within the current path node
-		ivec2 coord = pixelToCoord(motion.position);
+		ivec2 coord = pixel_to_coord(motion.position);
 
 		// if we are on the last node, stop the monster and remove entity
 		// TODO: make disappearance fancier
-		if (pixelToCoord(motion.position) == VILLAGE_COORD || monster.current_path_index >= monster_path_coords.size() - 1)
+		if (pixel_to_coord(motion.position) == VILLAGE_COORD || monster.current_path_index >= monster_path_coords.size() - 1)
 		{
 			health -= monster.damage;
 			motion.velocity *= 0;
@@ -252,10 +252,10 @@ void WorldSystem::step(float elapsed_ms)
 
 		ivec2 next_path_coord = monster_path_coords.at(monster.current_path_index + 1);
 		vec2 next_step_position = motion.position + (elapsed_ms / 1000.f) * motion.velocity;
-		ivec2 next_step_coord = pixelToCoord(next_step_position);
+		ivec2 next_step_coord = pixel_to_coord(next_step_position);
 		
         // change direction if reached the middle of the this node
-        if (abs(length(coordToPixel(current_path_coord) - motion.position)) < length(motion.velocity) * elapsed_ms / 1000.f) {
+        if (abs(length(coord_to_pixel(current_path_coord) - motion.position)) < length(motion.velocity) * elapsed_ms / 1000.f) {
             vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
             motion.velocity = length(motion.velocity) * move_direction;
             motion.angle = atan(move_direction.y / move_direction.x);
@@ -270,7 +270,7 @@ void WorldSystem::step(float elapsed_ms)
 
 		if (DebugSystem::in_debug_mode)
 		{
-			DebugSystem::createDirectedLine(coordToPixel(current_path_coord), coordToPixel(next_path_coord), 5);
+			DebugSystem::createDirectedLine(coord_to_pixel(current_path_coord), coord_to_pixel(next_path_coord), 5);
 		}
 	}
 
@@ -475,11 +475,7 @@ void WorldSystem::restart()
 	current_map = registry.get<GridMap>(GridMap::createGridMap());
 
 	// create village
-	village = Village::createVillage();
-	current_map.setGridOccupancy(VILLAGE_COORD, OCCUPANCY_VILLAGE);
-	current_map.setGridOccupancy(VILLAGE_COORD + ivec2(1, 0), OCCUPANCY_VILLAGE);
-	current_map.setGridOccupancy(VILLAGE_COORD + ivec2(0, 1), OCCUPANCY_VILLAGE);
-	current_map.setGridOccupancy(VILLAGE_COORD + ivec2(1, 1), OCCUPANCY_VILLAGE);
+	village = Village::createVillage(current_map);
 
 	// TODO: create forest
 	current_map.setGridOccupancy(FOREST_COORD, OCCUPANCY_FOREST);
@@ -761,7 +757,7 @@ void grid_highlight_system(vec2 mouse_pos, std::string unit_selected, GridMap cu
 {
 	auto view_ui = registry.view<Motion, HighlightBool>();
 
-	auto &node = current_map.getNodeAtCoord(pixelToCoord(mouse_pos));
+	auto &node = current_map.getNodeAtCoord(pixel_to_coord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each())
 	{
 		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == OCCUPANCY_VACANT && node.terrain >= TERRAIN_DEFAULT)
@@ -1134,7 +1130,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		// Mouse click for placing units
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && placement_unit_selected != "" && in_game_area)
 		{
-			auto &node = current_map.getNodeAtCoord(pixelToCoord(vec2(x, y)));
+			auto &node = current_map.getNodeAtCoord(pixel_to_coord(vec2(x, y)));
 
 			if (node.occupancy == OCCUPANCY_VACANT && node.terrain >= TERRAIN_DEFAULT)
 			{
@@ -1312,7 +1308,7 @@ void WorldSystem::load_game()
 	{
 		int x = unit["x_coord"];
 		int y = unit["y_coord"];
-		auto &node = current_map.getNodeAtCoord(pixelToCoord(vec2(x, y)));
+		auto &node = current_map.getNodeAtCoord(pixel_to_coord(vec2(x, y)));
 		std::string type = unit["type"];
 		entt::entity entity;
 		if (type == WATCHTOWER_NAME)

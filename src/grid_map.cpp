@@ -29,14 +29,14 @@ entt::entity GridMap::createGridMap()
 
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 0, 0 };
+    motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
     motion.position = WINDOW_SIZE_IN_PX/2;
     // Setting initial values, scale is 1
     motion.scale = vec2({ 1, 1 }) * (vec2)WINDOW_SIZE_IN_PX;
 
     // fill node_entity_matrix with default type grid node
-    for (int x = 0; x < WINDOW_SIZE_IN_COORD.x; x++){
-        for (int y = 0; y < WINDOW_SIZE_IN_COORD.y; y++){
+    for (int x = 0; x < MAP_SIZE_IN_COORD.x; x++){
+        for (int y = 0; y < MAP_SIZE_IN_COORD.y; y++){
             int terrain = TERRAIN_DEFAULT;
             map.node_entity_matrix[x][y] = GridNode::createGridNode(terrain, vec2(x, y));
             map.node_matrix[x][y] = registry.get<GridNode>(map.node_entity_matrix[x][y]);

@@ -37,7 +37,7 @@ entt::entity Menu::createMenu(double x, double y, std::string menu_name, Menu_te
 	// Setting initial motion values
 	Motion& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
+	motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
 	motion.scale = scale * static_cast<vec2>(resource.texture.size);
 	motion.position = { x, y };
 

@@ -27,10 +27,10 @@ entt::entity Projectile::createProjectile(vec2 pos, vec2 velocity, int damage)
 //    motion.angle = 0.f;
 //    motion.velocity = { -20.f, 0.f};
     motion.angle = atan2(velocity.y, velocity.x);
-    motion.velocity = { 700 * velocity.x, 700 * velocity.y };
+    motion.velocity = grid_to_pixel_velocity(velocity * 7.f);
     motion.position = pos;
     // Setting initial values, scale is negative to make it face the opposite way
-    motion.scale *= vec2({ -1.f, 0.5f });
+    motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), 0.3);
     
     auto& projectile = registry.emplace<Projectile_Dmg>(entity);
     projectile.damage = damage;
