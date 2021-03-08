@@ -38,7 +38,7 @@ const size_t ANIMATION_FPS = 12;
 const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 
 
-const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
+const size_t SET_UP_TIME = 2 * 1000; // 15 seconds to setup
 
 const int STARTING_HEALTH = 300;
 const int WATCHTOWER_COST = 200;
@@ -286,20 +286,52 @@ void WorldSystem::step(float elapsed_ms) {
 		next_greenhouse_production = GREENHOUSE_PRODUCTION_DELAY;
 	}
     
-    if (weather == RAIN) {
-        auto particle_view = registry.view<ParticleSystem>();
-        if (particle_view.size() < MAX_PARTICLES) {
-            int new_particles = (int)(56 * (elapsed_ms / 1000));
-            for (auto particle_entity : particle_view) {
-                auto& particle = registry.get<ParticleSystem>(particle_entity);
-                
-                particle.life -= elapsed_ms;
-                if (particle.life <= 0) {
-                    registry.destroy(particle_entity);
-                }
+    auto particle_view = registry.view<ParticleSystem>();
+    if (particle_view.size() < MAX_PARTICLES) {
+        int new_particles = (int)(56 * (elapsed_ms / 1000));
+//        std::cout << new_particles << "\n";
+        for (auto particle_entity : particle_view) {
+            auto& particle = registry.get<ParticleSystem>(particle_entity);
+            particle.life -= elapsed_ms;
+            if (particle.life <= 0) {
+                registry.destroy(particle_entity);
             }
+        }
+        if (weather == RAIN) {
+            PARTICLE_COUNT = 0;
+            vec2 velocity = {0.f, 450.0f};
+            vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
+            float life = 1300.0f;
+            std::string texture = "raindrop.png";
             for (int i = 0; i < new_particles; i++) {
-                ParticleSystem::createParticle();
+                ParticleSystem::createParticle(velocity, position, life, texture);
+//                std::cout << "Particle created \n";
+                PARTICLE_COUNT++;
+            }
+        }
+        else if (weather == DROUGHT) {
+            // TODO
+        }
+        else if (weather == FOG) {
+//            PARTICLE_COUNT = 0;
+//            vec2 velocity = {-10.f, 450.0f};
+//            vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
+//            float life = 1300.0f;
+//            std::string texture = "raindrop.png";
+//            for (int i = 0; i < new_particles; i++) {
+//                ParticleSystem::createParticle(velocity, position, life, texture);
+//                PARTICLE_COUNT++;
+//            }
+        }
+        else if (weather == SNOW) {
+            PARTICLE_COUNT = 0;
+            vec2 velocity = {-10.f, 450.0f};
+            vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
+            float life = 1300.0f;
+            std::string texture = "raindrop.png";
+            for (int i = 0; i < new_particles; i++) {
+                ParticleSystem::createParticle(velocity, position, life, texture);
+                PARTICLE_COUNT++;
             }
         }
     }
@@ -355,6 +387,56 @@ void WorldSystem::set_up_step(float elapsed_ms)
 	}
 
 	set_up_timer -= elapsed_ms;
+    
+    auto particle_view = registry.view<ParticleSystem>();
+    if (particle_view.size() < MAX_PARTICLES) {
+        int new_particles = (int)(56 * (elapsed_ms / 1000));
+//        std::cout << new_particles << "\n";
+        for (auto particle_entity : particle_view) {
+            auto& particle = registry.get<ParticleSystem>(particle_entity);
+            particle.life -= elapsed_ms;
+            if (particle.life <= 0) {
+                registry.destroy(particle_entity);
+            }
+        }
+        if (weather == RAIN) {
+            PARTICLE_COUNT = 0;
+            vec2 velocity = {0.f, 450.0f};
+            vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
+            float life = 1300.0f;
+            std::string texture = "raindrop.png";
+            for (int i = 0; i < 5; i++) {
+                ParticleSystem::createParticle(velocity, position, life, texture);
+//                std::cout << "Particle created \n";
+                PARTICLE_COUNT++;
+            }
+        }
+        else if (weather == DROUGHT) {
+            // TODO
+        }
+        else if (weather == FOG) {
+//            PARTICLE_COUNT = 0;
+//            vec2 velocity = {-10.f, 450.0f};
+//            vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
+//            float life = 1300.0f;
+//            std::string texture = "raindrop.png";
+//            for (int i = 0; i < new_particles; i++) {
+//                ParticleSystem::createParticle(velocity, position, life, texture);
+//                PARTICLE_COUNT++;
+//            }
+        }
+        else if (weather == SNOW) {
+            PARTICLE_COUNT = 0;
+            vec2 velocity = {-10.f, 450.0f};
+            vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
+            float life = 1300.0f;
+            std::string texture = "raindrop.png";
+            for (int i = 0; i < new_particles; i++) {
+                ParticleSystem::createParticle(velocity, position, life, texture);
+                PARTICLE_COUNT++;
+            }
+        }
+    }
 
 	// Updating window title with health and setup timer
 	//std::stringstream title_ss;
@@ -369,60 +451,6 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		// set path at start of battle phase
 		monster_path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
 
-		std::cout << season_str << " season! \n";
-
-		if (season_str == SPRING_TITLE) {
-			season = SPRING;
-			// Uncomment when done with weather testing
-//            int weather_int = rand() % 5 + 1;
-//            if (weather_int % 5 == 1)
-//            {
-//                weather = RAIN;
-//            } else {
-//                weather = CLEAR;
-//            }
-			// comment out when done testing
-			weather = RAIN;
-			create_boss = SpringBoss::createSpringBossEntt;
-		}
-		else if (season_str == SUMMER_TITLE) {
-			season = SUMMER;
-			//            int weather_int = rand() % 5 + 1;
-			//            if (weather_int % 5 == 1)
-			//            {
-			//                weather = DROUGHT;
-			//            } else {
-			//                weather = CLEAR;
-			//            }
-			weather = DROUGHT;
-			create_boss = SummerBoss::createSummerBossEntt;
-		}
-		else if (season_str == FALL_TITLE) {
-			season = FALL;
-//			int weather_int = rand() % 5 + 1;
-//            if (weather_int % 5 == 1)
-//            {
-//                weather = FOG;
-//            } else {
-//                weather = CLEAR;
-//            }
-			weather = FOG;
-			create_boss = FallBoss::createFallBossEntt;
-		}
-		else if (season_str == WINTER_TITLE) {
-			season = WINTER;
-			//            int weather_int = rand() % 5 + 1;
-			//            if (weather_int % 5 == 1)
-			//            {
-			//                weather = SNOW;
-			//            } else {
-			//                weather = CLEAR;
-			//            }
-			weather = SNOW;
-			create_boss = WinterBoss::createWinterBossEntt;
-		}
-		std::cout << season_str << " \n";
-		std::cout << "weather " << weather << " \n";
 	}
 
 	auto& stage_text = registry.get<Text>(stage_text_entity);
@@ -515,6 +543,57 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	max_boss = round_json["max_bosses"];
 	boss_delay_ms = round_json["boss_delay_ms"];
 	season_str = round_json["season"];
+    if (season_str == SPRING_TITLE) {
+        season = SPRING;
+        // Uncomment when done with weather testing
+//            int weather_int = rand() % 5 + 1;
+//            if (weather_int % 5 == 1)
+//            {
+//                weather = RAIN;
+//            } else {
+//                weather = CLEAR;
+//            }
+        // comment out when done testing
+        weather = RAIN;
+        create_boss = SpringBoss::createSpringBossEntt;
+    }
+    else if (season_str == SUMMER_TITLE) {
+        season = SUMMER;
+        //            int weather_int = rand() % 5 + 1;
+        //            if (weather_int % 5 == 1)
+        //            {
+        //                weather = DROUGHT;
+        //            } else {
+        //                weather = CLEAR;
+        //            }
+        weather = DROUGHT;
+        create_boss = SummerBoss::createSummerBossEntt;
+    }
+    else if (season_str == FALL_TITLE) {
+        season = FALL;
+//            int weather_int = rand() % 5 + 1;
+//            if (weather_int % 5 == 1)
+//            {
+//                weather = FOG;
+//            } else {
+//                weather = CLEAR;
+//            }
+        weather = FOG;
+        create_boss = FallBoss::createFallBossEntt;
+    }
+    else if (season_str == WINTER_TITLE) {
+        season = WINTER;
+        //            int weather_int = rand() % 5 + 1;
+        //            if (weather_int % 5 == 1)
+        //            {
+        //                weather = SNOW;
+        //            } else {
+        //                weather = CLEAR;
+        //            }
+        weather = SNOW;
+        create_boss = WinterBoss::createWinterBossEntt;
+    }
+    std::cout << season << " and " << weather << "\n";
 }
 
 void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)

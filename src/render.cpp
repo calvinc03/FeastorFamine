@@ -334,9 +334,7 @@ void RenderSystem::drawParticle(entt::entity particle, const mat3& projection) {
     GLint size = 0;
     glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
     gl_has_errors();
-    GLsizei num_indices = size / sizeof(uint16_t);
-    //GLsizei num_triangles = num_indices / 3;
-
+    
     // Setting uniform values to the currently bound program
     glUniformMatrix3fv(transform_uloc, 1, GL_FALSE, (float*)&transform.mat);
     glUniformMatrix3fv(projection_uloc, 1, GL_FALSE, (float*)&projection);

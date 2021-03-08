@@ -8,5 +8,5 @@ class ParticleSystem
 public:
     
     float life;
-    static entt::entity createParticle();
+    static entt::entity createParticle(vec2 velocity, vec2 position, float life, std::string texture);
 };
