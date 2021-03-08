@@ -121,7 +121,7 @@ entt::entity UI_button::createUI_button(int pos, Button button, size_t cost, std
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = tag;
 	ui_element.scale = vec2({ 1.0f, 1.0f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
-	ui_element.position = vec2(200 + pos * ui_element.scale.x, WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
+	ui_element.position = vec2(175 + pos * ui_element.scale.x, WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
 
 
 	registry.emplace<HighlightBool>(entity);
