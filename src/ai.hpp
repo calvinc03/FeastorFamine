@@ -1,15 +1,14 @@
 #pragma once
 
 #include <vector>
+#include <queue>
 
 #include "common.hpp"
 #include "entt.hpp"
 #include "grid_map.hpp"
 #include "Observer.hpp"
 #include "physics.hpp"
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// DON'T WORRY ABOUT THIS CLASS UNTIL ASSIGNMENT 3
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#include <BehaviorTree.cpp>
 
 class AISystem : public Observer
 {
@@ -18,31 +17,23 @@ public:
 	~AISystem();
 
 	void step(float elapsed_ms);
-
-//    struct Pathfinding {
-//        GridMap grid = GridMap(0, 0, 0, std::vector<vec2>());
-//        std::vector<entt::entity> open_list = std::vector<entt::entity>();
-//        std::vector<entt::entity> closed_list = std::vector<entt::entity>();
-//
-//        Pathfinding(GridMap &grid) {
-//            this->grid = grid;
-//        }
-//
-//        // TODO: A* search
-//        std::vector<entt::entity> findPath(vec2 start_coord, vec2 end_coord){
-//            entt::entity start_node = grid.getEntityAtCoord(start_coord);
-//            open_list.push_back(start_node);
-//
-//            for (int x = 0; x < grid.width; x++){
-//                for (int y = 0; y < grid.height; y++) {
-//
-//                }
-//            }
-//        }
-//    };
 	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
+
+	struct MapAI {
+        static std::vector<ivec2> findPathBFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2),
+                                              const std::vector<ivec2>& neighbors = {ivec2(1,0), ivec2(1,-1),ivec2(1,1),
+                                                                                    ivec2(0,-1),ivec2(0,1),
+                                                                                    ivec2(-1,0),ivec2(-1,1),ivec2(-1,-1)});
+        static void setRandomMapWeatherTerrain(GridMap& map);
+        static void setRandomGridsWeatherTerrain(GridMap& map, int max_grids);
+        static void setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain = TERRAIN_PAVEMENT);
+	};
+
+	struct MonstersAI {
+		static std::shared_ptr<BTSelector> createBehaviorTree();
+	};
+
 private:
-	
 	// PhysicsSystem handle
 	PhysicsSystem* physics;
 };

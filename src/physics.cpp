@@ -4,7 +4,7 @@
 #include "entt.hpp"
 #include "debug.hpp"
 #include <iostream>
-
+#include "grid_node.hpp"
 // Returns the local bounding coordinates scaled by the current size of the entity 
 vec2 get_bounding_box(const Motion& motion)
 {
@@ -61,6 +61,21 @@ void PhysicsSystem::step(float elapsed_ms)
 				notifyObservers(entity_i, entity_j);
 				//registry.emplace_or_replace<Collision>(entity_j, entity_i);
 				//registry.emplace_or_replace<Collision>(entity_i, entity_j);
+			}
+		}
+	}
+
+
+	if (DebugSystem::in_debug_mode)
+	{
+		//bounding boxes and scale of objects
+		auto view_motion = registry.view<Motion>();
+		for (auto [entity, motion] : view_motion.each())
+		{
+			//TODO: add a boudning box to projectiles
+			if (!registry.has<GridNode>(entity) && registry.has<Motion>(entity) && !registry.has<HealthComponent>(entity)) {
+
+				DebugSystem::createBox(motion.position, motion.boundingbox);
 			}
 		}
 	}

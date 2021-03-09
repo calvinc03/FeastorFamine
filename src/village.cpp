@@ -2,9 +2,8 @@
 
 #include "village.hpp"
 #include "render.hpp"
-#include "grid_map.hpp"
 
-entt::entity Village::createVillage()
+entt::entity Village::createVillage(GridMap& current_map)
 {
 	auto entity = registry.create();
 	// Create rendering primitives
@@ -12,19 +11,20 @@ entt::entity Village::createVillage()
 	ShadedMesh& resource = cache_resource(key);
 	if (resource.effect.program.resource == 0) {
 		resource = ShadedMesh();
-		RenderSystem::createSprite(resource, textures_path("village.png"), "textured");
+		RenderSystem::createSprite(resource, textures_path("units/village.png"), "textured");
 	}
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	registry.emplace<ShadedMeshRef>(entity, resource);
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 11;
 
 	// Setting initial motion values
 	Motion& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.scale = vec2({ 0.5f, 0.5f }) * static_cast<vec2>(resource.texture.size);
-    motion.position = GridMap::coordToPixel(VILLAGE_COORD) - motion.scale/4.f;
-
+	motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
+	motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 3);
+  motion.position = coord_to_pixel(VILLAGE_COORD);
+  current_map.setGridOccupancy(VILLAGE_COORD, OCCUPANCY_VILLAGE);
 
 	Food& food = registry.emplace<Food>(entity);
 	food.food = 100;

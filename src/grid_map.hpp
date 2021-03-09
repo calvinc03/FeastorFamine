@@ -4,19 +4,19 @@
 #include "common.hpp"
 #include "grid_node.hpp"
 
-// A simple physics system that moves rigid bodies and checks for collision
-
 class GridMap
 {
 public:
-    std::vector<std::vector<entt::entity>> node_matrix = {{}};
-
     static entt::entity createGridMap();
 
-    static vec2 coordToPixel(ivec2 grid_coord);
-    static ivec2 pixelToCoord(vec2 pixel_coord);
-    static entt::entity getEntityAtCoord(GridMap current_map, ivec2 grid_coord);
-    static GridNode& getNodeAtCoord(GridMap current_map, ivec2 grid_coord);
-    void setGridType(GridMap current_map, vec2 grid_coord, int type);
-    static std::vector<entt::entity> getNodesFromCoords(GridMap current_map, std::vector<ivec2>& grid_coords);
+    entt::entity& getEntityAtCoord(ivec2 grid_coord);
+    GridNode& getNodeAtCoord(ivec2 grid_coord);
+    void setGridTerrain(ivec2 grid_coord, int terrain);
+    void setGridOccupancy(ivec2 grid_coord, int occupancy, vec2 scale = {GRID_CELL_SIZE, GRID_CELL_SIZE});
+    std::vector<entt::entity> getNodeEntitiesFromCoords(std::vector<ivec2>& grid_coords);
+    std::vector<GridNode> getNodesFromCoords(std::vector<ivec2>& grid_coords);
+
+private:
+    std::vector<std::vector<entt::entity>> node_entity_matrix = std::vector<std::vector<entt::entity>>(MAP_SIZE_IN_COORD.x, std::vector<entt::entity>(MAP_SIZE_IN_COORD.y));
+    std::vector<std::vector<GridNode>> node_matrix = std::vector<std::vector<GridNode>>(MAP_SIZE_IN_COORD.x, std::vector<GridNode>(MAP_SIZE_IN_COORD.y));
 };

@@ -33,8 +33,9 @@ if (IS_OS_MAC)
   link_directories(/usr/local/lib)
 endif()
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES}  "src/Observer.hpp")
+add_executable(${PROJECT_NAME} ${SOURCE_FILES}  "src/Observer.hpp" "src/bosses/winter_boss.cpp" "src/bosses/winter_boss.hpp" "src/bosses/summer_boss.cpp" "src/bosses/summer_boss.hpp" "src/bosses/fall_boss.cpp" "src/bosses/fall_boss.hpp" "src/bosses/spring_boss.cpp" "src/bosses/spring_boss.hpp"   "src/bosses/burrow_boss.cpp" "src/bosses/burrow_boss.hpp")
 target_include_directories(${PROJECT_NAME} PUBLIC src/)
+target_include_directories(${PROJECT_NAME} PUBLIC ext/nlohmann)
 
 # Added this so policy CMP0065 doesn't scream
 set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS 0)
@@ -43,6 +44,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS 0)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/stb_image/)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/gl3w)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/entt)
+target_include_directories(${PROJECT_NAME} PUBLIC ext/nlohmann)
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
@@ -57,7 +59,7 @@ find_package(glm REQUIRED)
 
 # Copy data directory (meshes, audio, textures, etc) to build directory during compilation
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMENT "Copying audio, mesh, shader, and texture files from the data/ folder to the build directory..."
+    COMMENT "Copying audio, mesh, shader, font, and texture files from the data/ folder to the build directory..."
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/data"
         "$<TARGET_FILE_DIR:${PROJECT_NAME}>/data"
@@ -73,6 +75,8 @@ if (IS_OS_LINUX OR IS_OS_MAC)
 
     pkg_search_module(SDL2 REQUIRED sdl2)
     pkg_search_module(SDL2MIXER REQUIRED SDL2_mixer)
+
+    pkg_search_module(FREETYPE REQUIRED freetype2)
     
     # Link Frameworks on OSX
     if (IS_OS_MAC)
@@ -90,23 +94,31 @@ elseif (IS_OS_WINDOWS)
     
     set(GLFW_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/include")
     set(SDL2_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/ext/sdl/include/SDL")
+
+    set(FREETYPE_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/include")
     
     if (${CMAKE_SIZEOF_VOID_P} MATCHES "8")
         set(GLFW_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/lib/glfw3dll-x64.lib")
         set(SDL2_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/ext/sdl/lib/SDL2-x64.lib")
 	set(SDL2MIXER_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/ext/sdl/lib/SDL2_mixer-x64.lib")
 
+    set(FREETYPE_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/lib/freetype-x64.lib")
+
 	set(GLFW_DLL "${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/lib/glfw3-x64.dll")
 	set(SDL_DLL "${CMAKE_CURRENT_SOURCE_DIR}/ext/sdl/lib/SDL2-x64.dll")
 	set(SDLMIXER_DLL "${CMAKE_CURRENT_SOURCE_DIR}/ext/sdl/lib/SDL2_mixer-x64.dll")
+    set(FREETYPE_DLL "${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/lib/freetype-x64.dll")
     else()
         set(GLFW_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/lib/glfw3dll-x86.lib")
         set(SDL2_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/ext/sdl/lib/SDL2-x86.lib")
 	set(SDL2MIXER_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/ext/sdl/lib/SDL2_mixer-x86.lib")
-	
+
+    set(FREETYPE_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/lib/freetype-x86.lib")
+
 	set(GLFW_DLL "${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/lib/glfw3-x86.dll")
 	set(SDL_DLL "${CMAKE_CURRENT_SOURCE_DIR}/ext/sdl/lib/SDL2-x86.dll")
 	set(SDLMIXER_DLL "${CMAKE_CURRENT_SOURCE_DIR}/ext/sdl/lib/SDL2_mixer-x86.dll")
+    set(FREETYPE_DLL "${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/lib/freetype-x86.dll")
     endif()
 
     # Copy and rename dlls
@@ -122,6 +134,10 @@ elseif (IS_OS_WINDOWS)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${SDLMIXER_DLL}"
         "$<TARGET_FILE_DIR:${PROJECT_NAME}>/SDL2_mixer.dll")
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${FREETYPE_DLL}"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/freetype.dll")
 
     # Make program run in the directory that it lives in (this is not the default VS behaviour for some strange reason)
     set_target_properties(
@@ -143,22 +159,26 @@ elseif (IS_OS_WINDOWS)
         # turn warning C4239 (non-standard extension that allows temporaries to be bound to
         # non-const references, yay microsoft) into an error
         "/we4239"
+
+        # Use UTF-8 encoding for source and executable character set
+        /utf-8
     )
 endif()
 
 # Can't find the include and lib. Quit.
-if (NOT GLFW_FOUND OR NOT SDL2_FOUND)
-   if (NOT GLFW_FOUND)
-      message(FATAL_ERROR "Can't find GLFW." )
-   else ()
-      message(FATAL_ERROR "Can't find SDL." )
-   endif()
+if (NOT GLFW_FOUND)
+    message(FATAL_ERROR "Can't find GLFW." )
+elif(NOT FREETYPE_FOUND)
+    message(FATAL_ERROR "Can't find FreeType.")
+elif(NOT SDL2_FOUND)
+    message(FATAL_ERROR "Can't find SDL." )
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${GLFW_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PUBLIC ${FREETYPE_INCLUDE_DIRS})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ${GLFW_LIBRARIES} ${SDL2_LIBRARIES} ${SDL2MIXER_LIBRARIES} glm::glm)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${GLFW_LIBRARIES} ${SDL2_LIBRARIES} ${SDL2MIXER_LIBRARIES} ${FREETYPE_LIBRARIES} glm::glm)
 
 # Needed to add this
 if(IS_OS_LINUX)

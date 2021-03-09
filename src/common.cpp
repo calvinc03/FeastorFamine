@@ -17,14 +17,8 @@ void Transform::rotate(float radians)
 
 void Transform::translate(vec2 offset)
 {
-	mat3 T = { { 1.f, 0.f, 0.f },{ 0.f, 1.f, 0.f },{ offset.x + camera_position.x, offset.y + camera_position.y, 1.f } };
+	mat3 T = { { 1.f, 0.f, 0.f },{ 0.f, 1.f, 0.f },{ offset.x, offset.y, 1.f } };
 	mat = mat * T;
-}
-
-void Transform::move_camera(vec2 offset)
-{
-	camera_position.x += offset.x;
-	camera_position.y += offset.y;
 }
 
 
@@ -42,3 +36,37 @@ entt::registry registry;
 entt::entity screen_state_entity;
 // for camera view; zoom & pan
 entt::entity camera;
+
+vec2 mouse_in_world_coord(vec2 mouse_pos)
+{
+	auto view = registry.view<Motion>();
+	auto& camera_motion = view.get<Motion>(camera);
+	vec2 mouse_world_pos = vec2({ (mouse_pos.x + camera_motion.position.x) / camera_motion.scale.x,
+								  (mouse_pos.y + camera_motion.position.y) / camera_motion.scale.y });
+	return mouse_world_pos;
+}
+
+vec2 coord_to_pixel(ivec2 grid_coord) {
+    return grid_coord * GRID_CELL_SIZE + GRID_OFFSET;
+}
+
+ivec2 pixel_to_coord(vec2 pixel_position) {
+    return (ivec2)pixel_position / GRID_CELL_SIZE;
+}
+
+// convert original scale to some set multiple of cell units
+vec2 scale_to_grid_units(vec2 original_scale, float cell_units, int frames) {
+    vec2 scale =  vec2(original_scale.x / (float)frames, original_scale.y);
+    vec2 unit_scale = original_scale / max(scale.x, scale.y);
+    return unit_scale * cell_units * (float) GRID_CELL_SIZE;
+}
+
+// unit_velocity: velocity as a multiple of grid cell units
+// eg. unit_velocity = vec2(1,1) means moving 1 grid right and 1 grid down every second
+vec2 grid_to_pixel_velocity(vec2 unit_velocity) {
+    return unit_velocity * (vec2) GRID_CELL_SIZE;
+}
+
+bool is_inbounds(ivec2 grid_coord) {
+    return grid_coord.x >= 0 && grid_coord.y >= 0 && grid_coord.x < MAP_SIZE_IN_COORD.x && grid_coord.y < MAP_SIZE_IN_COORD.y;
+}

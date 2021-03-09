@@ -9,7 +9,6 @@
 // internal
 #include "common.hpp"
 #include "world.hpp"
-
 #include "entt.hpp"
 //#include "tiny_ecs.hpp"
 
@@ -18,6 +17,7 @@
 #include "ai.hpp"
 
 #include "debug.hpp"
+#include "health_bar.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
 // Note, here the window will show a width x height part of the game world, measured in px. 
@@ -28,24 +28,24 @@ struct Description {
 	Description(const char* str) : name(str) {};
 };
 
+
 // Entry point
 int main()
 {
-	
-	//entt::registry reg;
-	
-
 	// Initialize the main systems
 	PhysicsSystem physics;
 	AISystem ai(&physics);
 	WorldSystem world(WINDOW_SIZE_IN_PX, &physics);
 	RenderSystem renderer(*world.window);
 	
-
+	world.game_setup();
+	world.create_start_menu();
 	// Set all states to default
-	world.restart();
+	//world.restart();
 	auto t = Clock::now();
 	// Variable timestep loop
+    float elapsed_ms = 15;
+
 	while (!world.is_over())
 	{
 		// Processes system messages, if this wasn't present the window would become unresponsive
@@ -53,14 +53,30 @@ int main()
 
 		// Calculating elapsed times in milliseconds from the previous iteration
 		auto now = Clock::now();
-		float elapsed_ms = static_cast<float>((std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count()) / 1000.f;
-		t = now;
+		float actual_ms = static_cast<float>((std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count()) / 1000.f;
+
+		while (actual_ms < elapsed_ms) {
+            now = Clock::now();
+            actual_ms = static_cast<float>((std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count()) / 1000.f;
+        }
+        t = now;
 
 		DebugSystem::clearDebugComponents();
-		ai.step(elapsed_ms);
-		world.step(elapsed_ms);
-		physics.step(elapsed_ms);
-		//world.handle_collisions();
+		HealthSystem::updateHealthComponents(elapsed_ms);
+		if (world.game_state == WorldSystem::in_game) {
+			if (world.player_state == WorldSystem::set_up_stage) {
+				world.set_up_step(elapsed_ms);
+			}
+			else if (world.player_state == WorldSystem::battle_stage) {
+				ai.step(elapsed_ms);
+				world.step(elapsed_ms);
+				physics.step(elapsed_ms);
+			}
+		}
+		else if (world.game_state == WorldSystem::help_menu) {
+			
+		}
+		
 
 		renderer.draw();
 	}

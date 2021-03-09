@@ -1,15 +1,16 @@
+#include "render.hpp"
+#include "common.hpp"
 
 class GridNode {
 public:
     ivec2 coord;
-    int type = GRID_VACANT;
+    int terrain = TERRAIN_DEFAULT;
+    int occupancy = OCCUPANCY_VACANT;
+    int num_monsters = 0;
 
-    int g_cost;
-    int h_cost;
-    int f_cost;
-
-    static entt::entity createGridNode(int type, vec2 coord);
-    void calculateFCost();
+    static entt::entity createGridNode(int terrain, vec2 coord);
+    void setTerrain(entt::entity entity, int new_terrain);
+    void setOccupancy(int new_occupancy);
 };
 
 
