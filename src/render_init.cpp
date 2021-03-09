@@ -66,7 +66,14 @@ void RenderSystem::createSprite(ShadedMesh& sprite, std::string texture_path, st
 	glBindBuffer(GL_ARRAY_BUFFER, sprite.mesh.vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // sizeof(TexturedVertex) * 4
 	gl_has_errors();
+    
+//    // Particle Position Buffer creation
+//    GLuint position_buffer;
+//    glGenBuffers(1, &position_buffer);
+//    glBindBuffer(GL_ARRAY_BUFFER, position_buffer);
+//    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 
+    
 	// Index Buffer creation
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sprite.mesh.ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); // sizeof(uint16_t) * 6
@@ -77,6 +84,7 @@ void RenderSystem::createSprite(ShadedMesh& sprite, std::string texture_path, st
 	// Loading shaders
 	sprite.effect.load_from_file(shader_path(shader_name) + ".vs.glsl", shader_path(shader_name) + ".fs.glsl");
 }
+
 
 // Load a new mesh from disc and register it with ECS
 void RenderSystem::createColoredMesh(ShadedMesh& texmesh, std::string shader_name)

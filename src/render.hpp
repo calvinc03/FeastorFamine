@@ -38,7 +38,7 @@ private:
     
 	void drawToScreen();
     
-    void drawParticle(entt::entity particle, const mat3& projection);
+    void drawParticle();
     
 	void animate(entt::entity entity);
 

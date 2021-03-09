@@ -288,8 +288,6 @@ void WorldSystem::step(float elapsed_ms) {
     
     auto particle_view = registry.view<ParticleSystem>();
     if (particle_view.size() < MAX_PARTICLES) {
-        int new_particles = (int)(56 * (elapsed_ms / 1000));
-//        std::cout << new_particles << "\n";
         for (auto particle_entity : particle_view) {
             auto& particle = registry.get<ParticleSystem>(particle_entity);
             particle.life -= elapsed_ms;
@@ -298,16 +296,12 @@ void WorldSystem::step(float elapsed_ms) {
             }
         }
         if (weather == RAIN) {
-            PARTICLE_COUNT = 0;
             vec2 velocity = {0.f, 450.0f};
             vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
             float life = 1300.0f;
             std::string texture = "raindrop.png";
-            for (int i = 0; i < new_particles; i++) {
-                ParticleSystem::createParticle(velocity, position, life, texture);
-//                std::cout << "Particle created \n";
-                PARTICLE_COUNT++;
-            }
+            ParticleSystem::createParticle(velocity, position, life, texture);
+            ParticleSystem::updateParticle();
         }
         else if (weather == DROUGHT) {
             // TODO
@@ -329,10 +323,9 @@ void WorldSystem::step(float elapsed_ms) {
             vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
             float life = 1300.0f;
             std::string texture = "raindrop.png";
-            for (int i = 0; i < new_particles; i++) {
-                ParticleSystem::createParticle(velocity, position, life, texture);
-                PARTICLE_COUNT++;
-            }
+            ParticleSystem::createParticle(velocity, position, life, texture);
+            
+            PARTICLE_COUNT++;
         }
     }
 	// Increment round number if all enemies are not on the map and projectiles are removed
@@ -390,8 +383,6 @@ void WorldSystem::set_up_step(float elapsed_ms)
     
     auto particle_view = registry.view<ParticleSystem>();
     if (particle_view.size() < MAX_PARTICLES) {
-        int new_particles = (int)(56 * (elapsed_ms / 1000));
-//        std::cout << new_particles << "\n";
         for (auto particle_entity : particle_view) {
             auto& particle = registry.get<ParticleSystem>(particle_entity);
             particle.life -= elapsed_ms;
@@ -400,16 +391,12 @@ void WorldSystem::set_up_step(float elapsed_ms)
             }
         }
         if (weather == RAIN) {
-            PARTICLE_COUNT = 0;
+//            PARTICLE_COUNT = 0;
             vec2 velocity = {0.f, 450.0f};
             vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
             float life = 1300.0f;
             std::string texture = "raindrop.png";
-            for (int i = 0; i < 5; i++) {
-                ParticleSystem::createParticle(velocity, position, life, texture);
-//                std::cout << "Particle created \n";
-                PARTICLE_COUNT++;
-            }
+            ParticleSystem::createParticle(velocity, position, life, texture);
         }
         else if (weather == DROUGHT) {
             // TODO
@@ -431,10 +418,8 @@ void WorldSystem::set_up_step(float elapsed_ms)
             vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
             float life = 1300.0f;
             std::string texture = "raindrop.png";
-            for (int i = 0; i < new_particles; i++) {
-                ParticleSystem::createParticle(velocity, position, life, texture);
-                PARTICLE_COUNT++;
-            }
+            ParticleSystem::createParticle(velocity, position, life, texture);
+            PARTICLE_COUNT++;
         }
     }
 

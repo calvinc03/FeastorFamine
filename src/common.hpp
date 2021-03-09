@@ -32,6 +32,8 @@ static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
 static const int MAX_TILES = 84;
 static const int MAX_PARTICLES = 10000;
 static int PARTICLE_COUNT = 0;
+static GLfloat* g_particule_position_size_data;
+
 
 static int season;
 static int weather;
