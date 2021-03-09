@@ -1,8 +1,8 @@
 {
   "round_num": 14,
   "max_mobs": 70,
-  "mob_delay_ms": 200,
+  "mob_delay_ms": 1000,
   "max_bosses": 0,
-  "boss_delay_ms": 300,
+  "boss_delay_ms": 80300,
   "season": "winter"
 }
