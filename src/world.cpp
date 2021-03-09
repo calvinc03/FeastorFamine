@@ -562,7 +562,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
 
 	// hotkey for controls
-	if (action == GLFW_RELEASE && key == GLFW_KEY_H)
+	if (game_state == in_game && action == GLFW_RELEASE && key == GLFW_KEY_H)
 	{
 		// help menu
 		auto help_menu_entity = create_help_menu();
