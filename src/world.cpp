@@ -66,9 +66,8 @@ const std::string SAVE_PATH = "data/save_files/save_state.json";
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_state(start_menu),
 																		 player_state(set_up_stage),
 																		 fps_ms(1000 / ANIMATION_FPS),
-																		 //health(500),
-																		 next_boss_spawn(2000.f),
-																		 next_mob_spawn(3000.f),
+																		 next_boss_spawn(0),
+																		 next_mob_spawn(0),
 																		 num_mobs_spawned(0),
 																		 num_bosses_spawned(0),
 																		 next_greenhouse_production(3000.f),
@@ -327,6 +326,8 @@ void WorldSystem::set_up_step(float elapsed_ms)
 	{
 		player_state = battle_stage;
 		set_up_timer = SET_UP_TIME;
+		next_mob_spawn = 0;
+		next_boss_spawn = 0;
 		un_highlight();
 		// set path at start of battle phase
 		monster_path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
@@ -466,6 +467,7 @@ nlohmann::json WorldSystem::get_json(std::string json_path)
 	if (input_stream.fail())
 	{
 		std::cout << "Not reading json file for path \"" + json_path + "\" \n";
+		return NULL;
 	}
 
 	return nlohmann::json::parse(input_stream);
@@ -1267,6 +1269,22 @@ void WorldSystem::save_game()
 	}
 
 	save_json["units"] = unit_list;
+
+	std::vector<std::vector<nlohmann::json>> map;
+	for (int x = 0; x < MAP_SIZE_IN_COORD.x; x++) {
+		std::vector<nlohmann::json> map_row;
+		for (int y = 0; y < MAP_SIZE_IN_COORD.y; y++) {
+			auto& node = current_map.getNodeAtCoord(ivec2(x, y));
+			nlohmann::json node_json; 
+			node_json["terrain"] = node.terrain;
+			node_json["occupancy"] = node.occupancy;
+			map_row.push_back(node_json);
+		}
+		map.push_back(map_row);
+	}
+
+	save_json["map_data"] = map;
+
 	std::ofstream file(SAVE_PATH);
 	file << save_json.dump(4);
 	file.close();
@@ -1285,6 +1303,9 @@ void WorldSystem::load_game()
 {
 	// hardcoded for now
 	nlohmann::json save_json = get_json(SAVE_PATH);
+	if (save_json == NULL) {
+		return;
+	}
 
 	health = save_json["health"];
 	round_number = save_json["round_number"];
@@ -1325,6 +1346,16 @@ void WorldSystem::load_game()
 		for (int i = 0; i < unit["upgrades"]; i++)
 		{
 			upgrade_unit(curr_unit);
+		}
+	}
+
+	std::vector<std::vector<nlohmann::json>> map = save_json["map_data"];
+	for (int x = 0; x < MAP_SIZE_IN_COORD.x; x++) {
+		for (int y = 0; y < MAP_SIZE_IN_COORD.y; y++) {
+			int terrain = map[x][y]["terrain"];
+			int occupancy = map[x][y]["occupancy"];
+			current_map.setGridTerrain(ivec2(x, y), terrain);
+			current_map.setGridOccupancy(ivec2(x, y), occupancy);
 		}
 	}
 }
