@@ -1007,9 +1007,9 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 	else if (button_tag == "load_game")
 	{
 		remove_menu_buttons();
+		restart();
 		load_game();
 		game_state = in_game;
-		restart();
 	}
 }
 
@@ -1287,6 +1287,7 @@ void WorldSystem::load_game()
 
 	for (nlohmann::json unit : save_json["units"])
 	{
+		std::cout << "unit" << std::endl;
 		int x = unit["x_coord"];
 		int y = unit["y_coord"];
 		auto &node = current_map.getNodeAtCoord(pixel_to_coord(vec2(x, y)));
