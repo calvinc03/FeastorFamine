@@ -1346,17 +1346,17 @@ void WorldSystem::load_game()
 		else if (type == GREENHOUSE_NAME)
 		{
 			entity = GreenHouse::createGreenHouse({x, y});
-			node.occupancy = OCCUPANCY_TOWER;
+			node.occupancy = OCCUPANCY_GREENHOUSE;
 		}
 		else if (type == WALL_NAME)
 		{
 			entity = Wall::createWall({x, y}, unit["rotate"]);
-			node.occupancy = OCCUPANCY_TOWER;
+			node.occupancy = OCCUPANCY_WALL;
 		}
 		else if (type == HUNTER_NAME)
 		{
 			entity = Hunter::createHunter({x, y});
-			node.occupancy = OCCUPANCY_TOWER;
+			node.occupancy = OCCUPANCY_HUNTER;
 		}
 
 		auto view_unit = registry.view<Unit>();
