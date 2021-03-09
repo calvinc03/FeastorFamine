@@ -246,7 +246,10 @@ void WorldSystem::step(float elapsed_ms)
 	for (auto entity : registry.view<Monster>())
 	{
 		auto state = BTCollision->process(entity);
-		if (health < 0) restart();
+		if (health < 0) {
+			restart();
+			return;
+		}
 	}
 
 	// removes projectiles that are out of the screen
@@ -553,6 +556,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			{
 				registry.destroy(monster);
 			}
+			if (round_number == 16) restart();
 		}
 	}
 
@@ -617,10 +621,12 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R)
 	{
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
+		if (game_state == in_game) {
+			int w, h;
+			glfwGetWindowSize(window, &w, &h);
 
-		restart();
+			restart();
+		}
 	}
 
 	// Debugging
