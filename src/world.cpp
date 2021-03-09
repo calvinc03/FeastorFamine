@@ -442,7 +442,7 @@ void WorldSystem::restart()
 	UI_button::createUI_button(4, wall_button, WALL_COST);
 	UI_button::createUI_button(7, upgrade_button, HUNTER_UPGRADE_COST, UPGRADE_BUTTON_TITLE, false);
 	UI_button::createUI_button(8, sell_button, HUNTER_SELL_COST, SELL_BUTTON_TITLE, false);
-	UI_button::createUI_button(9, save_button, 0, SELL_BUTTON_TITLE);
+	UI_button::createUI_button(9, save_button, 0, SAVE_BUTTON_TITLE);
 	UI_background::createUI_background();
 
 	stage_text_entity = create_ui_text(vec2(5, 65), "PREPARE");
