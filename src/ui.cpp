@@ -67,7 +67,7 @@ entt::entity UI_background::createUI_background()
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "in_game_ui_background";
-	ui_element.scale = vec2(WINDOW_SIZE_IN_PX.x, WINDOW_SIZE_IN_PX.y / 10.0f + 18);
+	ui_element.scale = vec2(WINDOW_SIZE_IN_PX.x, UI_TAB_HEIGHT);
 	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x/2,WINDOW_SIZE_IN_PX.y - ui_element.scale.y/2.0f);
 
 

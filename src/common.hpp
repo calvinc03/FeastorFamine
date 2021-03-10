@@ -25,9 +25,9 @@ static const size_t FIRING_RATE = 3000;
 
 static const int GRID_CELL_SIZE = 70;
 static const ivec2 GRID_OFFSET =  ivec2(GRID_CELL_SIZE/2 , GRID_CELL_SIZE/2);
-static const int UI_TAB_HEIGHT = GRID_CELL_SIZE;
+static const int UI_TAB_HEIGHT = 88;
 
-static const ivec2 WINDOW_SIZE_IN_PX = {GRID_CELL_SIZE * 15, GRID_CELL_SIZE * 10};
+static const ivec2 WINDOW_SIZE_IN_PX = {GRID_CELL_SIZE * 15, GRID_CELL_SIZE * 10 + UI_TAB_HEIGHT };
 static const ivec2 MAP_SIZE_IN_PX = {WINDOW_SIZE_IN_PX.x, WINDOW_SIZE_IN_PX.y - UI_TAB_HEIGHT};
 static const ivec2 MAP_SIZE_IN_COORD = MAP_SIZE_IN_PX / GRID_CELL_SIZE;
 

@@ -724,9 +724,10 @@ void WorldSystem::scroll_callback(double xoffset, double yoffset)
 				ui_element_background_height = ui_element.scale.y;
 			}
 		}
-		if ((WINDOW_SIZE_IN_PX.y * camera_motion.scale.y) - new_cam_pos_y < WINDOW_SIZE_IN_PX.y - ui_element_background_height)
+		int unsigned map_height = WINDOW_SIZE_IN_PX.y - ui_element_background_height;
+		if ((map_height * camera_motion.scale.y) - new_cam_pos_y < map_height)
 		{
-			new_cam_pos_y = (WINDOW_SIZE_IN_PX.y * camera_motion.scale.y) - WINDOW_SIZE_IN_PX.y + ui_element_background_height;
+			new_cam_pos_y = (map_height * camera_motion.scale.y) - map_height;
 		}
 
 		camera_position = vec2(new_cam_pos_x, new_cam_pos_y);
@@ -819,10 +820,10 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 				ui_element_background_height = ui_element.scale.y;
 			}
 		}
-
-		if ((WINDOW_SIZE_IN_PX.y * cam_motion.scale.y) - new_pos_y < WINDOW_SIZE_IN_PX.y - ui_element_background_height)
+		int unsigned map_height = WINDOW_SIZE_IN_PX.y - ui_element_background_height;
+		if ((map_height * cam_motion.scale.y) - new_pos_y < map_height)
 		{
-			new_pos_y = (WINDOW_SIZE_IN_PX.y * cam_motion.scale.y) - WINDOW_SIZE_IN_PX.y + ui_element_background_height;
+			new_pos_y = (map_height * cam_motion.scale.y) - map_height;
 		}
 		cam_motion.position = vec2(new_pos_x, new_pos_y);
 	}
