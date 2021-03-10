@@ -286,15 +286,15 @@ void RenderSystem::drawParticle() {
     glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
     
     // Initialize with empty (NULL) buffer : it will be updated later, each frame.
-    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 2 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
     // Update the buffers that OpenGL uses for rendering.
     // There are much more sophisticated means to stream data from the CPU to the GPU,
     // but this is outside the scope of this tutorial.
     // http://www.opengl.org/wiki/Buffer_Object_Streaming
     glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 2 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
     // Buffer orphaning, a common way to improve streaming perf. See above link for details.
-    glBufferSubData(GL_ARRAY_BUFFER, 0, PARTICLE_COUNT * sizeof(GLfloat) * 4, g_particule_position_size_data);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, PARTICLE_COUNT * sizeof(GLfloat) * 2, g_particule_position_size_data);
     
 
     glEnable(GL_BLEND);
@@ -408,6 +408,12 @@ void RenderSystem::draw()
 	// 100 layers
 	sort_by_layer.resize(100);
 
+    // Truely render to the screen
+    if (registry.view<ParticleSystem>().size() != 0) {
+        std::cout << "Draw particle \n";
+        drawParticle();
+    }
+    
 	for (entt::entity entity : view_mesh_ref)
 	{
 		int layer = view_mesh_ref.get<ShadedMeshRef>(entity).layer;
@@ -453,13 +459,7 @@ void RenderSystem::draw()
 			drawText(text, frame_buffer_size);
 	}
 
-	// Truely render to the screen
-    if (registry.view<ParticleSystem>().size() != 0) {
-        std::cout << "Draw particle \n";
-        drawParticle();
-    }
-
-	drawToScreen();
+//	drawToScreen();
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(&window);

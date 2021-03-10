@@ -37,7 +37,7 @@ entt::entity ParticleSystem::createParticle(vec2 velocity, vec2 position, float 
 }
 
 void ParticleSystem::updateParticle() {
-    g_particule_position_size_data = new GLfloat[MAX_PARTICLES * 2];
+    g_particule_position_size_data = new GLfloat[MAX_PARTICLES * 4];
     PARTICLE_COUNT = 0;
     for (auto particle_view : registry.view<ParticleSystem>()) {
         auto& particle_m = registry.get<Motion>(particle_view);

@@ -397,6 +397,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
             float life = 1300.0f;
             std::string texture = "raindrop.png";
             ParticleSystem::createParticle(velocity, position, life, texture);
+            ParticleSystem::updateParticle();
         }
         else if (weather == DROUGHT) {
             // TODO
