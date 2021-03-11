@@ -138,17 +138,6 @@ struct Monster {
 	std::vector<ivec2> path_coords;
 };
 
-struct Unit {
-	std::string type;
-	int damage;
-	size_t attack_interval_ms;
-	float next_projectile_spawn;
-	int attack_range;
-	int workers;
-	int upgrades;
-	bool rotate;
-};
-
 struct Food {
 	unsigned int food = 100;
 	float food_production_speed = 0;
@@ -172,10 +161,6 @@ struct Tag {
 
 struct Selectable {
 	bool selected = false;
-};
-
-struct Upgradeable {
-	int rank = 0;
 };
 
 //detects if mouse is within the a rectangle of size scale at position entity_pos

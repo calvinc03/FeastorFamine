@@ -22,6 +22,7 @@
 #include "menu.hpp"
 #include "ui.hpp"
 #include "ai.hpp"
+
 #include <BehaviorTree.hpp>
 
 // stlib
@@ -39,13 +40,12 @@ const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
 int WorldSystem::health = 500;
 
-const int STARTING_HEALTH = 300;
-const int WATCHTOWER_COST = 200;
-const int GREENHOUSE_COST = 300;
-const int HUNTER_COST = 150;
-const int WALL_COST = 100;
-const int HUNTER_UPGRADE_COST = 50;
-const int HUNTER_SELL_COST = 100;
+//const int WATCHTOWER_COST = 200;
+//const int GREENHOUSE_COST = 300;
+//const int HUNTER_COST = 150;
+//const int WALL_COST = 100;
+//const int HUNTER_UPGRADE_COST = 50;
+//const int HUNTER_SELL_COST = 100;
 void debug_path(std::vector<ivec2> monster_path_coords);
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
@@ -441,7 +441,7 @@ void WorldSystem::restart()
 	UI_button::createUI_button(2, stick_figure_button, HUNTER_COST);
 	UI_button::createUI_button(4, wall_button, WALL_COST);
 	UI_button::createUI_button(7, upgrade_button, HUNTER_UPGRADE_COST, UPGRADE_BUTTON_TITLE, false);
-	UI_button::createUI_button(8, sell_button, HUNTER_SELL_COST, SELL_BUTTON_TITLE, false);
+	UI_button::createUI_button(8, sell_button, SELL_BUTTON_TITLE, false);
 	UI_button::createUI_button(9, save_button, 0, SAVE_BUTTON_TITLE);
 	UI_background::createUI_background();
 
@@ -896,9 +896,8 @@ void WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_
 		auto view_highlight = registry.view<HighlightBool>();
 		auto view_selectable = registry.view<Selectable, Motion>();
 		auto view_ui_mesh = registry.view<UI_element, ShadedMeshRef>();
+		entt::entity entity_selected;
 		vec2 mouse_pos = mouse_in_world_coord({mouse_pos_x, mouse_pos_y});
-
-		//
 
 		// get the unit modification buttons
 		auto view_ui = registry.view<UI_element>();
@@ -908,7 +907,6 @@ void WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_
 			unit_mod_buttons = view_ui.get<UI_element>(entity);
 			if (unit_mod_buttons.tag == UPGRADE_BUTTON_TITLE || unit_mod_buttons.tag == SELL_BUTTON_TITLE)
 			{
-
 				if (sdBox(mouse_pos, unit_mod_buttons.position, unit_mod_buttons.scale / 2.0f) < 0.0f)
 				{
 					// check if something is already selected
@@ -916,6 +914,7 @@ void WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_
 					{
 						if (selectable.selected)
 						{
+							entity_selected = entity;
 							unit_selected = true;
 							break;
 						}
@@ -932,20 +931,6 @@ void WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_
 			}
 		}
 
-		// check if the upgrade button is clicked
-		//if (sdBox(mouse_pos, unit_mod_buttons.position, unit_mod_buttons.scale / 2.0f) < 0.0f)
-		//{
-		//	// check if something is already selected
-		//	for (auto [entity, selectable, motion] : view_selectable.each())
-		//	{
-		//		if (selectable.selected)
-		//		{
-		//			unit_selected = true;
-		//			break;
-		//		}
-		//	}
-		//}
-		//else
 		if (!unit_selected)
 		{
 			for (auto [entity, selectable, motion] : view_selectable.each())
@@ -955,14 +940,15 @@ void WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_
 				{
 					selectable.selected = true;
 					view_highlight.get<HighlightBool>(entity).highlight = true;
-					auto unit_stats = view_unit.get<Unit>(entity);
-					std::cout << "=== Unit stats ===\n";
-					std::cout << "attack damage: " << unit_stats.damage << "\n";
-					std::cout << "attack rate: " << unit_stats.attack_interval_ms << "\n";
-					std::cout << "attack range: " << unit_stats.attack_range << "\n";
 
 					if (registry.has<Unit>(entity))
 					{
+						auto unit_stats = view_unit.get<Unit>(entity);
+						std::cout << "=== Unit stats ===\n";
+						std::cout << "attack damage: " << unit_stats.damage << "\n";
+						std::cout << "attack rate: " << unit_stats.attack_interval_ms << "\n";
+						std::cout << "attack range: " << unit_stats.attack_range << "\n";
+						entity_selected = entity;
 						unit_selected = true;
 					}
 				}
@@ -973,14 +959,26 @@ void WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_
 				}
 			}
 		}
-
+		// if a unit is selected and the sell button is not clicked
 		if (unit_selected && !sell_clicked)
 		{
 			for (auto entity : view_ui_mesh)
 			{
-				auto &shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
-				if (view_ui_mesh.get<UI_element>(entity).tag == UPGRADE_BUTTON_TITLE || view_ui_mesh.get<UI_element>(entity).tag == SELL_BUTTON_TITLE)
+				if (view_ui_mesh.get<UI_element>(entity).tag == UPGRADE_BUTTON_TITLE)
 				{
+					Unit& unit = view_unit.get<Unit>(entity_selected);
+					std::string button_text = "-" + std::to_string(unit.upgrade_cost);
+					change_button_text(entity, button_text);
+					auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
+					shaded_mesh_ref.show = true;
+				}
+				else if (view_ui_mesh.get<UI_element>(entity).tag == SELL_BUTTON_TITLE)
+				{
+					
+					Unit& unit = view_unit.get<Unit>(entity_selected);
+					std::string button_text = "+" + std::to_string(unit.sell_price);
+					change_button_text(entity, button_text);
+					auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
 					shaded_mesh_ref.show = true;
 				}
 			}
@@ -989,10 +987,10 @@ void WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_
 		{
 			for (auto entity : view_ui_mesh)
 			{
-				auto &shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
 				if (view_ui_mesh.get<UI_element>(entity).tag == UPGRADE_BUTTON_TITLE || view_ui_mesh.get<UI_element>(entity).tag == SELL_BUTTON_TITLE)
 				{
 					//std::cout << "not upgrading\n";
+					auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
 					shaded_mesh_ref.show = false;
 				}
 			}
@@ -1207,9 +1205,9 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				{
 					if (view_selectable.get<Selectable>(entity).selected)
 					{
+						auto& unit = view_unit.get<Unit>(entity);
+						health += unit.sell_price;
 						sell_unit(entity);
-						health += HUNTER_SELL_COST;
-						std::cout << "hunter sold (killed)\n";
 					}
 				}
 			}
@@ -1224,8 +1222,8 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					if (view_selectable.get<Selectable>(entity).selected)
 					{
 						auto &unit = view_unit.get<Unit>(entity);
+						health -= unit.upgrade_cost;
 						upgrade_unit(unit);
-						health -= HUNTER_UPGRADE_COST;
 						std::cout << "damage x2\n";
 					}
 				}

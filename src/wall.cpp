@@ -2,6 +2,7 @@
 
 #include "wall.hpp"
 #include "render.hpp"
+#include "unit.hpp"
 
 entt::entity Wall::createWall(vec2 position, bool rotate) // rotation should be based on direction of path
 {
@@ -37,6 +38,9 @@ entt::entity Wall::createWall(vec2 position, bool rotate) // rotation should be 
 	unit.upgrades = 0;
 	unit.type = WALL_NAME;
 	unit.rotate = rotate;
+	unit.cost = WALL_COST;
+	unit.upgrade_cost = WALL_UPGRADE_COST;
+	unit.sell_price = WALL_SELL_PRICE;
 
 	registry.emplace<Wall>(entity);
 	registry.emplace<Selectable>(entity);

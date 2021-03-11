@@ -2,6 +2,7 @@
 #include "watchtower.hpp"
 #include "render.hpp"
 #include "common.hpp"
+#include "unit.hpp"
 
 entt::entity WatchTower::createWatchTower(vec2 pos)
 {
@@ -34,6 +35,9 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     unit.workers = 0;
     unit.upgrades = 0;
     unit.type = key;
+    unit.cost = WATCHTOWER_COST;
+    unit.upgrade_cost = WATCHTOWER_UPGRADE_COST;
+    unit.sell_price = WATCHTOWER_SELL_PRICE;
 
     registry.emplace<WatchTower>(entity);
     registry.emplace<Selectable>(entity);
