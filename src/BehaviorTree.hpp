@@ -17,3 +17,5 @@ public:
 
     virtual BTState process(entt::entity e) = 0;
 };
+
+static void increment_monster_step(entt::entity entity);

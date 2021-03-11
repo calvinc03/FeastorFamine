@@ -75,6 +75,18 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 		position = motion.position;
 		scale = motion.scale;
 		angle = motion.angle;
+
+		if (registry.has<Monster>(entity))
+		{
+			if (motion.velocity.x > 0) {
+				scale.x = abs(motion.scale.x);
+				angle = atan2(motion.velocity.y, motion.velocity.x);
+			}
+			else {
+				scale.x = -abs(motion.scale.x);
+				angle = atan2(-motion.velocity.y, -motion.velocity.x);
+			}
+		}
 	}
 	else if (registry.has<UI_element>(entity))
 	{
@@ -118,6 +130,7 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 
 	GLint transform_uloc = glGetUniformLocation(texmesh.effect.program, "transform");
 	GLint projection_uloc = glGetUniformLocation(texmesh.effect.program, "projection");
+	GLint num_monster_on_grid_uloc = glGetUniformLocation(texmesh.effect.program, "num_monster_on_grid");
 	gl_has_errors();
 
 	// Setting vertex and index buffers
@@ -201,6 +214,13 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 	// Setting uniform values to the currently bound program
 	glUniformMatrix3fv(transform_uloc, 1, GL_FALSE, (float *)&transform.mat);
 	glUniformMatrix3fv(projection_uloc, 1, GL_FALSE, (float *)&projection);
+	if (registry.has<GridNode>(entity) && registry.get<GridNode>(entity).terrain != TERRAIN_PAVEMENT) {
+	    auto& node = registry.get<GridNode>(entity);
+        glUniform1i(num_monster_on_grid_uloc, node.num_monsters);
+	} else {
+        glUniform1i(num_monster_on_grid_uloc, 0);
+	}
+
 	gl_has_errors();
 
 	// Drawing of num_indices/3 triangles specified in the index buffer

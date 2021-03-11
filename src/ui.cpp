@@ -58,7 +58,7 @@ entt::entity UI_background::createUI_background()
 	ShadedMesh& resource = cache_resource(key);
 	if (resource.effect.program.resource == 0) {
 		resource = ShadedMesh();
-		RenderSystem::createSprite(resource, textures_path("UI-texture-15.png"), "textured");
+		RenderSystem::createSprite(resource, ui_texture_path("UI-texture-15.png"), "textured");
 	}
 	
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -67,7 +67,7 @@ entt::entity UI_background::createUI_background()
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "in_game_ui_background";
-	ui_element.scale = vec2(WINDOW_SIZE_IN_PX.x, WINDOW_SIZE_IN_PX.y / 10.0f + 18);
+	ui_element.scale = vec2(WINDOW_SIZE_IN_PX.x, UI_TAB_HEIGHT);
 	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x/2,WINDOW_SIZE_IN_PX.y - ui_element.scale.y/2.0f);
 
 
@@ -90,22 +90,25 @@ entt::entity UI_button::createUI_button(int pos, Button button, size_t cost, std
 		resource = ShadedMesh();
 
 		if (button == tower_button) {
-			RenderSystem::createSprite(resource, textures_path("tower_icon.png"), "ui");
+			RenderSystem::createSprite(resource, ui_texture_path("tower_icon.png"), "ui");
 		}
 		else if (button == green_house_button) {
-			RenderSystem::createSprite(resource, textures_path("green_house_icon.png"), "ui");
+			RenderSystem::createSprite(resource, ui_texture_path("green_house_icon.png"), "ui");
 		}
 		else if (button == stick_figure_button) {
-			RenderSystem::createSprite(resource, textures_path("stickfigure.png"), "ui");
+			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
 		}
 		else if (button == wall_button) {
-			RenderSystem::createSprite(resource, textures_path("wall_icon.png"), "ui");
+			RenderSystem::createSprite(resource, ui_texture_path("wall_icon.png"), "ui");
 		}
 		else if (button == upgrade_button) {
-			RenderSystem::createSprite(resource, textures_path("upgrade_icon.png"), "ui");
+			RenderSystem::createSprite(resource, ui_texture_path("upgrade_icon.png"), "ui");
+		}
+		else if (button == sell_button) {
+			RenderSystem::createSprite(resource, ui_texture_path("sell_button.png"), "ui");
 		}
 		else if (button == save_button) {
-			RenderSystem::createSprite(resource, textures_path("buttons/save_button.png"), "ui");
+			RenderSystem::createSprite(resource, ui_texture_path("save_button.png"), "ui");
 		}
 	}
 
@@ -118,7 +121,7 @@ entt::entity UI_button::createUI_button(int pos, Button button, size_t cost, std
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = tag;
 	ui_element.scale = vec2({ 1.0f, 1.0f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
-	ui_element.position = vec2(200 + pos * ui_element.scale.x, WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
+	ui_element.position = vec2(175 + pos * ui_element.scale.x, WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
 
 
 	registry.emplace<HighlightBool>(entity);

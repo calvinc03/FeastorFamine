@@ -32,9 +32,9 @@ entt::entity BurrowBoss::createBurrowBossEntt()
     //auto& motion = ECS::registry<Motion>.emplace(entity);
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 150.f, 0 };
-    motion.position = coordToPixel(FOREST_COORD);
-    motion.scale = vec2({ 3, 3 }) * static_cast<vec2>(resource.texture.size);
+    motion.velocity = grid_to_pixel_velocity(vec2(3, 0));
+    motion.position = coord_to_pixel(FOREST_COORD);
+    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1, WALK_FRAMES);
     // scale down bounding box from .png file based on number of frames
     motion.boundingbox = vec2({ motion.scale.x * (1.0f / WALK_FRAMES), motion.scale.y });
 

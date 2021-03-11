@@ -29,14 +29,14 @@ entt::entity GridMap::createGridMap()
 
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 0, 0 };
+    motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
     motion.position = WINDOW_SIZE_IN_PX/2;
     // Setting initial values, scale is 1
-    motion.scale = vec2({ 1, 1 }) * (vec2)WINDOW_SIZE_IN_PX;
+    motion.scale = (vec2)WINDOW_SIZE_IN_PX;
 
     // fill node_entity_matrix with default type grid node
-    for (int x = 0; x < WINDOW_SIZE_IN_COORD.x; x++){
-        for (int y = 0; y < WINDOW_SIZE_IN_COORD.y; y++){
+    for (int x = 0; x < MAP_SIZE_IN_COORD.x; x++){
+        for (int y = 0; y < MAP_SIZE_IN_COORD.y; y++){
             int terrain = TERRAIN_DEFAULT;
             map.node_entity_matrix[x][y] = GridNode::createGridNode(terrain, vec2(x, y));
             map.node_matrix[x][y] = registry.get<GridNode>(map.node_entity_matrix[x][y]);
@@ -48,7 +48,7 @@ entt::entity GridMap::createGridMap()
     return entity;
 }
 
-void GridMap::setGridterrain(ivec2 grid_coord, int terrain) {
+void GridMap::setGridTerrain(ivec2 grid_coord, int terrain) {
     if (!is_inbounds(grid_coord)) {
         std::cout<<"Debug: out of bounds"<< std::endl;
         return;
@@ -58,13 +58,22 @@ void GridMap::setGridterrain(ivec2 grid_coord, int terrain) {
     node.setTerrain(entity, terrain);
 }
 
-void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy) {
+void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy, vec2 scale) {
     if (!is_inbounds(grid_coord)) {
         std::cout<<"Debug: out of bounds"<< std::endl;
         return;
     }
-    auto& node = getNodeAtCoord(grid_coord);
-    node.setOccupancy(occupancy);
+    vec2 over_hang = (scale - (vec2)GRID_CELL_SIZE) / (vec2)GRID_CELL_SIZE / 2.f;
+    over_hang = vec2(ceil(over_hang.x), ceil(over_hang.y));
+    for (int i = grid_coord.x - over_hang.x; i <= grid_coord.x + over_hang.x; i++) {
+        for (int j = grid_coord.y - over_hang.y; j <= grid_coord.y + over_hang.y; j++) {
+            ivec2 current_coord = ivec2(i, j);
+            if (is_inbounds(current_coord)) {
+                auto& node = getNodeAtCoord(current_coord);
+                node.setOccupancy(occupancy);
+            }
+        }
+    }
 }
 
 GridNode& GridMap::getNodeAtCoord(ivec2 grid_coord) {

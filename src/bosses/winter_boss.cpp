@@ -33,9 +33,9 @@ entt::entity WinterBoss::createWinterBossEntt()
     //auto& motion = ECS::registry<Motion>.emplace(entity);
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 50.f, 0 };
-    motion.position = coordToPixel(FOREST_COORD);
-    motion.scale = vec2({ 1, 1 }) * static_cast<vec2>(resource.texture.size);
+    motion.velocity = grid_to_pixel_velocity(vec2(1, 0));
+    motion.position = coord_to_pixel(FOREST_COORD);
+    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1, WALK_FRAMES);
     // scale down bounding box from .png file based on number of frames
     //motion.boundingbox = vec2({ motion.scale.x * (1 / WALK_FRAMES), motion.scale.y });
     motion.boundingbox = vec2({ motion.scale.x * 0.85f / WALK_FRAMES, motion.scale.y });

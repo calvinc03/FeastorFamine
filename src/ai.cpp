@@ -47,7 +47,7 @@ void AISystem::step(float elapsed_ms)
 			float distance = sqrt(pow(adjacent, 2) + pow(opposite, 2));
 
 			if (distance <= placeable_unit.attack_range && placeable_unit.next_projectile_spawn < 0.f) {
-				placeable_unit.next_projectile_spawn = FIRING_RATE;
+				placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms;
 				Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, placeable_unit.damage);
 				motion_h.angle = atan2(opposite, adjacent);
 			}
@@ -72,7 +72,7 @@ void AISystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 				}
 
 				auto& motion = registry.get<Motion>(entity_j);
-				motion.velocity *= boss.speed_multiplier;
+				//motion.velocity *= boss.speed_multiplier;
 
 			}
 		}
@@ -88,19 +88,14 @@ void AISystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 	}
 }
 
-// with diagonals
-std::vector<ivec2> nbr_walk = {ivec2(1,0), ivec2(1,-1),ivec2(1,1),
-                  ivec2(0,-1),ivec2(0,1),
-                  ivec2(-1,0),ivec2(-1,1),ivec2(-1,-1)};
-
 float get_distance(ivec2 coord1, ivec2 coord2) {
     return length((vec2)(coord1 - coord2));
 }
 
-std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2)) {
-    std::vector<std::vector<bool>> visited(WINDOW_SIZE_IN_COORD.x, std::vector<bool> (WINDOW_SIZE_IN_COORD.y, false));
-    std::vector<std::vector<std::tuple<ivec2, float>>> parent(WINDOW_SIZE_IN_COORD.x,
-                                                              std::vector<std::tuple<ivec2, float>> (WINDOW_SIZE_IN_COORD.y, std::make_tuple(vec2(-1, -1), -1)));
+std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), const std::vector<ivec2>& neighbors) {
+    std::vector<std::vector<bool>> visited(MAP_SIZE_IN_COORD.x, std::vector<bool> (MAP_SIZE_IN_COORD.y, false));
+    std::vector<std::vector<std::tuple<ivec2, float>>> parent(MAP_SIZE_IN_COORD.x,
+                                                              std::vector<std::tuple<ivec2, float>> (MAP_SIZE_IN_COORD.y, std::make_tuple(vec2(-1, -1), -1)));
     std::tuple<ivec2, float> start_qnode = std::make_tuple(start_coord, 0.f);
 
     std::queue<std::tuple<ivec2, float>> queue;
@@ -123,8 +118,8 @@ std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 star
         }
         queue.pop();
         // check neighbors
-        for (int i = 0; i < 8; i++) {
-            ivec2 nbr_coord = std::get<0>(current_qnode) + nbr_walk.at(i);
+        for (int i = 0; i < neighbors.size(); i++) {
+            ivec2 nbr_coord = std::get<0>(current_qnode) + neighbors.at(i);
             if (!is_valid(current_map, nbr_coord) || visited[nbr_coord.x][nbr_coord.y]) {
                 continue;
             }
@@ -136,7 +131,6 @@ std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 star
     }
     // a path does not exist between start and end.
     // should NOT reach this point for monster travel path with random map generation is in place
-    std::cout<<"Debug: no path exist \n";
     return std::vector<ivec2>();
 }
 
@@ -184,11 +178,11 @@ int get_random_weather_terrain() {
 }
 
 void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map) {
-    for (int i = 0; i < WINDOW_SIZE_IN_COORD.x; i++) {
-        for (int j = 0; j < WINDOW_SIZE_IN_COORD.y; j++) {
+    for (int i = 0; i < MAP_SIZE_IN_COORD.x; i++) {
+        for (int j = 0; j < MAP_SIZE_IN_COORD.y; j++) {
             int weather_terrain = get_random_weather_terrain();
             if (weather_terrain != TERRAIN_DEFAULT && map.getNodeAtCoord(ivec2(i,j)).terrain != TERRAIN_PAVEMENT) {
-                map.setGridterrain(ivec2(i,j), weather_terrain);
+                map.setGridTerrain(ivec2(i, j), weather_terrain);
             }
         }
     }
@@ -196,18 +190,13 @@ void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map) {
 
 void AISystem::MapAI::setRandomGridsWeatherTerrain(GridMap &map, int max_grids) {
     for (int i = 0; i < max_grids; i++) {
-     ivec2 random_coord(uniform_dist(rng)*WINDOW_SIZE_IN_COORD.x,  uniform_dist(rng)*WINDOW_SIZE_IN_COORD.y);
+     ivec2 random_coord(uniform_dist(rng)*MAP_SIZE_IN_COORD.x,  uniform_dist(rng)*MAP_SIZE_IN_COORD.y);
      auto& node = map.getNodeAtCoord(random_coord);
      if (node.terrain != TERRAIN_PAVEMENT) {
-         map.setGridterrain(random_coord, get_random_weather_terrain());
+         map.setGridTerrain(random_coord, get_random_weather_terrain());
      }
     }
 }
-
-// no diagonal version
-// with diagonals
-std::vector<ivec2> nbr_path = {ivec2(0,-1),ivec2(-1,0),
-                               ivec2(1,0), ivec2(0,1)};
 
 int get_random_index () {
     float num = uniform_dist(rng);
@@ -236,7 +225,7 @@ bool is_valid_terrain_path(GridMap& current_map, ivec2 coord)
 }
 
 
-ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord) {
+ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord, std::vector<ivec2>& neighbors) {
     bool visited[4] = {false, false, false, false};
     int count = 0;
 
@@ -248,11 +237,11 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord) {
         }
         count++;
         // return this neighbor if it's in bounds and has an open path to village (don't want to block itself in)
-        ivec2 nbr_coord = current_coord + nbr_path.at(index);
+        ivec2 nbr_coord = current_coord + neighbors.at(index);
         visited[index] = true;
         if (nbr_coord == end_coord ||
             (is_inbounds(nbr_coord) && map.getNodeAtCoord(nbr_coord).terrain != TERRAIN_PAVEMENT
-             && !AISystem::MapAI::findPathBFS(map, nbr_coord, VILLAGE_COORD, is_valid_terrain_path).empty())) {
+             && !AISystem::MapAI::findPathBFS(map, nbr_coord, VILLAGE_COORD, is_valid_terrain_path, neighbors).empty())) {
             return nbr_coord;
         }
     }
@@ -262,20 +251,23 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord) {
 }
 
 void AISystem::MapAI::setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain) {
-    ivec2 rand_nbr = get_random_neighbor(map, start_coord, end_coord);
-    map.setGridterrain(start_coord, terrain);
+    // no diagonal version
+    std::vector<ivec2> path_neighbors = {ivec2(0, -1), ivec2(-1, 0),
+                                         ivec2(1,0), ivec2(0,1)};
+
+    map.setGridTerrain(start_coord, terrain);
+
     // randomly step toward end_coord
-    while (rand_nbr != end_coord) {
-        map.setGridterrain(rand_nbr, terrain);
-        rand_nbr = get_random_neighbor(map, rand_nbr, end_coord);
+    while (start_coord != end_coord) {
+        start_coord = get_random_neighbor(map, start_coord, end_coord, path_neighbors);
+        map.setGridTerrain(start_coord, terrain);
     }
-    map.setGridterrain(end_coord, terrain);
 }
 
-std::shared_ptr<onCollisionSelector> AISystem::MonstersAI::createCollisionTree() {
+std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
 	std::shared_ptr <BTNode> donothing = std::make_unique<DoNothing>();
 	std::shared_ptr <BTNode> grow = std::make_unique<Grow>();
-	std::shared_ptr <BTNode> stop = std::make_unique<Stop>();
+	//std::shared_ptr <BTNode> stop = std::make_unique<Stop>();
 	std::shared_ptr <BTNode> run = std::make_unique<Run>();
 	std::shared_ptr <BTNode> knockback = std::make_unique<Knockback>();
 
@@ -285,16 +277,20 @@ std::shared_ptr<onCollisionSelector> AISystem::MonstersAI::createCollisionTree()
 	);
 	std::shared_ptr <BTIfCondition> conditional_grow = std::make_unique<BTIfCondition>(
 		grow,
-		[](entt::entity e) {return registry.has<SpringBoss>(e); }
-	);
-	std::shared_ptr <BTIfCondition> conditional_stop = std::make_unique<BTIfCondition>(
-		stop,
-		[](entt::entity e) {return registry.has<SummerBoss>(e); }
-	);
-	std::shared_ptr <BTIfCondition> conditional_run = std::make_unique<BTIfCondition>(
-		run,
 		[](entt::entity e) {return registry.has<FallBoss>(e); }
 	);
+	/*std::shared_ptr <BTIfCondition> conditional_stop = std::make_unique<BTIfCondition>(
+		stop,
+		[](entt::entity e) {return registry.has<SummerBoss>(e); }
+	);*/
+	std::shared_ptr <BTIfCondition> conditional_run = std::make_unique<BTIfCondition>(
+		run,
+		[](entt::entity e) {return registry.has<SpringBoss>(e); }
+	);
+    std::shared_ptr <BTIfCondition> conditional_run_sum = std::make_unique<BTIfCondition>(
+        run,
+        [](entt::entity e) {return registry.has<SummerBoss>(e); }
+    );
 	std::shared_ptr <BTIfCondition> conditional_knockback = std::make_unique<BTIfCondition>(
 		knockback,
 		[](entt::entity e) {return registry.has<WinterBoss>(e); }
@@ -303,11 +299,29 @@ std::shared_ptr<onCollisionSelector> AISystem::MonstersAI::createCollisionTree()
 	std::vector<std::shared_ptr<BTIfCondition>> cond_nodes;
 	cond_nodes.push_back(conditional_donothing);
 	cond_nodes.push_back(conditional_grow);
-	cond_nodes.push_back(conditional_stop);
+	//cond_nodes.push_back(conditional_stop);
 	cond_nodes.push_back(conditional_run);
+    cond_nodes.push_back(conditional_run_sum);
 	cond_nodes.push_back(conditional_knockback);
 
-	std::shared_ptr<onCollisionSelector> root = std::make_unique<onCollisionSelector>(cond_nodes);
+	std::shared_ptr<BTSelector> selector = std::make_unique<BTSelector>(cond_nodes);
+    
+    std::shared_ptr <BTIfCondition> conditional_collided = std::make_unique<BTIfCondition>(
+        selector,
+        [](entt::entity e) {return registry.get<Monster>(e).collided; }
+    );
+
+    std::shared_ptr<BTNode> walk = std::make_unique<Walk>();
+    std::shared_ptr <BTIfCondition> conditional_walk = std::make_unique<BTIfCondition>(
+        walk,
+        [](entt::entity e) {return true; }
+    );
+
+    std::vector<std::shared_ptr<BTIfCondition>> walk_or_collide;
+    walk_or_collide.push_back(conditional_collided);
+    walk_or_collide.push_back(conditional_walk);
+
+    std::shared_ptr<BTSelector> root = std::make_unique<BTSelector>(walk_or_collide);
 
 	return root;
 }

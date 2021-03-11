@@ -15,7 +15,7 @@ entt::entity Hunter::createHunter(vec2 pos)
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("hunter.png"), "unit");
+        RenderSystem::createSprite(resource, textures_path("units/hunter.png"), "unit");
     }
     
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -26,12 +26,12 @@ entt::entity Hunter::createHunter(vec2 pos)
     auto& motion = registry.emplace<Motion>(entity);
     motion.position = pos;
     // Then we scale it to whatever size is needed
-    motion.scale *= vec2({ 1.f, 0.8f }) ;
+    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
 
     auto& unit = registry.emplace<Unit>(entity);
     unit.damage = 10;
-    unit.attack_rate = 3000;
-    unit.attack_range = 400;
+    unit.attack_interval_ms = 1500;
+    unit.attack_range = 300;
     unit.upgrades = 0;
     unit.type = key;
 

@@ -54,7 +54,7 @@ namespace DebugSystem
 		// Create motion
 		auto& motion = registry.emplace<Motion>(entity);
 		motion.angle = 0.f;
-		motion.velocity = { 0, 0 };
+		motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
 		motion.position = position;
 		motion.scale = scale;
 
@@ -112,7 +112,7 @@ namespace DebugSystem
 		// Create motion
 		auto& motion = registry.emplace<Motion>(entity);
 		motion.angle = angle;
-		motion.velocity = { 0, 0 };
+		motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
 		motion.position = (position1 + position2) / 2.0f;
 		motion.scale = vec2(len, width);
 

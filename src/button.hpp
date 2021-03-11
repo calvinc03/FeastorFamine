@@ -11,4 +11,4 @@ struct MenuButton {
 
 std::string on_click_button(vec2 mouse_pos);
 
-
+inline std::string menu_button_texture_path(const std::string& name) { return data_path() + "/textures/menu_button/" + name; };

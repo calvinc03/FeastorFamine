@@ -46,6 +46,8 @@ public:
 
 	void upgrade_unit(Unit& unit);
 
+	void sell_unit(entt::entity& entity);
+
 	// helper for path to round jsons
 	void setup_round_from_round_number(int round_number);
 
@@ -63,6 +65,8 @@ public:
 
 	// Should the game be over ?
 	bool is_over() const;
+
+	static void deduct_health(int num);
 
 	// OpenGL window handle
 	GLFWwindow *window;
@@ -87,6 +91,9 @@ public:
 		battle_stage
 	};
 
+	// health of the village
+	static int health;
+
 private:
 	// PhysicsSystem handle
 	PhysicsSystem *physics;
@@ -105,9 +112,6 @@ private:
 
 	// animation fps
 	float fps_ms;
-
-	// health of the village
-	int health;
 
 	// json object for rounds
 	std::string season_str;
@@ -165,7 +169,7 @@ private:
 	entt::entity round_text_entity;
 	entt::entity food_text_entity;
 	entt::entity stage_text_entity;
-	std::string unit_selected;
+	std::string placement_unit_selected;
 
 
 	// remove entities from start menu
@@ -177,8 +181,9 @@ private:
 	void start_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void in_game_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
-	void unit_upgrade_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
+	void unit_select_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void help_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
+	void sell_unit_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 
 	// music references
 	Mix_Music* background_music;
