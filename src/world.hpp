@@ -73,6 +73,10 @@ public:
 
 	// game state
 	int game_state;
+    
+    // Particle System
+//    GLuint billboard_vertex_buffer;
+//    GLuint particles_position_buffer;
 
 	// Menu
 	enum GameState

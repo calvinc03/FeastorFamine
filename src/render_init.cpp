@@ -47,15 +47,15 @@ void RenderSystem::createSprite(ShadedMesh& sprite, std::string texture_path, st
 	TexturedVertex vertices[4];
 	vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
 	vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
-	vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
-	vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
+    vertices[2].position = { -1.f / 2, -1.f / 2, 0.f };
+	vertices[3].position = { +1.f / 2, -1.f / 2, 0.f };
 	vertices[0].texcoord = { 0.f, 1.f };
 	vertices[1].texcoord = { 1.f, 1.f };
-	vertices[2].texcoord = { 1.f, 0.f };
-	vertices[3].texcoord = { 0.f, 0.f };
+    vertices[2].texcoord = { 0.f, 0.f };
+	vertices[3].texcoord = { 1.f, 0.f };
 
 	// Counterclockwise as it's the default opengl front winding direction.
-	uint16_t indices[] = { 0, 3, 1, 1, 3, 2 };
+	uint16_t indices[] = { 0, 2, 1, 1, 2, 3 };
 
 	glGenVertexArrays(1, sprite.mesh.vao.data());
 	glGenBuffers(1, sprite.mesh.vbo.data());
@@ -66,13 +66,6 @@ void RenderSystem::createSprite(ShadedMesh& sprite, std::string texture_path, st
 	glBindBuffer(GL_ARRAY_BUFFER, sprite.mesh.vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // sizeof(TexturedVertex) * 4
 	gl_has_errors();
-    
-//    // Particle Position Buffer creation
-//    GLuint position_buffer;
-//    glGenBuffers(1, &position_buffer);
-//    glBindBuffer(GL_ARRAY_BUFFER, position_buffer);
-//    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-
     
 	// Index Buffer creation
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sprite.mesh.ibo);

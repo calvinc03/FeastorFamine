@@ -23,6 +23,7 @@
 #include "ui.hpp"
 #include "ai.hpp"
 #include <BehaviorTree.hpp>
+#include "particle.hpp"
 
 // stlib
 #include <string.h>
@@ -134,6 +135,8 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
 	this->physics->attach(this);
 
 	BTCollision = AISystem::MonstersAI::createBehaviorTree();
+    
+//    ParticleSystem::initParticle();
 }
 
 WorldSystem::~WorldSystem()
@@ -317,16 +320,14 @@ void WorldSystem::step(float elapsed_ms)
 //                PARTICLE_COUNT++;
 //            }
         }
-        else if (weather == SNOW) {
-            PARTICLE_COUNT = 0;
-            vec2 velocity = {-10.f, 450.0f};
-            vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
-            float life = 1300.0f;
-            std::string texture = "raindrop.png";
-            ParticleSystem::createParticle(velocity, position, life, texture);
-            
-            PARTICLE_COUNT++;
-        }
+//        else if (weather == SNOW) {
+//            vec2 velocity = {-10.f, 450.0f};
+//            vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
+//            float life = 1300.0f;
+//            std::string texture = "raindrop.png";
+//            ParticleSystem::createParticle(velocity, position, life, texture);
+//            
+//        }
     }
 
 	//stage text is set once per step...

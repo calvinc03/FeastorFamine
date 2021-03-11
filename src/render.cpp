@@ -287,16 +287,19 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 }
 
-void RenderSystem::drawParticle(GLuint billboard_vertex_buffer, GLuint particles_position_buffer){
+void RenderSystem::drawParticle(GLuint billboard_vertex_buffer, GLuint particles_position_buffer, const mat3 &projection){
     
     // Update the buffers that OpenGL uses for rendering.
     // There are much more sophisticated means to stream data from the CPU to the GPU,
     // but this is outside the scope of this tutorial.
     // http://www.opengl.org/wiki/Buffer_Object_Streaming
     glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 2 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+//    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 2 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
     // Buffer orphaning, a common way to improve streaming perf. See above link for details.
-    glBufferSubData(GL_ARRAY_BUFFER, 0, PARTICLE_COUNT * sizeof(GLfloat) * 2, g_particule_position_size_data);
+//    GLfloat default_data[] = {500.0, 500.0};
+    glBufferData(GL_ARRAY_BUFFER, ParticleSystem::PARTICLE_COUNT * 2 * sizeof(GLfloat), ParticleSystem::g_particule_position_size_data.data(), GL_STREAM_DRAW);
+
+//    glBufferSubData(GL_ARRAY_BUFFER, 0, PARTICLE_COUNT * sizeof(GLfloat) * 2, g_particule_position_size_data.data());
     
 
     glEnable(GL_BLEND);
@@ -306,52 +309,75 @@ void RenderSystem::drawParticle(GLuint billboard_vertex_buffer, GLuint particles
     auto particle = registry.view<ParticleSystem>();
     auto& texmesh = *registry.get<ShadedMeshRef>(particle.front()).reference_to_cache;
     glUseProgram(texmesh.effect.program);
+    
     glBindVertexArray(texmesh.mesh.vao);
+//    glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
+//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, texmesh.mesh.ibo);
     gl_has_errors();
     
     // Bind our texture in Texture Unit 0
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texmesh.texture.texture_id);
-    // Set our "myTextureSampler" sampler to use Texture Unit 0
-//    glUniform1i(TextureID, 0);
-
-    // Same as the billboards tutorial
-//    glUniform3f(CameraRight_worldspace_ID, ViewMatrix[0][0], ViewMatrix[1][0], ViewMatrix[2][0]);
-//    glUniform3f(CameraUp_worldspace_ID   , ViewMatrix[0][1], ViewMatrix[1][1], ViewMatrix[2][1]);
-//
-//    glUniformMatrix4fv(ViewProjMatrixID, 1, GL_FALSE, &ViewProjectionMatrix[0][0]);
-
-    // 1rst attribute buffer : vertices
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0
-    );
+    // Set our "sampler0" sampler to use Texture Unit 0
+    GLint TextureID = glGetUniformLocation(texmesh.effect.program, "sampler0");
+    glUniform1i(TextureID, 0);
+    gl_has_errors();
+    
+    GLint projection_uloc = glGetUniformLocation(texmesh.effect.program, "projection");
+    
+    GLint in_position_loc = glGetAttribLocation(texmesh.effect.program, "in_position");
+    GLint in_texcoord_loc = glGetAttribLocation(texmesh.effect.program, "in_texcoord");
+    GLint center_point_loc = glGetAttribLocation(texmesh.effect.program, "center_point");
+    
+    if (in_texcoord_loc >= 0)
+    {
+        glEnableVertexAttribArray(in_position_loc);
+        glBindBuffer(GL_ARRAY_BUFFER, texmesh.mesh.vbo);
+        glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), reinterpret_cast<void *>(0));
         
-    // 2nd attribute buffer : positions of particles' centers
-    glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0
-    );
+        glEnableVertexAttribArray(in_texcoord_loc);
+        glBindBuffer(GL_ARRAY_BUFFER, texmesh.mesh.vbo);
+        glVertexAttribPointer(in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), reinterpret_cast<void *>(sizeof(vec3))); // note the stride to skip the preceeding vertex position
+        
+        glEnableVertexAttribArray(center_point_loc);
+        glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
+        glVertexAttribPointer(center_point_loc, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*2, reinterpret_cast<void *>(0));
+        
+        // Enabling and binding texture to slot 0
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texmesh.texture.texture_id);
+    }
+    else {
+        throw std::runtime_error("This type of entity is not yet supported");
+    }
+    
+    glUniformMatrix3fv(projection_uloc, 1, GL_FALSE, (float *)&projection);
+        
+    gl_has_errors();
 
     // These functions are specific to glDrawArrays*Instanced*.
     // The first parameter is the attribute buffer we're talking about.
     // The second parameter is the "rate at which generic vertex attributes advance when rendering multiple instances"
     // http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribDivisor.xml
     glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
-    glVertexAttribDivisor(1, 1); // positions : one per quad (its center)                 -> 1
-//    glVertexAttribDivisor(2, 1); // color : one per quad                                  -> 1
+    glVertexAttribDivisor(1, 0); // in_texcoord : always reuse the same 4 vertices        -> 0
+    glVertexAttribDivisor(2, 1); // center positions : one per quad (its center)          -> 1
 
     // Draw the particules !
     // This draws many times a small triangle_strip (which looks like a quad).
     // This is equivalent to :
     // for(i in ParticlesCount) : glDrawArrays(GL_TRIANGLE_STRIP, 0, 4),
     // but faster.
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 2, PARTICLE_COUNT);
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, ParticleSystem::PARTICLE_COUNT);
+    
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
 }
 
 // Render our game world
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
-void RenderSystem::draw()
+void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_position_buffer)
 {
 	// Getting size of window
 	ivec2 frame_buffer_size; // in pixels
@@ -402,25 +428,6 @@ void RenderSystem::draw()
 	auto view_nodes = registry.view<GridNode>();
 
 	auto view_mesh_ref = registry.view<ShadedMeshRef>();
-
-    static const GLfloat g_vertex_buffer_data[] = {
-         -0.5f, -0.5f, 0.0f,
-          0.5f, -0.5f, 0.0f,
-         -0.5f,  0.5f, 0.0f,
-          0.5f,  0.5f, 0.0f,
-    };
-    GLuint billboard_vertex_buffer;
-    glGenBuffers(1, &billboard_vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-    // The VBO containing the positions and sizes of the particles
-    GLuint particles_position_buffer;
-    glGenBuffers(1, &particles_position_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-
-    // Initialize with empty (NULL) buffer : it will be updated later, each frame.
-    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 2 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
 	
 	std::vector<std::vector<entt::entity>> sort_by_layer = {};
 
@@ -474,8 +481,8 @@ void RenderSystem::draw()
     
     // Truely render to the screen
     if (registry.view<ParticleSystem>().size() != 0) {
-        std::cout << "Draw particle \n";
-        drawParticle(billboard_vertex_buffer, particles_position_buffer);
+        glDisable(GL_DEPTH_TEST);
+        drawParticle(billboard_vertex_buffer, particles_position_buffer, projection_2D);
     }
 
 	drawToScreen();

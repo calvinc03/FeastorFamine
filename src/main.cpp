@@ -40,12 +40,31 @@ int main()
 	
 	world.game_setup();
 	world.create_start_menu();
+    
 	// Set all states to default
 	//world.restart();
 	auto t = Clock::now();
 	// Variable timestep loop
     float elapsed_ms = 15;
+    
+    static const GLfloat g_vertex_buffer_data[] = {
+         -0.5f, -0.5f, 0.0f,
+          0.5f, -0.5f, 0.0f,
+         -0.5f,  0.5f, 0.0f,
+          0.5f,  0.5f, 0.0f,
+    };
+    GLuint billboard_vertex_buffer;
+    glGenBuffers(1, &billboard_vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+    
+    GLuint particles_position_buffer;
+    glGenBuffers(1, &particles_position_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
 
+    // Initialize with empty (NULL) buffer : it will be updated later, each frame.
+    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 2 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+    
 	while (!world.is_over())
 	{
 		// Processes system messages, if this wasn't present the window would become unresponsive
@@ -76,9 +95,8 @@ int main()
 		else if (world.game_state == WorldSystem::help_menu) {
 			
 		}
-		
-
-		renderer.draw();
+        
+		renderer.draw(billboard_vertex_buffer, particles_position_buffer);
 	}
 	//
 	return EXIT_SUCCESS;
