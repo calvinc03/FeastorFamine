@@ -128,4 +128,3 @@ void RenderSystem::initScreenTexture()
 	screen_state_entity = registry.create();
 	registry.emplace<ScreenState>(screen_state_entity);
 }
-

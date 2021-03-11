@@ -267,26 +267,8 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 }
 
-void RenderSystem::drawParticle() {
+void RenderSystem::drawParticle(GLuint billboard_vertex_buffer, GLuint particles_position_buffer){
     
-    static const GLfloat g_vertex_buffer_data[] = {
-         -0.5f, -0.5f, 0.0f,
-          0.5f, -0.5f, 0.0f,
-         -0.5f,  0.5f, 0.0f,
-          0.5f,  0.5f, 0.0f,
-    };
-    GLuint billboard_vertex_buffer;
-    glGenBuffers(1, &billboard_vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-    
-    // The VBO containing the positions and sizes of the particles
-    GLuint particles_position_buffer;
-    glGenBuffers(1, &particles_position_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-    
-    // Initialize with empty (NULL) buffer : it will be updated later, each frame.
-    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 2 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
     // Update the buffers that OpenGL uses for rendering.
     // There are much more sophisticated means to stream data from the CPU to the GPU,
     // but this is outside the scope of this tutorial.
@@ -401,18 +383,29 @@ void RenderSystem::draw()
 
 	auto view_mesh_ref = registry.view<ShadedMeshRef>();
 
+    static const GLfloat g_vertex_buffer_data[] = {
+         -0.5f, -0.5f, 0.0f,
+          0.5f, -0.5f, 0.0f,
+         -0.5f,  0.5f, 0.0f,
+          0.5f,  0.5f, 0.0f,
+    };
+    GLuint billboard_vertex_buffer;
+    glGenBuffers(1, &billboard_vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
+    // The VBO containing the positions and sizes of the particles
+    GLuint particles_position_buffer;
+    glGenBuffers(1, &particles_position_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
+
+    // Initialize with empty (NULL) buffer : it will be updated later, each frame.
+    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 2 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
 	
 	std::vector<std::vector<entt::entity>> sort_by_layer = {};
 
 	// 100 layers
 	sort_by_layer.resize(100);
-
-    // Truely render to the screen
-    if (registry.view<ParticleSystem>().size() != 0) {
-        std::cout << "Draw particle \n";
-        drawParticle();
-    }
     
 	for (entt::entity entity : view_mesh_ref)
 	{
@@ -458,8 +451,14 @@ void RenderSystem::draw()
 		if(!registry.has<ShadedMeshRef>(entity))
 			drawText(text, frame_buffer_size);
 	}
+    
+    // Truely render to the screen
+    if (registry.view<ParticleSystem>().size() != 0) {
+        std::cout << "Draw particle \n";
+        drawParticle(billboard_vertex_buffer, particles_position_buffer);
+    }
 
-//	drawToScreen();
+	drawToScreen();
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(&window);

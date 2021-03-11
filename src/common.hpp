@@ -30,7 +30,7 @@ static const ivec2 WINDOW_SIZE_IN_COORD = WINDOW_SIZE_IN_PX / GRID_CELL_SIZE;
 static const ivec2 FOREST_COORD = ivec2(0, 0);
 static const ivec2 VILLAGE_COORD = WINDOW_SIZE_IN_COORD - ivec2(2, 2);
 static const int MAX_TILES = 84;
-static const int MAX_PARTICLES = 10000;
+static const int MAX_PARTICLES = 1000;
 static int PARTICLE_COUNT = 0;
 static GLfloat* g_particule_position_size_data;
 
