@@ -37,7 +37,7 @@ entt::entity ParticleSystem::createParticle(vec2 velocity, vec2 position, float 
     motion.velocity = velocity;
     motion.position = position;
     // Setting initial values, scale is negative to make it face the opposite way
-    motion.scale *= vec2({1.0, 1.0});
+    motion.scale *= vec2({0.5, 0.5});
     
     auto& particle = registry.emplace<ParticleSystem>(entity);
     particle.life = life;

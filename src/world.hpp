@@ -125,6 +125,8 @@ private:
 	float next_boss_spawn;
 	float next_mob_spawn;
     
+//    float next_particle_spawn
+    
     // Season
     int season;
     
@@ -153,6 +155,7 @@ private:
 	int max_mobs;
 	int boss_delay_ms;
 	int max_boss;
+    
 
 	float next_greenhouse_production;
 	int num_mobs_spawned;

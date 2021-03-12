@@ -294,12 +294,10 @@ void RenderSystem::drawParticle(GLuint billboard_vertex_buffer, GLuint particles
     // but this is outside the scope of this tutorial.
     // http://www.opengl.org/wiki/Buffer_Object_Streaming
     glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-//    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * 2 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
     // Buffer orphaning, a common way to improve streaming perf. See above link for details.
-//    GLfloat default_data[] = {500.0, 500.0};
     glBufferData(GL_ARRAY_BUFFER, ParticleSystem::PARTICLE_COUNT * 2 * sizeof(GLfloat), ParticleSystem::g_particule_position_size_data.data(), GL_STREAM_DRAW);
 
-//    glBufferSubData(GL_ARRAY_BUFFER, 0, PARTICLE_COUNT * sizeof(GLfloat) * 2, g_particule_position_size_data.data());
+    glBufferSubData(GL_ARRAY_BUFFER, 0, ParticleSystem::PARTICLE_COUNT * sizeof(GLfloat) * 2, ParticleSystem::g_particule_position_size_data.data());
     
 
     glEnable(GL_BLEND);
@@ -482,7 +480,7 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
     // Truely render to the screen
     if (registry.view<ParticleSystem>().size() != 0) {
         glDisable(GL_DEPTH_TEST);
-        drawParticle(billboard_vertex_buffer, particles_position_buffer, projection_2D);
+        drawParticle(billboard_vertex_buffer, particles_position_buffer, projection_2D_ui);
     }
 
 	drawToScreen();

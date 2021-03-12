@@ -73,6 +73,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
 																		 next_boss_spawn(0),
 																		 next_mob_spawn(0),
 																		 num_mobs_spawned(0),
+//                                                                         next_particle_spawn(0),
 																		 num_bosses_spawned(0),
 																		 next_greenhouse_production(3000.f),
 																		 set_up_timer(SET_UP_TIME),
@@ -298,10 +299,14 @@ void WorldSystem::step(float elapsed_ms)
                 registry.destroy(particle_entity);
             }
         }
+//        next_particle_spawn -= elapsed_ms;
+//        if (weather == RAIN && next_mob_spawn < 0.f)
+//        {
+//            next_particle_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
         if (weather == RAIN) {
             vec2 velocity = {0.f, 450.0f};
             vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
-            float life = 1300.0f;
+            float life = 1150.0f;
             std::string texture = "raindrop.png";
             ParticleSystem::createParticle(velocity, position, life, texture);
             ParticleSystem::updateParticle();
@@ -528,6 +533,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	max_boss = round_json["max_bosses"];
 	boss_delay_ms = round_json["boss_delay_ms"];
 	season_str = round_json["season"];
+    
 }
 
 void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
