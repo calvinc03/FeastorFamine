@@ -159,6 +159,10 @@ struct Tag {
 	std::string tag;
 };
 
+struct Timer{
+	float counter_ms = 0.0f;
+};
+
 struct Selectable {
 	bool selected = false;
 };

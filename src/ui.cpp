@@ -205,8 +205,8 @@ static entt::entity createUI_Banner(std::string content, vec2 position, vec3 col
 	ui_text.scale = 1.0f;
 	ui_text.colour = { 1.0f,1.0f,1.0f };
 
-	auto& timer = registry.emplace<Timer>(entity);
-	timer.counter_ms = duration;
+	//auto& timer = registry.emplace<Timer>(entity);
+	//timer.counter_ms = duration;
 	return entity;
 }
 
