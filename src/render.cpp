@@ -108,6 +108,10 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 		transform.rotate(angle);
 		transform.scale(scale);
 	}
+	else if (registry.has<Transform>(entity)) {
+		const auto& entity_transform = registry.get<Transform>(entity);
+		transform = entity_transform;
+	}
 	else
 	{
 		transform.translate(vec2({position.x * camera_scale.x, position.y * camera_scale.y}));
