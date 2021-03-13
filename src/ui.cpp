@@ -2,6 +2,7 @@
 #include "render.hpp"
 #include <string>
 
+#include "world.hpp"
 void UI_highlight_system(vec2 mouse_pos) {
 	auto view_ui = registry.view<UI_element, HighlightBool>(); //may make separate registry for UI elements. Could have position+scale instead of motion component
 	for (auto [entity, ui_element, highlight] : view_ui.each()) {
@@ -70,15 +71,11 @@ entt::entity UI_background::createUI_background()
 	ui_element.scale = vec2(WINDOW_SIZE_IN_PX.x, UI_TAB_HEIGHT);
 	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x/2,WINDOW_SIZE_IN_PX.y - ui_element.scale.y/2.0f);
 
-
-
-
 	registry.emplace<UI_background>(entity);
 
 	return entity;
 }
 
-#include "world.hpp"
 entt::entity UI_button::createUI_button(int pos, Button button, size_t cost, std::string tag, bool show) //later: reference vars for cost in world.
 {
 	auto entity = registry.create();
@@ -190,11 +187,29 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 	return entity;
 }
 
+static entt::entity createUI_Banner(std::string content, vec2 position, vec3 colour, float duration) {
+	auto entity = registry.create();
 
-	//auto entity = registry.create();
-	//auto notoRegular = Font::load("data/fonts/Noto/NotoSans-Regular.ttf");
-	//auto& t = registry.emplace<Text>(entity, Text("Hello, world!", notoRegular, { 300.0f, 300.0f }));
-	//t.colour = vec3(1.0f, 1.0f, 1.0f);
+	std::string key = "UI_banner";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("UI-texture-15.png"), "ui");
+	}
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+
+
+	auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
+
+	auto& ui_text = registry.emplace<Text>(entity, Text(content, notoRegular, position));
+	ui_text.scale = 1.0f;
+	ui_text.colour = { 1.0f,1.0f,1.0f };
+
+	auto& timer = registry.emplace<Timer>(entity);
+	timer.counter_ms = duration;
+	return entity;
+}
+
 
 void change_button_text(entt::entity button_entity, std::string button_text)
 {
