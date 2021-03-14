@@ -664,6 +664,9 @@ bool mouse_in_game_area(vec2 mouse_pos)
 
 void WorldSystem::scroll_callback(double xoffset, double yoffset)
 {
+	if (game_state != in_game) {
+		return;
+	}
 	auto view = registry.view<Motion, MouseMovement>();
 	auto &camera_motion = view.get<Motion>(camera);
 	auto &camera_scale = camera_motion.scale;
@@ -835,7 +838,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
 	//getting cursor position
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
-
+  
 	//some debugging print outs
 	/*if (in_game_area) {
 		std::cout << "in game area" << std::endl;
@@ -1027,7 +1030,7 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 	{
 		remove_menu_buttons();
 		game_state = settings_menu;
-		create_settings_menu();
+		create_controls_menu();
 	}
 	else if (button_tag == LOAD_GAME)
 	{
@@ -1053,6 +1056,11 @@ void WorldSystem::settings_menu_click_handle(double mouse_pos_x, double mouse_po
 		remove_menu_buttons();
 		auto view = registry.view<Menu>();
 		for (auto entity : view)
+		{
+			registry.destroy(entity);
+		}
+		auto menu_text_view = registry.view<MenuText>();
+		for (auto entity : menu_text_view)
 		{
 			registry.destroy(entity);
 		}
@@ -1084,17 +1092,78 @@ void WorldSystem::create_start_menu()
 {
 	std::cout << "In Start Menu\n";
 	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "start_menu", Menu_texture::title_screen, 89, {1.0, 0.9});
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 3 / 7, "new_game", new_game_button);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 7, "load_game", load_game_button);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 5 / 7, "settings_menu", settings_button);
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 6 / 7, "exit", exit_button);
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 3 / 7, "new_game", empty_button, "New game");
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 7, "load_game", empty_button, "Load game");
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 5 / 7, "settings_menu", empty_button, "Controls");
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 6 / 7, "exit", empty_button, "Exit");
 }
 
-void WorldSystem::create_settings_menu()
+void WorldSystem::create_controls_menu()
 {
-	std::cout << "In Settings Menu\n";
-	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "settings", Menu_texture::settings, 90, {0.5, 0.5});
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 5, "back", back_button);
+	std::cout << "In Controls Menu\n";
+	int menu_layer = 90;
+	std::string menu_name = "controls";
+	auto menu = Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, menu_name, Menu_texture::settings, menu_layer, { WINDOW_SIZE_IN_PX.x / 10, WINDOW_SIZE_IN_PX.x / 10});
+	// title text
+	std::string title_text = "Controls";
+	auto title_text_scale = 1.2f;
+	auto title_x_offset = (title_text.length() * title_text_scale * 27) / 2;
+	auto notoRegular = TextFont::load("data/fonts/cascadia-code/Cascadia.ttf");
+	auto& t = registry.emplace<Text>(menu, Text(title_text, notoRegular, vec2(WINDOW_SIZE_IN_PX.x / 2 - title_x_offset, WINDOW_SIZE_IN_PX.y - 170)));
+	t.scale = title_text_scale;
+	t.colour = { 1.0f, 0.8f, 0.0f };
+	// hotkey text
+	std::vector<std::string> hotkey_list = {"1", "2", "3", "4", "Space + mouse", "Scroll", "H", "Esc"};
+	int para_y_offset = 230;
+	int hotkey_para_x_offset = 410;
+	auto hotkey_text_scale = 0.8f;
+	for (int i = 0; i <= 7; i++) {
+		auto entity = registry.create();
+		auto& menu_text = registry.emplace<MenuText>(entity);
+		menu_text.menu_name = menu_name;
+		int y_offset = para_y_offset + (i * hotkey_text_scale * 60);
+		std::string hotkey_text = hotkey_list[i];
+		auto x_offset = (hotkey_text.length() * hotkey_text_scale * 27);
+		auto notoRegular = TextFont::load("data/fonts/cascadia-code/Cascadia.ttf");
+		auto& t = registry.emplace<Text>(entity, Text(hotkey_text, notoRegular, vec2(hotkey_para_x_offset - x_offset, WINDOW_SIZE_IN_PX.y - y_offset)));
+		t.scale = hotkey_text_scale;
+		t.colour = { 1.0f, 0.8f, 0.0f };
+	}
+	// hotkey description text
+	std::vector<std::string> hotkey_des_list = { "Select watchtower", "Select greenhouse", "Select hunter", "Select wall",
+											 "Move camera", "Zoom in / out", "Show  controls menu", "Goto title screen" };
+	int des_para_x_offset = 570;
+	for (int i = 0; i <= 7; i++) {
+		auto entity = registry.create();
+		auto& menu_text = registry.emplace<MenuText>(entity);
+		menu_text.menu_name = menu_name;
+		int y_offset = para_y_offset + (i * hotkey_text_scale * 60);
+		std::string hotkey_text = hotkey_des_list[i];
+		auto notoRegular = TextFont::load("data/fonts/cascadia-code/Cascadia.ttf");
+		auto& t = registry.emplace<Text>(entity, Text(hotkey_text, notoRegular, vec2(des_para_x_offset, WINDOW_SIZE_IN_PX.y - y_offset)));
+		t.scale = hotkey_text_scale;
+		t.colour = { 1.0f, 0.8f, 0.0f };
+	}
+	// arrows
+	for (int i = 0; i <= 7; i++) {
+		auto arrow = registry.create();
+		ShadedMesh& resource = cache_resource("control_arrow");
+		if (resource.effect.program.resource == 0) {
+			resource = ShadedMesh();
+		}
+		RenderSystem::createSprite(resource, menu_texture_path("control_arrow.png"), "textured");
+		auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(arrow, resource);
+		shaded_mesh_ref.layer = menu_layer + 1;
+		UI_element& ui_element = registry.emplace<UI_element>(arrow);
+		ui_element.tag = "control_arrow";
+		ui_element.scale = vec2({ 1.0f, 1.0f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+		int y_offset = para_y_offset + (i * hotkey_text_scale * 60) - 10;
+		ui_element.position = vec2(hotkey_para_x_offset + (des_para_x_offset - hotkey_para_x_offset) / 2, y_offset);
+		auto& menu_text = registry.emplace<MenuText>(arrow);
+		menu_text.menu_name = menu_name;
+	}
+
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 5, "back", empty_button, "back");
 }
 
 entt::entity WorldSystem::create_help_menu()

@@ -151,7 +151,7 @@ private:
 
 	// remove entities from start menu
 	void remove_menu_buttons();
-	void create_settings_menu();
+	void create_controls_menu();
 	entt::entity create_help_menu();
 
 	// helper for start menu mouse click and in_game mouse click

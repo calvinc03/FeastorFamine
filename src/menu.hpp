@@ -14,3 +14,8 @@ struct Menu
 };
 
 inline std::string menu_texture_path(const std::string& name) { return data_path() + "/textures/menu/" + name; };
+
+struct MenuText
+{
+	std::string menu_name;
+};
