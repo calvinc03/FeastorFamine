@@ -5,6 +5,11 @@
 #include "grid_map.hpp"
 #include <vector>
 
+
+struct Spider
+{
+	static entt::entity createSpider();
+};
 struct Frame {
 	std::vector<float> angle;
 
@@ -18,19 +23,19 @@ struct Timeline {
 	std::vector<Frame> frame;
 };
 
+struct MotionTransform {
+	Transform transform;
+	Motion motion;
+};
 struct Rig {
 	//could make jagged 2D vector to store a series of kinematic chains, generalize to rig class. 
 	std::vector<entt::entity> parts;
-};
-struct Spider
-{
-	static entt::entity createSpider();
-	static entt::entity createSpiderPart(std::string name, vec2 offset = { 0,0 }, vec2 origin = {0,0}, float angle = 0);
-
-
-
-	//apply transforms hierarchially. should be called every world step. could be in another file like animation.cpp
+	static entt::entity createPart(std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0);
 	static void update_rigs();
+};
+
+//apply transforms hierarchially. should be called every world step. could be in another file like animation.cpp
+struct Anim {
 	static void animate();
 };
 

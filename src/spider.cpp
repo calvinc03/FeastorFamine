@@ -5,7 +5,7 @@
 
 // TODO: find_keyframe function
 
-void Spider::animate() {
+void Anim::animate() {
     auto view_rigs = registry.view<Timeline>();
     for (auto [entity,timeline] : view_rigs.each()) {
 
@@ -30,7 +30,7 @@ void Spider::animate() {
 }
 
 // this function creates a hierarchy through accumulating transforms.
-void Spider::update_rigs() {
+void Rig::update_rigs() {
     auto view_rigs = registry.view<Rig, Motion>();
     for (auto [entity,rig, root_motion] : view_rigs.each()) { // motion == root
 
@@ -40,6 +40,7 @@ void Spider::update_rigs() {
         auto& L_upper_leg_motion = registry.get<Motion>(rig.parts[2]);
         auto& R_lower_leg_motion = registry.get<Motion>(rig.parts[3]);
         auto& R_upper_leg_motion = registry.get<Motion>(rig.parts[4]);
+
         // create kinematic chain via transforms
         auto& body_transform = registry.get<Transform>(rig.parts[0]);
         auto& L_lower_leg_transform = registry.get<Transform>(rig.parts[1]);
@@ -77,14 +78,14 @@ entt::entity  Spider::createSpider() {
     auto entity = registry.create();
 
     //create entities/parts to be part of the kinematic chains -- requires setting position offset, pivot/origin of rotation, and intial angle
-    auto body = createSpiderPart("body");
-    auto L_upper_leg = createSpiderPart("rect7", vec2(2.0f,0), vec2(0,1.4f), 3.14f); // position, origin, angle
-    auto L_lower_leg = createSpiderPart("rect7", vec2(), vec2(0, -1.4f), 3.14 / 1.0f);
+    auto body = Rig::createPart("body");
+    auto L_upper_leg = Rig::createPart("rect7", vec2(2.0f,0), vec2(0,1.4f), 3.14f); // position, origin, angle
+    auto L_lower_leg = Rig::createPart("rect7", vec2(), vec2(0, -1.4f), 3.14 / 1.0f);
 
-    auto R_upper_leg = createSpiderPart("rect7", vec2(-2.0f,0), vec2(0, 1.4f), 3.14f);
-    auto R_lower_leg = createSpiderPart("rect7", vec2(), vec2(0, -1.4f), 3.14 / 1.5f);
+    auto R_upper_leg = Rig::createPart("rect7", vec2(-2.0f,0), vec2(0, 1.4f), 3.14f);
+    auto R_lower_leg = Rig::createPart("rect7", vec2(), vec2(0, -1.4f), 3.14 / 1.5f);
 
-    //create a component <Spider> to then point to these entities for later
+    //create a component <Rig> to then point to these entities for later
     auto& rig = registry.emplace<Rig>(entity);
     rig.parts.push_back( body);
     rig.parts.push_back( L_lower_leg);
@@ -109,7 +110,7 @@ entt::entity  Spider::createSpider() {
 
     return entity;
 }
-entt::entity Spider::createSpiderPart(std::string name, vec2 offset, vec2 origin, float angle)
+entt::entity Rig::createPart(std::string name, vec2 offset, vec2 origin, float angle)
 {
     auto entity = registry.create();
 
