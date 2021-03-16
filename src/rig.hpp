@@ -11,17 +11,17 @@ struct Frame {
 		angle = angles;
 	}
 };
-struct Timeline {
+struct Timeline {    //TODO: refactor timeline
 	int current_frame = 0;
 	std::vector<Frame> frame;
 };
 
 struct Rig {
 	static void animate_rigs();
+	static void update_rigs(entt::entity camera);
 	entt::entity root;
 	std::vector< std::vector<entt::entity>> chains;
-	static entt::entity createPart(std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0);
-	static void update_rigs();
 	static Transform parent(Transform parent, Motion child_motion, Motion root_motion);
+	static entt::entity createPart( std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0);
 };
 
