@@ -110,7 +110,8 @@ struct Motion {
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { GRID_CELL_SIZE, GRID_CELL_SIZE };
-	vec2 boundingbox = { 10, 10 };;
+	vec2 boundingbox = { 10, 10 };
+	vec2 origin = { 0,0 }; // this is useful for setting the point of rotation for parent/child transforms.
 };
 
 struct Boss {
