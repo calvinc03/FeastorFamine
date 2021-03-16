@@ -3,52 +3,50 @@
 #include "spider.hpp"
 #include "mob.hpp"
 
+// TODO: find_keyframe function
+
 void Spider::animate() {
-    auto view_rigs = registry.view<Spider, Motion>();
-    for (auto [entity, spider, root_motion] : view_rigs.each()) {
+    auto view_rigs = registry.view<Timeline>();
+    for (auto [entity,timeline] : view_rigs.each()) {
 
-        auto& body_motion = registry.get<Motion>(spider.body);
-        auto& L_upper_leg_motion = registry.get<Motion>(spider.L_upper_leg);
-        auto& L_lower_leg_motion = registry.get<Motion>(spider.L_lower_leg);
-        auto& R_upper_leg_motion = registry.get<Motion>(spider.R_upper_leg);
-        auto& R_lower_leg_motion = registry.get<Motion>(spider.R_lower_leg);
+        auto& rig = registry.get<Rig>(entity);
+        auto& root_motion = registry.get<Motion>(entity);
 
-        auto& timeline = registry.get<Timeline>(entity);
-        timeline.current_frame = (++timeline.current_frame)%(24*(timeline.frame.size()-1)); //later this should be based off elapsed_ms
+        timeline.current_frame = (++timeline.current_frame)%(24*(timeline.frame.size()-1)); // increment frame..
 
         //test code
         root_motion.position += vec2(0, 1);
-        auto& frame = timeline.frame;
+
         
-        float a = float(timeline.current_frame) / 24.0f;
-        int f = timeline.current_frame;
+        float t = float(timeline.current_frame) / 24.0f; // a number [0,1] we use as parameter 't' in the linear interpolation
 
-        // TODO: find_keyframe function
-        L_upper_leg_motion.angle = mix(frame[0].angle[0], frame[1].angle[0], a); // mix == basic linear interp
-        L_lower_leg_motion.angle = mix(frame[0].angle[1], frame[1].angle[1], a);
+       //updates all angles given a certain frame
+        for (int i = 1; i < rig.parts.size(); i++){
+            auto& motion = registry.get<Motion>(rig.parts[i]); // could be better to have a motion array in top node.
+            motion.angle = mix(timeline.frame[0].angle[i], timeline.frame[1].angle[i], t);
+        }
 
-        R_upper_leg_motion.angle = mix(frame[0].angle[2], frame[1].angle[2], a); 
-        R_lower_leg_motion.angle = mix(frame[0].angle[1], frame[1].angle[3], a);
     }
 }
 
 // this function creates a hierarchy through accumulating transforms.
 void Spider::update_rigs() {
-    auto view_rigs = registry.view<Spider, Motion>();
-    for (auto [entity,spider, root_motion] : view_rigs.each()) { // motion == root
+    auto view_rigs = registry.view<Rig, Motion>();
+    for (auto [entity,rig, root_motion] : view_rigs.each()) { // motion == root
 
-        auto& body_motion = registry.get<Motion>(spider.body);
-        auto& L_upper_leg_motion = registry.get<Motion>(spider.L_upper_leg);
-        auto& L_lower_leg_motion = registry.get<Motion>(spider.L_lower_leg);
-        auto& R_upper_leg_motion = registry.get<Motion>(spider.R_upper_leg);
-        auto& R_lower_leg_motion = registry.get<Motion>(spider.R_lower_leg);
-
+        //indexing spider.parts is not so great. needs a refactor
+        auto& body_motion = registry.get<Motion>(rig.parts[0]);
+        auto& L_lower_leg_motion = registry.get<Motion>(rig.parts[1]);
+        auto& L_upper_leg_motion = registry.get<Motion>(rig.parts[2]);
+        auto& R_lower_leg_motion = registry.get<Motion>(rig.parts[3]);
+        auto& R_upper_leg_motion = registry.get<Motion>(rig.parts[4]);
         // create kinematic chain via transforms
-        auto& body_transform = registry.get<Transform>(spider.body);
-        auto& L_upper_leg_transform = registry.get<Transform>(spider.L_upper_leg);
-        auto& L_lower_leg_transform = registry.get<Transform>(spider.L_lower_leg);
-        auto& R_upper_leg_transform = registry.get<Transform>(spider.R_upper_leg);
-        auto& R_lower_leg_transform = registry.get<Transform>(spider.R_lower_leg);
+        auto& body_transform = registry.get<Transform>(rig.parts[0]);
+        auto& L_lower_leg_transform = registry.get<Transform>(rig.parts[1]);
+        auto& L_upper_leg_transform = registry.get<Transform>(rig.parts[2]);
+        auto& R_lower_leg_transform = registry.get<Transform>(rig.parts[3]);
+        auto& R_upper_leg_transform = registry.get<Transform>(rig.parts[4]);
+
 
         //body becomes the root. kind of weird.
         body_transform.mat = glm::mat3(1.0);
@@ -87,12 +85,12 @@ entt::entity  Spider::createSpider() {
     auto R_lower_leg = createSpiderPart("rect7", vec2(), vec2(0, -1.4f), 3.14 / 1.5f);
 
     //create a component <Spider> to then point to these entities for later
-    auto& spider = registry.emplace<Spider>(entity);
-    spider.body = body;
-    spider.L_lower_leg = L_lower_leg;
-    spider.L_upper_leg = L_upper_leg;
-    spider.R_lower_leg = R_lower_leg;
-    spider.R_upper_leg = R_upper_leg;
+    auto& rig = registry.emplace<Rig>(entity);
+    rig.parts.push_back( body);
+    rig.parts.push_back( L_lower_leg);
+    rig.parts.push_back( L_upper_leg);
+    rig.parts.push_back( R_lower_leg);
+    rig.parts.push_back( R_upper_leg);
 
     // root entity acts like any other entity.
     auto& motion = registry.emplace<Motion>(entity);
@@ -102,11 +100,12 @@ entt::entity  Spider::createSpider() {
     motion.position = { 400,100 };
     motion.boundingbox = motion.scale;
 
+    
     // timeline holds a 'pointer' to the current frame and all the frame data.
     auto& timeline = registry.emplace<Timeline>(entity);
-    timeline.frame.push_back(Frame({0.0f, 0.0f, 0.0f, 0.0f }));
-    timeline.frame.push_back(Frame({ 1.0f, 2.0f, 1.0f, -1.0f }));
-    timeline.frame.push_back(Frame({ 3.14f, 2.0f, 1.0f, 1.0f }));
+    timeline.frame.push_back(Frame({0.0f, 0.0f, 0.0f, 0.0f,0.0f }));
+    timeline.frame.push_back(Frame({ 1.0f, 2.0f, 1.0f, -1.0f ,0.0f }));
+    timeline.frame.push_back(Frame({ 3.14f, 2.0f, 1.0f, 1.0f,0.0f }));
 
     return entity;
 }
@@ -132,6 +131,7 @@ entt::entity Spider::createSpiderPart(std::string name, vec2 offset, vec2 origin
     motion.scale.y *= -1;
     motion.boundingbox = motion.scale;
     motion.origin = origin;
+
     registry.emplace<Transform>(entity);
 
     return entity;
