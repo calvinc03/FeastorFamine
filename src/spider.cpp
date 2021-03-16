@@ -9,23 +9,21 @@ void Anim::animate() {
     auto view_rigs = registry.view<Timeline>();
     for (auto [entity,timeline] : view_rigs.each()) {
 
-        auto& rig = registry.get<Rig>(entity);
-        auto& root_motion = registry.get<Motion>(entity);
-
-        timeline.current_frame = (++timeline.current_frame)%(24*(timeline.frame.size()-1)); // increment frame..
-
         //test code
+        auto& root_motion = registry.get<Motion>(entity);
         root_motion.position += vec2(0, 1);
 
-
         //updates all angles given a certain frame
+        timeline.current_frame = (++timeline.current_frame) % (24 * (timeline.frame.size() - 1)); // increment frame..
         float t = float(timeline.current_frame) / 24.0f; // a number [0,1] we use as parameter 't' in the linear interpolation
+        auto& rig = registry.get<Rig>(entity);
 
-        int len = 0; //len += chain.size();
-        for (auto& chain : rig.chains) {
-            for (int i = 0; i < chain.size(); i++) {
-                auto& motion = registry.get<Motion>(chain[i]); // could be better to have a motion array in top node.
-                motion.angle = mix(timeline.frame[0].angle[i], timeline.frame[1].angle[i], t);
+        int angle_idx = 0; // this is needed since i we have a 2d vector and 1d vector of angle_data
+        for (int k = 0; k < rig.chains.size(); k++) {
+            for (int i = 0; i < rig.chains[k].size(); i++) {
+                auto& motion = registry.get<Motion>(rig.chains[k][i]); // could be better to have a motion array in top node.
+                motion.angle = mix(timeline.frame[0].angle[angle_idx], timeline.frame[1].angle[angle_idx], t);
+                angle_idx++;
             }
         }
     }
@@ -35,7 +33,6 @@ void Anim::animate() {
 void Rig::update_rigs() {
     auto view_rigs = registry.view<Rig, Motion>();
     for (auto [entity,rig, root_motion] : view_rigs.each()) { // motion == root
-
 
         //TODO: get rid of body as root
         // create kinematic chain via transforms
@@ -98,12 +95,13 @@ entt::entity  Spider::createSpider() {
     
     // timeline holds a 'pointer' to the current frame and all the frame data.
     auto& timeline = registry.emplace<Timeline>(entity);
-    timeline.frame.push_back(Frame({0.0f, 0.0f, 0.0f, 0.0f,0.0f }));
-    timeline.frame.push_back(Frame({ 1.0f, 2.0f, 1.0f, -1.0f ,0.0f }));
-    timeline.frame.push_back(Frame({ 3.14f, 2.0f, 1.0f, 1.0f,0.0f }));
+    timeline.frame.push_back(Frame({0.0f, 0.0f, 0.0f, 0.0f }));
+    timeline.frame.push_back(Frame({ 1.0f, 2.0f, 1.0f, -1.0f }));
+    timeline.frame.push_back(Frame({ 3.14f, 2.0f, 1.0f, 1.0f }));
 
     return entity;
 }
+
 entt::entity Rig::createPart(std::string name, vec2 offset, vec2 origin, float angle)
 {
     auto entity = registry.create();

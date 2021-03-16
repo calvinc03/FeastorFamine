@@ -27,6 +27,7 @@ struct MotionTransform {
 	Transform transform;
 	Motion motion;
 };
+
 struct Rig {
 	//could make jagged 2D vector to store a series of kinematic chains, generalize to rig class. 
 	entt::entity root;
