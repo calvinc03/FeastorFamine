@@ -2,13 +2,17 @@
 
 //TODO: find_keyframe function + make it based on elapsed_ms
 //TODO: figure out if 1d array of <timestamp, angle> is better
-//TODO: change it so update rigs only needs to be called once per animate_rigs
+//TODO: refactor! body element
+
+
 void Rig::animate_rigs() {
     auto view_rigs = registry.view<Timeline>();
     for (auto [entity, timeline] : view_rigs.each()) {
+
         //auto& root_motion = registry.get<Motion>(entity); //test code
         //root_motion.position += vec2(0, 1);
         //root_motion.scale-= vec2(1, 1);
+
         //updates all angles given a certain frame
         timeline.current_frame = (++timeline.current_frame) % (24 * (timeline.frame.size() - 1)); // increment frame..
         float t = float(timeline.current_frame) / 24.0f; // a number [0,1] we use as parameter 't' in the linear interpolation
@@ -27,24 +31,15 @@ void Rig::animate_rigs() {
 
 //create kinematic chain via transforms
 //must be called every step... only way to change this is too have root accessible in render.cpp and then render by top node
-void Rig::update_rigs(entt::entity camera) {
+void Rig::update_rigs() {
     auto view_rigs = registry.view<Rig, Motion>();
 
-    auto& camera_motion = registry.get<Motion>(camera);
-    vec2 camera_scale = camera_motion.scale;
     for (auto [entity, rig, root_motion] : view_rigs.each()) { // motion == root
-
-        Transform root_transform;
-        root_transform.translate(root_motion.position * camera_scale);
-        root_transform.rotate(root_motion.angle);
-        root_transform.scale(camera_scale);
-
         auto& body_motion = registry.get<Motion>(rig.root);         //TODO: make this more elegant... root is treated differently and restricts rigs to one root for chains
         auto& body_transform = registry.get<Transform>(rig.root);
         body_transform.mat = glm::mat3(1.0);
         body_transform.translate(body_motion.position);
         body_transform.rotate(body_motion.angle);
-        body_transform.mat = root_transform.mat * body_transform.mat;
         //create parent constraints
         for (auto& chain : rig.chains) {
             Transform previous_transform = body_transform;
@@ -68,7 +63,7 @@ void Rig::update_rigs(entt::entity camera) {
     }
 }
 
-entt::entity Rig::createPart( std::string name, vec2 offset, vec2 origin, float angle)
+entt::entity Rig::createPart(entt::entity root_motion_entity, std::string name, vec2 offset, vec2 origin, float angle)
 {
     auto entity = registry.create();
 
@@ -92,6 +87,7 @@ entt::entity Rig::createPart( std::string name, vec2 offset, vec2 origin, float 
     motion.origin = origin;
 
     registry.emplace<Transform>(entity);
+    registry.emplace<Root_entity>(entity, root_motion_entity);
     return entity;
 }
 

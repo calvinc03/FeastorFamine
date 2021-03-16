@@ -13,13 +13,13 @@ entt::entity  Spider::createSpider() {
     motion.boundingbox = motion.scale;
 
     //create entities/parts to be part of the kinematic chains -- requires setting position offset, pivot/origin of rotation, and intial angle
-    auto body = Rig::createPart("body");
+    auto body = Rig::createPart(entity, "body");
 
-    auto L_upper_leg = Rig::createPart("rect7", vec2(2.0f, 0), vec2(0, 1.4f), 3.14f); // position, origin, angle
-    auto L_lower_leg = Rig::createPart("rect7", vec2(), vec2(0, -1.4f), 3.14 / 1.0f);
+    auto L_upper_leg = Rig::createPart(entity,"rect7", vec2(2.0f, 0), vec2(0, 1.4f), 3.14f); // position, origin, angle
+    auto L_lower_leg = Rig::createPart(entity, "rect7", vec2(), vec2(0, -1.4f), 3.14 / 1.0f);
 
-    auto R_upper_leg = Rig::createPart("rect7", vec2(-2.0f, 0), vec2(0, 1.4f), 3.14f);
-    auto R_lower_leg = Rig::createPart("rect7", vec2(), vec2(0, -1.4f), 3.14 / 1.5f);
+    auto R_upper_leg = Rig::createPart(entity, "rect7", vec2(-2.0f, 0), vec2(0, 1.4f), 3.14f);
+    auto R_lower_leg = Rig::createPart(entity, "rect7", vec2(), vec2(0, -1.4f), 3.14 / 1.5f);
 
     //create a component <Rig> to then point to these entities for later
     auto& rig = registry.emplace<Rig>(entity);
