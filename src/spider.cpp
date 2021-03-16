@@ -17,15 +17,17 @@ void Anim::animate() {
         //test code
         root_motion.position += vec2(0, 1);
 
-        
+
+        //updates all angles given a certain frame
         float t = float(timeline.current_frame) / 24.0f; // a number [0,1] we use as parameter 't' in the linear interpolation
 
-       //updates all angles given a certain frame
-        for (int i = 1; i < rig.parts.size(); i++){
-            auto& motion = registry.get<Motion>(rig.parts[i]); // could be better to have a motion array in top node.
-            motion.angle = mix(timeline.frame[0].angle[i], timeline.frame[1].angle[i], t);
+        int len = 0; //len += chain.size();
+        for (auto& chain : rig.chains) {
+            for (int i = 0; i < chain.size(); i++) {
+                auto& motion = registry.get<Motion>(chain[i]); // could be better to have a motion array in top node.
+                motion.angle = mix(timeline.frame[0].angle[i], timeline.frame[1].angle[i], t);
+            }
         }
-
     }
 }
 
@@ -34,42 +36,35 @@ void Rig::update_rigs() {
     auto view_rigs = registry.view<Rig, Motion>();
     for (auto [entity,rig, root_motion] : view_rigs.each()) { // motion == root
 
-        //indexing spider.parts is not so great. needs a refactor
-        auto& body_motion = registry.get<Motion>(rig.parts[0]);
-        auto& L_lower_leg_motion = registry.get<Motion>(rig.parts[1]);
-        auto& L_upper_leg_motion = registry.get<Motion>(rig.parts[2]);
-        auto& R_lower_leg_motion = registry.get<Motion>(rig.parts[3]);
-        auto& R_upper_leg_motion = registry.get<Motion>(rig.parts[4]);
 
+        //TODO: get rid of body as root
         // create kinematic chain via transforms
-        auto& body_transform = registry.get<Transform>(rig.parts[0]);
-        auto& L_lower_leg_transform = registry.get<Transform>(rig.parts[1]);
-        auto& L_upper_leg_transform = registry.get<Transform>(rig.parts[2]);
-        auto& R_lower_leg_transform = registry.get<Transform>(rig.parts[3]);
-        auto& R_upper_leg_transform = registry.get<Transform>(rig.parts[4]);
-
-
-        //body becomes the root. kind of weird.
+        auto& body_motion = registry.get<Motion>(rig.root);
+        auto& body_transform = registry.get<Transform>(rig.root);
         body_transform.mat = glm::mat3(1.0);
         body_transform.translate(root_motion.position);
         body_transform.rotate(root_motion.angle);
 
         //create parent constraints
-        //left leg chain
-        L_upper_leg_transform = parent(body_transform, L_upper_leg_motion, root_motion);
-        L_lower_leg_transform = parent(L_upper_leg_transform, L_lower_leg_motion, root_motion);
+        for (auto& chain : rig.chains) {
+            Transform previous_transform = body_transform;
+            for (auto& part : chain) {
+                auto& transform = registry.get<Transform>(part);
+                auto& motion = registry.get<Motion>(part);
+                transform = parent(previous_transform, motion, root_motion);
+                previous_transform = transform;
+            }
+        }
 
-        //right leg chain
-        R_upper_leg_transform = parent(body_transform, R_upper_leg_motion, root_motion);
-        R_lower_leg_transform = parent(R_upper_leg_transform, R_lower_leg_motion, root_motion);
-
-        
-        //must adjust scale after!!
-        body_transform.scale(root_motion.scale*body_motion.scale);
-        L_upper_leg_transform.scale(root_motion.scale * L_upper_leg_motion.scale);
-        L_lower_leg_transform.scale(root_motion.scale * L_lower_leg_motion.scale);
-        R_upper_leg_transform.scale(root_motion.scale * R_upper_leg_motion.scale);
-        R_lower_leg_transform.scale(root_motion.scale * R_lower_leg_motion.scale);
+        //must adjust scale after parent constraints!!
+        body_transform.scale(root_motion.scale * body_motion.scale);
+        for (auto& chain : rig.chains) {
+            for (auto& part : chain) {
+                auto& transform = registry.get<Transform>(part);
+                auto& motion = registry.get<Motion>(part);
+                transform.scale(root_motion.scale * motion.scale);
+            }
+        }
     }
 }
 
@@ -87,11 +82,10 @@ entt::entity  Spider::createSpider() {
 
     //create a component <Rig> to then point to these entities for later
     auto& rig = registry.emplace<Rig>(entity);
-    rig.parts.push_back( body);
-    rig.parts.push_back( L_lower_leg);
-    rig.parts.push_back( L_upper_leg);
-    rig.parts.push_back( R_lower_leg);
-    rig.parts.push_back( R_upper_leg);
+    rig.root = body;
+    rig.chains.push_back({ L_upper_leg, L_lower_leg });
+    rig.chains.push_back({ R_upper_leg, R_lower_leg });
+  
 
     // root entity acts like any other entity.
     auto& motion = registry.emplace<Motion>(entity);

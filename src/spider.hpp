@@ -29,7 +29,8 @@ struct MotionTransform {
 };
 struct Rig {
 	//could make jagged 2D vector to store a series of kinematic chains, generalize to rig class. 
-	std::vector<entt::entity> parts;
+	entt::entity root;
+	std::vector< std::vector<entt::entity>> chains;
 	static entt::entity createPart(std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0);
 	static void update_rigs();
 };
