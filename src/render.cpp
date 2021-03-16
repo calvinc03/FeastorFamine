@@ -108,17 +108,17 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 		transform.rotate(angle);
 		transform.scale(scale);
 	}
-	else if (registry.has<Root_entity>(entity)) {
+	else if (registry.has<Root>(entity)) {
 
-		auto& root = registry.get<Root_entity>(entity);
-		Motion root_motion = registry.get<Motion>(root.root_entity);
+		const auto& root = registry.get<Root>(entity);
+		Motion root_motion = registry.get<Motion>(root.entity);
 
-		transform.translate(root_motion.position* camera_scale);
+		transform.translate(root_motion.position * camera_scale);
 		transform.rotate(root_motion.angle);
 		transform.scale(camera_scale);
 
 		const auto& entity_transform = registry.get<Transform>(entity);
-		transform.mat = transform.mat* entity_transform.mat;
+		transform.mat = transform.mat * entity_transform.mat;
 	}
 	else 
 	{

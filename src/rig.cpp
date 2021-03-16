@@ -2,7 +2,6 @@
 
 //TODO: find_keyframe function + make it based on elapsed_ms
 //TODO: figure out if 1d array of <timestamp, angle> is better
-//TODO: refactor! body element
 
 
 void Rig::animate_rigs() {
@@ -35,14 +34,11 @@ void Rig::update_rigs() {
     auto view_rigs = registry.view<Rig, Motion>();
 
     for (auto [entity, rig, root_motion] : view_rigs.each()) { // motion == root
-        auto& body_motion = registry.get<Motion>(rig.root);         //TODO: make this more elegant... root is treated differently and restricts rigs to one root for chains
-        auto& body_transform = registry.get<Transform>(rig.root);
-        body_transform.mat = glm::mat3(1.0);
-        body_transform.translate(body_motion.position);
-        body_transform.rotate(body_motion.angle);
+
         //create parent constraints
         for (auto& chain : rig.chains) {
-            Transform previous_transform = body_transform;
+            Transform previous_transform;
+            previous_transform.mat = glm::mat3(1.0);
             for (auto& part : chain) {
                 auto& transform = registry.get<Transform>(part);
                 auto& motion = registry.get<Motion>(part);
@@ -52,7 +48,6 @@ void Rig::update_rigs() {
         }
 
         //must adjust scale after parent constraints!!
-        body_transform.scale(root_motion.scale * body_motion.scale);
         for (auto& chain : rig.chains) {
             for (auto& part : chain) {
                 auto& transform = registry.get<Transform>(part);
@@ -63,7 +58,7 @@ void Rig::update_rigs() {
     }
 }
 
-entt::entity Rig::createPart(entt::entity root_motion_entity, std::string name, vec2 offset, vec2 origin, float angle)
+entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 offset, vec2 origin, float angle)
 {
     auto entity = registry.create();
 
@@ -87,7 +82,7 @@ entt::entity Rig::createPart(entt::entity root_motion_entity, std::string name, 
     motion.origin = origin;
 
     registry.emplace<Transform>(entity);
-    registry.emplace<Root_entity>(entity, root_motion_entity);
+    registry.emplace<Root>(entity, root_entity);
     return entity;
 }
 
@@ -95,7 +90,7 @@ Transform Rig::parent(Transform parent, Motion child_motion, Motion root_motion)
     Transform child;
     child.mat = glm::mat3(1.0);
     child.translate(child_motion.position * root_motion.scale);
-    child.translate(child_motion.origin * root_motion.scale);
+    child.translate(child_motion.origin * root_motion.scale); //translate, rotate, -translate == change rotation's pivot
     child.rotate(child_motion.angle);
     child.translate(-child_motion.origin * root_motion.scale);
     child.mat = parent.mat * child.mat; //this applies parent's transforms to child

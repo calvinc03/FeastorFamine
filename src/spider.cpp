@@ -23,16 +23,16 @@ entt::entity  Spider::createSpider() {
 
     //create a component <Rig> to then point to these entities for later
     auto& rig = registry.emplace<Rig>(entity);
-    rig.root = body; // must set this
+    rig.chains.push_back({ body });
     rig.chains.push_back({ L_upper_leg, L_lower_leg }); // added by the chain, leaf node last
     rig.chains.push_back({ R_upper_leg, R_lower_leg });
 
  
     // timeline holds a 'pointer' to the current frame and all the frame data.
     auto& timeline = registry.emplace<Timeline>(entity);
-    timeline.frame.push_back(Frame({ 0.0f, 0.0f, 0.0f, 0.0f }));
-    timeline.frame.push_back(Frame({ 1.0f, 2.0f, 1.0f, -1.0f }));
-    timeline.frame.push_back(Frame({ 3.14f, 2.0f, 1.0f, 1.0f }));
+    timeline.frame.push_back(Frame({0.0f, 0.0f, 0.0f, 0.0f, 0.0f }));
+    timeline.frame.push_back(Frame({ 0.0f, 1.0f, 2.0f, 1.0f, -1.0f }));
+    timeline.frame.push_back(Frame({ 0.0f,3.14f, 2.0f, 1.0f, 1.0f }));
 
     return entity;
 }

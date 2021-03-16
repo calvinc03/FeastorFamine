@@ -15,16 +15,15 @@ struct Timeline {    //TODO: refactor timeline
 	int current_frame = 0;
 	std::vector<Frame> frame;
 };
-struct Root_entity {
-	entt::entity root_entity;
+struct Root {
+	entt::entity entity;
 };
 
 struct Rig {
 	static void animate_rigs();
 	static void update_rigs();
-	entt::entity root;
 	std::vector< std::vector<entt::entity>> chains;
 	static Transform parent(Transform parent, Motion child_motion, Motion root_motion);
-	static entt::entity createPart(entt::entity root_motion_entity, std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0);
+	static entt::entity createPart(entt::entity root_entity, std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0);
 };
 
