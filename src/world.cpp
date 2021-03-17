@@ -1030,7 +1030,7 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 	{
 		remove_menu_buttons();
 		game_state = settings_menu;
-		create_controls_menu();
+		//create_controls_menu();
 	}
 	else if (button_tag == LOAD_GAME)
 	{

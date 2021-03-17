@@ -9,6 +9,7 @@
 vec2 get_bounding_box(const Motion& motion)
 {
 	// fabs is to avoid negative scale due to the facing direction.
+	
 	return { abs(motion.boundingbox.x), abs(motion.boundingbox.y) };
 }
 

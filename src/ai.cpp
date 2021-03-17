@@ -12,6 +12,7 @@
 #include <bosses/summer_boss.hpp>
 #include <bosses/fall_boss.hpp>
 #include <bosses/winter_boss.hpp>
+#include <unit.hpp>
 
 AISystem::AISystem(PhysicsSystem* physics) 
 {
@@ -34,24 +35,35 @@ void AISystem::step(float elapsed_ms)
 	}
 
 	// Attack mobs if in range of hunter
-	for (auto monster : registry.view<Monster>()) {
-		auto animal = entt::to_entity(registry, monster);
-		auto& motion_m = registry.get<Motion>(animal);
-		for (auto unit : registry.view<Unit>()) {
-			auto hunter = entt::to_entity(registry, unit);
-			auto& motion_h = registry.get<Motion>(hunter);
-			auto& placeable_unit = registry.get<Unit>(hunter);
+    for (auto unit : registry.view<Unit>()) {
+        auto hunter = entt::to_entity(registry, unit);
+        auto& motion_h = registry.get<Motion>(hunter);
+        auto& placeable_unit = registry.get<Unit>(hunter);
 
-			float opposite = motion_m.position.y - motion_h.position.y;
-			float adjacent = motion_m.position.x - motion_h.position.x;
-			float distance = sqrt(pow(adjacent, 2) + pow(opposite, 2));
+        Motion motion_monster;
+        float min_distance = INFINITY;
+        for (auto monster : registry.view<Monster>()) {
+            auto animal = entt::to_entity(registry, monster);
+            auto& motion_m = registry.get<Motion>(animal);
 
-			if (distance <= placeable_unit.attack_range && placeable_unit.next_projectile_spawn < 0.f) {
-				placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms;
-				Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, placeable_unit.damage);
-				motion_h.angle = atan2(opposite, adjacent);
-			}
+            float distance_to_village = length(motion_m.position - coord_to_pixel(VILLAGE_COORD));
+            float distance_to_hunter = length(motion_m.position - motion_h.position);
+            if (distance_to_village < min_distance && distance_to_hunter <= placeable_unit.attack_range) {
+                min_distance = length(motion_m.position - coord_to_pixel(VILLAGE_COORD));
+                motion_monster = motion_m;
+            }
 		}
+        if (min_distance == INFINITY) continue;
+
+        float opposite = motion_monster.position.y - motion_h.position.y;
+        float adjacent = motion_monster.position.x - motion_h.position.x;
+        float distance = sqrt(pow(adjacent, 2) + pow(opposite, 2));
+        motion_h.angle = atan2(opposite, adjacent);
+
+        if (placeable_unit.next_projectile_spawn < 0.f) {
+            placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms;
+            Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, placeable_unit.damage);
+        }
 	}
 }
 
