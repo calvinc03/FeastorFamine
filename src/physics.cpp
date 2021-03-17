@@ -74,7 +74,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		for (auto [entity, motion] : view_motion.each())
 		{
 			//TODO: add a boudning box to projectiles
-			if (!registry.has<GridNode>(entity) && registry.has<Motion>(entity) && !registry.has<HealthComponent>(entity)) {
+			if (!registry.has<GridNode>(entity) && registry.has<Motion>(entity) && !registry.has<HealthComponent>(entity) && !registry.has<DebugComponent>(entity)) {
 
 				DebugSystem::createBox(motion.position, motion.boundingbox);
 			}
