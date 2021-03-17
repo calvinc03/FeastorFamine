@@ -82,7 +82,6 @@ int main()
 
 		DebugSystem::clearDebugComponents();
 		HealthSystem::updateHealthComponents(elapsed_ms);
-        world.setup_round_from_round_number();
 		if (world.game_state == WorldSystem::in_game) {
 			if (world.player_state == WorldSystem::set_up_stage) {
 				world.set_up_step(elapsed_ms);
