@@ -3,6 +3,7 @@
 #include "render.hpp"
 #include "menu.hpp"
 #include "button.hpp"
+#include "unit.hpp"
 
 entt::entity Hunter::createHunter(vec2 pos)
 {
@@ -34,6 +35,9 @@ entt::entity Hunter::createHunter(vec2 pos)
     unit.attack_range = 300;
     unit.upgrades = 0;
     unit.type = key;
+    unit.cost = HUNTER_COST;
+    unit.upgrade_cost = HUNTER_UPGRADE_COST;
+    unit.sell_price = HUNTER_SELL_PRICE;
 
     registry.emplace<Hunter>(entity);
     registry.emplace<Selectable>(entity);
