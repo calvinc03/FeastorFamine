@@ -1,8 +1,8 @@
 #include "rig.hpp"
-
+#include <iostream>
 //TODO: find_keyframe function + make it based on elapsed_ms
 //TODO: figure out if 1d array of <timestamp, angle> is better
-
+//TODO: complex prescribed motion
 
 void Rig::animate_rigs() {
     auto view_rigs = registry.view<Timeline>();
@@ -57,7 +57,52 @@ void Rig::update_rigs() {
         }
     }
 }
+#include "camera.hpp"
+#include "debug.hpp"
 
+// 1) make angle changes
+// 2) update_rigs()
+// 3) have a score function
+// 4) repeat, learn and change step size/dir
+void Rig::ik_solve(entt::entity camera) {
+    auto& camera_motion= registry.get<Motion>(camera);
+    auto& camera_scale = registry.get<Motion>(camera).scale;
+    vec2 mouse = registry.get<MouseMovement>(camera).mouse_pos;
+    mouse = mouse_in_world_coord(mouse);
+
+    auto view_rigs = registry.view<Rig, Motion>();
+    for (auto [entity, rig, root_motion] : view_rigs.each()) { // for every rig
+
+        Transform root_transform;
+        root_transform.translate(root_motion.position);
+        root_transform.rotate(root_motion.angle);
+            
+        float alpha = 0.1f;
+        auto& part = rig.chains[1][1]; //optimizing one part
+        vec3 end_effector = vec3();
+        for (int i = 0; i < 5; i++) { // iterate 5 times
+            auto& motion_old = registry.get<Motion>(part);
+            const auto& transform = registry.get<Transform>(part);
+            end_effector = root_transform.mat * transform.mat * vec3(motion_old.origin.x, motion_old.origin.y, 1); // point in world space
+            float dist_old = length(mouse - vec2(end_effector.x, end_effector.y));
+
+            // 1) 
+            motion_old.angle += alpha;
+
+            // 2) update rigs with angle changes
+            Rig::update_rigs();
+
+            // 3) score
+            auto& motion_new = registry.get<Motion>(part);
+            end_effector = root_transform.mat * transform.mat * vec3(motion_new.origin.x, motion_new.origin.y, 1); // point in world space
+            float dist_new = length(mouse - vec2(end_effector.x, end_effector.y));
+            //std::cout << "score: " << dist << std::endl;
+        }
+
+    }
+    
+
+}
 entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 offset, vec2 origin, float angle)
 {
     auto entity = registry.create();

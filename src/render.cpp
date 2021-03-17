@@ -113,6 +113,7 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 		const auto& root = registry.get<Root>(entity);
 		Motion root_motion = registry.get<Motion>(root.entity);
 
+		transform.mat = mat3(1.0f);
 		transform.translate(root_motion.position * camera_scale);
 		transform.rotate(root_motion.angle);
 		transform.scale(camera_scale);

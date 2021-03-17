@@ -22,8 +22,12 @@ struct Root {
 struct Rig {
 	static void animate_rigs();
 	static void update_rigs();
+	static void ik_solve(entt::entity camera);
+
 	std::vector< std::vector<entt::entity>> chains;
 	static Transform parent(Transform parent, Motion child_motion, Motion root_motion);
 	static entt::entity createPart(entt::entity root_entity, std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0);
+
+	
 };
 
