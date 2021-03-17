@@ -1,9 +1,10 @@
 #include "rig.hpp"
+#include "camera.hpp"
 #include <iostream>
 //TODO: find_keyframe function + make it based on elapsed_ms
 //TODO: figure out if 1d array of <timestamp, angle> is better
 //TODO: complex prescribed motion
-
+//TODO: IK solver (custom iterative and reverse jacobian?)
 void Rig::animate_rigs() {
     auto view_rigs = registry.view<Timeline>();
     for (auto [entity, timeline] : view_rigs.each()) {
@@ -57,9 +58,13 @@ void Rig::update_rigs() {
         }
     }
 }
-#include "camera.hpp"
-#include "debug.hpp"
 
+float score(entt::entity part, vec2 mouse, Transform root_transform) {
+    auto& motion = registry.get<Motion>(part);
+    const auto& transform = registry.get<Transform>(part);
+    vec3 end_effector = root_transform.mat * transform.mat * vec3(motion.origin.x, motion.origin.y, 1); // point in world space
+    return length(mouse - vec2(end_effector.x, end_effector.y));
+}
 // 1) make angle changes
 // 2) update_rigs()
 // 3) have a score function
@@ -79,24 +84,30 @@ void Rig::ik_solve(entt::entity camera) {
             
         float alpha = 0.1f;
         auto& part = rig.chains[1][1]; //optimizing one part
-        vec3 end_effector = vec3();
+        auto& motion = registry.get<Motion>(part);
+
         for (int i = 0; i < 5; i++) { // iterate 5 times
-            auto& motion_old = registry.get<Motion>(part);
-            const auto& transform = registry.get<Transform>(part);
-            end_effector = root_transform.mat * transform.mat * vec3(motion_old.origin.x, motion_old.origin.y, 1); // point in world space
-            float dist_old = length(mouse - vec2(end_effector.x, end_effector.y));
+
+            float score_old = score(part, mouse, root_transform);
+            std::cout << "score_old: " << score_old << std::endl;
 
             // 1) 
-            motion_old.angle += alpha;
+            motion.angle += alpha;
 
             // 2) update rigs with angle changes
             Rig::update_rigs();
 
             // 3) score
-            auto& motion_new = registry.get<Motion>(part);
-            end_effector = root_transform.mat * transform.mat * vec3(motion_new.origin.x, motion_new.origin.y, 1); // point in world space
-            float dist_new = length(mouse - vec2(end_effector.x, end_effector.y));
-            //std::cout << "score: " << dist << std::endl;
+            float score_new = score(part, mouse, root_transform);
+            std::cout << "score_new: " << score_new << std::endl;
+
+            if (score_old < score_new) {
+                motion.angle -= alpha;
+                alpha *= -1;
+            }
+            else {
+                alpha /= 1.5f;
+            }
         }
 
     }
