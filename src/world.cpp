@@ -305,7 +305,7 @@ void WorldSystem::step(float elapsed_ms)
 
         if (weather == RAIN && next_particle_spawn < 0.f)
         {
-            next_particle_spawn = 70;
+            next_particle_spawn = 60;
             vec2 velocity = {0.f, 450.0f};
             vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
             float life = 1150.0f;
@@ -392,7 +392,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 
     if (weather == RAIN && next_particle_spawn < 0.f)
     {
-        next_particle_spawn = 70;
+        next_particle_spawn = 60;
         vec2 velocity = {0.f, 450.0f};
         vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
         float life = 1150.0f;
