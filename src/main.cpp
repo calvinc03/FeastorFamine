@@ -85,6 +85,7 @@ int main()
 		if (world.game_state == WorldSystem::in_game) {
 			if (world.player_state == WorldSystem::set_up_stage) {
 				world.set_up_step(elapsed_ms);
+                physics.step(elapsed_ms);
 			}
 			else if (world.player_state == WorldSystem::battle_stage) {
 				ai.step(elapsed_ms);

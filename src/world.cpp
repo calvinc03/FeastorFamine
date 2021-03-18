@@ -284,6 +284,11 @@ void WorldSystem::step(float elapsed_ms)
 			setup_round_from_round_number(round_number);
 			// re-roll some weather terrains
 			AISystem::MapAI::setRandomGridsWeatherTerrain(current_map, 10);
+            for (auto particle : registry.view<ParticleSystem>()) {
+//                registry.remove_all(particle);
+                registry.destroy(particle);
+            }
+            
 			player_state = set_up_stage;
 			num_bosses_spawned = 0;
 			num_mobs_spawned = 0;
@@ -310,30 +315,31 @@ void WorldSystem::step(float elapsed_ms)
             vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
             float life = 1150.0f;
             std::string texture = "raindrop.png";
-            ParticleSystem::createParticle(velocity, position, life, texture);
+            std::string shader = "rain";
+            ParticleSystem::createParticle(velocity, position, life, texture, shader);
         }
         else if (weather == DROUGHT) {
             // TODO
         }
-        else if (weather == FOG) {
-//            PARTICLE_COUNT = 0;
-//            vec2 velocity = {-10.f, 450.0f};
-//            vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
-//            float life = 1300.0f;
-//            std::string texture = "raindrop.png";
-//            for (int i = 0; i < new_particles; i++) {
-//                ParticleSystem::createParticle(velocity, position, life, texture);
-//                PARTICLE_COUNT++;
-//            }
+        else if (weather == FOG && next_particle_spawn < 0.f) {
+            next_particle_spawn = 3000;
+            vec2 velocity = {-100.f, 0.f};
+            vec2 position = {WINDOW_SIZE_IN_PX.x, rand() % (WINDOW_SIZE_IN_PX.y - 230)};
+            float life = 13500.f;
+            std::string texture = "cloud.png";
+            std::string shader = "fog";
+            ParticleSystem::createParticle(velocity, position, life, texture, shader);
         }
-//        else if (weather == SNOW) {
-//            vec2 velocity = {-10.f, 450.0f};
-//            vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
-//            float life = 1300.0f;
-//            std::string texture = "raindrop.png";
-//            ParticleSystem::createParticle(velocity, position, life, texture);
-//            
-//        }
+        else if (weather == SNOW && next_particle_spawn < 0.f)
+        {
+            next_particle_spawn = 40;
+            vec2 velocity = {rand() % 400 + (-200), 300.0f};
+            vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
+            float life = 1800.0f;
+            std::string texture = "snow.png";
+            std::string shader = "snow";
+            ParticleSystem::createParticle(velocity, position, life, texture, shader);
+        }
     }
 
 	//stage text is set once per step...
@@ -375,6 +381,54 @@ void WorldSystem::set_up_step(float elapsed_ms)
 	//title_ss << "Setup stage... Food: " << health << " Round: " << round_number << " Time left to setup: " << round(set_up_timer / 1000) << " fps: " << 1000.0 / elapsed_ms;
 	//glfwSetWindowTitle(window, title_ss.str().c_str());
 
+    auto particle_view = registry.view<ParticleSystem>();
+    if (particle_view.size() < MAX_PARTICLES) {
+        for (auto particle_entity : particle_view) {
+            auto& particle = registry.get<ParticleSystem>(particle_entity);
+            particle.life -= elapsed_ms;
+            if (particle.life <= 0) {
+                registry.destroy(particle_entity);
+            }
+        }
+        ParticleSystem::updateParticle();
+
+        next_particle_spawn -= elapsed_ms;
+
+        if (weather == RAIN && next_particle_spawn < 0.f)
+        {
+            next_particle_spawn = 70;
+            vec2 velocity = {0.f, 450.0f};
+            vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
+            float life = 1150.0f;
+            std::string texture = "raindrop.png";
+            std::string shader = "rain";
+            ParticleSystem::createParticle(velocity, position, life, texture, shader);
+        }
+        else if (weather == DROUGHT) {
+            // TODO
+        }
+        else if (weather == FOG && next_particle_spawn < 0.f) {
+            next_particle_spawn = 3000;
+            vec2 velocity = {-100.f, 0.f};
+            vec2 position = {WINDOW_SIZE_IN_PX.x, rand() % (WINDOW_SIZE_IN_PX.y - 230)};
+            float life = 13500.f;
+            std::string texture = "cloud.png";
+            std::string shader = "fog";
+            ParticleSystem::createParticle(velocity, position, life, texture, shader);
+        }
+        else if (weather == SNOW && next_particle_spawn < 0.f)
+        {
+            next_particle_spawn = 40;
+            vec2 velocity = {rand() % 400 + (-200), 300.0f};
+            vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
+            float life = 1800.0f;
+            std::string texture = "snow.png";
+            std::string shader = "snow";
+            ParticleSystem::createParticle(velocity, position, life, texture, shader);
+
+        }
+    }
+    
 	if (set_up_timer <= 0)
 	{
 		player_state = battle_stage;
@@ -386,62 +440,6 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		monster_path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
 
 		std::cout << season_str << " season! \n";
-
-		if (season_str == SPRING_TITLE)
-		{
-			season = SPRING;
-			// Uncomment when done with weather testing
-			//            int weather_int = rand() % 5 + 1;
-			//            if (weather_int % 5 == 1)
-			//            {
-			//                weather = RAIN;
-			//            } else {
-			//                weather = CLEAR;
-			//            }
-			// comment out when done testing
-			weather = RAIN;
-			create_boss = SpringBoss::createSpringBossEntt;
-		}
-		else if (season_str == SUMMER_TITLE)
-		{
-			season = SUMMER;
-			//            int weather_int = rand() % 5 + 1;
-			//            if (weather_int % 5 == 1)
-			//            {
-			//                weather = DROUGHT;
-			//            } else {
-			//                weather = CLEAR;
-			//            }
-			weather = DROUGHT;
-			create_boss = SummerBoss::createSummerBossEntt;
-		}
-		else if (season_str == FALL_TITLE)
-		{
-			season = FALL;
-			int weather_int = rand() % 5 + 1;
-			//            if (weather_int % 5 == 1)
-			//            {
-			//                weather = FOG;
-			//            } else {
-			//                weather = CLEAR;
-			//            }
-			weather = FOG;
-			create_boss = FallBoss::createFallBossEntt;
-		}
-		else if (season_str == WINTER_TITLE)
-		{
-			season = WINTER;
-			//            int weather_int = rand() % 5 + 1;
-			//            if (weather_int % 5 == 1)
-			//            {
-			//                weather = SNOW;
-			//            } else {
-			//                weather = CLEAR;
-			//            }
-			weather = SNOW;
-			create_boss = WinterBoss::createWinterBossEntt;
-		}
-		std::cout << season_str << " \n";
 		std::cout << "weather " << weather << " \n";
 	}
 	auto &stage_text = registry.get<Text>(stage_text_entity);
@@ -535,6 +533,54 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	boss_delay_ms = round_json["boss_delay_ms"];
 	season_str = round_json["season"];
     
+    if (season_str == SPRING_TITLE)
+    {
+        season = SPRING;
+        int weather_int = rand() % 2 + 1;
+        if (weather_int % 2 == 1)
+        {
+            weather = RAIN;
+        } else {
+            weather = CLEAR;
+        }
+        create_boss = SpringBoss::createSpringBossEntt;
+    }
+    else if (season_str == SUMMER_TITLE)
+    {
+        season = SUMMER;
+        int weather_int = rand() % 5 + 1;
+        if (weather_int % 2 == 1)
+        {
+            weather = DROUGHT;
+        } else {
+            weather = CLEAR;
+        }
+        create_boss = SummerBoss::createSummerBossEntt;
+    }
+    else if (season_str == FALL_TITLE)
+    {
+        season = FALL;
+        int weather_int = rand() % 5 + 1;
+        if (weather_int % 2 == 1)
+        {
+            weather = FOG;
+        } else {
+            weather = CLEAR;
+        }
+        create_boss = FallBoss::createFallBossEntt;
+    }
+    else if (season_str == WINTER_TITLE)
+    {
+        season = WINTER;
+        int weather_int = rand() % 2 + 1;
+        if (weather_int % 2 == 1)
+        {
+            weather = SNOW;
+        } else {
+            weather = CLEAR;
+        }
+        create_boss = WinterBoss::createWinterBossEntt;
+    }
 }
 
 void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)

@@ -12,8 +12,8 @@ out vec2 texcoord;
 
 // Application data
 mat3 transform = mat3(
-  vec3(100.0, 0.0, 0.0),
-  vec3(0.0, 100.0, 0.0),
+  vec3(80.0, 0.0, 0.0), // change
+  vec3(0.0, 80.0, 0.0), // change
   vec3(center_point.x, center_point.y, 1.0)
 );
 uniform mat3 projection;

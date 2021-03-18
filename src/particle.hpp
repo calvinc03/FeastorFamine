@@ -7,7 +7,7 @@ class ParticleSystem
 {
 public:
     
-    static entt::entity createParticle(vec2 velocity, vec2 position, float life, std::string texture);
+    static entt::entity createParticle(vec2 velocity, vec2 position, float life, std::string texture, std::string shader);
     static void updateParticle();
     
     float life;
