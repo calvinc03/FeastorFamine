@@ -70,3 +70,4 @@ vec2 grid_to_pixel_velocity(vec2 unit_velocity) {
 bool is_inbounds(ivec2 grid_coord) {
     return grid_coord.x >= 0 && grid_coord.y >= 0 && grid_coord.x < MAP_SIZE_IN_COORD.x && grid_coord.y < MAP_SIZE_IN_COORD.y;
 }
+

@@ -118,6 +118,7 @@ private:
 	// json object for rounds
 	std::string season_str;
 
+	float next_particle_spawn;
 	// Game state
 	float current_speed;
 	float next_boss_spawn;

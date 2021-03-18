@@ -22,11 +22,12 @@ public:
 	~RenderSystem();
 
 	// Draw all entities
-	void draw();
+	void draw(GLuint billboard_vertex_buffer, GLuint particles_position_buffer);
 
 	// Expose the creating of visual representations to other systems
 	static void createSprite(ShadedMesh& mesh_container, std::string texture_path, std::string shader_name);
 	static void createColoredMesh(ShadedMesh& mesh_container, std::string shader_name);
+
 
 private:
 	// Initialize the screeen texture used as intermediate render target
@@ -35,8 +36,11 @@ private:
 
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
+    
 	void drawToScreen();
-
+    
+    void drawParticle(GLuint billboard_vertex_buffer, GLuint particles_position_buffer, const mat3 &projection);
+    
 	void animate(entt::entity entity);
 
 	// Window handle
