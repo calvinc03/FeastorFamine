@@ -3,6 +3,7 @@
 #include "render.hpp"
 #include "common.hpp"
 #include "button.hpp"
+#include "unit.hpp"
 
 entt::entity GreenHouse::createGreenHouse(vec2 pos)
 {
@@ -35,6 +36,9 @@ entt::entity GreenHouse::createGreenHouse(vec2 pos)
     unit.workers = 0;
     unit.upgrades = 0;
     unit.type = key;
+    unit.cost = GREENHOUSE_COST;
+    unit.upgrade_cost = GREENHOUSE_UPGRADE_COST;
+    unit.sell_price = GREENHOUSE_SELL_PRICE;
 
     registry.emplace<GreenHouse>(entity);
     registry.emplace<Selectable>(entity);

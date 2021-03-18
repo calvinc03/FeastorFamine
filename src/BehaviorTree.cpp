@@ -269,14 +269,16 @@ void increment_monster_step(entt::entity entity) {
 		vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
 		motion.velocity = length(motion.velocity) * move_direction;
 		motion.angle = atan(move_direction.y / move_direction.x);
-	}
-
-	if (next_step_coord == next_path_coord) {
 		monster.current_path_index++;
 	}
 
+	/*if (next_step_coord == next_path_coord) {
+		monster.current_path_index++;
+	}*/
+
 	if (DebugSystem::in_debug_mode)
 	{
+		DebugSystem::createDirectedLine(motion.position, coord_to_pixel(current_path_coord), 5);
 		DebugSystem::createDirectedLine(coord_to_pixel(current_path_coord), coord_to_pixel(next_path_coord), 5);
 	}
 }

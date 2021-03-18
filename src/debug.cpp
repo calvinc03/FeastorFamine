@@ -102,7 +102,7 @@ namespace DebugSystem
 		vec2 dir = position2 - position1;
 		vec2 n_dir = normalize(dir);
 		vec2 x_axis = vec2(1, 0);
-		float angle = acos(dot(n_dir, x_axis));
+		float angle = atan2(dir.y, dir.x);
 
 		float len = length(position1 -position2);
 

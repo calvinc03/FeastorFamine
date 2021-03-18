@@ -7,8 +7,10 @@
 #include "physics.hpp"
 #include <BehaviorTree.hpp>
 #include "text.hpp"
+#include "unit.hpp"
 // stlib
 #include <vector>
+
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -150,7 +152,7 @@ private:
 
 	// remove entities from start menu
 	void remove_menu_buttons();
-	void create_settings_menu();
+	void create_controls_menu();
 	entt::entity create_help_menu();
 
 	// helper for start menu mouse click and in_game mouse click
