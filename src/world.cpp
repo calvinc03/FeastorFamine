@@ -43,12 +43,6 @@ const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
 const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
 int WorldSystem::health = 500;
 
-//const int WATCHTOWER_COST = 200;
-//const int GREENHOUSE_COST = 300;
-//const int HUNTER_COST = 150;
-//const int WALL_COST = 100;
-//const int HUNTER_UPGRADE_COST = 50;
-//const int HUNTER_SELL_COST = 100;
 void debug_path(std::vector<ivec2> monster_path_coords);
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
@@ -202,148 +196,150 @@ bool is_walkable(GridMap& current_map, ivec2 coord)
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
-
-	// animation
-	fps_ms -= elapsed_ms;
-	if (fps_ms < 0.f)
-	{
-		for (auto entity : registry.view<Animate>())
+	if (player_state != pause_stage) {
+		// animation
+		fps_ms -= elapsed_ms;
+		if (fps_ms < 0.f)
 		{
-			auto &animate = registry.get<Animate>(entity);
-			animate.frame += 1;
-			animate.frame = (int)animate.frame % (int)animate.frame_num;
+			for (auto entity : registry.view<Animate>())
+			{
+				auto& animate = registry.get<Animate>(entity);
+				animate.frame += 1;
+				animate.frame = (int)animate.frame % (int)animate.frame_num;
+			}
+			fps_ms = 1000 / ANIMATION_FPS;
 		}
-		fps_ms = 1000 / ANIMATION_FPS;
-	}
 
-	//Spawning new boss
-	next_boss_spawn -= elapsed_ms * current_speed;
-	if (num_bosses_spawned < max_boss && next_boss_spawn < 0.f)
-	{
-		// Reset spawn timer and spawn boss
-		next_boss_spawn = (boss_delay_ms / 2) + uniform_dist(rng) * (boss_delay_ms / 2);
-		entt::entity boss = create_boss();
-
-		auto& monster = registry.get<Monster>(boss);
-		monster.path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
-
-		num_bosses_spawned += 1;
-		BTCollision->init(boss);
-	}
-
-	// Spawning new mobs
-	next_mob_spawn -= elapsed_ms * current_speed;
-	if (num_mobs_spawned < max_mobs && next_mob_spawn < 0.f)
-	{
-		next_mob_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
-		entt::entity mob = Mob::createMobEntt();
-
-		auto& monster = registry.get<Monster>(mob);
-		monster.path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
-
-		num_mobs_spawned += 1;
-		BTCollision->init(mob);
-	}
-
-	// update velocity for every monster
-	for (auto entity : registry.view<Monster>())
-	{
-		auto state = BTCollision->process(entity);
-		if (health < 0) {
-			restart();
-			return;
-		}
-	}
-
-	// removes projectiles that are out of the screen
-	for (auto projectile : registry.view<Projectile>())
-	{
-		auto &pos = registry.get<Motion>(projectile);
-		if (pos.position.x > WINDOW_SIZE_IN_PX.x || pos.position.y > WINDOW_SIZE_IN_PX.y || pos.position.x < 0 ||
-			pos.position.y < 0)
+		//Spawning new boss
+		next_boss_spawn -= elapsed_ms * current_speed;
+		if (num_bosses_spawned < max_boss && next_boss_spawn < 0.f)
 		{
-			registry.destroy(projectile);
+			// Reset spawn timer and spawn boss
+			next_boss_spawn = (boss_delay_ms / 2) + uniform_dist(rng) * (boss_delay_ms / 2);
+			entt::entity boss = create_boss();
+
+			auto& monster = registry.get<Monster>(boss);
+			monster.path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
+
+			num_bosses_spawned += 1;
+			BTCollision->init(boss);
 		}
-	}
 
-	// greenhouse food production
-	next_greenhouse_production -= elapsed_ms * current_speed;
-	if (next_greenhouse_production < 0.f)
-	{
-		health += registry.view<GreenHouse>().size() * 20;
-		next_greenhouse_production = GREENHOUSE_PRODUCTION_DELAY;
-	}
-
-	// Increment round number if all enemies are not on the map and projectiles are removed
-	if (num_bosses_spawned == max_boss && num_mobs_spawned == max_mobs)
-	{
-		if (registry.view<Monster>().empty() && registry.view<Projectile>().empty())
+		// Spawning new mobs
+		next_mob_spawn -= elapsed_ms * current_speed;
+		if (num_mobs_spawned < max_mobs && next_mob_spawn < 0.f)
 		{
-			round_number++;
+			next_mob_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
+			entt::entity mob = Mob::createMobEntt();
 
-			setup_round_from_round_number(round_number);
-			// re-roll some weather terrains
-			AISystem::MapAI::setRandomGridsWeatherTerrain(current_map, 10);
-			player_state = set_up_stage;
-			num_bosses_spawned = 0;
-			num_mobs_spawned = 0;
+			auto& monster = registry.get<Monster>(mob);
+			monster.path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
+
+			num_mobs_spawned += 1;
+			BTCollision->init(mob);
 		}
+
+		// update velocity for every monster
+		for (auto entity : registry.view<Monster>())
+		{
+			auto state = BTCollision->process(entity);
+			if (health < 0) {
+				restart();
+				return;
+			}
+		}
+
+		// removes projectiles that are out of the screen
+		for (auto projectile : registry.view<Projectile>())
+		{
+			auto& pos = registry.get<Motion>(projectile);
+			if (pos.position.x > WINDOW_SIZE_IN_PX.x || pos.position.y > WINDOW_SIZE_IN_PX.y || pos.position.x < 0 ||
+				pos.position.y < 0)
+			{
+				registry.destroy(projectile);
+			}
+		}
+
+		// greenhouse food production
+		next_greenhouse_production -= elapsed_ms * current_speed;
+		if (next_greenhouse_production < 0.f)
+		{
+			health += registry.view<GreenHouse>().size() * 20;
+			next_greenhouse_production = GREENHOUSE_PRODUCTION_DELAY;
+		}
+
+		// Increment round number if all enemies are not on the map and projectiles are removed
+		if (num_bosses_spawned == max_boss && num_mobs_spawned == max_mobs)
+		{
+			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty())
+			{
+				round_number++;
+
+				setup_round_from_round_number(round_number);
+				// re-roll some weather terrains
+				AISystem::MapAI::setRandomGridsWeatherTerrain(current_map, 10);
+				player_state = set_up_stage;
+				num_bosses_spawned = 0;
+				num_mobs_spawned = 0;
+			}
+		}
+
+		auto particle_view = registry.view<ParticleSystem>();
+		if (particle_view.size() < MAX_PARTICLES) {
+			for (auto particle_entity : particle_view) {
+				auto& particle = registry.get<ParticleSystem>(particle_entity);
+				particle.life -= elapsed_ms;
+				if (particle.life <= 0) {
+					registry.destroy(particle_entity);
+				}
+			}
+			ParticleSystem::updateParticle();
+
+			next_particle_spawn -= elapsed_ms;
+
+			if (weather == RAIN && next_particle_spawn < 0.f)
+			{
+				next_particle_spawn = 60;
+				vec2 velocity = { 0.f, 450.0f };
+				vec2 position = { rand() % WINDOW_SIZE_IN_PX.x + 1 , 0 };
+				float life = 1150.0f;
+				std::string texture = "raindrop.png";
+				std::string shader = "rain";
+				ParticleSystem::createParticle(velocity, position, life, texture, shader);
+			}
+			else if (weather == DROUGHT) {
+				// TODO
+			}
+			else if (weather == FOG && next_particle_spawn < 0.f) {
+				next_particle_spawn = 3000;
+				vec2 velocity = { -100.f, 0.f };
+				vec2 position = { WINDOW_SIZE_IN_PX.x, rand() % (WINDOW_SIZE_IN_PX.y - 230) };
+				float life = 13500.f;
+				std::string texture = "cloud.png";
+				std::string shader = "fog";
+				ParticleSystem::createParticle(velocity, position, life, texture, shader);
+			}
+			else if (weather == SNOW && next_particle_spawn < 0.f)
+			{
+				next_particle_spawn = 40;
+				vec2 velocity = { rand() % 400 + (-200), 300.0f };
+				vec2 position = { rand() % WINDOW_SIZE_IN_PX.x + 1 , 0 };
+				float life = 1800.0f;
+				std::string texture = "snow.png";
+				std::string shader = "snow";
+				ParticleSystem::createParticle(velocity, position, life, texture, shader);
+			}
+		}
+
+		//stage text is set once per step...
+		auto& stage_text = registry.get<Text>(stage_text_entity);
+		stage_text.content = "BATTLE";
+		stage_text.colour = { 1.0f, 0.1f, 0.1f };
+
+		registry.get<Text>(round_text_entity).content = "round: " + std::to_string(round_number);
+		registry.get<Text>(food_text_entity).content = "food: " + std::to_string(health);
 	}
-    
-    auto particle_view = registry.view<ParticleSystem>();
-    if (particle_view.size() < MAX_PARTICLES) {
-        for (auto particle_entity : particle_view) {
-            auto& particle = registry.get<ParticleSystem>(particle_entity);
-            particle.life -= elapsed_ms;
-            if (particle.life <= 0) {
-                registry.destroy(particle_entity);
-            }
-        }
-        ParticleSystem::updateParticle();
-
-        next_particle_spawn -= elapsed_ms;
-
-        if (weather == RAIN && next_particle_spawn < 0.f)
-        {
-            next_particle_spawn = 60;
-            vec2 velocity = {0.f, 450.0f};
-            vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
-            float life = 1150.0f;
-            std::string texture = "raindrop.png";
-            std::string shader = "rain";
-            ParticleSystem::createParticle(velocity, position, life, texture, shader);
-        }
-        else if (weather == DROUGHT) {
-            // TODO
-        }
-        else if (weather == FOG && next_particle_spawn < 0.f) {
-            next_particle_spawn = 3000;
-            vec2 velocity = {-100.f, 0.f};
-            vec2 position = {WINDOW_SIZE_IN_PX.x, rand() % (WINDOW_SIZE_IN_PX.y - 230)};
-            float life = 13500.f;
-            std::string texture = "cloud.png";
-            std::string shader = "fog";
-            ParticleSystem::createParticle(velocity, position, life, texture, shader);
-        }
-        else if (weather == SNOW && next_particle_spawn < 0.f)
-        {
-            next_particle_spawn = 40;
-            vec2 velocity = {rand() % 400 + (-200), 300.0f};
-            vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
-            float life = 1800.0f;
-            std::string texture = "snow.png";
-            std::string shader = "snow";
-            ParticleSystem::createParticle(velocity, position, life, texture, shader);
-        }
-    }
-
-	//stage text is set once per step...
-	auto &stage_text = registry.get<Text>(stage_text_entity);
-	stage_text.content = "BATTLE";
-	stage_text.colour = {1.0f, 0.1f, 0.1f};
-
-	registry.get<Text>(round_text_entity).content = "round: " + std::to_string(round_number);
-	registry.get<Text>(food_text_entity).content = "food: " + std::to_string(health);
+	
 }
 
 void WorldSystem::deduct_health(int num) {
@@ -583,7 +579,6 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 	{
 		if (registry.has<Monster>(entity_j))
 		{
-
 			auto &animal = registry.get<Monster>(entity_j);
 			auto &projectile = registry.get<Projectile_Dmg>(entity_i);
 
@@ -598,11 +593,11 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			registry.destroy(entity_i);
 			if (animal.health <= 0)
 			{
-				if (season == 3)
+				if (season == WINTER)
 				{
 					health += 30 * 2;
 				}
-				else if (season == 4)
+				else if (season == 4) // TODO what is season 4 here
 				{
 					health += 30 / 2;
 				}
@@ -651,6 +646,15 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			}
 			if (round_number == 16) restart();
 		}
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_P && player_state == battle_stage) {
+		std::cout << "Paused" << std::endl;
+		player_state = pause_stage;
+	}
+	else if (action == GLFW_RELEASE && key == GLFW_KEY_P && player_state == pause_stage) {
+		std::cout << "Game Resumed" << std::endl;
+		player_state = battle_stage;
 	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
@@ -1413,7 +1417,7 @@ void WorldSystem::sell_unit(entt::entity &entity)
 
 void WorldSystem::upgrade_unit(Unit &unit)
 {
-	unit.damage *= 2;
+	unit.damage += 5;
 	unit.upgrades++;
 }
 

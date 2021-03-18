@@ -94,7 +94,8 @@ public:
 	enum PlayerState
 	{
 		set_up_stage,
-		battle_stage
+		battle_stage,
+		pause_stage
 	};
 
 	// health of the village
