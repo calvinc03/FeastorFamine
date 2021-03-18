@@ -11,7 +11,7 @@ struct Frame {
 		angle = angles;
 	}
 };
-struct Timeline {    //TODO: refactor timeline
+struct Timeline {
 	int current_frame = 0;
 	std::vector<Frame> frame;
 };
@@ -20,9 +20,9 @@ struct Root {
 };
 
 struct Rig {
-	static void animate_rigs();
-	static void update_rigs();
-	static void ik_solve(entt::entity camera);
+	static void animate_rig(entt::entity character);
+	static void update_rig(entt::entity character);
+	static void ik_solve(entt::entity character, entt::entity camera, int chain_idx);
 
 	std::vector< std::vector<entt::entity>> chains;
 	static Transform parent(Transform parent, Motion child_motion, Motion root_motion);
