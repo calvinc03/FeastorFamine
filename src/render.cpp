@@ -9,7 +9,7 @@
 #include "entt.hpp"
 #include "grid_map.hpp"
 #include <iostream>
-
+#include "rig.hpp"
 #include "mob.hpp"
 void RenderSystem::animate(entt::entity entity)
 {
@@ -110,11 +110,24 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 		transform.rotate(angle);
 		transform.scale(scale);
 	}
-	else
+	else if (registry.has<Root>(entity)) {
+
+		const auto& root = registry.get<Root>(entity);
+		Motion root_motion = registry.get<Motion>(root.entity);
+
+		transform.mat = mat3(1.0f);
+		transform.translate(root_motion.position * camera_scale);
+		transform.rotate(root_motion.angle);
+		transform.scale(camera_scale);
+
+		const auto& entity_transform = registry.get<Transform>(entity);
+		transform.mat = transform.mat * entity_transform.mat;
+	}
+	else 
 	{
-		transform.translate(vec2({position.x * camera_scale.x, position.y * camera_scale.y}));
+		transform.translate(position*camera_scale);
 		transform.rotate(angle);
-		transform.scale(vec2({scale.x * camera_scale.x, scale.y * camera_scale.y}));
+		transform.scale(scale*camera_scale);
 	}
 
 	// Setting shaders
@@ -420,13 +433,9 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 	float ty_ui = -(top_ui + bottom_ui) / (top_ui - bottom_ui);
 	mat3 projection_2D_ui{{sx_ui, 0.f, 0.f}, {0.f, sy_ui, 0.f}, {tx_ui, ty_ui, 1.f}};
 
-	auto view_mesh_ref_motion = registry.view<ShadedMeshRef, Motion>();
-	auto view_mesh_ref_ui = registry.view<UI_element, ShadedMeshRef>();
-
-	auto view_nodes = registry.view<GridNode>();
 
 	auto view_mesh_ref = registry.view<ShadedMeshRef>();
-	
+
 	std::vector<std::vector<entt::entity>> sort_by_layer = {};
 
 	// 100 layers

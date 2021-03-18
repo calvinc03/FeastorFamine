@@ -113,7 +113,8 @@ struct Motion {
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { GRID_CELL_SIZE, GRID_CELL_SIZE };
-	vec2 boundingbox = { 10, 10 };;
+	vec2 boundingbox = { 10, 10 };
+	vec2 origin = { 0,0 }; // this is useful for setting the point of rotation for parent/child transforms.
 };
 
 struct Boss {
@@ -141,17 +142,6 @@ struct Monster {
 	std::vector<ivec2> path_coords;
 };
 
-struct Unit {
-	std::string type;
-	int damage;
-	size_t attack_interval_ms;
-	float next_projectile_spawn;
-	int attack_range;
-	int workers;
-	int upgrades;
-	bool rotate;
-};
-
 struct Food {
 	unsigned int food = 100;
 	float food_production_speed = 0;
@@ -174,12 +164,12 @@ struct Tag {
 	std::string tag;
 };
 
-struct Selectable {
-	bool selected = false;
+struct Timer{
+	float counter_ms = 0.0f;
 };
 
-struct Upgradeable {
-	int rank = 0;
+struct Selectable {
+	bool selected = false;
 };
 
 //detects if mouse is within the a rectangle of size scale at position entity_pos

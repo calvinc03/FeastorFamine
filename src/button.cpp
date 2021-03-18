@@ -1,7 +1,7 @@
 #include "button.hpp"
 #include "render.hpp"
 
-entt::entity MenuButton::create_button(double x, double y, std::string button_name, Button_texture button_texture)
+entt::entity MenuButton::create_button(double x, double y, std::string button_name, Button_texture button_texture, std::string button_text)
 {
 	auto entity = registry.create();
 	// Create rendering primitives
@@ -30,6 +30,14 @@ entt::entity MenuButton::create_button(double x, double y, std::string button_na
 	ui_element.position = vec2(x, y);
 
 	registry.emplace<MenuButton>(entity);
+
+	// center the text 
+	auto text_scale = 0.33f;
+	auto x_offset = (ui_element.scale.x - (button_text.length() * text_scale * 27)) / 2;
+	auto notoRegular = TextFont::load("data/fonts/cascadia-code/Cascadia.ttf");
+	auto& t = registry.emplace<Text>(entity, Text(button_text, notoRegular, vec2(ui_element.position.x - (ui_element.scale.x / 2) + x_offset, WINDOW_SIZE_IN_PX.y - ui_element.position.y - 7)));
+	t.scale = text_scale;
+	t.colour = { 0.0f, 0.0f, 0.0f };
 
 	return entity;
 }
