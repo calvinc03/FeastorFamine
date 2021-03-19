@@ -3,12 +3,12 @@
 const int WATCHTOWER_COST = 200;
 const int GREENHOUSE_COST = 300;
 const int HUNTER_COST = 150;
-const int WALL_COST = 100;
+const int WALL_COST = 50;
 
 // upgrade cost
-const int WATCHTOWER_UPGRADE_COST = 100;
-const int GREENHOUSE_UPGRADE_COST = 150;
-const int HUNTER_UPGRADE_COST = 75;
+const int WATCHTOWER_UPGRADE_COST = 50;
+const int GREENHOUSE_UPGRADE_COST = 200;
+const int HUNTER_UPGRADE_COST = 50;
 const int WALL_UPGRADE_COST = 50;
 
 // sell price

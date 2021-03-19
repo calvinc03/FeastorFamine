@@ -7,7 +7,7 @@
 #include "physics.hpp"
 #include <BehaviorTree.hpp>
 #include "text.hpp"
-#include <unit.hpp>
+#include "unit.hpp"
 // stlib
 #include <vector>
 
@@ -75,6 +75,10 @@ public:
 
 	// game state
 	int game_state;
+    
+    // Particle System
+//    GLuint billboard_vertex_buffer;
+//    GLuint particles_position_buffer;
 
 	// Menu
 	enum GameState
@@ -90,11 +94,16 @@ public:
 	enum PlayerState
 	{
 		set_up_stage,
-		battle_stage
+		battle_stage,
+		pause_stage,
+		story_stage
 	};
 
 	// health of the village
 	static int health;
+
+	// decrease reward at higher levels
+	static float reward_multiplier;
 
 private:
 	// PhysicsSystem handle
@@ -118,16 +127,43 @@ private:
 	// json object for rounds
 	std::string season_str;
 
-	float next_particle_spawn;
 	// Game state
 	float current_speed;
 	float next_boss_spawn;
 	float next_mob_spawn;
+    float next_particle_spawn;
+    
+//    float next_particle_spawn
+    
+    // Season
+    int season;
+    
+    enum season
+    {
+        SPRING = 0,
+        SUMMER = 1,
+        FALL = 2,
+        WINTER = 3,
+    };
+        
+    // Weather
+    int weather;
 
+    
+    enum weather
+    {
+        CLEAR = 0,
+        RAIN = 1,
+        DROUGHT = 2,
+        FOG = 3,
+        SNOW = 4,
+    };
+    
 	int mob_delay_ms;
 	int max_mobs;
 	int boss_delay_ms;
 	int max_boss;
+    
 
 	float next_greenhouse_production;
 	int num_mobs_spawned;

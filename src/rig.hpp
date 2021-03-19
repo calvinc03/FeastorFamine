@@ -5,29 +5,39 @@
 #include "entt.hpp"
 #include <vector>
 
-struct Frame {
-	std::vector<float> angle;
-	Frame(std::vector<float> angles) {
-		angle = angles;
-	}
-};
-struct Timeline {    //TODO: refactor timeline
-	int current_frame = 0;
-	std::vector<Frame> frame;
-};
-struct Root {
-	entt::entity entity;
-};
 
-struct Rig {
-	static void animate_rigs();
-	static void update_rigs();
-	static void ik_solve(entt::entity camera);
-
+struct Rig { 
+	//add initialize rig -- for segment lengths
 	std::vector< std::vector<entt::entity>> chains;
-	static Transform parent(Transform parent, Motion child_motion, Motion root_motion);
 	static entt::entity createPart(entt::entity root_entity, std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0);
-
-	
 };
+
+struct RigPart {
+	entt::entity root_entity; //needed for each part to reference the Motion component 
+};
+
+struct RigSystem {
+	static void animate_rig_fk(entt::entity character, float elapsed_ms);
+	static void animate_rig_ik(entt::entity character, float elapsed_ms);
+
+	static void update_rig(entt::entity character);
+	static void ik_solve(entt::entity character, vec2 goal, int chain_idx);
+};
+
+
+struct KeyFrames_FK { // per joint keyframes 
+	// timestamp, angle
+	std::map<float, float> data;
+};
+struct KeyFrames_IK {
+	// timestamp, angle
+	std::map<float, vec2> L_data;
+	//std::map<float, vec2> R_data;
+};
+
+struct Timeline { // per rig time
+	float current_time = 0; 
+	bool loop = true;
+};
+
 
