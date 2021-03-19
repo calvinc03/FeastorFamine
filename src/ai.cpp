@@ -16,6 +16,9 @@
 #include <bosses/fireball_boss.hpp>
 #include <unit.hpp>
 
+const size_t BULLET_UPGRADE = 2;
+
+
 AISystem::AISystem(PhysicsSystem* physics) 
 {
 	this->physics = physics;
@@ -64,41 +67,40 @@ void AISystem::step(float elapsed_ms)
 
         if (placeable_unit.next_projectile_spawn < 0.f) {
             placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms;
-            Projectile::createProjectile(motion_h.position, vec2(adjacent, opposite) / distance, placeable_unit.damage);
+            if (placeable_unit.upgrades >= BULLET_UPGRADE) {
+                Projectile::createProjectile(motion_h.position, motion_monster.position, placeable_unit.damage);
+            }
+            else {
+                RockProjectile::createRockProjectile(motion_h.position, motion_monster.position, placeable_unit.damage);
+            }
         }
 	}
 }
 
-void AISystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
+void AISystem::updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster)
 {
-	if (registry.has<Projectile>(entity_i)) {
-		if (registry.has<Boss>(entity_j))
+	if (registry.has<Boss>(monster))
+	{
+		auto& boss = registry.get<Boss>(monster);
+		if (!boss.hit)
 		{
-			auto& boss = registry.get<Boss>(entity_j);
-			if (!boss.hit)
+			boss.hit = true;
+
+			if (boss.speed_multiplier > 1)
 			{
-				boss.hit = true;
-
-				if (boss.speed_multiplier > 1)
-				{
-					boss.sprite = boss.run_sprite;
-					boss.frames = boss.run_frames;
-				}
-
-				auto& motion = registry.get<Motion>(entity_j);
-				//motion.velocity *= boss.speed_multiplier;
-
+				boss.sprite = boss.run_sprite;
+				boss.frames = boss.run_frames;
 			}
-		}
-		if (registry.has<Monster>(entity_j)) {
-			auto& hit_reaction = registry.get<HitReaction>(entity_j);
-			hit_reaction.hit_bool = true;
 
-			// increase velocity of monsters that are hit - removed
-			auto& motion = registry.get<Motion>(entity_j);
-			//motion.velocity.x += motion.velocity.x > 0 ? 100.f : 0;
-			//motion.velocity.y += motion.velocity.y > 0 ? 100.f : 0;
+			auto& motion = registry.get<Motion>(monster);
+
 		}
+	}
+    else {
+		auto& hit_reaction = registry.get<HitReaction>(monster);
+		hit_reaction.hit_bool = true;
+
+		auto& motion = registry.get<Motion>(monster);
 	}
 }
 

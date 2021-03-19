@@ -7,7 +7,7 @@
 
 
 struct Rig { 
-	//add initialize rig -- for segment lengths
+	
 	std::vector< std::vector<entt::entity>> chains;
 	static entt::entity createPart(entt::entity root_entity, std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0);
 };
@@ -24,15 +24,14 @@ struct RigSystem {
 	static void ik_solve(entt::entity character, vec2 goal, int chain_idx);
 };
 
-
-struct KeyFrames_FK { // per joint keyframes 
+struct KeyFrames_FK { // per joint keyframes -- might change this, kind of weird!
 	// timestamp, angle
 	std::map<float, float> data;
 };
+
 struct KeyFrames_IK {
 	// timestamp, angle
-	std::map<float, vec2> L_data;
-	//std::map<float, vec2> R_data;
+	std::vector<std::map<float, vec2>> data;
 };
 
 struct Timeline { // per rig time

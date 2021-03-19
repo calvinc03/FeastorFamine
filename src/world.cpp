@@ -27,7 +27,8 @@
 #include "ai.hpp"
 #include "particle.hpp"
 
-
+#include "rig.hpp"
+#include "spider.hpp"
 #include <BehaviorTree.hpp>
 
 // stlib
@@ -204,6 +205,12 @@ bool is_walkable(GridMap& current_map, ivec2 coord)
 void WorldSystem::step(float elapsed_ms)
 {
 	if (player_state != pause_stage && player_state != story_stage) {
+		//rig animation
+		auto view_rigs = registry.view<Timeline>();
+		for (auto entity : view_rigs) {
+			auto& motion = registry.get<Motion>(entity);
+			RigSystem::animate_rig_ik(entity, 15);
+		}
 		// animation
 		fps_ms -= elapsed_ms;
 		if (fps_ms < 0.f)
@@ -271,16 +278,16 @@ void WorldSystem::step(float elapsed_ms)
 			}
 		}
 
-		// removes projectiles that are out of the screen
-		for (auto projectile : registry.view<Projectile>())
+	// removes projectiles that are out of the screen
+	for (auto projectile : registry.view<Projectile>())
+	{
+		auto &pos = registry.get<Motion>(projectile);
+		if (pos.position.x > WINDOW_SIZE_IN_PX.x + 200|| pos.position.y > WINDOW_SIZE_IN_PX.y + 200 || pos.position.x < -200 ||
+			pos.position.y < -200)
 		{
-			auto& pos = registry.get<Motion>(projectile);
-			if (pos.position.x > WINDOW_SIZE_IN_PX.x || pos.position.y > WINDOW_SIZE_IN_PX.y || pos.position.x < 0 ||
-				pos.position.y < 0)
-			{
-				registry.destroy(projectile);
-			}
+			registry.destroy(projectile);
 		}
+	}
 
 		// greenhouse food production
 		next_greenhouse_production -= elapsed_ms * current_speed;
@@ -482,7 +489,7 @@ void WorldSystem::setup_start_menu()
 // Reset the world state to its initial state
 void WorldSystem::restart()
 {
-
+		
 	std::cout << "Restarting\n";
 
 	// Reset the game state
@@ -526,6 +533,8 @@ void WorldSystem::restart()
 
 	// set up variables for first round
 	setup_round_from_round_number(0);
+
+	//Spider::createSpider(vec2(300,100), vec2(20,20));
 }
 
 nlohmann::json WorldSystem::get_json(std::string json_path)
@@ -619,31 +628,37 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	}
 }
 
-void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
+void WorldSystem::updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster)
 {
-	if (registry.has<Projectile>(entity_i))
+	auto &animal = registry.get<Monster>(monster);
+	auto &prj = registry.get<Projectile>(projectile);
+
+	Mix_PlayChannel(-1, impact_sound, 0);
+
+	animal.health -= prj.damage;
+	animal.collided = true;
+
+	auto &hit_reaction = registry.get<HitReaction>(monster);
+	hit_reaction.counter_ms = 750; //ms duration used by health bar
+
+	registry.destroy(projectile);
+	if (animal.health <= 0)
 	{
-		if (registry.has<Monster>(entity_j))
+		if (season == 3)
 		{
-			auto &animal = registry.get<Monster>(entity_j);
-			auto &projectile = registry.get<Projectile_Dmg>(entity_i);
-
-			Mix_PlayChannel(-1, impact_sound, 0);
-
-			animal.health -= projectile.damage;
-			animal.collided = true;
-
-			auto &hit_reaction = registry.get<HitReaction>(entity_j);
-			hit_reaction.counter_ms = 750; //ms duration used by health bar
-
-			registry.destroy(entity_i);
-			if (animal.health <= 0)
-			{
-				health += animal.reward * reward_multiplier;
-				registry.destroy(entity_j);
-			}
+			health += 30 * 2;
 		}
+		else if (season == 4)
+		{
+			health += 30 / 2;
+		}
+		else
+		{
+			health += 30;
+		}
+		registry.destroy(monster);
 	}
+
 }
 
 // Should the game be over ?
@@ -658,6 +673,22 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	// if village is alive
 	if (health > 0)
 	{
+	}
+	if (key == GLFW_KEY_T) // for testing rigs
+	{
+		//auto view_rigs = registry.view<Timeline>();
+		//for (auto entity : view_rigs) {
+		//	auto& motion = registry.get<Motion>(entity);
+		//	RigSystem::animate_rig_ik(entity, 15);
+		//}
+	}
+	if (key == GLFW_KEY_Y) // for testing rigs
+	{
+		//auto& mouse = registry.get <MouseMovement>(camera);
+		//auto view_rigs = registry.view<Rig>();
+		//for (auto entity : view_rigs) {
+		//	RigSystem::ik_solve(entity, mouse.mouse_pos, 1);
+		//}
 	}
 
 	// keys used to skip rounds; used to debug and test rounds
@@ -761,8 +792,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
 
 	// Debugging
-	if (key == GLFW_KEY_D)
-		DebugSystem::in_debug_mode = (action != GLFW_RELEASE);
+	if (action == GLFW_PRESS && key == GLFW_KEY_D)
+		DebugSystem::in_debug_mode = !DebugSystem::in_debug_mode;
+		//DebugSystem::in_debug_mode = (action != GLFW_RELEASE);
 
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA)

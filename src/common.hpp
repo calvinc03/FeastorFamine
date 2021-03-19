@@ -161,10 +161,6 @@ struct Food {
 	float food_production_speed = 0;
 };
 
-struct Projectile_Dmg {
-	int damage;
-};
-
 struct Animate {
 	float state = 0.f;
 	float frame = 0.f;
@@ -208,3 +204,9 @@ vec2 scale_to_grid_units(vec2 original_scale, float cell_units, int frames = 1);
 vec2 grid_to_pixel_velocity(vec2 unit_velocity);
 
 bool is_inbounds(ivec2 coord);
+
+std::vector<vec2> bezierVelocities(std::vector<vec2> points);
+
+std::vector<vec2> bezierCurve(std::vector<vec2> points, float total_time);
+
+std::vector<float> pascalNRow(int n);

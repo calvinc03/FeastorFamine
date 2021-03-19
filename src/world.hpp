@@ -54,7 +54,7 @@ public:
 	void setup_round_from_round_number(int round_number);
 
 	// Check for collisions
-	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
+	void updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster);
 
 	// Steps the game during monster rounds ahead by ms milliseconds
 	void step(float elapsed_ms);
@@ -133,8 +133,6 @@ private:
 	float next_fireball_spawn;
 	float next_mob_spawn;
     float next_particle_spawn;
-    
-//    float next_particle_spawn
     
     // Season
     int season;
