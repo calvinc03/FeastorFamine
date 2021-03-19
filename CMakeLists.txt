@@ -33,7 +33,7 @@ if (IS_OS_MAC)
   link_directories(/usr/local/lib)
 endif()
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES}  "src/Observer.hpp" "src/bosses/winter_boss.cpp" "src/bosses/winter_boss.hpp" "src/bosses/summer_boss.cpp" "src/bosses/summer_boss.hpp" "src/bosses/fall_boss.cpp" "src/bosses/fall_boss.hpp" "src/bosses/spring_boss.cpp" "src/bosses/spring_boss.hpp"   "src/bosses/burrow_boss.cpp" "src/bosses/burrow_boss.hpp" "src/unit.hpp" )
+add_executable(${PROJECT_NAME} ${SOURCE_FILES}  "src/Observer.hpp" "src/bosses/winter_boss.cpp" "src/bosses/winter_boss.hpp" "src/bosses/summer_boss.cpp" "src/bosses/summer_boss.hpp" "src/bosses/fall_boss.cpp" "src/bosses/fall_boss.hpp" "src/bosses/spring_boss.cpp" "src/bosses/spring_boss.hpp"   "src/bosses/burrow_boss.cpp" "src/bosses/burrow_boss.hpp" "src/bosses/fireball_boss.cpp" "src/bosses/fireball_boss.hpp" "src/bosses/final_boss.cpp" "src/bosses/final_boss.hpp" "src/unit.hpp" )
 target_include_directories(${PROJECT_NAME} PUBLIC src/)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/nlohmann)
 
