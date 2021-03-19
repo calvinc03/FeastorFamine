@@ -4,7 +4,7 @@
 
 const std::string WALK_SPRITE = "NA";
 const std::string RUN_SPRITE = "NA";
-const std::string ATTACK_SPRITE = "final/final_boss.png";
+const std::string ATTACK_SPRITE = "final/final_boss2.png";
 const std::string DEATH_SPRITE = "NA";
 const size_t WALK_FRAMES = 0.f;
 const size_t RUN_FRAMES = 0.f;
