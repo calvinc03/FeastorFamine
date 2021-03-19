@@ -7,7 +7,7 @@
 
 
 struct Rig { 
-	
+	static void delete_rig(entt::entity character);
 	std::vector< std::vector<entt::entity>> chains;
 	static entt::entity createPart(entt::entity root_entity, std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0);
 };

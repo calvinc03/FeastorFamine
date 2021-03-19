@@ -85,10 +85,10 @@ void PhysicsSystem::step(float elapsed_ms)
 			if (registry.has<Rig>(entity)) {
 				DebugSystem::display_rig_vertices(entity, camera);
 			}
-			else if (!registry.has<GridNode>(entity) 
+			if (!registry.has<GridNode>(entity) 
 				&& !registry.has<HealthComponent>(entity) 
 				&& !registry.has<DebugComponent>(entity)
-				&& !registry.has<RigPart>(entity)) {
+				) {//&& !registry.has<RigPart>(entity)
 
 				DebugSystem::createBox(motion.position, motion.boundingbox);
 			}

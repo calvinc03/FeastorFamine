@@ -12,18 +12,18 @@ entt::entity  Spider::createSpider() {
     // root entity acts like any other entity.
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = grid_to_pixel_velocity(vec2(2.5f, 0)); //{ 0, 0 };
+    motion.velocity = grid_to_pixel_velocity(vec2(1.5f, 0)); //{ 0, 0 };
     motion.scale = vec2(20,20);
     motion.position = coord_to_pixel(FOREST_COORD);
-    motion.boundingbox = motion.scale;
+    motion.boundingbox = motion.scale*2.0f;
 
     //create entities/parts to be part of the kinematic chains -- requires setting position offset, pivot/origin of rotation, and intial angle
-    auto body = Rig::createPart(entity, "face2", vec2(0, 0.5f), vec2(0, 0), 0);
+    auto body = Rig::createPart(entity, "face2");
 
-    auto L_upper_leg = Rig::createPart(entity,"arm_simple", vec2(1.0f, 0), vec2(0, 0.5f), 0); // position, origin, angle
+    auto L_upper_leg = Rig::createPart(entity,"arm_simple", vec2(1.0f, -0.5f), vec2(0, 0.5f), 0); // position, origin, angle
     auto L_lower_leg = Rig::createPart(entity, "arm_simple", vec2(), vec2(0, -0.5f), 3.14f);
 
-    auto R_upper_leg = Rig::createPart(entity, "arm_simple", vec2(-1.0f, 0), vec2(0, 0.5f), 0);
+    auto R_upper_leg = Rig::createPart(entity, "arm_simple", vec2(-1.0f, -0.5f), vec2(0, 0.5f), 0);
     auto R_lower_leg = Rig::createPart(entity, "arm_simple", vec2(), vec2(0, -0.5f), 3.14f);
 
     //create a component <Rig> to then point to these entities for later
@@ -42,10 +42,10 @@ entt::entity  Spider::createSpider() {
 
 
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = 20000;
+    monster.max_health = 10;
     monster.health = monster.max_health;
-    monster.damage = 1000;
-    monster.reward = 1000;
+    monster.damage = 50;
+    monster.reward = 100;
     registry.emplace<HitReaction>(entity);
 
     return entity;
@@ -71,8 +71,8 @@ void add_frames_FK(Rig rig) {
 void add_frames_IK(KeyFrames_IK& kf_ik) { //pos defined relative to root_motion
 
     float x = 1.4f;
-    float low = 1.7f;
-    float hi = 1.0f;
+    float low = 1.2f;
+    float hi = 0.5f;
 
     std::map<float, vec2> body_data;
     kf_ik.data.push_back(body_data);
