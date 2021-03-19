@@ -1,8 +1,8 @@
 {
   "round_num": 7,
-  "max_mobs": 7,
+  "max_mobs": 33,
   "mob_delay_ms": 1000,
-  "max_bosses": 4,
+  "max_bosses": 15,
   "boss_delay_ms": 2000,
   "season": "winter"
 }

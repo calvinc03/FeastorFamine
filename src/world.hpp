@@ -54,7 +54,7 @@ public:
 	void setup_round_from_round_number(int round_number);
 
 	// Check for collisions
-	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
+	void updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster);
 
 	// Steps the game during monster rounds ahead by ms milliseconds
 	void step(float elapsed_ms);
@@ -94,11 +94,16 @@ public:
 	enum PlayerState
 	{
 		set_up_stage,
-		battle_stage
+		battle_stage,
+		pause_stage,
+		story_stage
 	};
 
 	// health of the village
 	static int health;
+
+	// decrease reward at higher levels
+	static float reward_multiplier;
 
 private:
 	// PhysicsSystem handle
@@ -127,8 +132,6 @@ private:
 	float next_boss_spawn;
 	float next_mob_spawn;
     float next_particle_spawn;
-    
-//    float next_particle_spawn
     
     // Season
     int season;

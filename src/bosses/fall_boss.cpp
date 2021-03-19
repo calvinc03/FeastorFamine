@@ -38,9 +38,9 @@ entt::entity FallBoss::createFallBossEntt()
     motion.boundingbox = vec2({ motion.scale.x *0.85f / WALK_FRAMES, motion.scale.y });
 
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = 120;
+    monster.max_health = 150;
     monster.health = monster.max_health;
-    monster.damage = 20;
+    monster.damage = 100;
     monster.reward = 50;
 
     auto& boss = registry.emplace<Boss>(entity);
