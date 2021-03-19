@@ -25,7 +25,7 @@ entt::entity Mob::createMobEntt()
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = grid_to_pixel_velocity(vec2(1, 0) * 2.f);
+    motion.velocity = grid_to_pixel_velocity(vec2(2.5f, 0));
     motion.position = coord_to_pixel(FOREST_COORD);
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 0.5, WALK_FRAMES);
     // temporary fix
@@ -34,8 +34,8 @@ entt::entity Mob::createMobEntt()
     auto& monster = registry.emplace<Monster>(entity);
     monster.max_health = 30;
     monster.health = monster.max_health;
-    monster.damage = 5;
-    monster.reward = 20;
+    monster.damage = 10;
+    monster.reward = 10;
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0.f;

@@ -39,9 +39,12 @@
 
 const size_t ANIMATION_FPS = 20;
 const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
+const int STARTING_HEALTH = 600;
+const int MAX_ROUNDS = 18;
 
 const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
-int WorldSystem::health = 500;
+int WorldSystem::health = 1000;
+float WorldSystem::reward_multiplier = 1.f;
 
 void debug_path(std::vector<ivec2> monster_path_coords);
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
@@ -196,7 +199,7 @@ bool is_walkable(GridMap& current_map, ivec2 coord)
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
-	if (player_state != pause_stage) {
+	if (player_state != pause_stage && player_state != story_stage) {
 		// animation
 		fps_ms -= elapsed_ms;
 		if (fps_ms < 0.f)
@@ -274,6 +277,11 @@ void WorldSystem::step(float elapsed_ms)
 			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty())
 			{
 				round_number++;
+
+				if (round_number == MAX_ROUNDS)
+				{
+					restart();
+				}
 
 				setup_round_from_round_number(round_number);
 				// re-roll some weather terrains
@@ -358,11 +366,11 @@ void un_highlight()
 
 void WorldSystem::set_up_step(float elapsed_ms)
 {
-
 	// Restart/End game after max rounds
-	if (round_number > 16)
-	{
-		restart();
+	
+
+	if (round_number >= 9) {
+		reward_multiplier = .5f;
 	}
 
 	set_up_timer -= elapsed_ms;
@@ -460,7 +468,7 @@ void WorldSystem::restart()
 
 	// Reset the game state
 	current_speed = 1.f;
-	health = 500;				  //reset health
+	health = STARTING_HEALTH;				  //reset health
 	placement_unit_selected = ""; // no initial selection
 	round_number = 0;
 	num_bosses_spawned = 0;
@@ -593,18 +601,7 @@ void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
 			registry.destroy(entity_i);
 			if (animal.health <= 0)
 			{
-				if (season == WINTER)
-				{
-					health += 30 * 2;
-				}
-				else if (season == 4) // TODO what is season 4 here
-				{
-					health += 30 / 2;
-				}
-				else
-				{
-					health += 30;
-				}
+				health += animal.reward * reward_multiplier;
 				registry.destroy(entity_j);
 			}
 		}
@@ -644,7 +641,6 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			{
 				registry.destroy(monster);
 			}
-			if (round_number == 16) restart();
 		}
 	}
 
@@ -830,25 +826,6 @@ void WorldSystem::scroll_callback(double xoffset, double yoffset)
 
 		camera_position = vec2(new_cam_pos_x, new_cam_pos_y);
 	}
-	//
-	//double new_pos_x = mouse_move.mouse_start.x - mouse_pos.x;
-	//double new_pos_y = mouse_move.mouse_start.y - mouse_pos.y;
-	//if (new_pos_x < 0) {
-	//	new_pos_x = 0;
-	//}
-	//if (new_pos_y < 0) {
-	//	new_pos_y = 0;
-	//}
-	//if ((WINDOW_SIZE_IN_PX.x * cam_motion.scale.x) - new_pos_x < WINDOW_SIZE_IN_PX.x) {
-	//	//std::cout << new_pos_x + (WINDOW_SIZE_IN_PX.x * cam_motion.scale.x) << " > " << WINDOW_SIZE_IN_PX.x << "\n";
-	//	new_pos_x = (WINDOW_SIZE_IN_PX.x * cam_motion.scale.x) - WINDOW_SIZE_IN_PX.x;
-	//}
-	//if ((WINDOW_SIZE_IN_PX.y * cam_motion.scale.y) - new_pos_y < WINDOW_SIZE_IN_PX.y) {
-	//	new_pos_y = (WINDOW_SIZE_IN_PX.y * cam_motion.scale.y) - WINDOW_SIZE_IN_PX.y;
-	//}
-	//cam_motion.position = vec2(new_pos_x, new_pos_y);
-
-	// std::cout << camera_scale.x << ", " << camera_position.y << "\n";
 }
 
 //will move this eventually
@@ -1388,7 +1365,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 						auto &unit = view_unit.get<Unit>(entity);
 						health -= unit.upgrade_cost;
 						upgrade_unit(unit);
-						std::cout << "damage x2\n";
+						std::cout << "Damage increased!\n";
 					}
 				}
 			}

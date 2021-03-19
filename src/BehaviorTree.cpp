@@ -14,56 +14,6 @@
 #include <world.hpp>
 #pragma once
 
-// A composite node that loops through all children and exits when one fails
-//class BTAndSequence : public BTNode {
-//public:
-//	BTAndSequence(std::vector<std::shared_ptr<BTNode>> children)
-//		: m_children(std::move(children)) {
-//		m_index = std::map<entt::entity, int>();
-//	}
-//
-//private:
-//	void init(entt::entity e)
-//	{
-//		m_index[e] = 0;
-//		assert(m_index[e] < m_children.size());
-//		// initialize the first child
-//		const auto& child = m_children[m_index[e]];
-//		assert(child);
-//		child->init(e);
-//	}
-//
-//	BTState process(entt::entity e) override {
-//		if (m_index[e] >= m_children.size())
-//			return BTState::Success;
-//
-//		// process current child
-//		const auto& child = m_children[m_index[e]];
-//		assert(child);
-//		BTState state = child->process(e);
-//
-//		// select a new active child and initialize its internal state
-//		if (state == BTState::Success) {
-//			++m_index[e];
-//			if (m_index[e] >= m_children.size()) {
-//				return BTState::Success;
-//			}
-//			else {
-//				const auto& nextChild = m_children[m_index[e]];
-//				assert(nextChild);
-//				nextChild->init(e);
-//				return BTState::Running;
-//			}
-//		}
-//		else {
-//			return state;
-//		}
-//	}
-//
-//	std::map<entt::entity, int> m_index;
-//	std::vector<std::shared_ptr<BTNode>> m_children;
-//};
-
 // A general decorator with lambda condition
 class BTIfCondition : public BTNode
 {
@@ -141,7 +91,6 @@ public:
 
 		if (visited[e]) {
 			motion.scale *= 1.3;
-			monster.health += 200;
 			visited[e] = false;
 			auto& monster = registry.get<Monster>(e);
 			monster.collided = false;

@@ -95,11 +95,15 @@ public:
 	{
 		set_up_stage,
 		battle_stage,
-		pause_stage
+		pause_stage,
+		story_stage
 	};
 
 	// health of the village
 	static int health;
+
+	// decrease reward at higher levels
+	static float reward_multiplier;
 
 private:
 	// PhysicsSystem handle

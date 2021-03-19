@@ -41,10 +41,10 @@ entt::entity WinterBoss::createWinterBossEntt()
     motion.boundingbox = vec2({ motion.scale.x * 0.85f / WALK_FRAMES, motion.scale.y });
     auto& monster = registry.emplace<Monster>(entity);
 
-    monster.max_health = 1000000;
+    monster.max_health = 200;
     monster.health = monster.max_health;
-    monster.damage = 1000;
-    monster.reward = 50;
+    monster.damage = 40;
+    monster.reward = 40;
 
     auto& boss = registry.emplace<Boss>(entity);
     boss.hit = false;
