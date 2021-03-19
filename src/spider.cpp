@@ -6,15 +6,15 @@ void add_frames_IK(KeyFrames_IK& kf_ik);
 //TODO: refactor to store multiple animations. vector?
 
 //does not have a mesh, but a set of entities
-entt::entity  Spider::createSpider(vec2 position, vec2 scale) {
+entt::entity  Spider::createSpider() {
     auto entity = registry.create();
 
     // root entity acts like any other entity.
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = { 0, 0 };
-    motion.scale = scale;
-    motion.position = position;
+    motion.velocity = grid_to_pixel_velocity(vec2(2.5f, 0)); //{ 0, 0 };
+    motion.scale = vec2(20,20);
+    motion.position = coord_to_pixel(FOREST_COORD);
     motion.boundingbox = motion.scale;
 
     //create entities/parts to be part of the kinematic chains -- requires setting position offset, pivot/origin of rotation, and intial angle

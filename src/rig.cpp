@@ -141,7 +141,8 @@ void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
 
             vec2 new_pos = mix(a0, a1, ratio); // linear interpolation
 
-            ik_solve(character, (new_pos * root_motion.scale + root_motion.position), i);
+            ik_solve(character, new_pos * root_motion.scale, i);
+           // ik_solve(character, (new_pos * root_motion.scale + root_motion.position), i);
 
             finished_loop = false;
         }
@@ -166,7 +167,8 @@ void RigSystem::ik_solve(entt::entity character, vec2 goal, int chain_idx) {
     root_transform.translate(root_motion.position);
     root_transform.rotate(root_motion.angle);
     
-    vec2 goal_world_space = goal; 
+    //vec2 goal_world_space = goal;
+    vec2 goal_world_space = root_transform.mat*vec3(goal.x, goal.y,1); 
     
     std::vector<float> segment;
     float total_length = 0;

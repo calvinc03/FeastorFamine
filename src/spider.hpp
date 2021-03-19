@@ -8,7 +8,7 @@
 
 struct Spider
 {
-	static entt::entity createSpider(vec2 position, vec2 scale);
+	static entt::entity createSpider();
 };
 
 
