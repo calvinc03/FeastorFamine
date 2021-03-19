@@ -1,8 +1,12 @@
 #include "rig.hpp"
 #include <iostream>
 
+vec2 point_in_world_space(vec2 pos, Transform transform_part, Transform root_transform);
+Transform parent(Transform parent, Motion child_motion, Motion root_motion);
+
 //TODO: find_keyframe function + make it based on elapsed_ms
 //TODO: complex prescribed motion for keyframes interpolation
+
 
 //create a simple entity that takes part in kinematic chain
 entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 offset, vec2 origin, float angle)
@@ -31,19 +35,25 @@ entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 of
     registry.emplace<Transform>(entity);
     registry.emplace<RigPart>(entity, root_entity);
     registry.emplace<KeyFrames_FK>(entity);
+
     return entity;
 }
 
 
-Transform parent(Transform parent, Motion child_motion, Motion root_motion) {
-    Transform child;
-    child.mat = glm::mat3(1.0);
-    child.translate(child_motion.position * root_motion.scale);
-    child.translate(child_motion.origin * root_motion.scale); //translate, rotate, -translate == change rotation's pivot
-    child.rotate(child_motion.angle);
-    child.translate(-child_motion.origin * root_motion.scale);
-    child.mat = parent.mat * child.mat; //this applies parent's transforms to child
-    return child;
+void initialize_rig(Rig& rig, Transform root_transform) {
+    //measure segments D:
+
+    //for (auto chain : rig.chains) {
+    //    for (auto part : chain) {
+    //        auto& part_motion = registry.get<Motion>(part);
+    //        auto& part_transform = registry.get<Transform>(part);
+    //        vec2 p1 = point_in_world_space(part_motion.origin, part_transform, root_transform );
+    //        vec2 p2 = point_in_world_space(-part_motion.origin, part_transform, root_transform);
+    //        rig.segment_lengths.push_back(length(p2-p1));
+    //    }
+    //}
+    //
+    
 }
 
 
@@ -72,6 +82,11 @@ void RigSystem::update_rig(entt::entity character) {
         }
     }
 }
+
+
+/*
+    FK & IK animate functions
+*/
 
 //TODO: check corner cases of lower/upper bound
 void RigSystem::animate_rig_fk(entt::entity character, float elapsed_ms) {
@@ -153,10 +168,6 @@ void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
     IK solver
 */
 
-//end of part point
-vec2 point_in_world_space(vec2 pos, Transform transform_part, Transform root_transform) {
-    return root_transform.mat * transform_part.mat * vec3(pos.x, pos.y, 1);
-}
 
 //TODO: on creating rig, find segment lengths
 //TODO: break down into two cases: out of reach and within reach
@@ -196,6 +207,24 @@ void RigSystem::ik_solve(entt::entity character, vec2 goal, int chain_idx) {
             }
         }
     }
-    
-    
 }
+
+/*
+    helpers
+*/
+    
+vec2 point_in_world_space(vec2 pos, Transform transform_part, Transform root_transform) { //end of part point
+    return root_transform.mat * transform_part.mat * vec3(pos.x, pos.y, 1);
+}
+
+Transform parent(Transform parent, Motion child_motion, Motion root_motion) {
+    Transform child;
+    child.mat = glm::mat3(1.0);
+    child.translate(child_motion.position * root_motion.scale);
+    child.translate(child_motion.origin * root_motion.scale); //translate, rotate, -translate == change rotation's pivot
+    child.rotate(child_motion.angle);
+    child.translate(-child_motion.origin * root_motion.scale);
+    child.mat = parent.mat * child.mat; //this applies parent's transforms to child
+    return child;
+}
+    
