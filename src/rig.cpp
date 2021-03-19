@@ -99,11 +99,7 @@ void RigSystem::animate_rig_fk(entt::entity character, float elapsed_ms) {
                 float new_angle = mix(a0, a1, ratio);
                 motion.angle = new_angle;
 
-                //std::cout <<"time: "<< t_current << std::endl;
-                //std::cout << "t0: "<<t0 <<" a0: " << a0 << std::endl;
-                //std::cout << "t1: " << t1 << " a1: " << a1 << std::endl;
-                //std::cout <<"ratio: " << (t_current - t0) / (t1 - t0) << std::endl << std::endl;
-                finished_loop = false;
+                finished_loop = false; //when all chains are at the end, this doesn't get set
             }
         }
     }
@@ -117,26 +113,38 @@ void RigSystem::animate_rig_fk(entt::entity character, float elapsed_ms) {
 //able to take recoil from hits
 void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
     auto& rig = registry.get<Rig>(character);
+    auto& root_motion = registry.get<Motion>(character);
     auto& timeline = registry.get<Timeline>(character);
     timeline.current_time += elapsed_ms / 1000.0f;
     float t_current = timeline.current_time;
 
-    std::map<float, vec2>::iterator lo, hi;
     auto& keyframes = registry.get<KeyFrames_IK>(character);
-    lo = keyframes.L_data.lower_bound(t_current);
-    hi = keyframes.L_data.upper_bound(t_current);
+    bool finished_loop = true;
 
-    if (lo != keyframes.L_data.end() && hi != keyframes.L_data.end()) {
-        lo--;
-        float t0 = lo->first;
-        float t1 = hi->first;
-        vec2 a0 = lo->second;
-        vec2 a1 = hi->second;
-        float ratio = (t_current - t0) / (t1 - t0);
-        auto& motion = registry.get<Motion>(character);
-        vec2 new_pos = mix(a0, a1, ratio);
-        ik_solve(character, new_pos, 0);
-     
+    for(int i = 0; i < keyframes.data.size(); i++) {
+        std::map<float, vec2>::iterator lo, hi;
+
+        lo = keyframes.data[i].lower_bound(t_current);
+        hi = keyframes.data[i].upper_bound(t_current);
+
+        if (lo != keyframes.data[i].end() && hi != keyframes.data[i].end()) {
+            lo--;
+            float t0 = lo->first;
+            float t1 = hi->first;
+            vec2 a0 = lo->second;
+            vec2 a1 = hi->second;
+            float ratio = (t_current - t0) / (t1 - t0);
+
+            vec2 new_pos = mix(a0, a1, ratio);
+
+            ik_solve(character, new_pos + root_motion.position, i);
+
+            finished_loop = false;
+        }
+    }
+
+    if (finished_loop && timeline.loop) {
+        timeline.current_time = 0;
     }
 }
 
