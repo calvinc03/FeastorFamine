@@ -3,7 +3,7 @@
 
 vec2 point_in_world_space(vec2 pos, Transform transform_part, Transform root_transform);
 Transform parent(Transform parent, Motion child_motion, Motion root_motion);
-
+void animate_rig_fk_helper(entt::entity character, float elapsed_ms);
 //TODO: find_keyframe function + make it based on elapsed_ms
 //TODO: complex prescribed motion for keyframes interpolation
 
@@ -72,9 +72,13 @@ void RigSystem::update_rig(entt::entity character) {
     FK & IK animate functions
 */
 
+void RigSystem::animate_rig_fk(entt::entity character, float elapsed_ms) {
+    animate_rig_fk_helper(character, elapsed_ms);
+    update_rig(character);
+}
 
 //TODO: check corner cases of lower/upper bound
-void RigSystem::animate_rig_fk(entt::entity character, float elapsed_ms) {
+void animate_rig_fk_helper(entt::entity character, float elapsed_ms) {
     auto& timeline = registry.get<Timeline>(character);
     timeline.current_time += elapsed_ms/1000.0f;
     float t_current = timeline.current_time;

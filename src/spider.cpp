@@ -4,27 +4,26 @@ void add_frames_FK(Rig rig);
 void add_frames_IK(KeyFrames_IK& kf_ik);
 
 //TODO: refactor to store multiple animations. vector?
-//TODO: scale attributes
 
 //does not have a mesh, but a set of entities
-entt::entity  Spider::createSpider() {
+entt::entity  Spider::createSpider(vec2 position, vec2 scale) {
     auto entity = registry.create();
 
     // root entity acts like any other entity.
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
     motion.velocity = { 0, 0 };
-    motion.scale = { 40, 40 };
-    motion.position = { 400,100 };
+    motion.scale = scale;
+    motion.position = position;
     motion.boundingbox = motion.scale;
 
     //create entities/parts to be part of the kinematic chains -- requires setting position offset, pivot/origin of rotation, and intial angle
-    auto body = Rig::createPart(entity, "face");
+    auto body = Rig::createPart(entity, "face2", vec2(0, 0.5f), vec2(0, 0), 0);
 
-    auto L_upper_leg = Rig::createPart(entity,"arm_simple", vec2(0.5f, 0), vec2(0, 0.5f), 0); // position, origin, angle
+    auto L_upper_leg = Rig::createPart(entity,"arm_simple", vec2(1.0f, 0), vec2(0, 0.5f), 0); // position, origin, angle
     auto L_lower_leg = Rig::createPart(entity, "arm_simple", vec2(), vec2(0, -0.5f), 3.14f);
 
-    auto R_upper_leg = Rig::createPart(entity, "arm_simple", vec2(-0.5f, 0), vec2(0, 0.5f), 0);
+    auto R_upper_leg = Rig::createPart(entity, "arm_simple", vec2(-1.0f, 0), vec2(0, 0.5f), 0);
     auto R_lower_leg = Rig::createPart(entity, "arm_simple", vec2(), vec2(0, -0.5f), 3.14f);
 
     //create a component <Rig> to then point to these entities for later
@@ -42,12 +41,12 @@ entt::entity  Spider::createSpider() {
     add_frames_IK(keyframes_ik);
 
 
-    //auto& monster = registry.emplace<Monster>(entity);
-    //monster.max_health = 20000;
-    //monster.health = monster.max_health;
-    //monster.damage = 1000;
-    //monster.reward = 1000;
-    //registry.emplace<HitReaction>(entity);
+    auto& monster = registry.emplace<Monster>(entity);
+    monster.max_health = 20000;
+    monster.health = monster.max_health;
+    monster.damage = 1000;
+    monster.reward = 1000;
+    registry.emplace<HitReaction>(entity);
 
     return entity;
 }
