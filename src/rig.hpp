@@ -13,28 +13,26 @@ struct Rig {
 };
 
 struct RigPart {
-	entt::entity root_entity;
+	entt::entity root_entity; //needed for each part to reference the Motion component 
 };
 
 struct RigSystem {
-	static void animate_rig_fk(entt::entity character);
-	static void animate_rig_ik(entt::entity character);
+	static void animate_rig_fk(entt::entity character, float elapsed_ms);
+	static void animate_rig_ik(entt::entity character, float elapsed_ms);
 
 	static void update_rig(entt::entity character);
 	static void ik_solve(entt::entity character, vec2 goal, int chain_idx);
 };
 
 
-struct Frame {
-	std::vector<float> angle;
-	Frame(std::vector<float> angles) {
-		angle = angles;
-	}
+struct KeyFrames { // per joint keyframes 
+	// timestamp, angle
+	std::map<float, float> data;
 };
 
-struct Timeline {
-	int current_frame = 0;
-	std::vector<Frame> frame;
+
+struct Timeline { // per rig time
+	float current_time = 0; 
 };
 
 

@@ -1,5 +1,7 @@
 #include "spider.hpp"
 
+void add_frames(Rig rig);
+
 //does not have a mesh, but a set of entities
 entt::entity  Spider::createSpider() {
     auto entity = registry.create();
@@ -30,9 +32,24 @@ entt::entity  Spider::createSpider() {
  
     // timeline holds a 'pointer' to the current frame and all the frame data.
     auto& timeline = registry.emplace<Timeline>(entity);
-    timeline.frame.push_back(Frame({ 0.0f, 3.0f, 3.0f, 3.0f, 3.0f }));
-    timeline.frame.push_back(Frame({ 0.0f, 3.14f, 3.14f, 3.14f, 3.26f }));
-    timeline.frame.push_back(Frame({ 0.0f, 3.14f, 2.0f, 1.0f, 1.0f }));
+    add_frames(rig);
 
     return entity;
 }
+
+//add some hardcoded frames
+void add_frames(Rig rig) {
+    auto& kfs0 = registry.get<KeyFrames>(rig.chains[1][0]);
+    kfs0.data.emplace(0.0f, 3.14f);
+    kfs0.data.emplace(1.0f, 0.5f);
+    kfs0.data.emplace(2.0f, 1.0f);
+    kfs0.data.emplace(5.0f, 1.3f);
+
+    auto& kfs1 = registry.get<KeyFrames>(rig.chains[1][1]);
+    kfs1.data.emplace(0.0f, 3.14f);
+    kfs1.data.emplace(1.0f, 0.5f);
+    kfs1.data.emplace(2.0f, 2.0f);
+    kfs1.data.emplace(4.0f, 0.5f);
+}
+
+

@@ -30,6 +30,7 @@ entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 of
 
     registry.emplace<Transform>(entity);
     registry.emplace<RigPart>(entity, root_entity);
+    registry.emplace<KeyFrames>(entity);
     return entity;
 }
 
@@ -73,42 +74,44 @@ void RigSystem::update_rig(entt::entity character) {
 }
 
 
-//TODO: refactor and integrate
-void RigSystem::animate_rig_fk(entt::entity character) {
+void RigSystem::animate_rig_fk(entt::entity character, float elapsed_ms) {
     auto& timeline = registry.get<Timeline>(character);
-    //updates all angles given a certain frame
-    timeline.current_frame = (++timeline.current_frame) % (24 * (timeline.frame.size() - 1)); // increment frame..
-    float t = float(timeline.current_frame) / 24.0f; // a number [0,1] we use as parameter 't' in the linear interpolation
+    timeline.current_time += elapsed_ms/1000.0f;
+    float t_current = timeline.current_time;
+
 
     auto& rig = registry.get<Rig>(character);
+    for (auto chain : rig.chains) {
+        for (auto part : chain) {
+            std::map<float, float>::iterator lo, hi;
+            auto& keyframes = registry.get<KeyFrames>(part);
+            lo = keyframes.data.lower_bound(t_current);
+            hi = keyframes.data.upper_bound(t_current);
 
-    int angle_idx = 0; // this is needed since i we have a 2d vector and 1d vector of angle_data
-    for (int k = 0; k < rig.chains.size(); k++) {
-        for (int i = 0; i < rig.chains[k].size(); i++) {
-            auto& motion = registry.get<Motion>(rig.chains[k][i]); // could be better to have a motion array in top node.
-            motion.angle = mix(timeline.frame[0].angle[angle_idx], timeline.frame[1].angle[angle_idx], t);
-            angle_idx++;
+            if (lo != keyframes.data.end() && hi != keyframes.data.end()) {
+                lo--;
+                float t0 = lo->first;
+                float t1 = hi->first;
+                float a0 = lo->second;
+                float a1 = hi->second;
+                float ratio = (t_current - t0) / (t1 - t0);
+                auto& motion = registry.get<Motion>(part);
+                float new_angle = mix(a0, a1, ratio);
+                motion.angle = new_angle;
+
+                //std::cout <<"time: "<< t_current << std::endl;
+                //std::cout << "t0: "<<t0 <<" a0: " << a0 << std::endl;
+                //std::cout << "t1: " << t1 << " a1: " << a1 << std::endl;
+                //std::cout <<"ratio: " << (t_current - t0) / (t1 - t0) << std::endl << std::endl;
+            }
         }
     }
-    
 }
 
 
 //make a procedurally animated character. animation speed based on velocity.
 //able to take recoil from hits
-void RigSystem::animate_rig_ik(entt::entity character) {
-    //auto& timeline = registry.get<Timeline>(character);
-    ////updates all angles given a certain frame
-    //timeline.current_frame = (++timeline.current_frame) % (24 * (timeline.frame.size() - 1)); // increment frame..
-    //float t = float(timeline.current_frame) / 24.0f; // a number [0,1] we use as parameter 't' in the linear interpolation
-
-    //auto& rig = registry.get<Rig>(character);
-    //vec2 avar;
-    //auto view_rigs = registry.view<Rig, Motion>();
-    //for (auto entity : view_rigs) {
-    //    
-    //    Rig::ik_solve(entity, avar, 1);
-    //}
+void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
 
 }
 
