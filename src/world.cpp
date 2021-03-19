@@ -252,16 +252,16 @@ void WorldSystem::step(float elapsed_ms)
 			}
 		}
 
-		// removes projectiles that are out of the screen
-		for (auto projectile : registry.view<Projectile>())
+	// removes projectiles that are out of the screen
+	for (auto projectile : registry.view<Projectile>())
+	{
+		auto &pos = registry.get<Motion>(projectile);
+		if (pos.position.x > WINDOW_SIZE_IN_PX.x + 200|| pos.position.y > WINDOW_SIZE_IN_PX.y + 200 || pos.position.x < -200 ||
+			pos.position.y < -200)
 		{
-			auto& pos = registry.get<Motion>(projectile);
-			if (pos.position.x > WINDOW_SIZE_IN_PX.x || pos.position.y > WINDOW_SIZE_IN_PX.y || pos.position.x < 0 ||
-				pos.position.y < 0)
-			{
-				registry.destroy(projectile);
-			}
+			registry.destroy(projectile);
 		}
+	}
 
 		// greenhouse food production
 		next_greenhouse_production -= elapsed_ms * current_speed;
@@ -581,31 +581,37 @@ void WorldSystem::setup_round_from_round_number(int round_number)
     }
 }
 
-void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
+void WorldSystem::updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster)
 {
-	if (registry.has<Projectile>(entity_i))
+	auto &animal = registry.get<Monster>(monster);
+	auto &prj = registry.get<Projectile>(projectile);
+
+	Mix_PlayChannel(-1, impact_sound, 0);
+
+	animal.health -= prj.damage;
+	animal.collided = true;
+
+	auto &hit_reaction = registry.get<HitReaction>(monster);
+	hit_reaction.counter_ms = 750; //ms duration used by health bar
+
+	registry.destroy(projectile);
+	if (animal.health <= 0)
 	{
-		if (registry.has<Monster>(entity_j))
+		if (season == 3)
 		{
-			auto &animal = registry.get<Monster>(entity_j);
-			auto &projectile = registry.get<Projectile_Dmg>(entity_i);
-
-			Mix_PlayChannel(-1, impact_sound, 0);
-
-			animal.health -= projectile.damage;
-			animal.collided = true;
-
-			auto &hit_reaction = registry.get<HitReaction>(entity_j);
-			hit_reaction.counter_ms = 750; //ms duration used by health bar
-
-			registry.destroy(entity_i);
-			if (animal.health <= 0)
-			{
-				health += animal.reward * reward_multiplier;
-				registry.destroy(entity_j);
-			}
+			health += 30 * 2;
 		}
+		else if (season == 4)
+		{
+			health += 30 / 2;
+		}
+		else
+		{
+			health += 30;
+		}
+		registry.destroy(monster);
 	}
+
 }
 
 // Should the game be over ?

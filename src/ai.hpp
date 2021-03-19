@@ -17,7 +17,7 @@ public:
 	~AISystem();
 
 	void step(float elapsed_ms);
-	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
+	void updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster);
 
 	struct MapAI {
         static std::vector<ivec2> findPathBFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2),

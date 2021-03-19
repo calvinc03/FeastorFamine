@@ -8,5 +8,5 @@ class Observer
 {
     // Creates all the associated render resources and default transform
 public:
-    virtual void updateCollisions(entt::entity entity_i, entt::entity entity_j) {}
+    virtual void updateProjectileMonsterCollision(entt::entity entity_i, entt::entity entity_j) {}
 };
