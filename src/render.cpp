@@ -406,8 +406,8 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	gl_has_errors();
 
-	auto view = registry.view<Motion>();
-	auto &camera_motion = view.get<Motion>(camera);
+
+	auto &camera_motion = registry.get<Motion>(camera);
 	//std::cout << camera_motion.position.x << ", " << camera_motion.position.y << " | " << camera_motion.velocity.x << ", " << camera_motion.velocity.y << "\n";
 	// Fake projection matrix, scales with respect to window coordinates
 	float left = 0.f + camera_motion.position.x;

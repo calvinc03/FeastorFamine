@@ -30,7 +30,7 @@ entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 of
 
     registry.emplace<Transform>(entity);
     registry.emplace<RigPart>(entity, root_entity);
-    registry.emplace<KeyFrames>(entity);
+    registry.emplace<KeyFrames_FK>(entity);
     return entity;
 }
 
@@ -84,7 +84,7 @@ void RigSystem::animate_rig_fk(entt::entity character, float elapsed_ms) {
     for (auto chain : rig.chains) {
         for (auto part : chain) {
             std::map<float, float>::iterator lo, hi;
-            auto& keyframes = registry.get<KeyFrames>(part);
+            auto& keyframes = registry.get<KeyFrames_FK>(part);
             lo = keyframes.data.lower_bound(t_current);
             hi = keyframes.data.upper_bound(t_current);
 
@@ -116,7 +116,28 @@ void RigSystem::animate_rig_fk(entt::entity character, float elapsed_ms) {
 //make a procedurally animated character. animation speed based on velocity.
 //able to take recoil from hits
 void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
+    auto& rig = registry.get<Rig>(character);
+    auto& timeline = registry.get<Timeline>(character);
+    timeline.current_time += elapsed_ms / 1000.0f;
+    float t_current = timeline.current_time;
 
+    std::map<float, vec2>::iterator lo, hi;
+    auto& keyframes = registry.get<KeyFrames_IK>(character);
+    lo = keyframes.L_data.lower_bound(t_current);
+    hi = keyframes.L_data.upper_bound(t_current);
+
+    if (lo != keyframes.L_data.end() && hi != keyframes.L_data.end()) {
+        lo--;
+        float t0 = lo->first;
+        float t1 = hi->first;
+        vec2 a0 = lo->second;
+        vec2 a1 = hi->second;
+        float ratio = (t_current - t0) / (t1 - t0);
+        auto& motion = registry.get<Motion>(character);
+        vec2 new_pos = mix(a0, a1, ratio);
+        ik_solve(character, new_pos, 0);
+     
+    }
 }
 
 
@@ -124,40 +145,42 @@ void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
     IK solver
 */
 
-//find distant of joint-end and goal
-float score_dist(entt::entity part, vec2 mouse, Transform root_transform) {
-    auto& motion = registry.get<Motion>(part);
-    const auto& transform = registry.get<Transform>(part);
-    vec3 end_effector = root_transform.mat * transform.mat * vec3(motion.origin.x, motion.origin.y, 1); // point in world space
-    return length(mouse - vec2(end_effector.x, end_effector.y));
+//end of part point
+vec2 point_in_world_space(vec2 pos, Transform transform_part, Transform root_transform) {
+    return root_transform.mat * transform_part.mat * vec3(pos.x, pos.y, 1);
 }
 
 //TODO: on creating rig, find segment lengths
+//TODO: break down into two cases: out of reach and within reach
 void RigSystem::ik_solve(entt::entity character, vec2 goal, int chain_idx) {
     auto& rig = registry.get<Rig>(character);
     auto& root_motion = registry.get<Motion>(character);
-
-    vec2 mouse = goal;
-    mouse = mouse_in_world_coord(mouse);
-
     Transform root_transform;
     root_transform.translate(root_motion.position);
     root_transform.rotate(root_motion.angle);
+    
+    vec2 goal_world_space = mouse_in_world_coord(goal);
 
-    float segments[] = { 50,0 }; // magic numbers. 
+    float segments[] = { 50,0 }; // TODO: magic numbers. 
       
     for (int k = 0; k < rig.chains[chain_idx].size(); k++) {
         float alpha = 0.1f;
         auto& part = rig.chains[chain_idx][k];
-        auto& motion = registry.get<Motion>(part);
+        auto& part_motion = registry.get<Motion>(part);
+        auto& part_transform = registry.get<Transform>(part);
+        
+        //vec2 pt = point_in_world_space(part_motion.origin, part_transform, root_transform) - root_motion.position;
+        //std::cout << pt.x << " " << pt.y << std::endl;
 
-        for (int i = 0; i < 10; i++) {
-            float score_old = score_dist(part, mouse, root_transform);
-            motion.angle += alpha;// 1) change angle
+        //optimize to converge faster but also have smooth behavior when moving between frames
+        for (int i = 0; i < 10; i++) { 
+            float score_old = length(goal_world_space - point_in_world_space(part_motion.origin, part_transform, root_transform));
+            part_motion.angle += alpha;// 1) change angle
             RigSystem::update_rig(character);// 2) update rigs with angle changes
-            float score_new = score_dist(part, mouse, root_transform);// 3) score
+            float score_new = length(goal_world_space - point_in_world_space(part_motion.origin, part_transform, root_transform));// 3) score
+
             if (abs(score_old -segments[k]) < abs(score_new - segments[k])) {
-                motion.angle -= alpha; //reverse changes 
+                part_motion.angle -= alpha; //reverse changes 
                 alpha *= -1; //change direction
             }
             else {
@@ -165,5 +188,6 @@ void RigSystem::ik_solve(entt::entity character, vec2 goal, int chain_idx) {
             }
         }
     }
+    
     
 }

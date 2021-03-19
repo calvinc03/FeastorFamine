@@ -25,11 +25,15 @@ struct RigSystem {
 };
 
 
-struct KeyFrames { // per joint keyframes 
+struct KeyFrames_FK { // per joint keyframes 
 	// timestamp, angle
 	std::map<float, float> data;
 };
-
+struct KeyFrames_IK {
+	// timestamp, angle
+	std::map<float, vec2> L_data;
+	//std::map<float, vec2> R_data;
+};
 
 struct Timeline { // per rig time
 	float current_time = 0; 

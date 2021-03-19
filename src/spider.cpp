@@ -1,6 +1,10 @@
 #include "spider.hpp"
 
-void add_frames(Rig rig);
+void add_frames_FK(Rig rig);
+void add_frames_IK(KeyFrames_IK kf_ik);
+
+//TODO: refactor to store multiple animations. vector?
+
 
 //does not have a mesh, but a set of entities
 entt::entity  Spider::createSpider() {
@@ -29,27 +33,37 @@ entt::entity  Spider::createSpider() {
     rig.chains.push_back({ L_upper_leg, L_lower_leg }); // added by the chain, leaf node last
     rig.chains.push_back({ R_upper_leg, R_lower_leg });
 
- 
-    // timeline holds a 'pointer' to the current frame and all the frame data.
+    //has a current_time var used to animate fk/ik systems
     auto& timeline = registry.emplace<Timeline>(entity);
-    add_frames(rig);
+
+
+    add_frames_FK(rig); //add hardcoded angles to joints
+
+    auto& keyframes_ik = registry.emplace<KeyFrames_IK>(entity); //FK lives in each rig part... IK lives here!
+    add_frames_IK(keyframes_ik);
 
     return entity;
 }
 
 //add some hardcoded frames
-void add_frames(Rig rig) {
-    auto& kfs0 = registry.get<KeyFrames>(rig.chains[1][0]);
+void add_frames_FK(Rig rig) {
+    auto& kfs0 = registry.get<KeyFrames_FK>(rig.chains[1][0]);
     kfs0.data.emplace(0.0f, 3.14f);
     kfs0.data.emplace(1.0f, 0.5f);
     kfs0.data.emplace(2.0f, 1.0f);
     kfs0.data.emplace(5.0f, 1.3f);
 
-    auto& kfs1 = registry.get<KeyFrames>(rig.chains[1][1]);
+    auto& kfs1 = registry.get<KeyFrames_FK>(rig.chains[1][1]);
     kfs1.data.emplace(0.0f, 3.14f);
     kfs1.data.emplace(1.0f, 0.5f);
     kfs1.data.emplace(2.0f, 2.0f);
     kfs1.data.emplace(4.0f, 0.5f);
+}
+
+void add_frames_IK(KeyFrames_IK kf_ik) { //pos defined relative to root_motion
+    kf_ik.L_data.emplace(0.0f, vec2(55, 47));
+    kf_ik.L_data.emplace(2.0f, vec2(55, 57));
+    kf_ik.L_data.emplace(3.0f, vec2(55, 47));
 }
 
 
