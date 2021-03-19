@@ -3,7 +3,7 @@
 #include "common.hpp"
 #include "entt.hpp"
 
-// Mob monster that appears in all seasons
+// Spring boss that only appears in spring
 struct SpringBoss
 {
     // Creates all the associated render resources and default transform

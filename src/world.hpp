@@ -130,6 +130,7 @@ private:
 	// Game state
 	float current_speed;
 	float next_boss_spawn;
+	float next_fireball_spawn;
 	float next_mob_spawn;
     float next_particle_spawn;
     
@@ -141,7 +142,7 @@ private:
         SPRING = 0,
         SUMMER = 1,
         FALL = 2,
-        WINTER = 3,
+        WINTER = 3
     };
         
     // Weather
@@ -161,6 +162,8 @@ private:
 	int max_mobs;
 	int boss_delay_ms;
 	int max_boss;
+	int fireball_delay_ms;
+	int max_fireballs;
     
 
 	float next_greenhouse_production;

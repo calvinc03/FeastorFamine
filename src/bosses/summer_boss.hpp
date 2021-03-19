@@ -3,7 +3,7 @@
 #include "common.hpp"
 #include "entt.hpp"
 
-// Mob monster that appears in all seasons
+// Summer boss that only appears in summer
 struct SummerBoss
 {
 public:

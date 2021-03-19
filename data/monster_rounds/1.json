@@ -2,7 +2,7 @@
   "round_num": 1,
   "max_mobs": 6,
   "mob_delay_ms": 2000,
-  "max_bosses": 3,
+  "max_bosses": 1,
   "boss_delay_ms": 4000,
   "season": "spring"
 }

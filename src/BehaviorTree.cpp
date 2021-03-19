@@ -91,6 +91,7 @@ public:
 
 		if (visited[e]) {
 			motion.scale *= 1.3;
+			monster.damage *= 2;
 			visited[e] = false;
 			auto& monster = registry.get<Monster>(e);
 			monster.collided = false;
@@ -176,6 +177,52 @@ public:
 	}
 };
 
+class Dragon : public BTNode { // todo probably delete from here and ai
+public:
+	Dragon() noexcept {}
+
+	void init(entt::entity e) override { }
+
+	BTState process(entt::entity e) override {
+		auto& motion = registry.get<Motion>(e);
+
+		motion.position += motion.velocity;
+
+		// stop when dragon is at edge of screen
+		if (motion.position.x > 245) {
+			// if velocity is 0 it faces upwards??
+			motion.velocity.x = 0.01f;
+		}
+
+		return BTState::Dragon;
+	}
+};
+
+class Fireball : public BTNode {
+public:
+	Fireball() noexcept {}
+
+	void init(entt::entity e) override { }
+	
+	BTState process(entt::entity e) override {
+		auto& monster = registry.get<Monster>(e);
+		auto& motion = registry.get<Motion>(e);
+
+		motion.position += motion.velocity;
+
+		if (motion.position.x + 100 >= coord_to_pixel(VILLAGE_COORD).x) {
+			std::cout << "hit the village with a fireball" << std::endl;
+			WorldSystem::health -= monster.damage;
+			motion.velocity *= 0;
+			registry.destroy(e);
+		}
+
+		return BTState::Fireball;
+	}
+};
+
+
+
 class Walk : public BTNode {
 public:
 	Walk() noexcept {}
@@ -189,7 +236,6 @@ public:
 };
 
 void increment_monster_step(entt::entity entity) {
-
 	auto& monster = registry.get<Monster>(entity);
 	auto& motion = registry.get<Motion>(entity);
 	auto& current_path_coord = monster.path_coords.at(monster.current_path_index);
