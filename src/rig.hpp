@@ -7,9 +7,7 @@
 
 
 struct Rig { 
-	//add initialize rig -- for segment lengths
-	void initialize_rig(Rig& rig, Motion root_motion);
-	std::vector<float> segment_lengths;
+	//void initialize_rig(Rig& rig, Motion root_motion);
 	std::vector< std::vector<entt::entity>> chains;
 	static entt::entity createPart(entt::entity root_entity, std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0);
 };

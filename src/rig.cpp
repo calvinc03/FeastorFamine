@@ -33,7 +33,8 @@ entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 of
     motion.origin = origin;
 
     registry.emplace<Transform>(entity);
-    registry.emplace<RigPart>(entity, root_entity);
+    auto& rigPart = registry.emplace<RigPart>(entity, root_entity);
+
     registry.emplace<KeyFrames_FK>(entity);
 
     return entity;
@@ -152,7 +153,7 @@ void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
 
             vec2 new_pos = mix(a0, a1, ratio);
 
-            ik_solve(character, new_pos + root_motion.position, i);
+            ik_solve(character, (new_pos * root_motion.scale + root_motion.position), i);
 
             finished_loop = false;
         }
@@ -168,7 +169,7 @@ void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
     IK solver
 */
 
-
+//TODO: optimize to converge faster but also have smooth behavior when moving between frames
 //TODO: on creating rig, find segment lengths
 //TODO: break down into two cases: out of reach and within reach
 void RigSystem::ik_solve(entt::entity character, vec2 goal, int chain_idx) {
@@ -178,33 +179,44 @@ void RigSystem::ik_solve(entt::entity character, vec2 goal, int chain_idx) {
     root_transform.translate(root_motion.position);
     root_transform.rotate(root_motion.angle);
     
-    vec2 goal_world_space = mouse_in_world_coord(goal);
+    vec2 goal_world_space = goal; 
+    
+    float segment[2];
+    float total_length = 0;
+    
+    //get total length of arm and the length of each segment
+    for (int k = 0; k < rig.chains[chain_idx].size(); k++) {
+        auto& part_motion = registry.get<Motion>(rig.chains[chain_idx][k]);
+        segment[k] = 2 * length(part_motion.origin * root_motion.scale);
+        total_length += segment[k];
+    }
+    float offset_goal = total_length;
 
-    float segments[] = { 50,0 }; // TODO: magic numbers. 
-      
     for (int k = 0; k < rig.chains[chain_idx].size(); k++) {
         float alpha = 0.1f;
         auto& part = rig.chains[chain_idx][k];
         auto& part_motion = registry.get<Motion>(part);
         auto& part_transform = registry.get<Transform>(part);
-        
+
+        offset_goal -= segment[k];
         //vec2 pt = point_in_world_space(part_motion.origin, part_transform, root_transform) - root_motion.position;
         //std::cout << pt.x << " " << pt.y << std::endl;
 
-        //optimize to converge faster but also have smooth behavior when moving between frames
-        for (int i = 0; i < 10; i++) { 
-            float score_old = length(goal_world_space - point_in_world_space(part_motion.origin, part_transform, root_transform));
+        float score_old = length(goal_world_space - point_in_world_space(part_motion.origin, part_transform, root_transform));
+        for (int i = 0; i < 10; i++) {        
+
             part_motion.angle += alpha;// 1) change angle
             RigSystem::update_rig(character);// 2) update rigs with angle changes
             float score_new = length(goal_world_space - point_in_world_space(part_motion.origin, part_transform, root_transform));// 3) score
-
-            if (abs(score_old -segments[k]) < abs(score_new - segments[k])) {
+            
+            if (abs(score_old - offset_goal) < abs(score_new - offset_goal)) {
                 part_motion.angle -= alpha; //reverse changes 
                 alpha *= -1; //change direction
             }
             else {
                 alpha *= 0.66f; //lower step size
             }
+            score_old = score_new;
         }
     }
 }

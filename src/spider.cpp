@@ -4,7 +4,7 @@ void add_frames_FK(Rig rig);
 void add_frames_IK(KeyFrames_IK& kf_ik);
 
 //TODO: refactor to store multiple animations. vector?
-
+//TODO: scale attributes
 
 //does not have a mesh, but a set of entities
 entt::entity  Spider::createSpider() {
@@ -14,7 +14,7 @@ entt::entity  Spider::createSpider() {
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
     motion.velocity = { 0, 0 };
-    motion.scale = { 30, 30 };
+    motion.scale = { 40, 40 };
     motion.position = { 400,100 };
     motion.boundingbox = motion.scale;
 
@@ -60,22 +60,28 @@ void add_frames_FK(Rig rig) {
     kfs1.data.emplace(4.0f, 0.5f);
 }
 
+// walk cycle
 void add_frames_IK(KeyFrames_IK& kf_ik) { //pos defined relative to root_motion
+
+    float x = 1.4f;
+    float low = 1.7f;
+    float hi = 1.0f;
+
     std::map<float, vec2> body_data;
     kf_ik.data.push_back(body_data);
 
     std::map<float, vec2> L_data;
-    L_data.emplace(0.0f, vec2(55, 47));
-    L_data.emplace(0.01f, vec2(55, 47));
-    L_data.emplace(0.1f, vec2(55, 67));
-    L_data.emplace(0.2f, vec2(55, 47));
+    L_data.emplace(0.0f, vec2(x, hi));
+    L_data.emplace(0.01f, vec2(x, hi));
+    L_data.emplace(0.1f, vec2(x, low));
+    L_data.emplace(0.2f, vec2(x, hi));
     kf_ik.data.push_back(L_data);
 
     std::map<float, vec2> R_data;
-    R_data.emplace(0.0f, vec2(-55, 67));
-    R_data.emplace(0.1f, vec2(-55, 47));
-    R_data.emplace(0.11f, vec2(-55, 47));
-    R_data.emplace(0.2f,  vec2(-55, 67));
+    R_data.emplace(0.0f, vec2(-x, low));
+    R_data.emplace(0.1f, vec2(-x, hi));
+    R_data.emplace(0.11f, vec2(-x, hi));
+    R_data.emplace(0.2f,  vec2(-x, low));
     kf_ik.data.push_back(R_data);
 }
 
