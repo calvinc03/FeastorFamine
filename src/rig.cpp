@@ -73,13 +73,13 @@ void RigSystem::update_rig(entt::entity character) {
     }
 }
 
-
+//TODO: check corner cases of lower/upper bound
 void RigSystem::animate_rig_fk(entt::entity character, float elapsed_ms) {
     auto& timeline = registry.get<Timeline>(character);
     timeline.current_time += elapsed_ms/1000.0f;
     float t_current = timeline.current_time;
-
-
+    
+    bool finished_loop = true;
     auto& rig = registry.get<Rig>(character);
     for (auto chain : rig.chains) {
         for (auto part : chain) {
@@ -103,8 +103,12 @@ void RigSystem::animate_rig_fk(entt::entity character, float elapsed_ms) {
                 //std::cout << "t0: "<<t0 <<" a0: " << a0 << std::endl;
                 //std::cout << "t1: " << t1 << " a1: " << a1 << std::endl;
                 //std::cout <<"ratio: " << (t_current - t0) / (t1 - t0) << std::endl << std::endl;
+                finished_loop = false;
             }
         }
+    }
+    if (finished_loop && timeline.loop) {
+        timeline.current_time = 0;
     }
 }
 

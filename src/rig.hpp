@@ -33,6 +33,7 @@ struct KeyFrames { // per joint keyframes
 
 struct Timeline { // per rig time
 	float current_time = 0; 
+	bool loop = true;
 };
 
 
