@@ -12,6 +12,8 @@
 #include <bosses/summer_boss.hpp>
 #include <bosses/fall_boss.hpp>
 #include <bosses/winter_boss.hpp>
+#include <bosses/final_boss.hpp>
+#include <bosses/fireball_boss.hpp>
 #include <unit.hpp>
 
 AISystem::AISystem(PhysicsSystem* physics) 
@@ -281,7 +283,7 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
 	std::shared_ptr <BTNode> grow = std::make_unique<Grow>();
 	//std::shared_ptr <BTNode> stop = std::make_unique<Stop>();
 	std::shared_ptr <BTNode> run = std::make_unique<Run>();
-	std::shared_ptr <BTNode> knockback = std::make_unique<Knockback>();
+    std::shared_ptr <BTNode> knockback = std::make_unique<Knockback>();
 
 	std::shared_ptr <BTIfCondition> conditional_donothing = std::make_unique<BTIfCondition>(
 		donothing,
@@ -303,10 +305,10 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
         run,
         [](entt::entity e) {return registry.has<SummerBoss>(e); }
     );
-	std::shared_ptr <BTIfCondition> conditional_knockback = std::make_unique<BTIfCondition>(
-		knockback,
-		[](entt::entity e) {return registry.has<WinterBoss>(e); }
-	);
+    std::shared_ptr <BTIfCondition> conditional_knockback = std::make_unique<BTIfCondition>(
+        knockback,
+        [](entt::entity e) {return registry.has<WinterBoss>(e); }
+    );
 
 	std::vector<std::shared_ptr<BTIfCondition>> cond_nodes;
 	cond_nodes.push_back(conditional_donothing);
@@ -314,7 +316,7 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
 	//cond_nodes.push_back(conditional_stop);
 	cond_nodes.push_back(conditional_run);
     cond_nodes.push_back(conditional_run_sum);
-	cond_nodes.push_back(conditional_knockback);
+    cond_nodes.push_back(conditional_knockback);
 
 	std::shared_ptr<BTSelector> selector = std::make_unique<BTSelector>(cond_nodes);
     
@@ -326,12 +328,27 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
     std::shared_ptr<BTNode> walk = std::make_unique<Walk>();
     std::shared_ptr <BTIfCondition> conditional_walk = std::make_unique<BTIfCondition>(
         walk,
-        [](entt::entity e) {return true; }
+        // return true for all monsters except the final boss and its fireballs
+        [](entt::entity e) {return !(registry.has<FinalBoss>(e) || registry.has<FireballBoss>(e)); }
+    );
+
+    std::shared_ptr<BTNode> final_boss_walk = std::make_unique<Dragon>();
+    std::shared_ptr <BTIfCondition> conditional_final_boss_walk = std::make_unique<BTIfCondition>(
+        final_boss_walk,
+        [](entt::entity e) {return registry.has<FinalBoss>(e); }
+    );
+
+    std::shared_ptr<BTNode> fireball_walk = std::make_unique<Fireball>();
+    std::shared_ptr <BTIfCondition> conditional_fireball_walk = std::make_unique<BTIfCondition>(
+        fireball_walk,
+        [](entt::entity e) {return registry.has<FireballBoss>(e); }
     );
 
     std::vector<std::shared_ptr<BTIfCondition>> walk_or_collide;
     walk_or_collide.push_back(conditional_collided);
     walk_or_collide.push_back(conditional_walk);
+    walk_or_collide.push_back(conditional_final_boss_walk);
+    walk_or_collide.push_back(conditional_fireball_walk);
 
     std::shared_ptr<BTSelector> root = std::make_unique<BTSelector>(walk_or_collide);
 

@@ -7,8 +7,10 @@
 #include "bosses/spring_boss.hpp"
 #include "bosses/fall_boss.hpp"
 #include "bosses/summer_boss.hpp"
-#include "bosses/burrow_boss.hpp"
 #include "bosses/winter_boss.hpp"
+#include "bosses/burrow_boss.hpp"
+#include "bosses/final_boss.hpp"
+#include "bosses/fireball_boss.hpp"
 #include "mob.hpp"
 #include <projectile.hpp>
 
@@ -62,6 +64,7 @@ const std::string SPRING_TITLE = "spring";
 const std::string SUMMER_TITLE = "summer";
 const std::string FALL_TITLE = "fall";
 const std::string WINTER_TITLE = "winter";
+const std::string FINAL_TITLE = "final";
 const std::string INPUT_PATH = "data/monster_rounds/";
 const std::string JSON_EXTENSION = ".json";
 const std::string SAVE_PATH = "data/save_files/save_state.json";
@@ -70,6 +73,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     player_state(set_up_stage),
     fps_ms(1000 / ANIMATION_FPS),
     next_boss_spawn(0),
+	next_fireball_spawn(0),
     next_mob_spawn(0),
     num_mobs_spawned(0),
     next_particle_spawn(0),
@@ -240,6 +244,21 @@ void WorldSystem::step(float elapsed_ms)
 
 			num_mobs_spawned += 1;
 			BTCollision->init(mob);
+		}
+
+		// spawn new fireballs for the final boss
+		next_fireball_spawn -= elapsed_ms * current_speed;
+		if (max_fireballs > 0 && next_fireball_spawn < 0.f)
+		{
+			std::cout << "fireball" << std::endl;
+			next_fireball_spawn = FIREBALL_DELAY_MS;
+			entt::entity fireball = FireballBoss::createFireballBossEntt();
+
+			auto& monster = registry.get<Monster>(fireball);
+			monster.path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
+
+			num_mobs_spawned += 1;
+			BTCollision->init(fireball);
 		}
 
 		// update velocity for every monster
@@ -579,6 +598,25 @@ void WorldSystem::setup_round_from_round_number(int round_number)
         }
         create_boss = WinterBoss::createWinterBossEntt;
     }
+	else if (season_str == FINAL_TITLE)
+	{
+		season = SUMMER;
+
+		max_fireballs = 1;
+		fireball_delay_ms = 5100;
+		next_fireball_spawn = fireball_delay_ms;
+;
+		int weather_int = rand() % 5 + 1;
+		if (weather_int % 2 == 1)
+		{
+			weather = DROUGHT;
+		}
+		else {
+			weather = CLEAR;
+		}
+		std::cout << "SPAWNING FINAL BOSS" << std::endl;
+		create_boss = FinalBoss::createFinalBossEntt;
+	}
 }
 
 void WorldSystem::updateCollisions(entt::entity entity_i, entt::entity entity_j)
@@ -1472,7 +1510,6 @@ void WorldSystem::load_game()
 
 	for (nlohmann::json unit : save_json["units"])
 	{
-		std::cout << "unit" << std::endl;
 		int x = unit["x_coord"];
 		int y = unit["y_coord"];
 		auto &node = current_map.getNodeAtCoord(pixel_to_coord(vec2(x, y)));

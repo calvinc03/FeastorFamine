@@ -27,11 +27,13 @@ static const int GRID_CELL_SIZE = 70;
 static const ivec2 GRID_OFFSET =  ivec2(GRID_CELL_SIZE/2 , GRID_CELL_SIZE/2);
 static const int UI_TAB_HEIGHT = 88;
 
+// 15 and 8 is blocks wide and high
 static const ivec2 WINDOW_SIZE_IN_PX = {GRID_CELL_SIZE * 15, GRID_CELL_SIZE * 8 + UI_TAB_HEIGHT };
 static const ivec2 MAP_SIZE_IN_PX = {WINDOW_SIZE_IN_PX.x, WINDOW_SIZE_IN_PX.y - UI_TAB_HEIGHT};
 static const ivec2 MAP_SIZE_IN_COORD = MAP_SIZE_IN_PX / GRID_CELL_SIZE;
 
 static const ivec2 FOREST_COORD = ivec2(0, 0);
+static const ivec2 DRAGON_COORD = ivec2(-2, 4);
 
 static const int MAX_PARTICLES = 1000;
 
@@ -44,6 +46,17 @@ const std::string WATCHTOWER_NAME = "watchtower";
 const std::string GREENHOUSE_NAME = "greenhouse";
 const std::string HUNTER_NAME = "hunter";
 const std::string WALL_NAME = "wall";
+
+const std::string SPRING_BOSS_TYPE = "spring_boss_type";
+const std::string SUMMER_BOSS_TYPE = "summer_boss_type";
+const std::string FALL_BOSS_TYPE = "fall_boss_type";
+const std::string WINTER_BOSS_TYPE = "winter_boss_type";
+const std::string DRAGON_BOSS_TYPE = "dragon_boss_type";
+const std::string FIREBALL_BOSS_TYPE = "fireball_boss_type";
+const std::string BURROW_BOSS_TYPE = "burrow_boss_type";
+
+const int MAX_FIREBALLS = 1000;
+const int FIREBALL_DELAY_MS = 2400;
 
 // C++ random number generator
 static std::default_random_engine rng;
@@ -120,6 +133,7 @@ struct Motion {
 struct Boss {
 	bool hit;
 	float speed_multiplier;
+	std::string type;
 	std::string walk_sprite;
 	std::string run_sprite;
 	std::string attack_sprite;

@@ -4,7 +4,7 @@
 #include "entt.hpp"
 #include "grid_map.hpp"
 
-// Mob monster that appears in all seasons
+// Fall boss that only appears in fall
 struct FallBoss
 {
     // Creates all the associated render resources and default transform

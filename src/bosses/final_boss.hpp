@@ -3,9 +3,9 @@
 #include "common.hpp"
 #include "entt.hpp"
 
-// Winter boss that only appears in winter
-struct WinterBoss
+// Final boss that appears in the last round
+struct FinalBoss
 {
     // Creates all the associated render resources and default transform
-    static entt::entity createWinterBossEntt();
+    static entt::entity createFinalBossEntt();
 };
