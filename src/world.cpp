@@ -209,7 +209,7 @@ void WorldSystem::step(float elapsed_ms)
 		auto view_rigs = registry.view<Timeline>();
 		for (auto entity : view_rigs) {
 			auto& motion = registry.get<Motion>(entity);
-			RigSystem::animate_rig_ik(entity, 15);
+			RigSystem::animate_rig_ik(entity, 15); // constant 15ms/frame
 		}
 		// animation
 		fps_ms -= elapsed_ms;
@@ -231,7 +231,7 @@ void WorldSystem::step(float elapsed_ms)
 			// Reset spawn timer and spawn boss
 			next_boss_spawn = (boss_delay_ms / 2) + uniform_dist(rng) * (boss_delay_ms / 2);
 			entt::entity boss = create_boss();
-
+		
 			auto& monster = registry.get<Monster>(boss);
 			monster.path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
 
@@ -245,7 +245,7 @@ void WorldSystem::step(float elapsed_ms)
 		{
 			next_mob_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
 			entt::entity mob = Mob::createMobEntt();
-
+			//entt::entity mob = Spider::createSpider();
 			auto& monster = registry.get<Monster>(mob);
 			monster.path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
 
@@ -656,7 +656,14 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity projectile, entt
 		{
 			health += 30;
 		}
-		registry.destroy(monster);
+
+		if (registry.has<Rig>(monster)) {
+			Rig::delete_rig(monster); //rigs have multiple pieces to be deleted
+		}
+		else {
+			registry.destroy(monster);
+		}
+
 	}
 
 }

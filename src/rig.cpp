@@ -67,6 +67,16 @@ void RigSystem::update_rig(entt::entity character) {
     }
 }
 
+void Rig::delete_rig(entt::entity character) {
+    auto& rig = registry.get<Rig>(character);
+    for (auto chains : rig.chains) {
+        for (auto part : chains) {
+            registry.destroy(part);
+        }
+    }
+    registry.destroy(character);
+}
+
 
 /*
     FK & IK animate functions
@@ -233,12 +243,3 @@ Transform parent(Transform parent, Motion child_motion, Motion root_motion) {
     return child;
 }
 
-void Rig::delete_rig(entt::entity character) {
-    auto& rig = registry.get<Rig>(character);
-    for (auto chains : rig.chains) {
-        for (auto part :chains) {
-            registry.destroy(part);
-        }
-    }
-    registry.destroy(character);
-}
