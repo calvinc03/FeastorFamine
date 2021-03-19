@@ -7,7 +7,7 @@
 
 
 struct Rig { 
-	//void initialize_rig(Rig& rig, Motion root_motion);
+	
 	std::vector< std::vector<entt::entity>> chains;
 	static entt::entity createPart(entt::entity root_entity, std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0);
 };
@@ -17,7 +17,6 @@ struct RigPart {
 };
 
 struct RigSystem {
-	
 	static void animate_rig_fk(entt::entity character, float elapsed_ms);
 	static void animate_rig_ik(entt::entity character, float elapsed_ms);
 

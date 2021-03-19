@@ -41,6 +41,14 @@ entt::entity  Spider::createSpider() {
     auto& keyframes_ik = registry.emplace<KeyFrames_IK>(entity); //FK lives in each rig part... IK lives here!
     add_frames_IK(keyframes_ik);
 
+
+    //auto& monster = registry.emplace<Monster>(entity);
+    //monster.max_health = 20000;
+    //monster.health = monster.max_health;
+    //monster.damage = 1000;
+    //monster.reward = 1000;
+    //registry.emplace<HitReaction>(entity);
+
     return entity;
 }
 

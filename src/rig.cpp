@@ -26,8 +26,8 @@ entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 of
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = angle;
     motion.velocity = { 0, 0 };
-    motion.position = offset;
     motion.scale = resource.mesh.original_size;
+    motion.position =  offset;
     motion.scale.y *= -1;
     motion.boundingbox = motion.scale;
     motion.origin = origin;
@@ -38,23 +38,6 @@ entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 of
     registry.emplace<KeyFrames_FK>(entity);
 
     return entity;
-}
-
-
-void initialize_rig(Rig& rig, Transform root_transform) {
-    //measure segments D:
-
-    //for (auto chain : rig.chains) {
-    //    for (auto part : chain) {
-    //        auto& part_motion = registry.get<Motion>(part);
-    //        auto& part_transform = registry.get<Transform>(part);
-    //        vec2 p1 = point_in_world_space(part_motion.origin, part_transform, root_transform );
-    //        vec2 p2 = point_in_world_space(-part_motion.origin, part_transform, root_transform);
-    //        rig.segment_lengths.push_back(length(p2-p1));
-    //    }
-    //}
-    //
-    
 }
 
 
@@ -88,6 +71,7 @@ void RigSystem::update_rig(entt::entity character) {
 /*
     FK & IK animate functions
 */
+
 
 //TODO: check corner cases of lower/upper bound
 void RigSystem::animate_rig_fk(entt::entity character, float elapsed_ms) {
@@ -151,7 +135,7 @@ void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
             vec2 a1 = hi->second;
             float ratio = (t_current - t0) / (t1 - t0);
 
-            vec2 new_pos = mix(a0, a1, ratio);
+            vec2 new_pos = mix(a0, a1, ratio); // linear interpolation
 
             ik_solve(character, (new_pos * root_motion.scale + root_motion.position), i);
 
@@ -169,8 +153,7 @@ void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
     IK solver
 */
 
-//TODO: optimize to converge faster but also have smooth behavior when moving between frames
-//TODO: on creating rig, find segment lengths
+//TODO: optimize to converge faster but also have smooth behavior when moving between frames??
 //TODO: break down into two cases: out of reach and within reach
 void RigSystem::ik_solve(entt::entity character, vec2 goal, int chain_idx) {
     auto& rig = registry.get<Rig>(character);
@@ -181,14 +164,15 @@ void RigSystem::ik_solve(entt::entity character, vec2 goal, int chain_idx) {
     
     vec2 goal_world_space = goal; 
     
-    float segment[2];
+    std::vector<float> segment;
     float total_length = 0;
     
     //get total length of arm and the length of each segment
     for (int k = 0; k < rig.chains[chain_idx].size(); k++) {
         auto& part_motion = registry.get<Motion>(rig.chains[chain_idx][k]);
-        segment[k] = 2 * length(part_motion.origin * root_motion.scale);
-        total_length += segment[k];
+        float len = 2 * length(part_motion.origin * root_motion.scale);
+        segment.push_back(len);
+        total_length += len;
     }
     float offset_goal = total_length;
 
@@ -221,13 +205,16 @@ void RigSystem::ik_solve(entt::entity character, vec2 goal, int chain_idx) {
     }
 }
 
+
 /*
     helpers
 */
     
+
 vec2 point_in_world_space(vec2 pos, Transform transform_part, Transform root_transform) { //end of part point
     return root_transform.mat * transform_part.mat * vec3(pos.x, pos.y, 1);
 }
+
 
 Transform parent(Transform parent, Motion child_motion, Motion root_motion) {
     Transform child;
@@ -239,4 +226,4 @@ Transform parent(Transform parent, Motion child_motion, Motion root_motion) {
     child.mat = parent.mat * child.mat; //this applies parent's transforms to child
     return child;
 }
-    
+
