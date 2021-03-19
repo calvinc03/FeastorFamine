@@ -25,7 +25,8 @@
 #include "ai.hpp"
 #include "particle.hpp"
 
-
+#include "rig.hpp"
+#include "spider.hpp"
 #include <BehaviorTree.hpp>
 
 // stlib
@@ -200,6 +201,12 @@ bool is_walkable(GridMap& current_map, ivec2 coord)
 void WorldSystem::step(float elapsed_ms)
 {
 	if (player_state != pause_stage && player_state != story_stage) {
+		//rig animation
+		auto view_rigs = registry.view<Timeline>();
+		for (auto entity : view_rigs) {
+			auto& motion = registry.get<Motion>(entity);
+			RigSystem::animate_rig_ik(entity, 15);
+		}
 		// animation
 		fps_ms -= elapsed_ms;
 		if (fps_ms < 0.f)
@@ -463,7 +470,7 @@ void WorldSystem::setup_start_menu()
 // Reset the world state to its initial state
 void WorldSystem::restart()
 {
-
+		
 	std::cout << "Restarting\n";
 
 	// Reset the game state
@@ -507,6 +514,8 @@ void WorldSystem::restart()
 
 	// set up variables for first round
 	setup_round_from_round_number(0);
+
+	//Spider::createSpider(vec2(300,100), vec2(20,20));
 }
 
 nlohmann::json WorldSystem::get_json(std::string json_path)
@@ -627,6 +636,22 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	if (health > 0)
 	{
 	}
+	if (key == GLFW_KEY_T) // for testing rigs
+	{
+		//auto view_rigs = registry.view<Timeline>();
+		//for (auto entity : view_rigs) {
+		//	auto& motion = registry.get<Motion>(entity);
+		//	RigSystem::animate_rig_ik(entity, 15);
+		//}
+	}
+	if (key == GLFW_KEY_Y) // for testing rigs
+	{
+		//auto& mouse = registry.get <MouseMovement>(camera);
+		//auto view_rigs = registry.view<Rig>();
+		//for (auto entity : view_rigs) {
+		//	RigSystem::ik_solve(entity, mouse.mouse_pos, 1);
+		//}
+	}
 
 	// keys used to skip rounds; used to debug and test rounds
 	if (action == GLFW_RELEASE && key == GLFW_KEY_G)
@@ -729,8 +754,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
 
 	// Debugging
-	if (key == GLFW_KEY_D)
-		DebugSystem::in_debug_mode = (action != GLFW_RELEASE);
+	if (action == GLFW_PRESS && key == GLFW_KEY_D)
+		DebugSystem::in_debug_mode = !DebugSystem::in_debug_mode;
+		//DebugSystem::in_debug_mode = (action != GLFW_RELEASE);
 
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA)
