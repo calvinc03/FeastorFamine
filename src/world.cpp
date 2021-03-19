@@ -274,6 +274,9 @@ void WorldSystem::step(float elapsed_ms)
 		next_greenhouse_production = GREENHOUSE_PRODUCTION_DELAY;
 	}
 
+	auto particle_view = registry.view<ParticleSystem>();
+
+
 	// Increment round number if all enemies are not on the map and projectiles are removed
 	if (num_bosses_spawned == max_boss && num_mobs_spawned == max_mobs)
 	{
@@ -287,10 +290,13 @@ void WorldSystem::step(float elapsed_ms)
 			player_state = set_up_stage;
 			num_bosses_spawned = 0;
 			num_mobs_spawned = 0;
+
+			for (auto particle_entity : particle_view) {
+				registry.destroy(particle_entity);
+			}
 		}
 	}
     
-    auto particle_view = registry.view<ParticleSystem>();
     if (particle_view.size() < MAX_PARTICLES) {
         for (auto particle_entity : particle_view) {
             auto& particle = registry.get<ParticleSystem>(particle_entity);
@@ -328,7 +334,7 @@ void WorldSystem::step(float elapsed_ms)
         else if (weather == SNOW && next_particle_spawn < 0.f)
         {
             next_particle_spawn = 40;
-            vec2 velocity = {rand() % 400 + (-200), 300.0f};
+            vec2 velocity = {rand() % 300 + (-150), 300.0f};
             vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
             float life = 1800.0f;
             std::string texture = "snow.png";
@@ -415,8 +421,8 @@ void WorldSystem::set_up_step(float elapsed_ms)
     else if (weather == SNOW && next_particle_spawn < 0.f)
     {
         next_particle_spawn = 40;
-        vec2 velocity = {rand() % 400 + (-200), 300.0f};
-        vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
+        vec2 velocity = {rand() % 200 + (-100), 300.0f};
+        vec2 position = {100 + rand() % WINDOW_SIZE_IN_PX.x - 100  , 0};
         float life = 1800.0f;
         std::string texture = "snow.png";
         std::string shader = "snow";
