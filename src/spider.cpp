@@ -18,7 +18,7 @@ entt::entity  Spider::createSpider() {
     motion.boundingbox = motion.scale*2.0f;
 
     //create entities/parts to be part of the kinematic chains -- requires setting position offset, pivot/origin of rotation, and intial angle
-    auto body = Rig::createPart(entity, "face2");
+    auto body = Rig::createPart(entity, "face_box");
 
     auto L_upper_leg = Rig::createPart(entity,"arm_simple", vec2(1.0f, -0.5f), vec2(0, 0.5f), 0); // position, origin, angle
     auto L_lower_leg = Rig::createPart(entity, "arm_simple", vec2(), vec2(0, -0.5f), 3.14f);
