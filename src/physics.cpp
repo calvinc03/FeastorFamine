@@ -7,6 +7,9 @@
 #include "grid_node.hpp"
 #include <projectile.hpp>
 #include "rig.hpp"
+
+const size_t POTENTIAL_COLLISION_RANGE = 300;
+
 // Returns the local bounding coordinates scaled by the current size of the entity 
 vec2 get_bounding_box(const Motion& motion)
 {
@@ -29,6 +32,113 @@ bool collides(const Motion& motion1, const Motion& motion2, float elapsed_ms)
 	if (dist_squared < r * r)
 		return true;
 	return false;
+}
+
+std::vector<vec2> get_corner_points(const Motion& motion)
+{
+	std::vector<vec2> points;
+	points.push_back(motion.position + motion.boundingbox / 2.f);
+	points.push_back(motion.position + vec2(motion.boundingbox.x, -motion.boundingbox.y) / 2.f);
+	points.push_back(motion.position - motion.boundingbox / 2.f);
+	points.push_back(motion.position + vec2(-motion.boundingbox.x, motion.boundingbox.y) / 2.f);
+	return points;
+}
+
+std::vector<vec2> get_norms(std::vector<vec2> vertices)
+{
+	std::vector<vec2> norms;
+	for (int i = 0; i < vertices.size(); i++) {
+		vec2 current_point = vertices[i];
+		vec2 next_point = vertices[(i + 1) % vertices.size()];
+		vec2 edge = next_point - current_point;
+
+		vec2 norm;
+		if (edge.x >= 0) {
+			if (edge.y >= 0) norm = { edge.y, -edge.x };
+			else norm = { -edge.y, edge.x };
+		}
+		else {
+			if (edge.y >= 0) norm = { -edge.y, edge.x };
+			else norm = { edge.y, -edge.x };
+		}
+		norms.push_back(norm);
+	}
+	return norms;
+}
+
+vec2 projectShape(std::vector<vec2> vertices, vec2 axis)
+{
+	float min = INFINITY;
+	float max = -INFINITY;
+	for (vec2 v : vertices) {
+		float projection = dot(v, axis);
+		if (projection < min) min = projection;
+		if (projection > max) max = projection;
+	}
+	return vec2(min, max);
+}
+ 
+bool collidesSAT(const Motion& motion1, const Motion& motion2)
+{
+	std::vector<vec2> polygon_a = get_corner_points(motion1);
+	std::vector<vec2> polygon_b = get_corner_points(motion2);
+	
+	/*std::vector<vec2> poly_a_norms = get_norms(polygon_a);
+	std::vector<vec2> poly_b_norms = get_norms(polygon_b);
+
+	for (vec2 norm : poly_a_norms) {
+		vec2 projection1 = projectShape(polygon_a, norm);
+		vec2 projection2 = projectShape(polygon_b, norm);
+		if ((projection1.y < projection2.x) || (projection2.y < projection1.x))
+			return false;
+	}
+
+	for (vec2 norm : poly_b_norms) {
+		vec2 projection1 = projectShape(polygon_a, norm);
+		vec2 projection2 = projectShape(polygon_b, norm);
+		if ((projection1.y < projection2.x) || (projection2.y < projection1.x))
+			return false;
+	}
+
+	return true;*/
+
+
+	for (int i = 0; i < polygon_a.size(); i++) {
+		vec2 current_point = polygon_a[i];
+		vec2 next_point = polygon_a[(i + 1) % polygon_a.size()];
+		vec2 edge = next_point - current_point;
+
+		vec2 norm;
+		if (edge.x >= 0) {
+			if (edge.y >= 0) norm = { edge.y, -edge.x };
+			else norm = { -edge.y, edge.x };
+		}
+		else {
+			if (edge.y >= 0) norm = { -edge.y, edge.x };
+			else norm = { edge.y, -edge.x };
+		}
+
+		float aMaxProj = -INFINITY;
+		float aMinProj = INFINITY;
+		float bMaxProj = -INFINITY;
+		float bMinProj = INFINITY;
+
+		for (vec2 v : polygon_a) {
+			float projection = dot(norm, v);
+			if (projection < aMinProj) aMinProj = projection;
+			if (projection > aMaxProj) aMaxProj = projection;
+		}
+
+		for (vec2 v : polygon_b) {
+			float projection = dot(norm, v);
+			if (projection < bMinProj) bMinProj = projection;
+			if (projection > bMaxProj) bMaxProj = projection;
+		}
+
+		if (aMaxProj < bMinProj || aMinProj > bMaxProj) return false;
+	}
+
+	return true;
 }
 
 void PhysicsSystem::step(float elapsed_ms)
@@ -69,9 +179,22 @@ void PhysicsSystem::step(float elapsed_ms)
 			Motion& motion_j = registry.get<Motion>(entity[j]);
 			entt::entity entity_j = entity[j];
 
-			if (collides(motion_i, motion_j, elapsed_ms))
+			// considers collisions between only if the entities are projectiles and monsters
+			if ((registry.has<Projectile>(entity_i) && registry.has<Monster>(entity_j)))
 			{
-				notifyObservers(entity_i, entity_j);
+				// considers collisions if entities are within a certain range
+				if (length(motion_i.position - motion_j.position) < POTENTIAL_COLLISION_RANGE) {
+					/*if (collides(motion_i, motion_j, elapsed_ms))
+					{
+						notifyObservers(entity_i, entity_j);
+					}*/
+
+					// convex polygon collision
+					if (collidesSAT(motion_i, motion_j))
+					{
+						notifyObservers(entity_i, entity_j);
+					}
+				}
 			}
 		}
 	}
@@ -103,13 +226,8 @@ PhysicsSystem::Collision::Collision(entt::entity& other)
 }
 
 void PhysicsSystem::notifyObservers(entt::entity entity_i, entt::entity entity_j) {
-	for (int i = 0; i < observerlist.size(); i++) {
-		if (registry.has<Projectile>(entity_i) && registry.has<Monster>(entity_j)) {
-			observerlist[i]->updateProjectileMonsterCollision(entity_i, entity_j);
-		}
-		else if (registry.has<Projectile>(entity_j) && registry.has<Monster>(entity_i)) {
-			observerlist[i]->updateProjectileMonsterCollision(entity_j, entity_i);
-		}
+	for (int i = 0; i < observerlist.size(); i++) {	
+		observerlist[i]->updateProjectileMonsterCollision(entity_i, entity_j);
 	}
 }
 

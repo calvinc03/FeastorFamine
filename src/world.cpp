@@ -1524,6 +1524,8 @@ void WorldSystem::save_game()
 	file << save_json.dump(4);
 	file.close();
 
+	// references file from build folder but requires the folder /data/save_files to be present
+	// TODO: not sure how it works
 	if (!file.fail())
 	{
 		std::cout << "Game saved!" << std::endl;
