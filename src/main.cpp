@@ -45,7 +45,7 @@ int main()
 	//world.restart();
 	auto t = Clock::now();
 	// Variable timestep loop
-    float elapsed_ms = 15;
+    float elapsed_ms = 20;
     
     static const GLfloat g_vertex_buffer_data[] = {
          -0.5f, -0.5f, 0.0f,

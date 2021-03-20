@@ -21,7 +21,7 @@
 
 using namespace glm;
 static const float PI = 3.14159265359f;
-static const size_t FIRING_RATE = 3000;
+static const float ELAPSED_MS = 20;
 
 static const int GRID_CELL_SIZE = 70;
 static const ivec2 GRID_OFFSET =  ivec2(GRID_CELL_SIZE/2 , GRID_CELL_SIZE/2);

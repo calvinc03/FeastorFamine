@@ -83,7 +83,7 @@ std::vector<vec2> bezierVelocities(std::vector<vec2> points) {
 // total time in milliseconds
 std::vector<vec2> bezierCurve(std::vector<vec2> points, float total_time) {
 	size_t num_points = points.size();
-	float num_frames = round(total_time / 15); // elapsed_ms = 15
+	float num_frames = round(total_time / ELAPSED_MS); 
 	float step = 1 / num_frames;
 	std::vector<float> coefficients = pascalNRow(num_points);
 	
