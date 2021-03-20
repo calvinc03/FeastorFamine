@@ -163,7 +163,6 @@ private:
 	int boss_delay_ms;
 	int max_boss;
 	int fireball_delay_ms;
-	int max_fireballs;
     
 
 	float next_greenhouse_production;
