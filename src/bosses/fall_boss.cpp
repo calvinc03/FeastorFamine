@@ -43,19 +43,18 @@ entt::entity FallBoss::createFallBossEntt()
     monster.damage = 100;
     monster.reward = 50;
 
-    auto& boss = registry.emplace<Boss>(entity);
-    boss.hit = false;
-    boss.speed_multiplier = 1.f;
-    boss.sprite = WALK_SPRITE;
-    boss.frames = WALK_FRAMES;
-    boss.attack_frames = ATTACK_FRAMES;
-    boss.attack_sprite = ATTACK_SPRITE;
-    boss.walk_frames = WALK_FRAMES;
-    boss.walk_sprite = WALK_SPRITE;
-    boss.run_frames = RUN_FRAMES;
-    boss.run_sprite = RUN_SPRITE;
-    boss.death_frames = DEATH_FRAMES;
-    boss.death_sprite = DEATH_SPRITE;
+    monster.hit = false;
+    monster.speed_multiplier = 1.f;
+    monster.sprite = WALK_SPRITE;
+    monster.frames = WALK_FRAMES;
+    monster.attack_frames = ATTACK_FRAMES;
+    monster.attack_sprite = ATTACK_SPRITE;
+    monster.walk_frames = WALK_FRAMES;
+    monster.walk_sprite = WALK_SPRITE;
+    monster.run_frames = RUN_FRAMES;
+    monster.run_sprite = RUN_SPRITE;
+    monster.death_frames = DEATH_FRAMES;
+    monster.death_sprite = DEATH_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0.f;

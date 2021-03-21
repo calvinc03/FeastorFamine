@@ -10,7 +10,7 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     auto entity = registry.create();
 
     // Create the rendering components
-    std::string key = WATCHTOWER_NAME;
+    std::string key = unit_str.at(WATCHTOWER);
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {

@@ -300,8 +300,9 @@ void WorldSystem::step(float elapsed_ms)
 				}
 
 				setup_round_from_round_number(round_number);
-				// re-roll some weather terrains
-				AISystem::MapAI::setRandomGridsWeatherTerrain(current_map, 10);
+				// re-roll some fraction of map for weather terrains
+				int max_rerolls = ceil(0.3*MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
+				AISystem::MapAI::setRandomGridsWeatherTerrain(current_map, max_rerolls);
 				player_state = set_up_stage;
 				num_bosses_spawned = 0;
 				num_mobs_spawned = 0;
@@ -504,7 +505,7 @@ void WorldSystem::restart()
 	// Reset the game state
 	current_speed = 1.f;
 	health = STARTING_HEALTH;				  //reset health
-	placement_unit_selected = ""; // no initial selection
+	placement_unit_selected = NONE; // no initial selection
 	round_number = 0;
 	reward_multiplier = 1;
 	num_bosses_spawned = 0;
@@ -801,16 +802,20 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	// Hot keys for selecting placeable units
 	else if (action == GLFW_PRESS && key == GLFW_KEY_1)
 	{
-		placement_unit_selected = "watchtower";
+		placement_unit_selected = WATCHTOWER;
 	}
 	else if (action == GLFW_PRESS && key == GLFW_KEY_2)
 	{
-		placement_unit_selected = "greenhouse";
+		placement_unit_selected = GREENHOUSE;
 	}
-	if (action == GLFW_PRESS && key == GLFW_KEY_3)
+    else if (action == GLFW_PRESS && key == GLFW_KEY_3)
 	{
-		placement_unit_selected = "hunter";
+		placement_unit_selected = HUNTER;
 	}
+    else if (action == GLFW_PRESS && key == GLFW_KEY_4)
+    {
+        placement_unit_selected = WALL;
+    }
 
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R)
@@ -932,7 +937,7 @@ void WorldSystem::scroll_callback(double xoffset, double yoffset)
 
 //will move this eventually
 //atm this is repeated code because ui uses a different position/scale than gridnode
-void grid_highlight_system(vec2 mouse_pos, std::string unit_selected, GridMap current_map)
+void grid_highlight_system(vec2 mouse_pos, unit_type unit_selected, GridMap current_map)
 {
 	auto view_ui = registry.view<Motion, HighlightBool>();
 
@@ -956,7 +961,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 	UI_highlight_system(mouse_pos);
 
 	bool in_game_area = mouse_in_game_area(mouse_pos);
-	if (in_game_area && placement_unit_selected != "" && player_state == set_up_stage)
+	if (in_game_area && placement_unit_selected != NONE && player_state == set_up_stage)
 		grid_highlight_system(mouse_pos, placement_unit_selected, current_map);
 
 	// if village is alive
@@ -1380,34 +1385,34 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 	if (player_state == set_up_stage)
 	{
 		// Mouse click for placing units
-		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && placement_unit_selected != "" && in_game_area)
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && placement_unit_selected != NONE && in_game_area)
 		{
 			auto &node = current_map.getNodeAtCoord(pixel_to_coord(vec2(x, y)));
 
 			if (node.occupancy == OCCUPANCY_VACANT && node.terrain >= TERRAIN_DEFAULT)
 			{
-				if (placement_unit_selected == HUNTER_NAME && health >= HUNTER_COST)
+				if (placement_unit_selected == HUNTER && health >= HUNTER_COST)
 				{
 					entt::entity entity = Hunter::createHunter({x, y});
 					health -= HUNTER_COST;
 					current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_HUNTER);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
-				else if (placement_unit_selected == GREENHOUSE_NAME && health >= GREENHOUSE_COST)
+				else if (placement_unit_selected == GREENHOUSE && health >= GREENHOUSE_COST)
 				{
 					entt::entity entity = GreenHouse::createGreenHouse({x, y});
 					health -= GREENHOUSE_COST;
                     current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_GREENHOUSE);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
-				else if (placement_unit_selected == WATCHTOWER_NAME && health >= WATCHTOWER_COST)
+				else if (placement_unit_selected == WATCHTOWER && health >= WATCHTOWER_COST)
 				{
 					entt::entity entity = WatchTower::createWatchTower({x, y});
 					health -= WATCHTOWER_COST;
                     current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_TOWER);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
-				else if (placement_unit_selected == WALL_NAME && health >= WALL_COST)
+				else if (placement_unit_selected == WALL && health >= WALL_COST)
 				{
 					entt::entity entity = Wall::createWall({x, y}, false);
 					health -= WALL_COST;
@@ -1419,7 +1424,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					//insufficent funds -- should feedback be given here, or when the button is pressed?
 					Mix_PlayChannel(-1, ui_sound_negative_tick, 0);
 				}
-				placement_unit_selected = "";
+				placement_unit_selected = NONE;
 				un_highlight();
 			}
 		}
@@ -1429,21 +1434,21 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			if (ui_button == Button::tower_button)
 			{
 
-				placement_unit_selected = WATCHTOWER_NAME;
+				placement_unit_selected = WATCHTOWER;
 			}
 			else if (ui_button == Button::green_house_button)
 			{
 
-				placement_unit_selected = GREENHOUSE_NAME;
+				placement_unit_selected = GREENHOUSE;
 			}
 			else if (ui_button == Button::stick_figure_button)
 			{
 
-				placement_unit_selected = HUNTER_NAME;
+				placement_unit_selected = HUNTER;
 			}
 			else if (ui_button == Button::wall_button)
 			{
-				placement_unit_selected = WALL_NAME;
+				placement_unit_selected = WALL;
 			}
 			else if (ui_button == Button::sell_button)
 			{
@@ -1482,7 +1487,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			}
 			else
 			{
-				placement_unit_selected = "";
+				placement_unit_selected = NONE;
 			}
 		}
 
@@ -1584,24 +1589,24 @@ void WorldSystem::load_game()
 		int x = unit["x_coord"];
 		int y = unit["y_coord"];
 		auto &node = current_map.getNodeAtCoord(pixel_to_coord(vec2(x, y)));
-		std::string type = unit["type"];
+		int type = std::stoi((std::string)unit["type"]);
 		entt::entity entity;
-		if (type == WATCHTOWER_NAME)
+		if (type == WATCHTOWER)
 		{
 			entity = WatchTower::createWatchTower({x, y});
 			node.occupancy = OCCUPANCY_TOWER;
 		}
-		else if (type == GREENHOUSE_NAME)
+		else if (type == GREENHOUSE)
 		{
 			entity = GreenHouse::createGreenHouse({x, y});
 			node.occupancy = OCCUPANCY_TOWER;
 		}
-		else if (type == WALL_NAME)
+		else if (type == WALL)
 		{
 			entity = Wall::createWall({x, y}, unit["rotate"]);
 			node.occupancy = OCCUPANCY_TOWER;
 		}
-		else if (type == HUNTER_NAME)
+		else if (type == HUNTER)
 		{
 			entity = Hunter::createHunter({x, y});
 			node.occupancy = OCCUPANCY_TOWER;

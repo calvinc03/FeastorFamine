@@ -185,7 +185,7 @@ private:
 	entt::entity round_text_entity;
 	entt::entity food_text_entity;
 	entt::entity stage_text_entity;
-	std::string placement_unit_selected;
+	unit_type placement_unit_selected;
 
 
 	// remove entities from start menu

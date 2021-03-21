@@ -1,6 +1,7 @@
 #include "grid_node.hpp"
 
-const std::string node_shader = "node";
+const std::string NODE_SHADER = "node";
+std::string terrain_texture_path(int terrain) { return "map/"+terrain_str.at(terrain)+".png";};
 
 entt::entity GridNode::createGridNode(int terrain, vec2 coord)
 {
@@ -16,7 +17,7 @@ entt::entity GridNode::createGridNode(int terrain, vec2 coord)
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(terrain)), node_shader);
+        RenderSystem::createSprite(resource, textures_path(terrain_texture_path(terrain)), NODE_SHADER);
     }
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
     shaded_mesh.layer = 1;
@@ -43,11 +44,11 @@ void GridNode::setTerrain(entt::entity entity, int new_terrain) {
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(new_terrain)), node_shader);
+        RenderSystem::createSprite(resource, textures_path(terrain_texture_path(new_terrain)), NODE_SHADER);
     }
     else
     {
-        resource.texture.load_from_file(textures_path(terrain_texture_path.at(new_terrain)).c_str());
+        resource.texture.load_from_file(textures_path(terrain_texture_path(new_terrain)));
     }
     shaded_mesh_ref.reference_to_cache = &resource;
 }

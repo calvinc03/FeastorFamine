@@ -11,7 +11,7 @@ entt::entity GreenHouse::createGreenHouse(vec2 pos)
     auto entity = registry.create();
 
     // Create the rendering components
-    std::string key = GREENHOUSE_NAME;
+    std::string key = unit_str.at(GREENHOUSE);
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {

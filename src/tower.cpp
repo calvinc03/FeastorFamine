@@ -9,7 +9,7 @@ entt::entity Tower::createTower(int x_pos, int y_pos)
     auto entity = registry.create();
 
     // Create the rendering components
-    std::string key = "tower";
+    std::string key = unit_str.at(TOWER);
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {

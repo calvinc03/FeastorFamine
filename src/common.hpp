@@ -50,10 +50,18 @@ struct Motion {
 	vec2 origin = { 0,0 }; // this is useful for setting the point of rotation for parent/child transforms.
 };
 
-struct Boss {
+struct Monster {
+    int max_health; //useful for displaying health bars
+    int health;
+    int damage;
+    int current_path_index = 0;
+    int reward;
+    bool collided = false;
+    std::vector<ivec2> path_coords;
+
 	bool hit;
 	float speed_multiplier;
-	std::string type;
+	int type;
 	std::string walk_sprite;
 	std::string run_sprite;
 	std::string attack_sprite;
@@ -64,16 +72,6 @@ struct Boss {
 	size_t attack_frames;
 	size_t death_frames;
 	size_t frames;
-};
-
-struct Monster {
-	int max_health; //useful for displaying health bars
-    int health;
-    int damage;
-    int current_path_index = 0;
-	int reward;
-	bool collided = false;
-	std::vector<ivec2> path_coords;
 };
 
 struct Food {

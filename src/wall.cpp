@@ -36,7 +36,7 @@ entt::entity Wall::createWall(vec2 position, bool rotate) // rotation should be 
 	unit.attack_range = 0;
 	unit.workers = 0;
 	unit.upgrades = 0;
-	unit.type = WALL_NAME;
+	unit.type = WALL;
 	unit.rotate = rotate;
 	unit.cost = WALL_COST;
 	unit.upgrade_cost = WALL_UPGRADE_COST;

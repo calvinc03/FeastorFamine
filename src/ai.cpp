@@ -79,9 +79,9 @@ void AISystem::step(float elapsed_ms)
 
 void AISystem::updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster)
 {
-	if (registry.has<Boss>(monster))
+	if (registry.has<Monster>(monster))
 	{
-		auto& boss = registry.get<Boss>(monster);
+		auto& boss = registry.get<Monster>(monster);
 		if (!boss.hit)
 		{
 			boss.hit = true;
@@ -281,8 +281,8 @@ void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map) {
     }
 }
 
-void AISystem::MapAI::setRandomGridsWeatherTerrain(GridMap &map, int max_grids) {
-    for (int i = 0; i < max_grids; i++) {
+void AISystem::MapAI::setRandomGridsWeatherTerrain(GridMap &map, int max_rerolls) {
+    for (int i = 0; i < max_rerolls; i++) {
         ivec2 random_coord(uniform_dist(rng)*MAP_SIZE_IN_COORD.x,  uniform_dist(rng)*MAP_SIZE_IN_COORD.y);
         auto& node = map.getNodeAtCoord(random_coord);
         if (node.terrain != TERRAIN_PAVEMENT) {
