@@ -173,7 +173,6 @@ private:
 
 	// Monster path
 	GridMap current_map;
-    std::vector<ivec2> monster_path_coords = {};
 
 	std::shared_ptr<BTNode> BTCollision;
 

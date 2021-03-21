@@ -37,6 +37,8 @@ entt::entity Mob::createMobEntt()
     monster.damage = 10;
     monster.reward = 10;
 
+    monster.type = MOB;
+
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0.f;
     animate.state = 0.f;

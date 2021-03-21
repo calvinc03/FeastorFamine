@@ -8,12 +8,12 @@
 #include <queue>
 #include <BehaviorTree.cpp>
 #include <BehaviorTree.hpp>
-#include <bosses/spring_boss.hpp>
-#include <bosses/summer_boss.hpp>
-#include <bosses/fall_boss.hpp>
-#include <bosses/winter_boss.hpp>
-#include <bosses/final_boss.hpp>
-#include <bosses/fireball_boss.hpp>
+#include <monsters/spring_boss.hpp>
+#include <monsters/summer_boss.hpp>
+#include <monsters/fall_boss.hpp>
+#include <monsters/winter_boss.hpp>
+#include <monsters/final_boss.hpp>
+#include <monsters/fireball_boss.hpp>
 #include <unit.hpp>
 
 const size_t BULLET_UPGRADE = 2;
@@ -173,7 +173,7 @@ float heuristic_euclidean_dist(ivec2 n1, ivec2 n2) {
     return length((vec2)(n1 - n2));
 }
 
-std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), const std::vector<ivec2>& neighbors) {
+std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int monster_type, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), const std::vector<ivec2>& neighbors) {
     std::vector<std::vector<search_node>> parent(MAP_SIZE_IN_COORD.x,std::vector<search_node> (MAP_SIZE_IN_COORD.y, {ivec2(-1, -1), INFINITY, INFINITY}));
     std::vector<search_node> open;
     std::vector<search_node> closed;

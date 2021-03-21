@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <debug.hpp>
 #include <BehaviorTree.hpp>
-#include <mob.hpp>
+#include <monsters/mob.hpp>
 #include <world.hpp>
 #pragma once
 
