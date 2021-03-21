@@ -6,9 +6,9 @@ static const int GRID_CELL_SIZE = 70;
 static const ivec2 GRID_OFFSET =  ivec2(GRID_CELL_SIZE/2 , GRID_CELL_SIZE/2);
 static const int UI_TAB_HEIGHT = 88;
 
-static const ivec2 MAP_SIZE_IN_COORD = {15, 8};
-static const ivec2 WINDOW_SIZE_IN_PX = {GRID_CELL_SIZE * 15, GRID_CELL_SIZE * 8 + UI_TAB_HEIGHT };
-static const ivec2 MAP_SIZE_IN_PX = {WINDOW_SIZE_IN_PX.x, WINDOW_SIZE_IN_PX.y - UI_TAB_HEIGHT};
+static const ivec2 MAP_SIZE_IN_COORD = {15, 9};
+static const ivec2 MAP_SIZE_IN_PX = GRID_CELL_SIZE * MAP_SIZE_IN_COORD;
+static const ivec2 WINDOW_SIZE_IN_PX = MAP_SIZE_IN_PX + ivec2(0, UI_TAB_HEIGHT);
 
 static const ivec2 FOREST_COORD = ivec2(0, 0);
 static const ivec2 VILLAGE_COORD = MAP_SIZE_IN_COORD - ivec2(2, 2);

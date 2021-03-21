@@ -233,7 +233,7 @@ void WorldSystem::step(float elapsed_ms)
 			entt::entity boss = create_boss();
 		
 			auto& monster = registry.get<Monster>(boss);
-			monster.path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
+			monster.path_coords = AISystem::MapAI::findPathAStar(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
 
 			num_bosses_spawned += 1;
 			BTCollision->init(boss);
@@ -247,7 +247,7 @@ void WorldSystem::step(float elapsed_ms)
 			entt::entity mob = Mob::createMobEntt();
 			//entt::entity mob = Spider::createSpider();
 			auto& monster = registry.get<Monster>(mob);
-			monster.path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
+			monster.path_coords = AISystem::MapAI::findPathAStar(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
 
 			num_mobs_spawned += 1;
 			BTCollision->init(mob);
@@ -262,7 +262,7 @@ void WorldSystem::step(float elapsed_ms)
 			entt::entity fireball = FireballBoss::createFireballBossEntt();
 
 			auto& monster = registry.get<Monster>(fireball);
-			monster.path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
+			monster.path_coords = AISystem::MapAI::findPathAStar(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
 
 			BTCollision->init(fireball);
 		}
@@ -461,7 +461,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		next_boss_spawn = 0;
 		un_highlight();
 		// set path at start of battle phase
-		monster_path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
+		monster_path_coords = AISystem::MapAI::findPathAStar(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
 
 		std::cout << season_str << " season! \n";
 		std::cout << "weather " << weather << " \n";

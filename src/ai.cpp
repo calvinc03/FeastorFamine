@@ -146,8 +146,97 @@ std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 star
     return std::vector<ivec2>();
 }
 
-std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), const std::vector<ivec2>& neighbors) {
+struct search_node {
+    ivec2 coord;
+    float c;
+    float h;
+    float f;
+    search_node(ivec2 coord, float c, float h) {
+        this->coord = coord;
+        this->c = c;
+        this->h = h;
+        this->f = c + h;
+    }
+};
 
+// diagonal distance
+float heuristic_diagonal_dist(ivec2 n1, ivec2 n2) {
+    float dx = abs(n1.x - n2.x);
+    float dy = abs(n1.y - n2.y);
+    float unit_move_cost = 1;
+    float diag_cost = sqrt(2 * unit_move_cost);
+    return unit_move_cost * (dx + dy) + (diag_cost - 2 * unit_move_cost) * min(dx, dy);
+}
+
+float heuristic_euclidean_dist(ivec2 n1, ivec2 n2) {
+
+    return length((vec2)(n1 - n2));
+}
+
+std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), const std::vector<ivec2>& neighbors) {
+    std::vector<std::vector<search_node>> parent(MAP_SIZE_IN_COORD.x,std::vector<search_node> (MAP_SIZE_IN_COORD.y, {ivec2(-1, -1), INFINITY, INFINITY}));
+    std::vector<search_node> open;
+    std::vector<search_node> closed;
+
+    search_node start_node = {start_coord, 0, heuristic_diagonal_dist(start_coord, goal_coord)};
+    open.emplace_back(start_node);
+
+    while (!open.empty()) {
+        // get node with smallest f on open list
+        auto min_iter = open.begin();
+        search_node current_node = open.front();
+        for (auto iter = open.begin(); iter != open.end(); iter++) {
+            if ((*iter).f < min_iter->f) {
+                min_iter = iter;
+            }
+        }
+        current_node = *min_iter;
+        open.erase(min_iter);
+
+        // check neighbors
+        for (ivec2 neighbor : neighbors) {
+            ivec2 nbr_coord = current_node.coord + neighbor;
+            if (!is_valid(current_map, nbr_coord)) {
+                continue;
+            }
+            // current node is the goal node, return path
+            if (nbr_coord == goal_coord) {
+                std::vector<ivec2> path_nodes = {nbr_coord, current_node.coord};
+                while(current_node.coord != start_coord) {
+                    current_node = parent[current_node.coord.x][current_node.coord.y];
+                    path_nodes.emplace_back(current_node.coord);
+                }
+                std::reverse(path_nodes.begin(), path_nodes.end());
+                return path_nodes;
+            }
+
+            search_node nbr_node = {nbr_coord, current_node.c + heuristic_diagonal_dist(current_node.coord, nbr_coord),
+                                    heuristic_diagonal_dist(nbr_coord, goal_coord)};
+
+            // skip nbr if already exists in open or closed list with lower f = c + h
+            bool exists_lower = false;
+            for (search_node node : open) {
+                if (node.coord == nbr_coord && node.f < nbr_node.f) {
+                    exists_lower = true;
+                    break;
+                }
+            }
+            for (search_node node : closed) {
+                if (node.coord == nbr_coord && node.f < nbr_node.f) {
+                    exists_lower = true;
+                    break;
+                }
+            }
+            if (exists_lower) {
+                continue;
+            }
+            parent[nbr_coord.x][nbr_coord.y] = {current_node.coord, current_node.c, current_node.h};
+            open.emplace_back(nbr_node);
+        }
+        closed.emplace_back(current_node);
+    }
+    // a path does not exist between start and end.
+    // should NOT reach this point for monster travel path with random map generation is in place
     return std::vector<ivec2>();
 }
 
