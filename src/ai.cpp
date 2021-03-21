@@ -283,11 +283,11 @@ void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map) {
 
 void AISystem::MapAI::setRandomGridsWeatherTerrain(GridMap &map, int max_grids) {
     for (int i = 0; i < max_grids; i++) {
-     ivec2 random_coord(uniform_dist(rng)*MAP_SIZE_IN_COORD.x,  uniform_dist(rng)*MAP_SIZE_IN_COORD.y);
-     auto& node = map.getNodeAtCoord(random_coord);
-     if (node.terrain != TERRAIN_PAVEMENT) {
-         map.setGridTerrain(random_coord, get_random_weather_terrain());
-     }
+        ivec2 random_coord(uniform_dist(rng)*MAP_SIZE_IN_COORD.x,  uniform_dist(rng)*MAP_SIZE_IN_COORD.y);
+        auto& node = map.getNodeAtCoord(random_coord);
+        if (node.terrain != TERRAIN_PAVEMENT) {
+            map.setGridTerrain(random_coord, get_random_weather_terrain());
+        }
     }
 }
 
