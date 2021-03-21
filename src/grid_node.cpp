@@ -11,17 +11,15 @@ entt::entity GridNode::createGridNode(int terrain, vec2 coord)
     node.coord = coord;
 
     // set up mesh components
-    if (terrain != TERRAIN_DEFAULT) {
-        const std::string& key = terrain_str.at(terrain);
-        ShadedMesh& resource = cache_resource(key);
-        if (resource.effect.program.resource == 0)
-        {
-            resource = ShadedMesh();
-            RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(terrain)), node_shader);
-        }
-        ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-        shaded_mesh.layer = 1;
+    const std::string& key = terrain_str.at(terrain);
+    ShadedMesh& resource = cache_resource(key);
+    if (resource.effect.program.resource == 0)
+    {
+        resource = ShadedMesh();
+        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(terrain)), node_shader);
     }
+    ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+    shaded_mesh.layer = 1;
 
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
@@ -36,38 +34,21 @@ entt::entity GridNode::createGridNode(int terrain, vec2 coord)
 }
 
 void GridNode::setTerrain(entt::entity entity, int new_terrain) {
-    int old_terrain = this->terrain;
-
-    // no change in terrain
-    if (old_terrain == new_terrain) {
-        return;
-    }
-
     this->terrain = new_terrain;
+    const std::string& key = terrain_str.at(new_terrain);
 
-    // changing from special to default terrain
-    if (new_terrain == TERRAIN_DEFAULT) {
-        registry.remove<ShadedMesh>(entity);
-        return;
-    }
+    auto& shaded_mesh_ref = registry.get<ShadedMeshRef>(entity);
+    ShadedMesh& resource = cache_resource(key);
 
-    // changing to special terrain
-    const std::string &key = terrain_str.at(new_terrain);
-    ShadedMesh &resource = cache_resource(key);
-    if (resource.effect.program.resource == 0) {
+    if (resource.effect.program.resource == 0)
+    {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(terrain)), node_shader);
+        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(new_terrain)), node_shader);
     }
-
-    // changing from default to special terrain
-    if (old_terrain == TERRAIN_DEFAULT) {
-        ShadedMeshRef &shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-        shaded_mesh.layer = 1;
-        return;
+    else
+    {
+        resource.texture.load_from_file(textures_path(terrain_texture_path.at(new_terrain)).c_str());
     }
-
-    // changing from special to special
-    auto &shaded_mesh_ref = registry.get<ShadedMeshRef>(entity);
     shaded_mesh_ref.reference_to_cache = &resource;
 }
 
