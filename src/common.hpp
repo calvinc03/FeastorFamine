@@ -88,6 +88,9 @@ struct Animate {
 	float frame_num = 1.f;
 };
 
+struct EntityDeath {
+	float timer;
+};
 
 // id for entity
 struct Tag {
