@@ -1283,7 +1283,7 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 		remove_menu_buttons();
 		restart();
 		load_game();
-		game_state = in_game;
+		game_state = story_card;
 	}
 }
 
