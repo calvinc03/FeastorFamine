@@ -17,8 +17,8 @@ entt::entity Menu::createMenu(double x, double y, std::string menu_name, Menu_te
 			case title_screen:
 				texture_file_name = "title_screen.png";
 				break;
-			case settings:
-				texture_file_name = "settings_background.png";
+			case controls:
+				texture_file_name = "controls_background.png";
 				break;
 			case help_menu:
 				texture_file_name = "help_menu.png";

@@ -1346,7 +1346,7 @@ void WorldSystem::create_controls_menu()
 	std::cout << "In Controls Menu\n";
 	int menu_layer = 90;
 	std::string menu_name = "controls";
-	auto menu = Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, menu_name, Menu_texture::settings, menu_layer, { WINDOW_SIZE_IN_PX.x / 10, WINDOW_SIZE_IN_PX.x / 10});
+	auto menu = Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, menu_name, Menu_texture::controls, menu_layer, { WINDOW_SIZE_IN_PX.x / 10, WINDOW_SIZE_IN_PX.x / 10});
 	// title text
 	std::string title_text = "Controls";
 	auto title_text_scale = 1.2f;
@@ -1406,7 +1406,7 @@ void WorldSystem::create_controls_menu()
 		menu_text.menu_name = menu_name;
 	}
 
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 5, "back", empty_button, "back");
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 6 / 7, "back", empty_button, "back");
 }
 
 entt::entity WorldSystem::create_help_menu()
