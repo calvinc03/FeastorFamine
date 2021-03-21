@@ -299,7 +299,7 @@ void WorldSystem::step(float elapsed_ms)
 		// Increment round number if all enemies are not on the map and projectiles are removed
 		if (num_bosses_spawned == max_boss && num_mobs_spawned == max_mobs)
 		{
-			std::cout << "got here" << std::endl;
+			//std::cout << "got here" << std::endl;
 			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty())
 			{
 				round_number++;

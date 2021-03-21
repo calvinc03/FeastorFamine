@@ -1,14 +1,14 @@
 // internal
 #include "physics.hpp"
-//#include "tiny_ecs.hpp"
 #include "entt.hpp"
 #include "debug.hpp"
 #include <iostream>
 #include "grid_node.hpp"
 #include <projectile.hpp>
 #include "rig.hpp"
+#include <spider.hpp>
 
-const size_t POTENTIAL_COLLISION_RANGE = 300;
+const size_t POTENTIAL_COLLISION_RANGE = 200;
 
 // Returns the local bounding coordinates scaled by the current size of the entity 
 vec2 get_bounding_box(const Motion& motion)
@@ -34,7 +34,7 @@ bool collides(const Motion& motion1, const Motion& motion2, float elapsed_ms)
 	return false;
 }
 
-std::vector<vec2> get_corner_points(const Motion& motion)
+std::vector<vec2> get_box_vertices(const Motion& motion)
 {
 	std::vector<vec2> points;
 	points.push_back(motion.position + motion.boundingbox / 2.f);
@@ -77,68 +77,76 @@ vec2 projectShape(std::vector<vec2> vertices, vec2 axis)
 	}
 	return vec2(min, max);
 }
- 
-bool collidesSAT(const Motion& motion1, const Motion& motion2)
-{
-	std::vector<vec2> polygon_a = get_corner_points(motion1);
-	std::vector<vec2> polygon_b = get_corner_points(motion2);
-	
-	std::vector<vec2> poly_a_norms = get_norms(polygon_a);
-	std::vector<vec2> poly_b_norms = get_norms(polygon_b);
 
+bool checkProjection(std::vector<vec2> poly_a_vertices, std::vector<vec2> poly_b_vertices,
+	std::vector<vec2> poly_a_norms, std::vector<vec2> poly_b_norms)
+{
 	for (vec2 norm : poly_a_norms) {
-		vec2 projection1 = projectShape(polygon_a, norm);
-		vec2 projection2 = projectShape(polygon_b, norm);
+		vec2 projection1 = projectShape(poly_a_vertices, norm);
+		vec2 projection2 = projectShape(poly_b_vertices, norm);
 		if ((projection1.y < projection2.x) || (projection2.y < projection1.x))
 			return false;
 	}
 
 	for (vec2 norm : poly_b_norms) {
-		vec2 projection1 = projectShape(polygon_a, norm);
-		vec2 projection2 = projectShape(polygon_b, norm);
+		vec2 projection1 = projectShape(poly_a_vertices, norm);
+		vec2 projection2 = projectShape(poly_b_vertices, norm);
 		if ((projection1.y < projection2.x) || (projection2.y < projection1.x))
 			return false;
 	}
 
 	return true;
+}
+ 
+bool collidesSAT(entt::entity entity1, entt::entity entity2)
+{
+	auto& motion1 = registry.get<Motion>(entity1);
+	auto& motion2 = registry.get<Motion>(entity2);
 
+	std::vector<vec2> polygon_a = get_box_vertices(motion1);
+	std::vector<vec2> polygon_b = get_box_vertices(motion2);
+	
+	std::vector<vec2> poly_a_norms = get_norms(polygon_a);
+	std::vector<vec2> poly_b_norms = get_norms(polygon_b);
 
-	/*for (int i = 0; i < polygon_a.size(); i++) {
-		vec2 current_point = polygon_a[i];
-		vec2 next_point = polygon_a[(i + 1) % polygon_a.size()];
-		vec2 edge = next_point - current_point;
+	return checkProjection(polygon_a, polygon_b, poly_a_norms, poly_b_norms);
+}
 
-		vec2 norm;
-		if (edge.x >= 0) {
-			if (edge.y >= 0) norm = { edge.y, -edge.x };
-			else norm = { -edge.y, edge.x };
+// Precise Collisions with two convex objects 
+bool preciseCollides(entt::entity spider, entt::entity projectile)
+{
+	auto& spider_motion = registry.get<Motion>(spider);
+
+	auto& proj_motion = registry.get<Motion>(projectile);
+	std::vector<vec2> projectile_vertices = get_box_vertices(proj_motion);
+	std::vector<vec2> projectile_norms = get_norms(projectile_vertices);
+
+	auto& spider_rig = registry.get<Rig>(spider);
+
+	for (auto rig_vector : spider_rig.chains) {
+		for (auto rig_entity : rig_vector) {
+			auto& motion = registry.get<Motion>(rig_entity);
+			auto& meshref = registry.get<ShadedMeshRef>(rig_entity);
+
+			Transform transform;
+			transform.translate(spider_motion.position + motion.position);
+			transform.rotate(spider_motion.angle + motion.angle);
+			transform.scale(spider_motion.scale + motion.scale);
+
+			std::vector<vec2> spider_rig_vertices;
+			for (auto& v : meshref.reference_to_cache->mesh.vertices) {
+				vec3 global_pos = transform.mat * vec3(v.position.x, v.position.y, 1.0f);
+				spider_rig_vertices.push_back(vec2(global_pos.x, global_pos.y));
+			}
+			std::vector<vec2> spider_rig_norms = get_norms(spider_rig_vertices);
+
+			if (checkProjection(spider_rig_vertices, projectile_vertices, spider_rig_norms, projectile_norms)) {
+				return true;
+			}
 		}
-		else {
-			if (edge.y >= 0) norm = { -edge.y, edge.x };
-			else norm = { edge.y, -edge.x };
-		}
-
-		float aMaxProj = -INFINITY;
-		float aMinProj = INFINITY;
-		float bMaxProj = -INFINITY;
-		float bMinProj = INFINITY;
-
-		for (vec2 v : polygon_a) {
-			float projection = dot(norm, v);
-			if (projection < aMinProj) aMinProj = projection;
-			if (projection > aMaxProj) aMaxProj = projection;
-		}
-
-		for (vec2 v : polygon_b) {
-			float projection = dot(norm, v);
-			if (projection < bMinProj) bMinProj = projection;
-			if (projection > bMaxProj) bMaxProj = projection;
-		}
-
-		if (aMaxProj < bMinProj || aMinProj > bMaxProj) return false;
 	}
 
-	return true;*/
+	return false;
 }
 
 void PhysicsSystem::step(float elapsed_ms)
@@ -184,19 +192,35 @@ void PhysicsSystem::step(float elapsed_ms)
 			{
 				// considers collisions if entities are within a certain range
 				if (length(motion_i.position - motion_j.position) < POTENTIAL_COLLISION_RANGE) {
-					/*if (collides(motion_i, motion_j, elapsed_ms))
-					{
-						notifyObservers(entity_i, entity_j);
-					}*/
 
-					// convex polygon collision
-					if (collidesSAT(motion_i, motion_j))
-					{
+					// convex polygon precise collision
+					if (registry.has<Rig>(entity_i) || registry.has<Rig>(entity_j)) {
+						// notify Observers - ORDER MATTERS
 						if (registry.has<Projectile>(entity_i)) {
-							notifyObservers(entity_i, entity_j);
+							// precise collision between complex rig and convex object - ORDER MATTERS
+							if (preciseCollides(entity_j, entity_i)) {
+								notifyObservers(entity_i, entity_j);
+							}
 						}
 						else {
-							notifyObservers(entity_j, entity_i);
+							if (preciseCollides(entity_i, entity_j)) {
+								notifyObservers(entity_j, entity_i);
+							}
+						}
+					}
+					
+					// box-to-box polygon collision
+					else {
+						// checks if collides using Separating Axis Theorem
+						if (collidesSAT(entity_i, entity_j))
+						{
+							// notify Observers - ORDER MATTERS!
+							if (registry.has<Projectile>(entity_i)) {
+								notifyObservers(entity_i, entity_j);
+							}
+							else {
+								notifyObservers(entity_j, entity_i);
+							}
 						}
 					}
 				}

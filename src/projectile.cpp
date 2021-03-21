@@ -33,7 +33,7 @@ entt::entity Projectile::createProjectile(vec2 hunter_position, vec2 monster_pos
     motion.position = hunter_position;
     // Setting initial values, scale is negative to make it face the opposite way
     motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), 0.3);
-    motion.boundingbox = { 50, 50 };
+    motion.boundingbox = motion.scale;
 
     // Create and (empty) Projectile component to be able to refer to all Projectile
     Projectile& p = registry.emplace<Projectile>(entity);
@@ -84,7 +84,7 @@ entt::entity RockProjectile::createRockProjectile(vec2 hunter_position, vec2 mon
     motion.position = hunter_position;
     // Setting initial values, scale is negative to make it face the opposite way
     motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), 0.3);
-    motion.boundingbox = { 50, 50 };
+    motion.boundingbox = motion.scale;
 
     // Create and (empty) Projectile component to be able to refer to all Projectile
     Projectile& p = registry.emplace<Projectile>(entity);
