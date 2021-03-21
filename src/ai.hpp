@@ -23,6 +23,8 @@ public:
 	struct MapAI {
         static std::vector<ivec2> findPathBFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2),
                                               const std::vector<ivec2>& neighbors = all_neighbors);
+        static std::vector<ivec2> findPathAStar(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2),
+                                                const std::vector<ivec2>& neighbors = all_neighbors);
         static void setRandomMapWeatherTerrain(GridMap& map);
         static void setRandomGridsWeatherTerrain(GridMap& map, int max_grids);
         static void setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain = TERRAIN_PAVEMENT);

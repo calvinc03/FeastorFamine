@@ -150,43 +150,72 @@ std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 star
     return std::vector<ivec2>();
 }
 
-std::map<int, float> weather_tile_prob = {
-        {TERRAIN_MUD,      1},
-        {TERRAIN_PUDDLE,   1}
-};
+std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), const std::vector<ivec2>& neighbors) {
+    std::vector<std::vector<bool>> visited(MAP_SIZE_IN_COORD.x, std::vector<bool> (MAP_SIZE_IN_COORD.y, false));
+    std::vector<std::vector<std::tuple<ivec2, float>>> parent(MAP_SIZE_IN_COORD.x,
+                                                              std::vector<std::tuple<ivec2, float>> (MAP_SIZE_IN_COORD.y, std::make_tuple(vec2(-1, -1), -1)));
+    std::tuple<ivec2, float> start_qnode = std::make_tuple(start_coord, 0.f);
+
+    std::queue<std::tuple<ivec2, float>> queue;
+    visited[start_coord.x][start_coord.y] = true;
+    queue.push(start_qnode);
+
+    while (!queue.empty()) {
+        std::tuple<ivec2, float> current_qnode = queue.front();
+
+        // current node is the goal node, return path
+        if (std::get<0>(current_qnode) == goal_coord) {
+            ivec2 coord_pointer = std::get<0>(current_qnode);
+            std::vector<ivec2> path_nodes = {coord_pointer};
+            while(std::get<1>(parent[coord_pointer.x][coord_pointer.y]) != -1) {
+                coord_pointer = std::get<0>(parent[coord_pointer.x][coord_pointer.y]);
+                path_nodes.emplace_back(coord_pointer);
+            }
+            std::reverse(path_nodes.begin(), path_nodes.end());
+            return path_nodes;
+        }
+        queue.pop();
+        // check neighbors
+        for (int i = 0; i < neighbors.size(); i++) {
+            ivec2 nbr_coord = std::get<0>(current_qnode) + neighbors.at(i);
+            if (!is_valid(current_map, nbr_coord) || visited[nbr_coord.x][nbr_coord.y]) {
+                continue;
+            }
+            std::tuple<ivec2, float> next_qnode = std::make_tuple(nbr_coord, std::get<1>(current_qnode) + get_distance(nbr_coord, std::get<0>(current_qnode)));
+            visited[nbr_coord.x][nbr_coord.y] = true;
+            queue.emplace(next_qnode);
+            parent[nbr_coord.x][nbr_coord.y] = current_qnode;
+        }
+    }
+    // a path does not exist between start and end.
+    // should NOT reach this point for monster travel path with random map generation is in place
+    return std::vector<ivec2>();
+}
 
 int get_random_weather_terrain() {
-    // grid_change_prob is the probability to set grid to special terrain
-    float grid_change_prob = 0.7;
-    // start with <rand * grid_change prob> chance for each happening
-    for (auto& [terrain, prob] : weather_tile_prob) {
-        prob = uniform_dist(rng) * grid_change_prob;
-    }
-    if (weather == RAIN) {
-        weather_tile_prob[TERRAIN_PUDDLE] *= 1.2;
-        weather_tile_prob[TERRAIN_MUD] *= 1.1;
-    }
-    else if (weather == DROUGHT) {
-        weather_tile_prob[TERRAIN_PUDDLE] *= 0.75;
-        weather_tile_prob[TERRAIN_MUD] *= 0.8;
-    }
-    else if (weather == FOG) {
+    std::map<int, float> weather_terrain_default_prob = {
+            {TERRAIN_MUD,      1},
+            {TERRAIN_PUDDLE,   1},
+            {TERRAIN_DRY,      1},
+            {TERRAIN_FIRE,     1},
+            {TERRAIN_ICE,      1},
+    };
 
-    }
-    else if (weather == SNOW) {
-
+    // multiply each prob with a rand number and weather multiplier
+    for (auto& [terrain, prob] : weather_terrain_default_prob) {
+        prob = uniform_dist(rng) * weather_terrain_prob_multiplier.at(std::pair(weather,terrain));
     }
 
     vec2 max_prob(-1, -1);
 
-    for (auto& [terrain, prob] : weather_tile_prob) {
+    for (auto& [terrain, prob] : weather_terrain_default_prob) {
         if (prob > max_prob.y){
             max_prob.x = terrain;
             max_prob.y = prob;
         }
     }
 
-    if (max_prob.y > 0.5) {
+    if (max_prob.y > 0.7) {
         return max_prob.x;
     }
 
