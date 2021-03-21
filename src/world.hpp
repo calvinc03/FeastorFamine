@@ -86,7 +86,8 @@ public:
 		start_menu,
 		in_game,
 		settings_menu,
-		help_menu
+		help_menu,
+		story_card
 	};
 
 	// state for set_up and monster_rounds
@@ -198,6 +199,7 @@ private:
 	void settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void unit_select_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void help_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
+	void story_card_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void sell_unit_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 
 	// music references

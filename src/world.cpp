@@ -23,6 +23,7 @@
 #include "camera.hpp"
 #include "button.hpp"
 #include "menu.hpp"
+#include "story_card.hpp"
 #include "ui.hpp"
 #include "ai.hpp"
 #include "particle.hpp"
@@ -473,7 +474,6 @@ void WorldSystem::set_up_step(float elapsed_ms)
 	registry.get<Text>(food_text_entity).content = "food: " + std::to_string(health);
 }
 
-// Start Menu
 void WorldSystem::setup_start_menu()
 {
 
@@ -486,7 +486,6 @@ void WorldSystem::setup_start_menu()
 	camera = Camera::createCamera();
 }
 
-// Reset the world state to its initial state
 void WorldSystem::restart()
 {
 		
@@ -497,6 +496,7 @@ void WorldSystem::restart()
 	health = STARTING_HEALTH;				  //reset health
 	placement_unit_selected = ""; // no initial selection
 	round_number = 0;
+	reward_multiplier = 1;
 	num_bosses_spawned = 0;
 	num_mobs_spawned = 0;
 	player_state = set_up_stage;
@@ -558,6 +558,9 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	max_boss = round_json["max_bosses"];
 	boss_delay_ms = round_json["boss_delay_ms"];
 	season_str = round_json["season"];
+
+	game_state = story_card;
+	StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number));
     
     if (season_str == SPRING_TITLE)
     {
@@ -657,13 +660,11 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity projectile, entt
 
 }
 
-// Should the game be over ?
 bool WorldSystem::is_over() const
 {
 	return glfwWindowShouldClose(window) > 0;
 }
 
-// On key callback
 void WorldSystem::on_key(int key, int, int action, int mod)
 {
 	// if village is alive
@@ -970,22 +971,12 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 	}
 }
 
-// mouse click callback function
 void WorldSystem::on_mouse_click(int button, int action, int mod)
 {
 	//getting cursor position
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
   
-	//some debugging print outs
-	/*if (in_game_area) {
-		std::cout << "in game area" << std::endl;
-	}
-	else {
-		std::cout << "not in game area" << std::endl;
-		std::cout << button_to_string(ui_button) << " pressed " << std::endl;
-	}*/
-
 	switch (game_state)
 	{
 	case start_menu:
@@ -1001,12 +992,10 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
 	case help_menu:
 		help_menu_click_handle(xpos, ypos, button, action, mod);
 		break;
+	case story_card:
+		story_card_click_handle(xpos, ypos, button, action, mod);
+		break;
 	}
-
-	//std::cout << "selected: " << unit_selected << std::endl;
-
-	// handle clicks in the start menu
-	//std::cout << "Game State: " << game_state << "\n";
 }
 
 void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
@@ -1016,8 +1005,31 @@ void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y,
 		auto view = registry.view<Menu, ShadedMeshRef>();
 		for (auto entity : view)
 		{
-			auto &shaded_mesh_ref = view.get<ShadedMeshRef>(entity);
+			auto& shaded_mesh_ref = view.get<ShadedMeshRef>(entity);
 			shaded_mesh_ref.show = false;
+		}
+		if (registry.empty<StoryCard>()) {
+			game_state = in_game;
+		}
+		else {
+			game_state = story_card;
+		}
+	}
+}
+
+void WorldSystem::story_card_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
+{
+	if (action == GLFW_PRESS)
+	{
+		auto story_card_view = registry.view<StoryCard>();
+		for (auto entity : story_card_view)
+		{
+			registry.destroy(entity);
+		}
+		auto story_card_text_view = registry.view<StoryCardText>();
+		for (auto entity : story_card_text_view)
+		{
+			registry.destroy(entity);
 		}
 		game_state = in_game;
 	}
@@ -1139,14 +1151,12 @@ void WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_
 	}
 }
 
-// helper for start menu mouse click
 void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
 {
 	std::string button_tag = "";
 	if (action == GLFW_PRESS)
 	{
 		button_tag = on_click_button({mouse_pos_x, mouse_pos_y});
-		//std::cout << button_tag << "\n";
 	}
 
 	if (button_tag == EXIT)
@@ -1185,7 +1195,6 @@ void WorldSystem::settings_menu_click_handle(double mouse_pos_x, double mouse_po
 	if (action == GLFW_PRESS)
 	{
 		button_tag = on_click_button({mouse_pos_x, mouse_pos_y});
-		//std::cout << button_tag << "\n";
 	}
 
 	if (button_tag == "back")
@@ -1216,7 +1225,6 @@ void WorldSystem::remove_menu_buttons()
 	}
 }
 
-//
 void WorldSystem::game_setup()
 {
 	registry.clear();
@@ -1225,7 +1233,6 @@ void WorldSystem::game_setup()
 	camera = Camera::createCamera();
 }
 
-// Start Menu
 void WorldSystem::create_start_menu()
 {
 	std::cout << "In Start Menu\n";
@@ -1310,7 +1317,6 @@ entt::entity WorldSystem::create_help_menu()
 	return Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "help_menu", Menu_texture::help_menu, 98, {0.5, 0.5});
 }
 
-// helper for in game mouse click
 void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int action, int mod)
 {
 	Motion camera_motion = registry.get<Motion>(camera);
