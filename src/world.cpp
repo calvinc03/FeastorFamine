@@ -543,8 +543,6 @@ void WorldSystem::restart()
 
 	// set up variables for first round
 	setup_round_from_round_number(0);
-
-	//Spider::createSpider(vec2(300,100), vec2(20,20));
 }
 
 nlohmann::json WorldSystem::get_json(std::string json_path)
@@ -557,7 +555,13 @@ nlohmann::json WorldSystem::get_json(std::string json_path)
 		return NULL;
 	}
 
-	return nlohmann::json::parse(input_stream);
+	try {
+		auto json = nlohmann::json::parse(input_stream);
+		return json;
+	}
+	catch (std::exception) {
+		return NULL;
+	}
 }
 
 void WorldSystem::setup_round_from_round_number(int round_number)
