@@ -243,21 +243,6 @@ void AISystem::MapAI::setRandomGridsWeatherTerrain(GridMap &map, int max_grids) 
     }
 }
 
-int get_random_index () {
-    float num = uniform_dist(rng);
-    // 10% chance for UP and LEFT
-    if (num < 0.1) {
-        return 0;
-    } else if (num < 0.2) {
-        return 1;
-    }
-        // 40% chance for DOWN and RIGHT
-    else if (num < 0.6) {
-        return 2;
-    }
-    return 3;
-}
-
 // set path
 bool is_valid_terrain_path(GridMap& current_map, ivec2 coord)
 {
@@ -270,15 +255,31 @@ bool is_valid_terrain_path(GridMap& current_map, ivec2 coord)
 }
 
 
-ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord, std::vector<ivec2>& neighbors) {
+int get_random_direct_index () {
+    float num = uniform_dist(rng);
+    // 10% chance for UP and LEFT
+    if (num < 0.1) {
+        return 0;
+    }
+    if (num < 0.2) {
+        return 1;
+    }
+    // 40% chance for DOWN and RIGHT
+    if (num < 0.6) {
+        return 2;
+    }
+    return 3;
+}
+
+ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord, const std::vector<ivec2>& neighbors) {
     bool visited[4] = {false, false, false, false};
     int count = 0;
 
-    int index = get_random_index();
+    int index = get_random_direct_index();
     while (count < 4) {
         // randomly roll a direction until we get an unvisited direction
         while (visited[index]) {
-            index = get_random_index();;
+            index = get_random_direct_index();;
         }
         count++;
         // return this neighbor if it's in bounds and has an open path to village (don't want to block itself in)
@@ -296,15 +297,13 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord, st
 }
 
 void AISystem::MapAI::setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain) {
-    // no diagonal version
-    std::vector<ivec2> path_neighbors = {ivec2(0, -1), ivec2(-1, 0),
-                                         ivec2(1,0), ivec2(0,1)};
+
 
     map.setGridTerrain(start_coord, terrain);
 
     // randomly step toward end_coord
     while (start_coord != end_coord) {
-        start_coord = get_random_neighbor(map, start_coord, end_coord, path_neighbors);
+        start_coord = get_random_neighbor(map, start_coord, end_coord, direct_neighbors);
         map.setGridTerrain(start_coord, terrain);
     }
 }

@@ -2,6 +2,10 @@ static const std::vector<ivec2>& all_neighbors = {ivec2(1,0), ivec2(1,-1),ivec2(
                                        ivec2(0,-1),ivec2(0,1),
                                        ivec2(-1,0),ivec2(-1,1),ivec2(-1,-1)};
 
+// no diagonals
+static const std::vector<ivec2> direct_neighbors = {ivec2(0, -1), ivec2(-1, 0),
+                                     ivec2(1,0), ivec2(0,1)};
+
 // maps <weather, terrain> to probability
 const std::map<std::pair<int, int>, float> weather_terrain_prob_multiplier = {
         {std::pair(CLEAR, TERRAIN_MUD), 1.0},
