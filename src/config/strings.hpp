@@ -1,4 +1,5 @@
 #include <string>
+#include <map>
 
 // Simple utility functions to avoid mistyping directory name
 inline std::string data_path() { return "data"; };
@@ -19,3 +20,23 @@ const std::string WINTER_BOSS_TYPE = "winter_boss_type";
 const std::string DRAGON_BOSS_TYPE = "dragon_boss_type";
 const std::string FIREBALL_BOSS_TYPE = "fireball_boss_type";
 const std::string BURROW_BOSS_TYPE = "burrow_boss_type";
+
+const std::map<int, std::string> terrain_texture_path = {
+        {TERRAIN_DEFAULT,  "map/grass.png"},
+        {TERRAIN_PAVEMENT, "map/pavement.png"},
+        {TERRAIN_MUD,      "map/mud.png"},
+        {TERRAIN_PUDDLE,   "map/puddle.png"},
+        {TERRAIN_DRY,   "map/dry.png"},
+        {TERRAIN_FIRE,   "map/fire.png"},
+        {TERRAIN_ICE,   "map/ice.png"},
+};
+
+const std::map<int, std::string> terrain_str = {
+        {TERRAIN_DEFAULT,  "grass"},
+        {TERRAIN_PAVEMENT, "pavement"},
+        {TERRAIN_MUD,      "mud"},
+        {TERRAIN_PUDDLE,   "puddle"},
+        {TERRAIN_DRY,   "dry"},
+        {TERRAIN_FIRE,   "fire"},
+        {TERRAIN_ICE,   "ice"},
+};

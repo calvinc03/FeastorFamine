@@ -161,11 +161,13 @@ void PhysicsSystem::step(float elapsed_ms)
 
 	for (auto entity : registry.view<RockProjectile>()) {
 		auto& motion = registry.get<Motion>(entity);
+		motion.angle += 0.2f;
 		auto& rock = registry.get<RockProjectile>(entity);
-		motion.velocity = 1 / step_seconds * rock.bezier_points[rock.current_step];
-		if (rock.current_step < rock.bezier_points.size() - 1) {
-			rock.current_step += 1;
+		if (rock.current_step == rock.bezier_points.size() - 1) {
+			continue;
 		}
+		motion.velocity = 1 / step_seconds * rock.bezier_points[rock.current_step];
+		rock.current_step += 1;
 	}
 
 
@@ -186,6 +188,9 @@ void PhysicsSystem::step(float elapsed_ms)
 			entt::entity entity_i = entity[i];
 			Motion& motion_j = registry.get<Motion>(entity[j]);
 			entt::entity entity_j = entity[j];
+
+			// If either entity is already dying, do not consider collisions
+			if (registry.has<EntityDeath>(entity_i) || registry.has<EntityDeath>(entity_j)) continue;
 
 			// considers collisions between only if the entities are projectiles and monsters
 			if ((registry.has<Projectile>(entity_i) && registry.has<Monster>(entity_j)) || (registry.has<Projectile>(entity_j) && registry.has<Monster>(entity_i)))

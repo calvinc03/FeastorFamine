@@ -5,8 +5,10 @@ enum grid_terrain
     TERRAIN_PAVEMENT = -1,
     TERRAIN_DEFAULT = 0,
     TERRAIN_MUD = 1,
-    TERRAIN_ICE = 2,
-    TERRAIN_PUDDLE = 3,
+    TERRAIN_PUDDLE = 2,
+    TERRAIN_DRY = 3,
+    TERRAIN_FIRE = 4,
+    TERRAIN_ICE = 5,
 };
 
 enum grid_occupancy

@@ -278,17 +278,6 @@ void WorldSystem::step(float elapsed_ms)
 			}
 		}
 
-	// removes projectiles that are out of the screen
-	for (auto projectile : registry.view<Projectile>())
-	{
-		auto &pos = registry.get<Motion>(projectile);
-		if (pos.position.x > WINDOW_SIZE_IN_PX.x + 200|| pos.position.y > WINDOW_SIZE_IN_PX.y + 200 || pos.position.x < -200 ||
-			pos.position.y < -200)
-		{
-			registry.destroy(projectile);
-		}
-	}
-
 		// greenhouse food production
 		next_greenhouse_production -= elapsed_ms * current_speed;
 		if (next_greenhouse_production < 0.f)
@@ -316,6 +305,27 @@ void WorldSystem::step(float elapsed_ms)
 				player_state = set_up_stage;
 				num_bosses_spawned = 0;
 				num_mobs_spawned = 0;
+			}
+		}
+
+		// removes projectiles that are out of the screen
+		for (auto projectile : registry.view<Projectile>())
+		{
+			auto& pos = registry.get<Motion>(projectile);
+			if (pos.position.x > WINDOW_SIZE_IN_PX.x + 200 || pos.position.y > WINDOW_SIZE_IN_PX.y + 200 || pos.position.x < -200 ||
+				pos.position.y < -200)
+			{
+				registry.destroy(projectile);
+				continue;
+			}
+
+			if (registry.has<EntityDeath>(projectile)) {
+				auto& death = registry.get<EntityDeath>(projectile);
+				death.timer -= elapsed_ms;
+				if (death.timer <= 0) {
+					registry.destroy(projectile);
+					continue;
+				}
 			}
 		}
 
@@ -644,7 +654,32 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity projectile, entt
 	auto &hit_reaction = registry.get<HitReaction>(monster);
 	hit_reaction.counter_ms = 750; //ms duration used by health bar
 
-	registry.destroy(projectile);
+	if (registry.has<RockProjectile>(projectile)) {
+		if (!registry.has<EntityDeath>(projectile)) {
+			auto& death = registry.emplace<EntityDeath>(projectile);
+			death.timer = 1000;
+
+			auto& rock = registry.get<RockProjectile>(projectile);
+			auto& prj_motion = registry.get<Motion>(projectile);
+			auto& monster_motion = registry.get<Motion>(monster);
+
+			vec2 vector = (monster_motion.position - prj_motion.position);
+			vec2 norm;
+			if ((vector.x >= 0 && vector.y >= 0) || (vector.x < 0 && vector.y < 0)) norm = { vector.y, -vector.x };
+			else norm = { vector.y, vector.x };
+
+			std::vector<vec2> points;
+			points.push_back(prj_motion.position);
+			points.push_back(prj_motion.position + norm);
+			points.push_back(prj_motion.position + norm - vector);
+
+			rock.bezier_points = bezierVelocities(bezierCurve(points, 1000));
+		}
+	}
+	else {
+		registry.destroy(projectile);
+	}
+
 	if (animal.health <= 0)
 	{
 		health += animal.reward * reward_multiplier;
