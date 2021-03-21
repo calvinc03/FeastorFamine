@@ -6,6 +6,19 @@ static const std::vector<ivec2>& all_neighbors = {ivec2(1,0), ivec2(1,-1),ivec2(
 static const std::vector<ivec2> direct_neighbors = {ivec2(0, -1), ivec2(-1, 0),
                                      ivec2(1,0), ivec2(0,1)};
 
+
+//static const std::map<int, ivec2> neighbors = {
+//        {UP, ivec2(0, -1)},
+//        {DOWN, ivec2(0, 1)},
+//        {LEFT, ivec2(-1, 0)},
+//        {RIGHT, ivec2(1, 0)},
+//        {UL, ivec2(-1, -1)},
+//        {UR, ivec2(1, -1)},
+//        {LL, ivec2(-1, 1)},
+//        {LR, ivec2(1, 1)},
+//};
+
+
 // maps <weather, terrain> to probability
 const std::map<std::pair<int, int>, float> weather_terrain_prob_multiplier = {
         {std::pair(CLEAR, TERRAIN_MUD), 1.0},

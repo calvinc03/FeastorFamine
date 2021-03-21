@@ -40,3 +40,15 @@ enum weather
     FOG = 3,
     SNOW = 4,
 };
+
+//enum directions
+//{
+//    UP = 0,
+//    DOWN = 1,
+//    LEFT = 2,
+//    RIGHT = 3,
+//    UL = 4,
+//    UR = 5,
+//    LL = 6,
+//    LR = 7,
+//};

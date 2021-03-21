@@ -110,24 +110,21 @@ float get_distance(ivec2 coord1, ivec2 coord2) {
 
 std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), const std::vector<ivec2>& neighbors) {
     std::vector<std::vector<bool>> visited(MAP_SIZE_IN_COORD.x, std::vector<bool> (MAP_SIZE_IN_COORD.y, false));
-    std::vector<std::vector<std::tuple<ivec2, float>>> parent(MAP_SIZE_IN_COORD.x,
-                                                              std::vector<std::tuple<ivec2, float>> (MAP_SIZE_IN_COORD.y, std::make_tuple(vec2(-1, -1), -1)));
-    std::tuple<ivec2, float> start_qnode = std::make_tuple(start_coord, 0.f);
+    std::vector<std::vector<ivec2>> parent(MAP_SIZE_IN_COORD.x,std::vector<ivec2> (MAP_SIZE_IN_COORD.y, vec2(-1, -1)));
 
-    std::queue<std::tuple<ivec2, float>> queue;
+    std::queue<ivec2> queue;
     visited[start_coord.x][start_coord.y] = true;
-    queue.push(start_qnode);
+    queue.push(start_coord);
 
     while (!queue.empty()) {
-        std::tuple<ivec2, float> current_qnode = queue.front();
+        ivec2 current_coord = queue.front();
 
         // current node is the goal node, return path
-         if (std::get<0>(current_qnode) == goal_coord) {
-             ivec2 coord_pointer = std::get<0>(current_qnode);
-             std::vector<ivec2> path_nodes = {coord_pointer};
-             while(std::get<1>(parent[coord_pointer.x][coord_pointer.y]) != -1) {
-                 coord_pointer = std::get<0>(parent[coord_pointer.x][coord_pointer.y]);
-                 path_nodes.emplace_back(coord_pointer);
+         if (current_coord == goal_coord) {
+             std::vector<ivec2> path_nodes = {current_coord};
+             while(current_coord != start_coord) {
+                 current_coord = parent[current_coord.x][current_coord.y];
+                 path_nodes.emplace_back(current_coord);
              }
              std::reverse(path_nodes.begin(), path_nodes.end());
              return path_nodes;
@@ -135,14 +132,13 @@ std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 star
         queue.pop();
         // check neighbors
         for (int i = 0; i < neighbors.size(); i++) {
-            ivec2 nbr_coord = std::get<0>(current_qnode) + neighbors.at(i);
+            ivec2 nbr_coord = current_coord + neighbors.at(i);
             if (!is_valid(current_map, nbr_coord) || visited[nbr_coord.x][nbr_coord.y]) {
                 continue;
             }
-            std::tuple<ivec2, float> next_qnode = std::make_tuple(nbr_coord, std::get<1>(current_qnode) + get_distance(nbr_coord, std::get<0>(current_qnode)));
             visited[nbr_coord.x][nbr_coord.y] = true;
-            queue.emplace(next_qnode);
-            parent[nbr_coord.x][nbr_coord.y] = current_qnode;
+            queue.emplace(nbr_coord);
+            parent[nbr_coord.x][nbr_coord.y] = current_coord;
         }
     }
     // a path does not exist between start and end.
@@ -151,44 +147,7 @@ std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 star
 }
 
 std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), const std::vector<ivec2>& neighbors) {
-    std::vector<std::vector<bool>> visited(MAP_SIZE_IN_COORD.x, std::vector<bool> (MAP_SIZE_IN_COORD.y, false));
-    std::vector<std::vector<std::tuple<ivec2, float>>> parent(MAP_SIZE_IN_COORD.x,
-                                                              std::vector<std::tuple<ivec2, float>> (MAP_SIZE_IN_COORD.y, std::make_tuple(vec2(-1, -1), -1)));
-    std::tuple<ivec2, float> start_qnode = std::make_tuple(start_coord, 0.f);
 
-    std::queue<std::tuple<ivec2, float>> queue;
-    visited[start_coord.x][start_coord.y] = true;
-    queue.push(start_qnode);
-
-    while (!queue.empty()) {
-        std::tuple<ivec2, float> current_qnode = queue.front();
-
-        // current node is the goal node, return path
-        if (std::get<0>(current_qnode) == goal_coord) {
-            ivec2 coord_pointer = std::get<0>(current_qnode);
-            std::vector<ivec2> path_nodes = {coord_pointer};
-            while(std::get<1>(parent[coord_pointer.x][coord_pointer.y]) != -1) {
-                coord_pointer = std::get<0>(parent[coord_pointer.x][coord_pointer.y]);
-                path_nodes.emplace_back(coord_pointer);
-            }
-            std::reverse(path_nodes.begin(), path_nodes.end());
-            return path_nodes;
-        }
-        queue.pop();
-        // check neighbors
-        for (int i = 0; i < neighbors.size(); i++) {
-            ivec2 nbr_coord = std::get<0>(current_qnode) + neighbors.at(i);
-            if (!is_valid(current_map, nbr_coord) || visited[nbr_coord.x][nbr_coord.y]) {
-                continue;
-            }
-            std::tuple<ivec2, float> next_qnode = std::make_tuple(nbr_coord, std::get<1>(current_qnode) + get_distance(nbr_coord, std::get<0>(current_qnode)));
-            visited[nbr_coord.x][nbr_coord.y] = true;
-            queue.emplace(next_qnode);
-            parent[nbr_coord.x][nbr_coord.y] = current_qnode;
-        }
-    }
-    // a path does not exist between start and end.
-    // should NOT reach this point for monster travel path with random map generation is in place
     return std::vector<ivec2>();
 }
 
@@ -293,7 +252,6 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord, co
     }
     // cannot find a valid neighbor; should NOT happen
     assert(false);
-    return ivec2(0, 0);
 }
 
 void AISystem::MapAI::setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain) {
