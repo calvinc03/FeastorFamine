@@ -61,6 +61,7 @@ const std::string SETTINGS_MENU = "settings_menu";
 const std::string EXIT = "exit";
 const std::string UPGRADE_BUTTON_TITLE = "upgrade_button";
 const std::string SELL_BUTTON_TITLE = "sell_button";
+const std::string START_BUTTON_TITLE = "start_button";
 const std::string SAVE_BUTTON_TITLE = "save_button";
 const std::string SPRING_TITLE = "spring";
 const std::string SUMMER_TITLE = "summer";
@@ -305,6 +306,7 @@ void WorldSystem::step(float elapsed_ms)
 				player_state = set_up_stage;
 				num_bosses_spawned = 0;
 				num_mobs_spawned = 0;
+				setup_game_setup_stage();
 			}
 		}
 
@@ -377,9 +379,7 @@ void WorldSystem::step(float elapsed_ms)
 		}
 
 		//stage text is set once per step...
-		auto& stage_text = registry.get<Text>(stage_text_entity);
-		stage_text.content = "BATTLE";
-		stage_text.colour = { 1.0f, 0.1f, 0.1f };
+		
 
 		registry.get<Text>(round_text_entity).content = "round: " + std::to_string(round_number);
 		registry.get<Text>(food_text_entity).content = "food: " + std::to_string(health);
@@ -399,7 +399,20 @@ void un_highlight()
 		highlight.highlight = false;
 	}
 }
+void WorldSystem::setup_game_setup_stage()
+{
+	player_state = set_up_stage;
+	auto view_ui_button = registry.view<UI_element, ShadedMeshRef>();
+	for (auto button_entt : view_ui_button)
+	{
+		auto ui_button = view_ui_button.get<UI_element>(button_entt);
 
+		if (ui_button.tag == START_BUTTON_TITLE)
+		{
+			RenderSystem::show_entity(button_entt);
+		}
+	}
+}
 
 void WorldSystem::set_up_step(float elapsed_ms)
 {
@@ -464,8 +477,25 @@ void WorldSystem::set_up_step(float elapsed_ms)
         ParticleSystem::createParticle(velocity, position, life, texture, shader);
     }
 
+	auto& stage_text = registry.get<Text>(stage_text_entity);
+	stage_text.content = "PREPARE: " + std::to_string((int)round(set_up_timer / 1000));
+	stage_text.colour = { 1.0f, 1.0f, 1.0f };
+	registry.get<Text>(round_text_entity).content = "round: " + std::to_string(round_number);
+	registry.get<Text>(food_text_entity).content = "food: " + std::to_string(health);
+
 	if (set_up_timer <= 0)
 	{
+		// hide start_button
+		auto view_ui_button = registry.view<UI_element, ShadedMeshRef>();
+		for (auto button_entt : view_ui_button)
+		{
+			auto ui_button = view_ui_button.get<UI_element>(button_entt);
+
+			if (ui_button.tag == START_BUTTON_TITLE)
+			{
+				RenderSystem::hide_entity(button_entt);
+			}
+		}
 		player_state = battle_stage;
 		set_up_timer = SET_UP_TIME;
 		next_mob_spawn = 0;
@@ -474,14 +504,14 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		// set path at start of battle phase
 		monster_path_coords = AISystem::MapAI::findPathAStar(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
 
+		auto& stage_text = registry.get<Text>(stage_text_entity);
+		stage_text.content = "BATTLE";
+		stage_text.colour = { 1.0f, 0.1f, 0.1f };
+
 		std::cout << season_str << " season! \n";
 		std::cout << "weather " << weather << " \n";
 	}
-	auto &stage_text = registry.get<Text>(stage_text_entity);
-	stage_text.content = "PREPARE: " + std::to_string((int)round(set_up_timer / 1000));
-	stage_text.colour = {1.0f, 1.0f, 1.0f};
-	registry.get<Text>(round_text_entity).content = "round: " + std::to_string(round_number);
-	registry.get<Text>(food_text_entity).content = "food: " + std::to_string(health);
+	
 }
 
 void WorldSystem::setup_start_menu()
@@ -517,13 +547,14 @@ void WorldSystem::restart()
 	screen_state_entity = registry.create();
 	registry.emplace<ScreenState>(screen_state_entity);
 
-	//create UI	-- needs to be at the top of restart for rendering order.
+	//create UI	
 	UI_button::createUI_button(0, tower_button, WATCHTOWER_COST);
 	UI_button::createUI_button(1, green_house_button, GREENHOUSE_COST);
 	UI_button::createUI_button(2, stick_figure_button, HUNTER_COST);
-	UI_button::createUI_button(4, wall_button, WALL_COST);
-	UI_button::createUI_button(7, upgrade_button, HUNTER_UPGRADE_COST, UPGRADE_BUTTON_TITLE, false);
-	UI_button::createUI_button(8, sell_button, SELL_BUTTON_TITLE, false);
+	UI_button::createUI_button(3, wall_button, WALL_COST);
+	UI_button::createUI_button(5, upgrade_button, HUNTER_UPGRADE_COST, UPGRADE_BUTTON_TITLE, false);
+	UI_button::createUI_button(6, sell_button, SELL_BUTTON_TITLE, false);
+	UI_button::createUI_button(8, start_button, START_BUTTON_TITLE);
 	UI_button::createUI_button(9, save_button, 0, SAVE_BUTTON_TITLE);
 	UI_background::createUI_background();
 
@@ -751,6 +782,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 					registry.destroy(monster);
 				}
 			}
+			setup_game_setup_stage();
 		}
 	}
 
@@ -1015,6 +1047,60 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 	}
 }
 
+void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_clicked)
+{
+	if (action != GLFW_PRESS)
+	{
+		return;
+	}
+	auto view_ui_mesh = registry.view<UI_element, ShadedMeshRef>();
+	auto view_unit = registry.view<Unit>();
+	auto view_selectable = registry.view<Selectable>();
+	entt::entity entity_selected;
+	for (auto entity : view_selectable)
+	{
+		if (view_selectable.get<Selectable>(entity).selected)
+			entity_selected = entity;
+	}
+	// if a unit is selected and the sell button is not clicked
+	if (unit_selected && !sell_clicked)
+	{
+		for (auto entity : view_ui_mesh)
+		{
+			if (view_ui_mesh.get<UI_element>(entity).tag == UPGRADE_BUTTON_TITLE)
+			{
+				Unit& unit = view_unit.get<Unit>(entity_selected);
+				std::string button_text = "-" + std::to_string(unit.upgrade_cost);
+				change_button_text(entity, button_text);
+				auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
+				shaded_mesh_ref.show = true;
+			}
+			else if (view_ui_mesh.get<UI_element>(entity).tag == SELL_BUTTON_TITLE)
+			{
+
+				Unit& unit = view_unit.get<Unit>(entity_selected);
+				std::string button_text = "+" + std::to_string(unit.sell_price);
+				change_button_text(entity, button_text);
+				auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
+				shaded_mesh_ref.show = true;
+			}
+		}
+	}
+	else
+	{
+		for (auto entity : view_ui_mesh)
+		{
+			if (view_ui_mesh.get<UI_element>(entity).tag == UPGRADE_BUTTON_TITLE || view_ui_mesh.get<UI_element>(entity).tag == SELL_BUTTON_TITLE)
+			{
+				//std::cout << "not upgrading\n";
+				auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
+				shaded_mesh_ref.show = false;
+			}
+		}
+	}
+}
+
+// mouse click callback function
 void WorldSystem::on_mouse_click(int button, int action, int mod)
 {
 	//getting cursor position
@@ -1030,8 +1116,9 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
 		settings_menu_click_handle(xpos, ypos, button, action, mod);
 		break;
 	case in_game:
-		unit_select_click_handle(xpos, ypos, button, action, mod);
+		vec2 selected_flags = unit_select_click_handle(xpos, ypos, button, action, mod);
 		in_game_click_handle(xpos, ypos, button, action, mod);
+		update_look_for_selected_buttons(action, selected_flags.x, selected_flags.y);
 		break;
 	case help_menu:
 		help_menu_click_handle(xpos, ypos, button, action, mod);
@@ -1083,7 +1170,7 @@ void WorldSystem::sell_unit_click_handle(double mouse_pos_x, double mouse_pos_y,
 {
 }
 
-void WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
+vec2 WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
 {
 	if (action == GLFW_PRESS)
 	{
@@ -1094,7 +1181,7 @@ void WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_
 		auto view_selectable = registry.view<Selectable, Motion>();
 		auto view_ui_mesh = registry.view<UI_element, ShadedMeshRef>();
 		entt::entity entity_selected;
-		vec2 mouse_pos = mouse_in_world_coord({mouse_pos_x, mouse_pos_y});
+		vec2 mouse_pos = mouse_in_world_coord({ mouse_pos_x, mouse_pos_y });
 
 		// get the unit modification buttons
 		auto view_ui = registry.view<UI_element>();
@@ -1156,43 +1243,10 @@ void WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_
 				}
 			}
 		}
-		// if a unit is selected and the sell button is not clicked
-		if (unit_selected && !sell_clicked)
-		{
-			for (auto entity : view_ui_mesh)
-			{
-				if (view_ui_mesh.get<UI_element>(entity).tag == UPGRADE_BUTTON_TITLE)
-				{
-					Unit& unit = view_unit.get<Unit>(entity_selected);
-					std::string button_text = "-" + std::to_string(unit.upgrade_cost);
-					change_button_text(entity, button_text);
-					auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
-					shaded_mesh_ref.show = true;
-				}
-				else if (view_ui_mesh.get<UI_element>(entity).tag == SELL_BUTTON_TITLE)
-				{
-					
-					Unit& unit = view_unit.get<Unit>(entity_selected);
-					std::string button_text = "+" + std::to_string(unit.sell_price);
-					change_button_text(entity, button_text);
-					auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
-					shaded_mesh_ref.show = true;
-				}
-			}
-		}
-		else
-		{
-			for (auto entity : view_ui_mesh)
-			{
-				if (view_ui_mesh.get<UI_element>(entity).tag == UPGRADE_BUTTON_TITLE || view_ui_mesh.get<UI_element>(entity).tag == SELL_BUTTON_TITLE)
-				{
-					//std::cout << "not upgrading\n";
-					auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
-					shaded_mesh_ref.show = false;
-				}
-			}
-		}
+		return { unit_selected, sell_clicked };
+
 	}
+	return { false, false };
 }
 
 void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
@@ -1489,6 +1543,15 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			{
 				save_game();
 			}
+			else if (ui_button == Button::start_button)
+			{
+				if (player_state == set_up_stage)
+				{
+					set_up_timer = 0;
+				}
+				
+			}
+			
 			else
 			{
 				placement_unit_selected = "";

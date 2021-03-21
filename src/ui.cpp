@@ -107,6 +107,9 @@ entt::entity UI_button::createUI_button(int pos, Button button, size_t cost, std
 		else if (button == save_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("save_button.png"), "ui");
 		}
+		else if (button == start_button) {
+			RenderSystem::createSprite(resource, ui_texture_path("start_button.png"), "ui");
+		}
 	}
 
 
@@ -164,6 +167,9 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 		}
 		else if (button == save_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("save_button.png"), "ui");
+		}
+		else if (button == start_button) {
+			RenderSystem::createSprite(resource, ui_texture_path("start_button.png"), "ui");
 		}
 	}
 

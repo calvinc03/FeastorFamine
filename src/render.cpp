@@ -532,3 +532,17 @@ void gl_has_errors()
 	}
 	throw std::runtime_error("last OpenGL error:" + std::string(error_str));
 }
+
+void RenderSystem::show_entity(entt::entity entity)
+{
+	// hide start_button
+	ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity);
+	shaded_mesh_ref.show = TRUE;
+}
+
+void RenderSystem::hide_entity(entt::entity entity)
+{
+	// hide start_button
+	ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity);
+	shaded_mesh_ref.show = FALSE;
+}

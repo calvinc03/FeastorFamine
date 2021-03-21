@@ -7,7 +7,7 @@
 #include "text.hpp"
 
 //enum for ui buttons
-enum Button { no_button_pressed, tower_button, green_house_button, stick_figure_button, wall_button, upgrade_button, save_button, sell_button};
+enum Button { no_button_pressed, tower_button, green_house_button, stick_figure_button, wall_button, upgrade_button, save_button, sell_button, start_button};
 
 std::string button_to_string(int button); // breaks if enums change
 Button UI_click_system();
