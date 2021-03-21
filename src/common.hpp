@@ -1,5 +1,6 @@
 #pragma once
-
+#include "config/enums.hpp"
+#include "config/strings.hpp"
 // stlib
 #include <string>
 #include <tuple>
@@ -21,7 +22,11 @@
 
 using namespace glm;
 static const float PI = 3.14159265359f;
+
+static const int MAX_PARTICLES = 1000;
 static const size_t FIRING_RATE = 3000;
+const int MAX_FIREBALLS = 1000;
+const int FIREBALL_DELAY_MS = 2400;
 
 static const int GRID_CELL_SIZE = 70;
 static const ivec2 GRID_OFFSET =  ivec2(GRID_CELL_SIZE/2 , GRID_CELL_SIZE/2);
@@ -33,82 +38,15 @@ static const ivec2 MAP_SIZE_IN_PX = {WINDOW_SIZE_IN_PX.x, WINDOW_SIZE_IN_PX.y - 
 static const ivec2 MAP_SIZE_IN_COORD = MAP_SIZE_IN_PX / GRID_CELL_SIZE;
 
 static const ivec2 FOREST_COORD = ivec2(0, 0);
-static const ivec2 DRAGON_COORD = ivec2(-2, 4);
-
-static const int MAX_PARTICLES = 1000;
-
 static const ivec2 VILLAGE_COORD = MAP_SIZE_IN_COORD - ivec2(2, 2);
+static const ivec2 DRAGON_COORD = ivec2(-2, 4);
 
 static int season;
 static int weather;
 
-const std::string WATCHTOWER_NAME = "watchtower";
-const std::string GREENHOUSE_NAME = "greenhouse";
-const std::string HUNTER_NAME = "hunter";
-const std::string WALL_NAME = "wall";
-
-const std::string SPRING_BOSS_TYPE = "spring_boss_type";
-const std::string SUMMER_BOSS_TYPE = "summer_boss_type";
-const std::string FALL_BOSS_TYPE = "fall_boss_type";
-const std::string WINTER_BOSS_TYPE = "winter_boss_type";
-const std::string DRAGON_BOSS_TYPE = "dragon_boss_type";
-const std::string FIREBALL_BOSS_TYPE = "fireball_boss_type";
-const std::string BURROW_BOSS_TYPE = "burrow_boss_type";
-
-const int MAX_FIREBALLS = 1000;
-const int FIREBALL_DELAY_MS = 2400;
-
 // C++ random number generator
 static std::default_random_engine rng;
 static std::uniform_real_distribution<float> uniform_dist; // number between 0..1
-
-// Terrains with neg value are ones that cannot be placed on
-// May be refactored later if too hard to keep track
-enum grid_terrain
-{
-    TERRAIN_PAVEMENT = -1,
-    TERRAIN_DEFAULT = 0,
-    TERRAIN_MUD = 1,
-    TERRAIN_ICE = 2,
-    TERRAIN_PUDDLE = 3,
-};
-
-enum grid_occupancy
-{
-    OCCUPANCY_BLOCKED = -1,
-    OCCUPANCY_VACANT = 0,
-    OCCUPANCY_FOREST = 1,
-    OCCUPANCY_VILLAGE = 2,
-    OCCUPANCY_GREENHOUSE = 3,
-    OCCUPANCY_TOWER = 4,
-    OCCUPANCY_WALL = 5,
-    OCCUPANCY_HUNTER = 6,
-};
-
-enum season
-{
-    SPRING = 0,
-    SUMMER = 1,
-    FALL = 2,
-    WINTER = 3
-};
-
-// Weather
-enum weather
-{
-    CLEAR = 0,
-    RAIN = 1,
-    DROUGHT = 2,
-    FOG = 3,
-    SNOW = 4,
-};
-
-// Simple utility functions to avoid mistyping directory name
-inline std::string data_path() { return "data"; };
-inline std::string shader_path(const std::string& name) { return data_path() + "/shaders/" + name;};
-inline std::string textures_path(const std::string& name) { return data_path() + "/textures/" + name; };
-inline std::string audio_path(const std::string& name) { return data_path() + "/audio/" + name; };
-inline std::string mesh_path(const std::string& name) { return data_path() + "/meshes/" + name; };
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)
@@ -185,13 +123,6 @@ struct Selectable {
 //detects if mouse is within the a rectangle of size scale at position entity_pos
 float sdBox(vec2 mouse_pos_grid, vec2 entity_pos, vec2 scale);
 
-//TODO: temporary soln
-#include "entt.hpp"
-extern entt::registry registry;
-extern entt::entity screen_state_entity;
-// for camera view; zoom & pan
-extern entt::entity camera;
-
 vec2 mouse_in_world_coord(vec2 mouse_pos);
 // add offset so that pixel is centered on grid
 
@@ -210,3 +141,10 @@ std::vector<vec2> bezierVelocities(std::vector<vec2> points);
 std::vector<vec2> bezierCurve(std::vector<vec2> points, float total_time);
 
 std::vector<float> pascalNRow(int n);
+
+//TODO: temporary soln
+#include "entt.hpp"
+extern entt::registry registry;
+extern entt::entity screen_state_entity;
+// for camera view; zoom & pan
+extern entt::entity camera;
