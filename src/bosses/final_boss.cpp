@@ -41,7 +41,7 @@ entt::entity FinalBoss::createFinalBossEntt()
     monster.max_health = 5000;
     monster.health = monster.max_health;
     monster.damage = 0;
-    monster.reward = 5000;
+    monster.reward = 10000;
 
     auto& boss = registry.emplace<Boss>(entity);
     boss.hit = false;

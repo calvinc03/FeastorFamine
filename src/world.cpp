@@ -255,7 +255,7 @@ void WorldSystem::step(float elapsed_ms)
 
 		// spawn new fireballs for the final boss
 		next_fireball_spawn -= elapsed_ms * current_speed;
-		if (max_fireballs > 0 && next_fireball_spawn < 0.f)
+		if (!registry.empty<FinalBoss>() && next_fireball_spawn < 0.f)
 		{
 			std::cout << "fireball" << std::endl;
 			next_fireball_spawn = FIREBALL_DELAY_MS;
@@ -264,7 +264,6 @@ void WorldSystem::step(float elapsed_ms)
 			auto& monster = registry.get<Monster>(fireball);
 			monster.path_coords = AISystem::MapAI::findPathBFS(current_map, FOREST_COORD, VILLAGE_COORD, is_walkable);
 
-			num_mobs_spawned += 1;
 			BTCollision->init(fireball);
 		}
 
@@ -300,6 +299,7 @@ void WorldSystem::step(float elapsed_ms)
 		// Increment round number if all enemies are not on the map and projectiles are removed
 		if (num_bosses_spawned == max_boss && num_mobs_spawned == max_mobs)
 		{
+			std::cout << "got here" << std::endl;
 			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty())
 			{
 				round_number++;
@@ -581,7 +581,8 @@ void WorldSystem::setup_round_from_round_number(int round_number)
         } else {
             weather = CLEAR;
         }
-        create_boss = SummerBoss::createSummerBossEntt;
+        //create_boss = SummerBoss::createSummerBossEntt;
+		create_boss = Spider::createSpider;
     }
     else if (season_str == FALL_TITLE)
     {
@@ -611,7 +612,6 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	{
 		season = SUMMER;
 
-		max_fireballs = 1;
 		fireball_delay_ms = 5100;
 		next_fireball_spawn = fireball_delay_ms;
 ;
@@ -644,18 +644,7 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity projectile, entt
 	registry.destroy(projectile);
 	if (animal.health <= 0)
 	{
-		if (season == 3)
-		{
-			health += 30 * 2;
-		}
-		else if (season == 4)
-		{
-			health += 30 / 2;
-		}
-		else
-		{
-			health += 30;
-		}
+		health += animal.reward * reward_multiplier;
 
 		if (registry.has<Rig>(monster)) {
 			Rig::delete_rig(monster); //rigs have multiple pieces to be deleted

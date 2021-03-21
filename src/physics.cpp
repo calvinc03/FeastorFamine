@@ -83,7 +83,7 @@ bool collidesSAT(const Motion& motion1, const Motion& motion2)
 	std::vector<vec2> polygon_a = get_corner_points(motion1);
 	std::vector<vec2> polygon_b = get_corner_points(motion2);
 	
-	/*std::vector<vec2> poly_a_norms = get_norms(polygon_a);
+	std::vector<vec2> poly_a_norms = get_norms(polygon_a);
 	std::vector<vec2> poly_b_norms = get_norms(polygon_b);
 
 	for (vec2 norm : poly_a_norms) {
@@ -100,10 +100,10 @@ bool collidesSAT(const Motion& motion1, const Motion& motion2)
 			return false;
 	}
 
-	return true;*/
+	return true;
 
 
-	for (int i = 0; i < polygon_a.size(); i++) {
+	/*for (int i = 0; i < polygon_a.size(); i++) {
 		vec2 current_point = polygon_a[i];
 		vec2 next_point = polygon_a[(i + 1) % polygon_a.size()];
 		vec2 edge = next_point - current_point;
@@ -138,7 +138,7 @@ bool collidesSAT(const Motion& motion1, const Motion& motion2)
 		if (aMaxProj < bMinProj || aMinProj > bMaxProj) return false;
 	}
 
-	return true;
+	return true;*/
 }
 
 void PhysicsSystem::step(float elapsed_ms)
@@ -180,7 +180,7 @@ void PhysicsSystem::step(float elapsed_ms)
 			entt::entity entity_j = entity[j];
 
 			// considers collisions between only if the entities are projectiles and monsters
-			if ((registry.has<Projectile>(entity_i) && registry.has<Monster>(entity_j)))
+			if ((registry.has<Projectile>(entity_i) && registry.has<Monster>(entity_j)) || (registry.has<Projectile>(entity_j) && registry.has<Monster>(entity_i)))
 			{
 				// considers collisions if entities are within a certain range
 				if (length(motion_i.position - motion_j.position) < POTENTIAL_COLLISION_RANGE) {
@@ -192,7 +192,12 @@ void PhysicsSystem::step(float elapsed_ms)
 					// convex polygon collision
 					if (collidesSAT(motion_i, motion_j))
 					{
-						notifyObservers(entity_i, entity_j);
+						if (registry.has<Projectile>(entity_i)) {
+							notifyObservers(entity_i, entity_j);
+						}
+						else {
+							notifyObservers(entity_j, entity_i);
+						}
 					}
 				}
 			}

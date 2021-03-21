@@ -22,6 +22,7 @@
 
 using namespace glm;
 static const float PI = 3.14159265359f;
+static const float ELAPSED_MS = 20;
 
 static const int MAX_PARTICLES = 1000;
 static const size_t FIRING_RATE = 3000;
