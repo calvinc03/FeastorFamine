@@ -12,6 +12,7 @@
 #include <BehaviorTree.hpp>
 #include <mob.hpp>
 #include <world.hpp>
+#include <rig.hpp>
 #pragma once
 
 // A general decorator with lambda condition
@@ -249,7 +250,14 @@ void increment_monster_step(entt::entity entity) {
 		|| monster.current_path_index >= monster.path_coords.size() - 1) {
 		WorldSystem::health -= monster.damage;
 		motion.velocity *= 0;
-		registry.destroy(entity);
+
+		if (registry.has<Rig>(entity)) {
+			Rig::delete_rig(entity); //rigs have multiple pieces to be deleted
+		}
+		else {
+			registry.destroy(entity);
+		}
+		
 		return;
 	}
 
@@ -266,10 +274,6 @@ void increment_monster_step(entt::entity entity) {
 		motion.angle = atan(move_direction.y / move_direction.x);
 		monster.current_path_index++;
 	}
-
-	/*if (next_step_coord == next_path_coord) {
-		monster.current_path_index++;
-	}*/
 
 	if (DebugSystem::in_debug_mode)
 	{

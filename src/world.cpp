@@ -740,7 +740,12 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			}
 			for (entt::entity monster : registry.view<Monster>())
 			{
-				registry.destroy(monster);
+				if (registry.has<Rig>(monster)) {
+					Rig::delete_rig(monster); //rigs have multiple pieces to be deleted
+				}
+				else {
+					registry.destroy(monster);
+				}
 			}
 		}
 	}
