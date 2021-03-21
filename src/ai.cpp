@@ -341,6 +341,7 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord, co
     }
     // cannot find a valid neighbor; should NOT happen
     assert(false);
+    return ivec2(0,0);
 }
 
 void AISystem::MapAI::setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain) {
