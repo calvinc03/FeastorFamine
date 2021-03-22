@@ -264,6 +264,7 @@ int get_random_weather_terrain() {
         }
     }
 
+    // approx 30% tiles will be weather tiles
     if (max_prob.y > 0.7) {
         return max_prob.x;
     }
@@ -282,7 +283,7 @@ void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map) {
     }
 }
 
-void AISystem::MapAI::setRandomGridsWeatherTerrain(GridMap &map, int max_rerolls) {
+void AISystem::MapAI::setRandomWeatherTerrain(GridMap &map, int max_rerolls) {
     for (int i = 0; i < max_rerolls; i++) {
         ivec2 random_coord(uniform_dist(rng)*MAP_SIZE_IN_COORD.x,  uniform_dist(rng)*MAP_SIZE_IN_COORD.y);
         auto& node = map.getNodeAtCoord(random_coord);

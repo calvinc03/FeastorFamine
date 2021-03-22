@@ -293,7 +293,7 @@ void WorldSystem::step(float elapsed_ms)
 				setup_round_from_round_number(round_number);
 				// re-roll some fraction of map for weather terrains
 				int max_rerolls = ceil(0.3*MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
-				AISystem::MapAI::setRandomGridsWeatherTerrain(current_map, max_rerolls);
+				AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls);
 				player_state = set_up_stage;
 				num_bosses_spawned = 0;
 				num_mobs_spawned = 0;
@@ -566,6 +566,8 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	max_boss = round_json["max_bosses"];
 	boss_delay_ms = round_json["boss_delay_ms"];
 	season_str = round_json["season"];
+	int prev_season = season;
+	int prev_weather = weather;
 
 	game_state = story_card;
 	StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number));
@@ -625,7 +627,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 
 		fireball_delay_ms = 5100;
 		next_fireball_spawn = fireball_delay_ms;
-;
+
 		int weather_int = rand() % 5 + 1;
 		if (weather_int % 2 == 1)
 		{
@@ -636,6 +638,9 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		}
 		std::cout << "SPAWNING FINAL BOSS" << std::endl;
 		create_boss = FinalBoss::createFinalBossEntt;
+	}
+	if (!(prev_season == season && prev_weather == weather)) {
+	    AISystem::MapAI::setRandomMapWeatherTerrain(current_map);
 	}
 }
 

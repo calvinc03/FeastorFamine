@@ -1,6 +1,6 @@
 #include "grid_map.hpp"
 
-const std::map<int, std::vector<ivec2>> neighbor_map = {
+const static std::map<int, std::vector<ivec2>> neighbor_map = {
         {DIRECT_NBRS, {ivec2(0, -1), ivec2(-1, 0),
                               ivec2(1,0), ivec2(0,1)}},
 
@@ -22,7 +22,7 @@ const std::map<int, std::vector<ivec2>> neighbor_map = {
 //        {LR, ivec2(1, 1)},
 //};
 
-const std::map<std::pair<int, int>, float> monster_move_cost = {
+const static std::map<std::pair<int, int>, float> monster_move_cost = {
         // rabbit
         {std::pair(MOB, TERRAIN_PAVEMENT),         0.5},
         {std::pair(MOB, TERRAIN_DEFAULT),          1.0},
@@ -98,7 +98,7 @@ const std::map<std::pair<int, int>, float> monster_move_cost = {
 };
 
 // maps <monster type, terrain> to unit move cost
-const std::map<std::pair<int, int>, int> monster_move_speed_multiplier = {
+const static std::map<std::pair<int, int>, int> monster_move_speed_multiplier = {
         // rabbit
         {std::pair(MOB, TERRAIN_PAVEMENT),         1.2},
         {std::pair(MOB, TERRAIN_DEFAULT),          1.0},
@@ -174,18 +174,18 @@ const std::map<std::pair<int, int>, int> monster_move_speed_multiplier = {
 };
 
 // maps <weather, terrain> to probability
-const std::map<std::pair<int, int>, float> weather_terrain_prob_multiplier = {
-        {std::pair(CLEAR, TERRAIN_MUD), 1.0},
-        {std::pair(CLEAR, TERRAIN_PUDDLE), 1.0},
-        {std::pair(CLEAR, TERRAIN_DRY), 1.0},
-        {std::pair(CLEAR, TERRAIN_FIRE), 0.8},
-        {std::pair(CLEAR, TERRAIN_ICE), 0.8},
+const static std::map<std::pair<int, int>, float> weather_terrain_prob_multiplier = {
+        {std::pair(CLEAR, TERRAIN_MUD), 0.8},
+        {std::pair(CLEAR, TERRAIN_PUDDLE), 0.8},
+        {std::pair(CLEAR, TERRAIN_DRY), 0.8},
+        {std::pair(CLEAR, TERRAIN_FIRE), 0.5},
+        {std::pair(CLEAR, TERRAIN_ICE), 0.5},
 
         {std::pair(RAIN, TERRAIN_MUD), 1.0},
         {std::pair(RAIN, TERRAIN_PUDDLE), 1.2},
-        {std::pair(RAIN, TERRAIN_DRY), 0.5},
-        {std::pair(RAIN, TERRAIN_FIRE), 0.5},
-        {std::pair(RAIN, TERRAIN_ICE), 0.5},
+        {std::pair(RAIN, TERRAIN_DRY), 0.3},
+        {std::pair(RAIN, TERRAIN_FIRE), 0.1},
+        {std::pair(RAIN, TERRAIN_ICE), 0.3},
 
         {std::pair(DROUGHT, TERRAIN_MUD), 0.8},
         {std::pair(DROUGHT, TERRAIN_PUDDLE), 0.5},
