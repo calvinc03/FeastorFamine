@@ -60,7 +60,7 @@ struct Monster {
     std::vector<ivec2> path_coords;
 
 	bool hit;
-	float speed_multiplier;
+	float speed_multiplier = 1.0;
 	int type;
 	std::string walk_sprite;
 	std::string run_sprite;

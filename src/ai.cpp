@@ -108,7 +108,8 @@ float get_distance(ivec2 coord1, ivec2 coord2) {
     return length((vec2)(coord1 - coord2));
 }
 
-std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), const std::vector<ivec2>& neighbors) {
+std::vector<ivec2> AISystem::MapAI::findPathBFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), int neighbor_type) {
+    std::vector<ivec2> neighbors = neighbor_map.at(neighbor_type);
     std::vector<std::vector<bool>> visited(MAP_SIZE_IN_COORD.x, std::vector<bool> (MAP_SIZE_IN_COORD.y, false));
     std::vector<std::vector<ivec2>> parent(MAP_SIZE_IN_COORD.x,std::vector<ivec2> (MAP_SIZE_IN_COORD.y, vec2(-1, -1)));
 
@@ -172,7 +173,8 @@ float heuristic_diagonal_dist(GridMap& current_map, int monster_type, ivec2 from
     return unit_move_cost * (dx + dy) + (diag_cost - 2 * unit_move_cost) * min(dx, dy);
 }
 
-std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int monster_type, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), const std::vector<ivec2>& neighbors) {
+std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int monster_type, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), int neighbor_type) {
+    std::vector<ivec2> neighbors = neighbor_map.at(neighbor_type);
     std::vector<std::vector<search_node>> parent(MAP_SIZE_IN_COORD.x,std::vector<search_node> (MAP_SIZE_IN_COORD.y, {ivec2(-1, -1), INFINITY, INFINITY}));
     std::vector<search_node> open;
     std::vector<search_node> closed;
@@ -318,7 +320,8 @@ int get_random_direct_index () {
     return 3;
 }
 
-ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord, const std::vector<ivec2>& neighbors) {
+ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord, int neighbor_type) {
+    std::vector<ivec2> neighbors = neighbor_map.at(neighbor_type);
     bool visited[4] = {false, false, false, false};
     int count = 0;
 
@@ -334,7 +337,7 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord, co
         visited[index] = true;
         if (nbr_coord == end_coord ||
             (is_inbounds(nbr_coord) && map.getNodeAtCoord(nbr_coord).terrain != TERRAIN_PAVEMENT
-             && !AISystem::MapAI::findPathBFS(map, nbr_coord, VILLAGE_COORD, is_valid_terrain_path, neighbors).empty())) {
+             && !AISystem::MapAI::findPathBFS(map, nbr_coord, VILLAGE_COORD, is_valid_terrain_path, neighbor_type).empty())) {
             return nbr_coord;
         }
     }
@@ -350,7 +353,7 @@ void AISystem::MapAI::setRandomMapPathTerran(GridMap& map, ivec2 start_coord, iv
 
     // randomly step toward end_coord
     while (start_coord != end_coord) {
-        start_coord = get_random_neighbor(map, start_coord, end_coord, direct_neighbors);
+        start_coord = get_random_neighbor(map, start_coord, end_coord, DIRECT_NBRS);
         map.setGridTerrain(start_coord, terrain);
     }
 }

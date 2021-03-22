@@ -1,6 +1,6 @@
 #include "entt.hpp"
 #include "common.hpp"
-
+#include "config/ai_config.hpp"
 #include <cassert>
 #include <iostream>
 #include <functional>
@@ -266,8 +266,13 @@ void increment_monster_step(entt::entity entity) {
 		motion.angle = atan(move_direction.y / move_direction.x);
 	}
 
+	// increment path index and apply terrain speed multiplier
 	if (next_step_coord == next_path_coord) {
 		monster.current_path_index++;
+		int current_terran = WorldSystem::current_map.getNodeAtCoord(current_path_coord).terrain;
+		int next_terran = WorldSystem::current_map.getNodeAtCoord(next_path_coord).terrain;
+		monster.speed_multiplier /= monster_move_speed_multiplier.at({monster.type, current_terran});
+		monster.speed_multiplier *= monster_move_speed_multiplier.at({monster.type, next_terran});
 	}
 
 	if (DebugSystem::in_debug_mode)

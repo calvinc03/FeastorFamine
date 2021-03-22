@@ -1,14 +1,16 @@
 #include "grid_map.hpp"
 
-static const std::vector<ivec2>& all_neighbors = {ivec2(1,0), ivec2(1,-1),ivec2(1,1),
-                                       ivec2(0,-1),ivec2(0,1),
-                                       ivec2(-1,0),ivec2(-1,1),ivec2(-1,-1)};
+const std::map<int, std::vector<ivec2>> neighbor_map = {
+        {DIRECT_NBRS, {ivec2(0, -1), ivec2(-1, 0),
+                              ivec2(1,0), ivec2(0,1)}},
 
-// no diagonals
-static const std::vector<ivec2> direct_neighbors = {ivec2(0, -1), ivec2(-1, 0),
-                                     ivec2(1,0), ivec2(0,1)};
+        {DIAGONAL_NBRS, {ivec2(-1, -1), ivec2(-1, 1),
+                                ivec2(1,-1), ivec2(1,1)}},
 
-
+        {ALL_NBRS, {ivec2(1,0), ivec2(1,-1),ivec2(1,1),
+                           ivec2(0,-1),ivec2(0,1),
+                           ivec2(-1,0),ivec2(-1,1),ivec2(-1,-1)}},
+};
 //static const std::map<int, ivec2> neighbors = {
 //        {UP, ivec2(0, -1)},
 //        {DOWN, ivec2(0, 1)},

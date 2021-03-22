@@ -139,8 +139,6 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
 	// Attaching World Observer to Physics observerlist
 	this->physics = physics;
 	this->physics->attach(this);
-
-	BTCollision = AISystem::MonstersAI::createBehaviorTree();
 }
 
 WorldSystem::~WorldSystem()
@@ -527,15 +525,20 @@ void WorldSystem::restart()
 
 	// TODO: create forest
 	current_map.setGridOccupancy(FOREST_COORD, OCCUPANCY_FOREST);
+
+	// set default paths
+    for (int monster_type = 0; monster_type < monster_type_count; monster_type++) {
+        default_monster_paths.insert(std::pair<int, std::vector<ivec2>>(monster_type,
+                AISystem::MapAI::findPathAStar(current_map, monster_type)));
+    }
+
+    BTCollision = AISystem::MonstersAI::createBehaviorTree();
+
 	camera = Camera::createCamera();
 
 	// set up variables for first round
 	setup_round_from_round_number(0);
 
-	for (int monster_type = 0; monster_type < monster_type_count; monster_type++) {
-	    default_monster_paths.insert(std::pair<int, std::vector<ivec2>>(monster_type,
-	            AISystem::MapAI::findPathAStar(current_map, monster_type)));
-	}
 	//Spider::createSpider(vec2(300,100), vec2(20,20));
 }
 

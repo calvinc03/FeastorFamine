@@ -48,6 +48,13 @@ enum unit_type
     WALL = 4,
 };
 
+enum neighbor_type
+{
+    DIRECT_NBRS = 0,
+    DIAGONAL_NBRS = 1,
+    ALL_NBRS = 2,
+};
+
 enum season
 {
     SPRING = 0,

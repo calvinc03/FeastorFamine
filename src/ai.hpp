@@ -4,7 +4,6 @@
 #include <queue>
 
 #include "common.hpp"
-#include "config/ai_config.hpp"
 #include "entt.hpp"
 #include "Observer.hpp"
 #include "physics.hpp"
@@ -33,12 +32,12 @@ public:
                                               ivec2 start_coord = FOREST_COORD,
                                               ivec2 goal_coord = VILLAGE_COORD,
                                               bool is_valid(GridMap&, ivec2) = is_walkable,
-                                              const std::vector<ivec2>& neighbors = all_neighbors);
+                                              int neighbors = ALL_NBRS);
         static std::vector<ivec2> findPathAStar(GridMap& current_map, int monster_type,
                                                 ivec2 start_coord = FOREST_COORD,
                                                 ivec2 goal_coord = VILLAGE_COORD,
                                                 bool is_valid(GridMap&, ivec2) = is_walkable,
-                                                const std::vector<ivec2>& neighbors = all_neighbors);
+                                                int neighbors = ALL_NBRS);
         static void setRandomMapWeatherTerrain(GridMap& map);
         static void setRandomGridsWeatherTerrain(GridMap& map, int max_rerolls);
         static void setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain = TERRAIN_PAVEMENT);

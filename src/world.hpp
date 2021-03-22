@@ -106,8 +106,7 @@ public:
 	// decrease reward at higher levels
 	static float reward_multiplier;
 
-
-
+static GridMap current_map;
 private:
 	// PhysicsSystem handle
 	PhysicsSystem *physics;
@@ -173,10 +172,7 @@ private:
 	int num_bosses_spawned;
 	entt::entity (*create_boss)();
 
-	// Monster path
-	GridMap current_map;
-
-	std::shared_ptr<BTNode> BTCollision;
+    std::shared_ptr<BTNode> BTCollision;
 
 	// round and set up
 	int round_number;
