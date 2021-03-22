@@ -106,6 +106,8 @@ public:
 	// decrease reward at higher levels
 	static float reward_multiplier;
 
+
+
 private:
 	// PhysicsSystem handle
 	PhysicsSystem *physics;

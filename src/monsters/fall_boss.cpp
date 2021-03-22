@@ -43,6 +43,7 @@ entt::entity FallBoss::createFallBossEntt()
     monster.damage = 100;
     monster.reward = 50;
 
+    monster.type = FALL_BOSS;
     monster.hit = false;
     monster.speed_multiplier = 1.f;
     monster.sprite = WALK_SPRITE;

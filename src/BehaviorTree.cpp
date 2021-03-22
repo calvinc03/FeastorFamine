@@ -264,12 +264,11 @@ void increment_monster_step(entt::entity entity) {
 		vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
 		motion.velocity = length(motion.velocity) * move_direction;
 		motion.angle = atan(move_direction.y / move_direction.x);
-		monster.current_path_index++;
 	}
 
-	/*if (next_step_coord == next_path_coord) {
+	if (next_step_coord == next_path_coord) {
 		monster.current_path_index++;
-	}*/
+	}
 
 	if (DebugSystem::in_debug_mode)
 	{

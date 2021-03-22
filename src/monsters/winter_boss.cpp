@@ -47,6 +47,7 @@ entt::entity WinterBoss::createWinterBossEntt()
     monster.reward = 40;
 
     monster.hit = false;
+    monster.type = WINTER_BOSS;
     monster.speed_multiplier = 1.f;
     monster.sprite = WALK_SPRITE;
     monster.frames = WALK_FRAMES;

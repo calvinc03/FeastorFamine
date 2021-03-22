@@ -52,6 +52,7 @@ float WorldSystem::reward_multiplier = 1.f;
 
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
+static std::map<int, std::vector<ivec2>> default_monster_paths;
 const std::string NEW_GAME = "new_game";
 const std::string SAVE_GAME = "save_game";
 const std::string LOAD_GAME = "load_game";
@@ -190,17 +191,6 @@ void WorldSystem::init_audio()
 								 audio_path("ui_sound_bottle_pop.wav"));
 }
 
-// set path
-bool is_walkable(GridMap& current_map, ivec2 coord)
-{
-	if (is_inbounds(coord))
-	{
-		int occupancy = current_map.getNodeAtCoord(coord).occupancy;
-		return occupancy == OCCUPANCY_VACANT || occupancy == OCCUPANCY_FOREST || occupancy == OCCUPANCY_VILLAGE;
-	}
-	return false;
-}
-
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
@@ -233,7 +223,7 @@ void WorldSystem::step(float elapsed_ms)
 			entt::entity boss = create_boss();
 		
 			auto& monster = registry.get<Monster>(boss);
-			monster.path_coords = AISystem::MapAI::findPathAStar(current_map, monster.type, FOREST_COORD, VILLAGE_COORD, is_walkable);
+			monster.path_coords = default_monster_paths.at(monster.type);
 
 			num_bosses_spawned += 1;
 			BTCollision->init(boss);
@@ -247,7 +237,7 @@ void WorldSystem::step(float elapsed_ms)
 			entt::entity mob = Mob::createMobEntt();
 			//entt::entity mob = Spider::createSpider();
 			auto& monster = registry.get<Monster>(mob);
-			monster.path_coords = AISystem::MapAI::findPathAStar(current_map, monster.type, FOREST_COORD, VILLAGE_COORD, is_walkable);
+            monster.path_coords = default_monster_paths.at(monster.type);
 
 			num_mobs_spawned += 1;
 			BTCollision->init(mob);
@@ -262,7 +252,7 @@ void WorldSystem::step(float elapsed_ms)
 			entt::entity fireball = FireballBoss::createFireballBossEntt();
 
 			auto& monster = registry.get<Monster>(fireball);
-			monster.path_coords = AISystem::MapAI::findPathAStar(current_map, monster.type, FOREST_COORD, VILLAGE_COORD, is_walkable);
+            monster.path_coords = default_monster_paths.at(monster.type);
 
 			BTCollision->init(fireball);
 		}
@@ -542,6 +532,10 @@ void WorldSystem::restart()
 	// set up variables for first round
 	setup_round_from_round_number(0);
 
+	for (int monster_type = 0; monster_type < monster_type_count; monster_type++) {
+	    default_monster_paths.insert(std::pair<int, std::vector<ivec2>>(monster_type,
+	            AISystem::MapAI::findPathAStar(current_map, monster_type)));
+	}
 	//Spider::createSpider(vec2(300,100), vec2(20,20));
 }
 

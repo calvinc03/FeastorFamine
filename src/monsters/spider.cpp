@@ -42,6 +42,7 @@ entt::entity  Spider::createSpider() {
 
 
     auto& monster = registry.emplace<Monster>(entity);
+    monster.type = SPIDER;
     monster.max_health = 10;
     monster.health = monster.max_health;
     monster.damage = 50;

@@ -44,6 +44,7 @@ entt::entity BurrowBoss::createBurrowBossEntt()
     monster.damage = 10;
     monster.reward = 10;
 
+    monster.type = BURROW_BOSS;
     monster.hit = false;
     monster.speed_multiplier = 6.f;
     monster.sprite = WALK_SPRITE;

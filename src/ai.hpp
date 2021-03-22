@@ -6,7 +6,6 @@
 #include "common.hpp"
 #include "config/ai_config.hpp"
 #include "entt.hpp"
-#include "grid_map.hpp"
 #include "Observer.hpp"
 #include "physics.hpp"
 #include <BehaviorTree.cpp>
@@ -21,9 +20,24 @@ public:
 	void updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster);
 
 	struct MapAI {
-        static std::vector<ivec2> findPathBFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2),
+        static bool is_walkable(GridMap& current_map, ivec2 coord)
+        {
+            if (is_inbounds(coord))
+            {
+                int occupancy = current_map.getNodeAtCoord(coord).occupancy;
+                return occupancy == OCCUPANCY_VACANT || occupancy == OCCUPANCY_FOREST || occupancy == OCCUPANCY_VILLAGE;
+            }
+            return false;
+        }
+        static std::vector<ivec2> findPathBFS(GridMap& current_map,
+                                              ivec2 start_coord = FOREST_COORD,
+                                              ivec2 goal_coord = VILLAGE_COORD,
+                                              bool is_valid(GridMap&, ivec2) = is_walkable,
                                               const std::vector<ivec2>& neighbors = all_neighbors);
-        static std::vector<ivec2> findPathAStar(GridMap& current_map, int monster_type, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2),
+        static std::vector<ivec2> findPathAStar(GridMap& current_map, int monster_type,
+                                                ivec2 start_coord = FOREST_COORD,
+                                                ivec2 goal_coord = VILLAGE_COORD,
+                                                bool is_valid(GridMap&, ivec2) = is_walkable,
                                                 const std::vector<ivec2>& neighbors = all_neighbors);
         static void setRandomMapWeatherTerrain(GridMap& map);
         static void setRandomGridsWeatherTerrain(GridMap& map, int max_rerolls);

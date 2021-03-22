@@ -23,6 +23,8 @@ enum terrain_type
     TERRAIN_ICE = 5,
 };
 
+const int monster_type_count = 9;
+
 enum monster_type
 {
     MOB = 0,
@@ -33,6 +35,7 @@ enum monster_type
     DRAGON_BOSS = 5,
     FIREBALL_BOSS = 6,
     BURROW_BOSS = 7,
+    SPIDER = 8,
 };
 
 enum unit_type

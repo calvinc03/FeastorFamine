@@ -48,6 +48,7 @@ entt::entity SpringBoss::createSpringBossEntt()
     monster.reward = 30;
 
     monster.hit = false;
+    monster.type = SPRING_BOSS;
     monster.speed_multiplier = 1.f;
     monster.sprite = WALK_SPRITE;
     monster.frames = WALK_FRAMES;

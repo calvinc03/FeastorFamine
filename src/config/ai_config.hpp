@@ -1,3 +1,5 @@
+#include "grid_map.hpp"
+
 static const std::vector<ivec2>& all_neighbors = {ivec2(1,0), ivec2(1,-1),ivec2(1,1),
                                        ivec2(0,-1),ivec2(0,1),
                                        ivec2(-1,0),ivec2(-1,1),ivec2(-1,-1)};
@@ -83,6 +85,14 @@ const std::map<std::pair<int, int>, float> monster_move_cost = {
         {std::pair(BURROW_BOSS, TERRAIN_DRY),              1.0},
         {std::pair(BURROW_BOSS, TERRAIN_FIRE),             10.0},
         {std::pair(BURROW_BOSS, TERRAIN_ICE),              1.0},
+
+        {std::pair(SPIDER, TERRAIN_PAVEMENT),         1.0},
+        {std::pair(SPIDER, TERRAIN_DEFAULT),          1.0},
+        {std::pair(SPIDER, TERRAIN_MUD),              2.0},
+        {std::pair(SPIDER, TERRAIN_PUDDLE),           3.0},
+        {std::pair(SPIDER, TERRAIN_DRY),              1.0},
+        {std::pair(SPIDER, TERRAIN_FIRE),             10.0},
+        {std::pair(SPIDER, TERRAIN_ICE),              1.0},
 };
 
 // maps <monster type, terrain> to unit move cost
@@ -144,7 +154,6 @@ const std::map<std::pair<int, int>, int> monster_move_speed_multiplier = {
         {std::pair(FIREBALL_BOSS, TERRAIN_FIRE),             1.0},
         {std::pair(FIREBALL_BOSS, TERRAIN_ICE),              1.0},
 
-
         {std::pair(BURROW_BOSS, TERRAIN_PAVEMENT),         1.0},
         {std::pair(BURROW_BOSS, TERRAIN_DEFAULT),          1.0},
         {std::pair(BURROW_BOSS, TERRAIN_MUD),              1.0},
@@ -152,6 +161,14 @@ const std::map<std::pair<int, int>, int> monster_move_speed_multiplier = {
         {std::pair(BURROW_BOSS, TERRAIN_DRY),              1.0},
         {std::pair(BURROW_BOSS, TERRAIN_FIRE),             1.0},
         {std::pair(BURROW_BOSS, TERRAIN_ICE),              1.0},
+
+        {std::pair(SPIDER, TERRAIN_PAVEMENT),         1.2},
+        {std::pair(SPIDER, TERRAIN_DEFAULT),          1.2},
+        {std::pair(SPIDER, TERRAIN_MUD),              0.8},
+        {std::pair(SPIDER, TERRAIN_PUDDLE),           0.5},
+        {std::pair(SPIDER, TERRAIN_DRY),              1.2},
+        {std::pair(SPIDER, TERRAIN_FIRE),             10.0},
+        {std::pair(SPIDER, TERRAIN_ICE),              1.2},
 };
 
 // maps <weather, terrain> to probability
