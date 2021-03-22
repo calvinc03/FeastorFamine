@@ -44,7 +44,7 @@ entt::entity FinalBoss::createFinalBossEntt()
     monster.reward = 10000;
 
     monster.hit = false;
-    monster.type = DRAGON_BOSS;
+    monster.type = FINAL_BOSS;
     monster.speed_multiplier = 1.f;
     monster.sprite = ATTACK_SPRITE;
     monster.frames = ATTACK_FRAMES;

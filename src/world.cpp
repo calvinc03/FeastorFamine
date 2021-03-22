@@ -53,7 +53,8 @@ float WorldSystem::reward_multiplier = 1.f;
 
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
-static std::map<int, std::vector<ivec2>> default_monster_paths;
+std::map<int, std::vector<ivec2>> default_monster_paths;
+std::vector<int> current_round_monster_types;
 const std::string NEW_GAME = "new_game";
 const std::string SAVE_GAME = "save_game";
 const std::string LOAD_GAME = "load_game";
@@ -512,10 +513,9 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		stage_text.colour = { 1.0f, 0.1f, 0.1f };
 
         // set default paths for monster AI for this round
-        for (int monster_type = 0; monster_type < monster_type_count; monster_type++) {
+        for (int monster_type : current_round_monster_types) {
             default_monster_paths.at(monster_type) = AISystem::MapAI::findPathAStar(current_map, monster_type);
         }
-
         std::cout << season_str << " season! \n";
 		std::cout << "weather " << weather << " \n";
 	}
@@ -617,7 +617,9 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 
 	game_state = story_card;
 	StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number));
-    
+
+    current_round_monster_types.clear();
+    current_round_monster_types.emplace_back(MOB);
     if (season_str == SPRING_TITLE)
     {
         season = SPRING;
@@ -629,6 +631,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
             weather = CLEAR;
         }
         create_boss = SpringBoss::createSpringBossEntt;
+        current_round_monster_types.emplace_back(SPRING_BOSS);
     }
     else if (season_str == SUMMER_TITLE)
     {
@@ -642,6 +645,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
         }
         //create_boss = SummerBoss::createSummerBossEntt;
 		create_boss = Spider::createSpider;
+        current_round_monster_types.emplace_back(SPIDER);
     }
     else if (season_str == FALL_TITLE)
     {
@@ -666,6 +670,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
             weather = CLEAR;
         }
         create_boss = WinterBoss::createWinterBossEntt;
+        current_round_monster_types.emplace_back(WINTER_BOSS);
     }
 	else if (season_str == FINAL_TITLE)
 	{
@@ -684,6 +689,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		}
 		std::cout << "SPAWNING FINAL BOSS" << std::endl;
 		create_boss = FinalBoss::createFinalBossEntt;
+        current_round_monster_types.emplace_back(FINAL_BOSS);
 	}
 	if (prev_weather != weather) {
 	    AISystem::MapAI::setRandomMapWeatherTerrain(current_map, weather);

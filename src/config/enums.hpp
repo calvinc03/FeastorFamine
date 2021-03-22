@@ -20,7 +20,7 @@ enum monster_type
     SUMMER_BOSS,
     FALL_BOSS,
     WINTER_BOSS,
-    DRAGON_BOSS,
+    FINAL_BOSS,
     FIREBALL_BOSS,
     BURROW_BOSS,
     SPIDER,
