@@ -12,7 +12,7 @@ public:
     entt::entity& getEntityAtCoord(ivec2 grid_coord);
     GridNode& getNodeAtCoord(ivec2 grid_coord);
     void setGridTerrain(ivec2 grid_coord, int terrain);
-    void setGridOccupancy(ivec2 grid_coord, int occupancy, entt::entity& entity, vec2 scale = {GRID_CELL_SIZE, GRID_CELL_SIZE});
+    void setGridOccupancy(ivec2 grid_coord, int occupancy, entt::entity& entity, vec2 scale);
     std::vector<entt::entity> getNodeEntitiesFromCoords(std::vector<ivec2>& grid_coords);
     std::vector<GridNode> getNodesFromCoords(std::vector<ivec2>& grid_coords);
 
