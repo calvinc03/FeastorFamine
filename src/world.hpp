@@ -50,6 +50,9 @@ public:
 
 	void sell_unit(entt::entity& entity);
 
+	// setup game setup stage
+	void setup_game_setup_stage();
+
 	// helper for path to round jsons
 	void setup_round_from_round_number(int round_number);
 
@@ -193,7 +196,7 @@ private:
 	void start_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void in_game_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
-	void unit_select_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
+	vec2 unit_select_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void help_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void story_card_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void sell_unit_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);

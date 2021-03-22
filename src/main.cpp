@@ -93,9 +93,6 @@ int main()
 				physics.step(elapsed_ms);
 			}
 		}
-		else if (world.game_state == WorldSystem::help_menu) {
-			
-		}
         
 		renderer.draw(billboard_vertex_buffer, particles_position_buffer);
 	}

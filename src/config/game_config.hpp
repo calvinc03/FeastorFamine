@@ -18,5 +18,5 @@ static const float ELAPSED_MS = 20;
 
 static const int MAX_PARTICLES = 1000;
 static const size_t FIRING_RATE = 3000;
-const int MAX_FIREBALLS = 1000;
-const int FIREBALL_DELAY_MS = 2400;
+
+const int FIREBALL_DELAY_MS = 2385;

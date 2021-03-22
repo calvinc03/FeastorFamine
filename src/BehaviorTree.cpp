@@ -12,6 +12,7 @@
 #include <BehaviorTree.hpp>
 #include <monsters/mob.hpp>
 #include <world.hpp>
+#include <rig.hpp>
 #pragma once
 
 // A general decorator with lambda condition
@@ -189,7 +190,7 @@ public:
 		motion.position += motion.velocity;
 
 		// stop when dragon is at edge of screen
-		if (motion.position.x > 245) {
+		if (motion.position.x > 240) {
 			// if velocity is 0 it faces upwards??
 			motion.velocity.x = 0.01f;
 		}
@@ -249,7 +250,14 @@ void increment_monster_step(entt::entity entity) {
 		|| monster.current_path_index >= monster.path_coords.size() - 1) {
 		WorldSystem::health -= monster.damage;
 		motion.velocity *= 0;
-		registry.destroy(entity);
+
+		if (registry.has<Rig>(entity)) {
+			Rig::delete_rig(entity); //rigs have multiple pieces to be deleted
+		}
+		else {
+			registry.destroy(entity);
+		}
+		
 		return;
 	}
 
