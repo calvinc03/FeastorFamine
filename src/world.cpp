@@ -378,8 +378,17 @@ void WorldSystem::step(float elapsed_ms)
 			}
 		}
 
-		//stage text is set once per step...
-		
+		// remove disapperaing text when time's up 
+		auto view_disappearing_text = registry.view<DisappearingText>();
+		for (auto entity : view_disappearing_text)
+		{
+			auto& disap_time = view_disappearing_text.get<DisappearingText>(entity);
+			disap_time.on_screen_time_ms -= elapsed_ms * current_speed;
+			if (disap_time.on_screen_time_ms < 0)
+			{
+				registry.destroy(entity);
+			}
+		}
 
 		registry.get<Text>(round_text_entity).content = "round: " + std::to_string(round_number);
 		registry.get<Text>(food_text_entity).content = "food: " + std::to_string(health);
@@ -412,6 +421,13 @@ void WorldSystem::setup_game_setup_stage()
 			RenderSystem::show_entity(button_entt);
 		}
 	}
+	// remove hit point text that are still on the screen
+	auto view_hit_point_text = registry.view<HitPointsText>();
+	for (auto entity : view_hit_point_text)
+	{
+		registry.destroy(entity);
+	}
+
 }
 
 void WorldSystem::set_up_step(float elapsed_ms)
@@ -482,6 +498,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 	stage_text.colour = { 1.0f, 1.0f, 1.0f };
 	registry.get<Text>(round_text_entity).content = "round: " + std::to_string(round_number);
 	registry.get<Text>(food_text_entity).content = "food: " + std::to_string(health);
+
 
 	if (set_up_timer <= 0)
 	{
@@ -676,6 +693,22 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	}
 }
 
+// create hit points when projectile hits monsters
+void create_hit_points_text(int hit_points, entt::entity monster)
+{
+	// used to scale the hit points size 
+	float max_possible_damage = 150;
+	float min_text_size = 0.5;
+	float max_text_size = 1.5;
+
+	auto animal_motion = registry.get<Motion>(monster);
+	float on_screen_time_ms = 300;
+	float text_scale = (float)hit_points * (max_text_size - min_text_size) / max_possible_damage + min_text_size;
+
+	auto d_text = DisappearingText::createDisappearingText(std::to_string(hit_points), animal_motion.position, on_screen_time_ms, text_scale);
+	registry.emplace<HitPointsText>(d_text);
+}
+
 void WorldSystem::updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster)
 {
 	auto &animal = registry.get<Monster>(monster);
@@ -685,6 +718,10 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity projectile, entt
 
 	animal.health -= prj.damage;
 	animal.collided = true;
+
+	// add hit point text
+	int hit_points = prj.damage;
+	create_hit_points_text(hit_points, monster);
 
 	auto &hit_reaction = registry.get<HitReaction>(monster);
 	hit_reaction.counter_ms = 750; //ms duration used by health bar

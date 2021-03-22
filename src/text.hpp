@@ -151,3 +151,14 @@ private:
  * not to be used otherwise.
  */
 void drawText(const Text& text, glm::ivec2 frameBufferSize);
+
+struct DisappearingText
+{
+    static entt::entity createDisappearingText(std::string text, vec2 position, float on_screen_time_ms, float scale = 1.f);
+    float on_screen_time_ms;
+};
+
+struct HitPointsText
+{
+
+};

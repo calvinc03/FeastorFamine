@@ -530,3 +530,17 @@ void drawText(const Text& text, glm::ivec2 frameBufferSize) {
         
     gl_has_errors();
 }
+
+entt::entity DisappearingText::createDisappearingText(std::string text, vec2 position, float on_screen_time_ms, float scale)
+{
+    // text
+    auto entity = registry.create();
+    auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
+    auto& t = registry.emplace<Text>(entity, Text(text, notoRegular, vec2(position.x, WINDOW_SIZE_IN_PX.y - position.y)));
+    t.scale = scale;
+    t.colour = { 1.f, 0.f, 0.f };
+    // on screen time
+    auto& disappearing_text = registry.emplace<DisappearingText>(entity);
+    disappearing_text.on_screen_time_ms = on_screen_time_ms;
+    return entity;
+}
