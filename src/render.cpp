@@ -537,12 +537,12 @@ void RenderSystem::show_entity(entt::entity entity)
 {
 	// hide start_button
 	ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity);
-	shaded_mesh_ref.show = TRUE;
+	shaded_mesh_ref.show = true;
 }
 
 void RenderSystem::hide_entity(entt::entity entity)
 {
 	// hide start_button
 	ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity);
-	shaded_mesh_ref.show = FALSE;
+	shaded_mesh_ref.show = false;
 }

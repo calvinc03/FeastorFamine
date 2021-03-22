@@ -1147,23 +1147,33 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
   
 	switch (game_state)
 	{
-	case start_menu:
-		start_menu_click_handle(xpos, ypos, button, action, mod);
-		break;
-	case settings_menu:
-		settings_menu_click_handle(xpos, ypos, button, action, mod);
-		break;
-	case in_game:
-		vec2 selected_flags = unit_select_click_handle(xpos, ypos, button, action, mod);
-		in_game_click_handle(xpos, ypos, button, action, mod);
-		update_look_for_selected_buttons(action, selected_flags.x, selected_flags.y);
-		break;
-	case help_menu:
-		help_menu_click_handle(xpos, ypos, button, action, mod);
-		break;
-	case story_card:
-		story_card_click_handle(xpos, ypos, button, action, mod);
-		break;
+        case start_menu:
+        {
+            start_menu_click_handle(xpos, ypos, button, action, mod);
+            break;
+        }
+        case settings_menu:
+        {
+            settings_menu_click_handle(xpos, ypos, button, action, mod);
+            break;
+        }
+        case in_game:
+        {
+            vec2 selected_flags = unit_select_click_handle(xpos, ypos, button, action, mod);
+            in_game_click_handle(xpos, ypos, button, action, mod);
+            update_look_for_selected_buttons(action, selected_flags.x, selected_flags.y);
+            break;
+        }
+        case help_menu:
+        {
+            help_menu_click_handle(xpos, ypos, button, action, mod);
+            break;
+        }
+        case story_card:
+        {
+            story_card_click_handle(xpos, ypos, button, action, mod);
+            break;
+        }
 	}
 }
 
