@@ -440,11 +440,6 @@ void WorldSystem::set_up_step(float elapsed_ms)
 	}
 
 	set_up_timer -= elapsed_ms;
-
-	// Updating window title with health and setup timer
-	//std::stringstream title_ss;
-	//title_ss << "Setup stage... Food: " << health << " Round: " << round_number << " Time left to setup: " << round(set_up_timer / 1000) << " fps: " << 1000.0 / elapsed_ms;
-	//glfwSetWindowTitle(window, title_ss.str().c_str());
     
     auto particle_view = registry.view<ParticleSystem>();
     if (particle_view.size() < MAX_PARTICLES) {
@@ -819,7 +814,6 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 					registry.destroy(monster);
 				}
 			}
-			setup_game_setup_stage();
 		}
 	}
 
