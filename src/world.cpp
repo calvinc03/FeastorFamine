@@ -613,7 +613,6 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	max_boss = round_json["max_bosses"];
 	boss_delay_ms = round_json["boss_delay_ms"];
 	season_str = round_json["season"];
-	int prev_season = season;
 	int prev_weather = weather;
 
 	game_state = story_card;
@@ -686,8 +685,8 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		std::cout << "SPAWNING FINAL BOSS" << std::endl;
 		create_boss = FinalBoss::createFinalBossEntt;
 	}
-	if (!(prev_season == season && prev_weather == weather)) {
-	    AISystem::MapAI::setRandomMapWeatherTerrain(current_map);
+	if (prev_weather != weather) {
+	    AISystem::MapAI::setRandomMapWeatherTerrain(current_map, weather);
 	}
 }
 

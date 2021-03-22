@@ -38,7 +38,7 @@ public:
                                                 ivec2 goal_coord = VILLAGE_COORD,
                                                 bool is_valid(GridMap&, ivec2) = is_walkable,
                                                 int neighbors = ALL_NBRS);
-        static void setRandomMapWeatherTerrain(GridMap& map);
+        static void setRandomMapWeatherTerrain(GridMap& map, int weather);
         static void setRandomWeatherTerrain(GridMap& map, int max_rerolls);
         static void setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain = TERRAIN_PAVEMENT);
 	};

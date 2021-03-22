@@ -241,7 +241,7 @@ std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int mons
     return std::vector<ivec2>();
 }
 
-int get_random_weather_terrain() {
+int get_random_weather_terrain(int weather) {
     std::map<int, float> weather_terrain_default_prob = {
             {TERRAIN_MUD,      1},
             {TERRAIN_PUDDLE,   1},
@@ -272,10 +272,10 @@ int get_random_weather_terrain() {
     return TERRAIN_DEFAULT;
 }
 
-void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map) {
+void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map, int weather) {
     for (int i = 0; i < MAP_SIZE_IN_COORD.x; i++) {
         for (int j = 0; j < MAP_SIZE_IN_COORD.y; j++) {
-            int weather_terrain = get_random_weather_terrain();
+            int weather_terrain = get_random_weather_terrain(weather);
             if (weather_terrain != TERRAIN_DEFAULT && map.getNodeAtCoord(ivec2(i,j)).terrain != TERRAIN_PAVEMENT) {
                 map.setGridTerrain(ivec2(i, j), weather_terrain);
             }
@@ -288,7 +288,7 @@ void AISystem::MapAI::setRandomWeatherTerrain(GridMap &map, int max_rerolls) {
         ivec2 random_coord(uniform_dist(rng)*MAP_SIZE_IN_COORD.x,  uniform_dist(rng)*MAP_SIZE_IN_COORD.y);
         auto& node = map.getNodeAtCoord(random_coord);
         if (node.terrain != TERRAIN_PAVEMENT) {
-            map.setGridTerrain(random_coord, get_random_weather_terrain());
+            map.setGridTerrain(random_coord, get_random_weather_terrain(weather));
         }
     }
 }

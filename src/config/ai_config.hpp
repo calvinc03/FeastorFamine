@@ -183,12 +183,12 @@ const static std::map<std::pair<int, int>, float> weather_terrain_prob_multiplie
 
         {std::pair(RAIN, TERRAIN_MUD), 1.0},
         {std::pair(RAIN, TERRAIN_PUDDLE), 1.2},
-        {std::pair(RAIN, TERRAIN_DRY), 0.3},
+        {std::pair(RAIN, TERRAIN_DRY), 0.2},
         {std::pair(RAIN, TERRAIN_FIRE), 0.1},
         {std::pair(RAIN, TERRAIN_ICE), 0.3},
 
         {std::pair(DROUGHT, TERRAIN_MUD), 0.8},
-        {std::pair(DROUGHT, TERRAIN_PUDDLE), 0.5},
+        {std::pair(DROUGHT, TERRAIN_PUDDLE), 0.3},
         {std::pair(DROUGHT, TERRAIN_DRY), 1.2},
         {std::pair(DROUGHT, TERRAIN_FIRE), 1.0},
         {std::pair(DROUGHT, TERRAIN_ICE), 0.5},
