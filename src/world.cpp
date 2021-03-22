@@ -1017,7 +1017,7 @@ void grid_highlight_system(vec2 mouse_pos, unit_type unit_selected, GridMap curr
 	auto &node = current_map.getNodeAtCoord(pixel_to_coord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each())
 	{
-		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == OCCUPANCY_VACANT && node.terrain >= TERRAIN_DEFAULT)
+		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == NONE && node.terrain >= TERRAIN_DEFAULT)
 		{
 			highlight.highlight = true;
 		}
@@ -1495,7 +1495,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			auto &node = current_map.getNodeAtCoord(pixel_to_coord(vec2(x, y)));
             bool sufficient_funds = true;
             entt::entity entity;
-			if (node.occupancy == OCCUPANCY_VACANT && node.terrain >= TERRAIN_DEFAULT)
+			if (node.occupancy == NONE && node.terrain >= TERRAIN_DEFAULT)
 			{
 				if (placement_unit_selected == HUNTER && health >= HUNTER_COST)
 				{
@@ -1616,7 +1616,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 void WorldSystem::sell_unit(entt::entity &entity)
 {
     auto& motion = registry.get<Motion>(entity);
-    current_map.setGridOccupancy(pixel_to_coord(motion.position), OCCUPANCY_VACANT, entity, motion.scale);
+    current_map.setGridOccupancy(pixel_to_coord(motion.position), NONE, entity, motion.scale);
 	registry.destroy(entity);
 }
 

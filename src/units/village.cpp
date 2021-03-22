@@ -24,7 +24,7 @@ entt::entity Village::createVillage(GridMap& current_map)
 	motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
 	motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 3);
     motion.position = coord_to_pixel(VILLAGE_COORD);
-    current_map.setGridOccupancy(VILLAGE_COORD, OCCUPANCY_VILLAGE, entity, motion.scale);
+    current_map.setGridOccupancy(VILLAGE_COORD, VILLAGE, entity, motion.scale);
 
 	Food& food = registry.emplace<Food>(entity);
 	food.food = 100;

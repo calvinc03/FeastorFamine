@@ -1,14 +1,3 @@
-enum grid_occupancy
-{
-    OCCUPANCY_VACANT ,
-    OCCUPANCY_FOREST ,
-    OCCUPANCY_VILLAGE,
-    OCCUPANCY_GREENHOUSE,
-    OCCUPANCY_TOWER,
-    OCCUPANCY_WALL,
-    OCCUPANCY_HUNTER,
-};
-
 // Terrains with neg value are ones that cannot be placed on
 // May be refactored later if too hard to keep track
 enum terrain_type
@@ -40,6 +29,8 @@ enum monster_type
 enum unit_type
 {
     NONE,
+    FOREST,
+    VILLAGE,
     WATCHTOWER,
     TOWER,
     GREENHOUSE,

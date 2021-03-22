@@ -25,7 +25,7 @@ entt::entity Forest::createForest(GridMap& current_map)
     motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 3);
     motion.position = coord_to_pixel(FOREST_COORD);
-    current_map.setGridOccupancy(FOREST_COORD, OCCUPANCY_FOREST, entity, motion.scale);
+    current_map.setGridOccupancy(FOREST_COORD, FOREST, entity, motion.scale);
 
     Food& food = registry.emplace<Food>(entity);
     food.food = 100;

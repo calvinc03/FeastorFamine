@@ -275,8 +275,10 @@ int get_random_weather_terrain(int weather) {
 void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map, int weather) {
     for (int i = 0; i < MAP_SIZE_IN_COORD.x; i++) {
         for (int j = 0; j < MAP_SIZE_IN_COORD.y; j++) {
-            int weather_terrain = get_random_weather_terrain(weather);
-            if (weather_terrain != TERRAIN_DEFAULT && map.getNodeAtCoord(ivec2(i,j)).terrain != TERRAIN_PAVEMENT) {
+            auto& node = map.getNodeAtCoord(ivec2(i,j));
+
+            if (node.terrain != TERRAIN_PAVEMENT && node.occupancy != VILLAGE && node.occupancy != FOREST) {
+                int weather_terrain = get_random_weather_terrain(weather);
                 map.setGridTerrain(ivec2(i, j), weather_terrain);
             }
         }
@@ -299,7 +301,7 @@ bool is_valid_terrain_path(GridMap& current_map, ivec2 coord)
     if (is_inbounds(coord)) {
         int terrain = current_map.getNodeAtCoord(coord).terrain;
         int occupancy = current_map.getNodeAtCoord(coord).occupancy;
-        return terrain != TERRAIN_PAVEMENT && occupancy == OCCUPANCY_VACANT;
+        return terrain != TERRAIN_PAVEMENT && occupancy == NONE;
     }
     return false;
 }

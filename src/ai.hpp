@@ -24,7 +24,7 @@ public:
             if (is_inbounds(coord))
             {
                 int occupancy = current_map.getNodeAtCoord(coord).occupancy;
-                return occupancy == OCCUPANCY_VACANT || occupancy == OCCUPANCY_FOREST || occupancy == OCCUPANCY_VILLAGE;
+                return occupancy == NONE || occupancy == FOREST || occupancy == VILLAGE;
             }
             return false;
         }
