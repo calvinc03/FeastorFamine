@@ -2,7 +2,7 @@
 #include "watchtower.hpp"
 #include "render.hpp"
 #include "common.hpp"
-#include "unit.hpp"
+#include "units/unit.hpp"
 
 entt::entity WatchTower::createWatchTower(vec2 pos)
 {
@@ -34,7 +34,7 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     unit.attack_range = 400;
     unit.workers = 0;
     unit.upgrades = 0;
-    unit.type = key;
+    unit.type = WATCHTOWER;
     unit.cost = WATCHTOWER_COST;
     unit.upgrade_cost = WATCHTOWER_UPGRADE_COST;
     unit.sell_price = WATCHTOWER_SELL_PRICE;

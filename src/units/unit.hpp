@@ -18,7 +18,7 @@ const int HUNTER_SELL_PRICE = 100;
 const int WALL_SELL_PRICE = 80;
 
 struct Unit {
-	std::string type;
+	int type;
 	int damage;
 	size_t attack_interval_ms;
 	float next_projectile_spawn;

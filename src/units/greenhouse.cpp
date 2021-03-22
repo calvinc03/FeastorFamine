@@ -35,7 +35,7 @@ entt::entity GreenHouse::createGreenHouse(vec2 pos)
     unit.attack_range = 0;
     unit.workers = 0;
     unit.upgrades = 0;
-    unit.type = key;
+    unit.type = GREENHOUSE;
     unit.cost = GREENHOUSE_COST;
     unit.upgrade_cost = GREENHOUSE_UPGRADE_COST;
     unit.sell_price = GREENHOUSE_SELL_PRICE;

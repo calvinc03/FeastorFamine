@@ -14,7 +14,7 @@
 #include <monsters/winter_boss.hpp>
 #include <monsters/final_boss.hpp>
 #include <monsters/fireball_boss.hpp>
-#include <unit.hpp>
+#include <units/unit.hpp>
 
 const size_t BULLET_UPGRADE = 2;
 
@@ -160,17 +160,16 @@ struct search_node {
 };
 
 // diagonal distance
-float heuristic_diagonal_dist(ivec2 n1, ivec2 n2) {
-    float dx = abs(n1.x - n2.x);
-    float dy = abs(n1.y - n2.y);
+float heuristic_diagonal_dist(GridMap& current_map, int monster_type, ivec2 from_coord, ivec2 to_coord) {
+    float dx = abs(from_coord.x - to_coord.x);
+    float dy = abs(from_coord.y - to_coord.y);
     float unit_move_cost = 1;
+    // if calculating unit move (as opposed to heuristic over multiple grids), get the corresponding cost of that terrain
+    if (length((vec2)(from_coord - to_coord)) > sqrt(2)) {
+        unit_move_cost = monster_move_cost.at({monster_type, current_map.getNodeAtCoord(to_coord).terrain});
+    }
     float diag_cost = sqrt(2 * unit_move_cost);
     return unit_move_cost * (dx + dy) + (diag_cost - 2 * unit_move_cost) * min(dx, dy);
-}
-
-float heuristic_euclidean_dist(ivec2 n1, ivec2 n2) {
-
-    return length((vec2)(n1 - n2));
 }
 
 std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int monster_type, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), const std::vector<ivec2>& neighbors) {
@@ -178,7 +177,7 @@ std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int mons
     std::vector<search_node> open;
     std::vector<search_node> closed;
 
-    search_node start_node = {start_coord, 0, heuristic_diagonal_dist(start_coord, goal_coord)};
+    search_node start_node = {start_coord, 0, heuristic_diagonal_dist(current_map, monster_type, start_coord, goal_coord)};
     open.emplace_back(start_node);
 
     while (!open.empty()) {
@@ -210,8 +209,8 @@ std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int mons
                 return path_nodes;
             }
 
-            search_node nbr_node = {nbr_coord, current_node.c + heuristic_diagonal_dist(current_node.coord, nbr_coord),
-                                    heuristic_diagonal_dist(nbr_coord, goal_coord)};
+            search_node nbr_node = {nbr_coord, current_node.c + heuristic_diagonal_dist(current_map, monster_type, current_node.coord, nbr_coord),
+                                    heuristic_diagonal_dist(current_map, monster_type, nbr_coord, goal_coord)};
 
             // skip nbr if already exists in open or closed list with lower f = c + h
             bool exists_lower = false;

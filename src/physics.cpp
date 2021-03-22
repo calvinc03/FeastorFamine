@@ -6,7 +6,7 @@
 #include "grid_node.hpp"
 #include <projectile.hpp>
 #include "rig.hpp"
-#include <spider.hpp>
+#include <monsters/spider.hpp>
 
 const size_t POTENTIAL_COLLISION_RANGE = 200;
 

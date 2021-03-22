@@ -34,7 +34,7 @@ entt::entity Hunter::createHunter(vec2 pos)
     unit.attack_interval_ms = 1500;
     unit.attack_range = 300;
     unit.upgrades = 0;
-    unit.type = key;
+    unit.type = HUNTER;
     unit.cost = HUNTER_COST;
     unit.upgrade_cost = HUNTER_UPGRADE_COST;
     unit.sell_price = HUNTER_SELL_PRICE;

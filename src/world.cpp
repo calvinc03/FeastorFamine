@@ -15,11 +15,11 @@
 #include <projectile.hpp>
 
 #include "grid_map.hpp"
-#include "hunter.hpp"
-#include "greenhouse.hpp"
-#include "watchtower.hpp"
-#include "village.hpp"
-#include "wall.hpp"
+#include "units/hunter.hpp"
+#include "units/greenhouse.hpp"
+#include "units/watchtower.hpp"
+#include "units/village.hpp"
+#include "units/wall.hpp"
 #include "camera.hpp"
 #include "button.hpp"
 #include "menu.hpp"
@@ -29,7 +29,7 @@
 #include "particle.hpp"
 
 #include "rig.hpp"
-#include "spider.hpp"
+#include "monsters/spider.hpp"
 #include <BehaviorTree.hpp>
 
 // stlib
@@ -1526,6 +1526,7 @@ void WorldSystem::save_game()
 		auto unit = view_unit.get<Unit>(entity);
 		auto motion = view_motion.get<Motion>(entity);
 
+        curr_unit["type_str"] = unit_str.at(unit.type);
 		curr_unit["type"] = unit.type;
 		curr_unit["x_coord"] = motion.position.x;
 		curr_unit["y_coord"] = motion.position.y;
@@ -1586,7 +1587,7 @@ void WorldSystem::load_game()
 		int x = unit["x_coord"];
 		int y = unit["y_coord"];
 		auto &node = current_map.getNodeAtCoord(pixel_to_coord(vec2(x, y)));
-		int type = std::stoi((std::string)unit["type"]);
+		int type = unit["type"];
 		entt::entity entity;
 		if (type == WATCHTOWER)
 		{
