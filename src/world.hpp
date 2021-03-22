@@ -106,7 +106,6 @@ public:
 	// decrease reward at higher levels
 	static float reward_multiplier;
 
-static GridMap current_map;
 private:
 	// PhysicsSystem handle
 	PhysicsSystem *physics;

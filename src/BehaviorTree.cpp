@@ -269,8 +269,8 @@ void increment_monster_step(entt::entity entity) {
 	// increment path index and apply terrain speed multiplier
 	if (next_step_coord == next_path_coord) {
 		monster.current_path_index++;
-		int current_terran = WorldSystem::current_map.getNodeAtCoord(current_path_coord).terrain;
-		int next_terran = WorldSystem::current_map.getNodeAtCoord(next_path_coord).terrain;
+		int current_terran = current_map.getNodeAtCoord(current_path_coord).terrain;
+		int next_terran = current_map.getNodeAtCoord(next_path_coord).terrain;
 		monster.speed_multiplier /= monster_move_speed_multiplier.at({monster.type, current_terran});
 		monster.speed_multiplier *= monster_move_speed_multiplier.at({monster.type, next_terran});
 	}

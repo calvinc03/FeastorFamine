@@ -139,6 +139,10 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
 	// Attaching World Observer to Physics observerlist
 	this->physics = physics;
 	this->physics->attach(this);
+
+    for (int monster_type = 0; monster_type < monster_type_count; monster_type++) {
+        default_monster_paths.insert(std::pair<int, std::vector<ivec2>>(monster_type, {}));
+    }
 }
 
 WorldSystem::~WorldSystem()
@@ -460,7 +464,12 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		next_boss_spawn = 0;
 		un_highlight();
 
-		std::cout << season_str << " season! \n";
+        // set default paths for monster AI for this round
+        for (int monster_type = 0; monster_type < monster_type_count; monster_type++) {
+            default_monster_paths.at(monster_type) = AISystem::MapAI::findPathAStar(current_map, monster_type);
+        }
+
+        std::cout << season_str << " season! \n";
 		std::cout << "weather " << weather << " \n";
 	}
 	auto &stage_text = registry.get<Text>(stage_text_entity);
@@ -525,12 +534,6 @@ void WorldSystem::restart()
 
 	// TODO: create forest
 	current_map.setGridOccupancy(FOREST_COORD, OCCUPANCY_FOREST);
-
-	// set default paths
-    for (int monster_type = 0; monster_type < monster_type_count; monster_type++) {
-        default_monster_paths.insert(std::pair<int, std::vector<ivec2>>(monster_type,
-                AISystem::MapAI::findPathAStar(current_map, monster_type)));
-    }
 
     BTCollision = AISystem::MonstersAI::createBehaviorTree();
 
