@@ -26,3 +26,11 @@ const std::map<int, std::string> unit_str = {
         {WALL,       "wall"},
 };
 
+const std::map<int, std::string> season_str = {
+        {SPRING,    "spring"},
+        {SUMMER,    "summer"},
+        {FALL,      "fall"},
+        {WINTER,    "winter"},
+};
+
+

@@ -29,4 +29,5 @@ struct Unit {
 	unsigned int upgrade_cost = 0;
 	unsigned int cost = 0;
 	unsigned int sell_price = 0;
+	unsigned int health = 200;
 };

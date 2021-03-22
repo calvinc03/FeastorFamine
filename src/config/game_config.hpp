@@ -11,7 +11,8 @@ static const ivec2 MAP_SIZE_IN_PX = GRID_CELL_SIZE * MAP_SIZE_IN_COORD;
 static const ivec2 WINDOW_SIZE_IN_PX = MAP_SIZE_IN_PX + ivec2(0, UI_TAB_HEIGHT);
 
 static const ivec2 FOREST_COORD = ivec2(0, 0);
-static const ivec2 VILLAGE_COORD = MAP_SIZE_IN_COORD - ivec2(2, 2);
+// offset by 1 to account for base 0 counting
+static const ivec2 VILLAGE_COORD = MAP_SIZE_IN_COORD - ivec2(1, 1);
 static const ivec2 DRAGON_COORD = ivec2(-2, 4);
 
 static const float ELAPSED_MS = 20;

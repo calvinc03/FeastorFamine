@@ -38,6 +38,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <units/forest.hpp>
 
 #include "json.hpp"
 
@@ -575,8 +576,7 @@ void WorldSystem::restart()
 	// create village
 	village = Village::createVillage(current_map);
 
-	// TODO: create forest
-	current_map.setGridOccupancy(FOREST_COORD, OCCUPANCY_FOREST);
+	Forest::createForest(current_map);
 
     BTCollision = AISystem::MonstersAI::createBehaviorTree();
 
@@ -1493,41 +1493,43 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && placement_unit_selected != NONE && in_game_area)
 		{
 			auto &node = current_map.getNodeAtCoord(pixel_to_coord(vec2(x, y)));
-
+            bool sufficient_funds = true;
+            entt::entity entity;
 			if (node.occupancy == OCCUPANCY_VACANT && node.terrain >= TERRAIN_DEFAULT)
 			{
 				if (placement_unit_selected == HUNTER && health >= HUNTER_COST)
 				{
-					entt::entity entity = Hunter::createHunter({x, y});
+                    entity = Hunter::createHunter({x, y});
 					health -= HUNTER_COST;
-					current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_HUNTER);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == GREENHOUSE && health >= GREENHOUSE_COST)
 				{
-					entt::entity entity = GreenHouse::createGreenHouse({x, y});
+					entity = GreenHouse::createGreenHouse({x, y});
 					health -= GREENHOUSE_COST;
-                    current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_GREENHOUSE);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == WATCHTOWER && health >= WATCHTOWER_COST)
 				{
-					entt::entity entity = WatchTower::createWatchTower({x, y});
+					entity = WatchTower::createWatchTower({x, y});
 					health -= WATCHTOWER_COST;
-                    current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_TOWER);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == WALL && health >= WALL_COST)
 				{
-					entt::entity entity = Wall::createWall({x, y}, false);
+					entity = Wall::createWall({x, y}, false);
 					health -= WALL_COST;
-                    current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), OCCUPANCY_WALL);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else
 				{
 					//insufficent funds -- should feedback be given here, or when the button is pressed?
 					Mix_PlayChannel(-1, ui_sound_negative_tick, 0);
+					sufficient_funds = false;
+				}
+				if (sufficient_funds) {
+				    auto& motion = registry.get<Motion>(entity);
+                    current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), placement_unit_selected, entity, motion.scale);
 				}
 				placement_unit_selected = NONE;
 				un_highlight();
@@ -1614,7 +1616,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 void WorldSystem::sell_unit(entt::entity &entity)
 {
     auto& motion = registry.get<Motion>(entity);
-    current_map.setGridOccupancy(pixel_to_coord(motion.position), OCCUPANCY_VACANT, motion.scale);
+    current_map.setGridOccupancy(pixel_to_coord(motion.position), OCCUPANCY_VACANT, entity, motion.scale);
 	registry.destroy(entity);
 }
 
@@ -1703,30 +1705,26 @@ void WorldSystem::load_game()
 	{
 		int x = unit["x_coord"];
 		int y = unit["y_coord"];
-		auto &node = current_map.getNodeAtCoord(pixel_to_coord(vec2(x, y)));
 		int type = unit["type"];
 		entt::entity entity;
 		if (type == WATCHTOWER)
 		{
 			entity = WatchTower::createWatchTower({x, y});
-			node.occupancy = OCCUPANCY_TOWER;
 		}
 		else if (type == GREENHOUSE)
 		{
 			entity = GreenHouse::createGreenHouse({x, y});
-			node.occupancy = OCCUPANCY_TOWER;
 		}
 		else if (type == WALL)
 		{
 			entity = Wall::createWall({x, y}, unit["rotate"]);
-			node.occupancy = OCCUPANCY_TOWER;
 		}
 		else if (type == HUNTER)
 		{
 			entity = Hunter::createHunter({x, y});
-			node.occupancy = OCCUPANCY_TOWER;
 		}
-
+		auto& motion = registry.get<Motion>(entity);
+        current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), type, entity, motion.scale);
 		auto view_unit = registry.view<Unit>();
 		auto &curr_unit = view_unit.get<Unit>(entity);
 		for (int i = 0; i < unit["upgrades"]; i++)
@@ -1739,9 +1737,7 @@ void WorldSystem::load_game()
 	for (int x = 0; x < MAP_SIZE_IN_COORD.x; x++) {
 		for (int y = 0; y < MAP_SIZE_IN_COORD.y; y++) {
 			int terrain = map[x][y]["terrain"];
-			int occupancy = map[x][y]["occupancy"];
 			current_map.setGridTerrain(ivec2(x, y), terrain);
-			current_map.setGridOccupancy(ivec2(x, y), occupancy);
 		}
 	}
 }

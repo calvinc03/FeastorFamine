@@ -53,6 +53,7 @@ void GridNode::setTerrain(entt::entity entity, int new_terrain) {
     shaded_mesh_ref.reference_to_cache = &resource;
 }
 
-void GridNode::setOccupancy(int new_occupancy) {
+void GridNode::setOccupancy(int new_occupancy, entt::entity& entity) {
     this->occupancy = new_occupancy;
+    this->occupying_entity = entity;
 }

@@ -178,6 +178,23 @@ public:
 	}
 };
 
+class AttackUnit : public BTNode {
+public:
+    AttackUnit() noexcept { }
+
+    void init(entt::entity e) override { }
+
+    BTState process(entt::entity e) override {
+        auto& motion = registry.get<Motion>(e);
+        auto& monster = registry.get<Monster>(e);
+        if (monster.collided) {
+            motion.position -= 0.25f * motion.velocity;
+            monster.collided = false;
+        }
+        return BTState::Failure;
+    }
+};
+
 class Dragon : public BTNode { // todo probably delete from here and ai
 public:
 	Dragon() noexcept {}
