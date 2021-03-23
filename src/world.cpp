@@ -616,8 +616,21 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	season_str = round_json["season"];
 	int prev_weather = weather;
 
-	game_state = story_card;
-	StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number));
+	for (auto& story_card : registry.view<StoryCard>())
+	{
+		registry.destroy(story_card);
+	}
+
+	for (auto entity : registry.view<StoryCardText>())
+	{
+		registry.destroy(entity);
+	}
+
+	if (game_state != help_menu)
+	{
+		game_state = story_card;
+		StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number));
+	}
 
     current_round_monster_types.clear();
     current_round_monster_types.emplace_back(MOB);
@@ -1198,6 +1211,12 @@ void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y,
 			auto& shaded_mesh_ref = view.get<ShadedMeshRef>(entity);
 			shaded_mesh_ref.show = false;
 		}
+		
+		if (round_number == 0) {
+			game_state = story_card;
+			StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number));
+		}
+
 		if (registry.empty<StoryCard>()) {
 			game_state = in_game;
 		}
@@ -1324,11 +1343,12 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 	else if (button_tag == NEW_GAME)
 	{
 		remove_menu_buttons();
+		
+		game_state = help_menu;
 		restart();
         // show controls overlay
         auto help_menu_entity = create_help_menu();
         ShadedMeshRef &shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(help_menu_entity);
-        game_state = help_menu;
         button_tag = HELP_MENU;
 	}
 	else if (button_tag == SETTINGS_MENU)
