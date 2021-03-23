@@ -35,7 +35,7 @@ endif()
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES}  "src/Observer.hpp"  "src/story_card.cpp" "src/story_card.hpp"
         "src/monsters/mob.cpp" "src/monsters/mob.hpp" "src/monsters/winter_boss.cpp" "src/monsters/winter_boss.hpp" "src/monsters/summer_boss.cpp" "src/monsters/summer_boss.hpp" "src/monsters/fall_boss.cpp" "src/monsters/fall_boss.hpp" "src/monsters/spring_boss.cpp" "src/monsters/spring_boss.hpp"   "src/monsters/burrow_boss.cpp" "src/monsters/burrow_boss.hpp" "src/monsters/fireball_boss.cpp" "src/monsters/fireball_boss.hpp" "src/monsters/final_boss.cpp" "src/monsters/final_boss.hpp" "src/monsters/spider.cpp" "src/monsters/spider.hpp"
-        "src/units/unit.hpp" "src/units/greenhouse.cpp" "src/units/greenhouse.hpp" "src/units/hunter.cpp" "src/units/hunter.hpp" "src/units/tower.cpp" "src/units/tower.hpp" "src/units/village.cpp" "src/units/village.hpp" "src/units/wall.cpp" "src/units/wall.hpp" "src/units/watchtower.cpp" "src/units/watchtower.hpp" "src/units/forest.cpp" "src/units/forest.hpp")
+        "src/units/unit.hpp" "src/units/greenhouse.cpp" "src/units/greenhouse.hpp" "src/units/hunter.cpp" "src/units/hunter.hpp" "src/units/village.cpp" "src/units/village.hpp" "src/units/wall.cpp" "src/units/wall.hpp" "src/units/watchtower.cpp" "src/units/watchtower.hpp" "src/units/forest.cpp" "src/units/forest.hpp")
 target_include_directories(${PROJECT_NAME} PUBLIC src/)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/nlohmann)
 
