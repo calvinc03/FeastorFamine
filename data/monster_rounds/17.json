@@ -1,0 +1,8 @@
+{
+  "round_num": 17,
+  "max_mobs": 0,
+  "mob_delay_ms": 200,
+  "max_bosses": 1,
+  "boss_delay_ms": 1000,
+  "season": "final"
+}

@@ -1,20 +1,7 @@
 #include "grid_node.hpp"
 
-const std::map<int, std::string> terrain_texture_path = {
-        {TERRAIN_DEFAULT,  "map/grass.png"},
-        {TERRAIN_PAVEMENT, "map/pavement.png"},
-        {TERRAIN_MUD,      "map/mud.png"},
-        {TERRAIN_PUDDLE,   "map/puddle.png"}
-};
-
-const std::map<int, std::string> terrain_str = {
-        {TERRAIN_DEFAULT,  "grass"},
-        {TERRAIN_PAVEMENT, "pavement"},
-        {TERRAIN_MUD,      "mud"},
-        {TERRAIN_PUDDLE,   "puddle"}
-};
-
-const std::string node_shader = "node";
+const std::string NODE_SHADER = "node";
+std::string terrain_texture_path(int terrain) { return "map/"+terrain_str.at(terrain)+".png";};
 
 entt::entity GridNode::createGridNode(int terrain, vec2 coord)
 {
@@ -30,7 +17,7 @@ entt::entity GridNode::createGridNode(int terrain, vec2 coord)
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(terrain)), node_shader);
+        RenderSystem::createSprite(resource, textures_path(terrain_texture_path(terrain)), NODE_SHADER);
     }
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
     shaded_mesh.layer = 1;
@@ -57,15 +44,18 @@ void GridNode::setTerrain(entt::entity entity, int new_terrain) {
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path(terrain_texture_path.at(new_terrain)), node_shader);
+        RenderSystem::createSprite(resource, textures_path(terrain_texture_path(new_terrain)), NODE_SHADER);
     }
     else
     {
-        resource.texture.load_from_file(textures_path(terrain_texture_path.at(new_terrain)).c_str());
+        resource.texture.load_from_file(textures_path(terrain_texture_path(new_terrain)));
     }
     shaded_mesh_ref.reference_to_cache = &resource;
 }
 
-void GridNode::setOccupancy(int new_occupancy) {
+void GridNode::setOccupancy(int new_occupancy, entt::entity& entity) {
     this->occupancy = new_occupancy;
+    if (new_occupancy != NONE) {
+        this->occupying_entity = entity;
+    }
 }

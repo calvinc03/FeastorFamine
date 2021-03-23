@@ -7,8 +7,10 @@
 #include "physics.hpp"
 #include <BehaviorTree.hpp>
 #include "text.hpp"
+#include "units/unit.hpp"
 // stlib
 #include <vector>
+
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -48,11 +50,14 @@ public:
 
 	void sell_unit(entt::entity& entity);
 
+	// setup game setup stage
+	void setup_game_setup_stage();
+
 	// helper for path to round jsons
 	void setup_round_from_round_number(int round_number);
 
 	// Check for collisions
-	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
+	void updateProjectileMonsterCollision(entt::entity e_projectile, entt::entity e_monster);
 
 	// Steps the game during monster rounds ahead by ms milliseconds
 	void step(float elapsed_ms);
@@ -73,6 +78,10 @@ public:
 
 	// game state
 	int game_state;
+    
+    // Particle System
+//    GLuint billboard_vertex_buffer;
+//    GLuint particles_position_buffer;
 
 	// Menu
 	enum GameState
@@ -80,7 +89,8 @@ public:
 		start_menu,
 		in_game,
 		settings_menu,
-		help_menu
+		help_menu,
+		story_card
 	};
 
 	// state for set_up and monster_rounds
@@ -88,11 +98,17 @@ public:
 	enum PlayerState
 	{
 		set_up_stage,
-		battle_stage
+		battle_stage,
+		pause_stage,
+		story_stage
 	};
 
 	// health of the village
 	static int health;
+    static GridMap current_map;
+
+	// decrease reward at higher levels
+	static float reward_multiplier;
 
 private:
 	// PhysicsSystem handle
@@ -119,23 +135,47 @@ private:
 	// Game state
 	float current_speed;
 	float next_boss_spawn;
+	float next_fireball_spawn;
 	float next_mob_spawn;
+    float next_particle_spawn;
+    
+    // Season
+    int season;
+    
+    enum season
+    {
+        SPRING = 0,
+        SUMMER = 1,
+        FALL = 2,
+        WINTER = 3
+    };
+        
+    // Weather
+    int weather;
 
+    
+    enum weather
+    {
+        CLEAR = 0,
+        RAIN = 1,
+        DROUGHT = 2,
+        FOG = 3,
+        SNOW = 4,
+    };
+    
 	int mob_delay_ms;
 	int max_mobs;
 	int boss_delay_ms;
 	int max_boss;
+	int fireball_delay_ms;
+    
 
 	float next_greenhouse_production;
 	int num_mobs_spawned;
 	int num_bosses_spawned;
 	entt::entity (*create_boss)();
 
-	// Monster path
-	GridMap current_map;
-    std::vector<ivec2> monster_path_coords = {};
-
-	std::shared_ptr<BTNode> BTCollision;
+    std::shared_ptr<BTNode> BTCollision;
 
 	// round and set up
 	int round_number;
@@ -145,20 +185,21 @@ private:
 	entt::entity round_text_entity;
 	entt::entity food_text_entity;
 	entt::entity stage_text_entity;
-	std::string placement_unit_selected;
+	unit_type placement_unit_selected;
 
 
 	// remove entities from start menu
 	void remove_menu_buttons();
-	void create_settings_menu();
+	void create_controls_menu();
 	entt::entity create_help_menu();
 
 	// helper for start menu mouse click and in_game mouse click
 	void start_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void in_game_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
-	void unit_select_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
+	vec2 unit_select_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void help_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
+	void story_card_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void sell_unit_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 
 	// music references

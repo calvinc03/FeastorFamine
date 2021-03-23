@@ -47,15 +47,15 @@ void RenderSystem::createSprite(ShadedMesh& sprite, std::string texture_path, st
 	TexturedVertex vertices[4];
 	vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
 	vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
-	vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
-	vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
+    vertices[2].position = { -1.f / 2, -1.f / 2, 0.f };
+	vertices[3].position = { +1.f / 2, -1.f / 2, 0.f };
 	vertices[0].texcoord = { 0.f, 1.f };
 	vertices[1].texcoord = { 1.f, 1.f };
-	vertices[2].texcoord = { 1.f, 0.f };
-	vertices[3].texcoord = { 0.f, 0.f };
+    vertices[2].texcoord = { 0.f, 0.f };
+	vertices[3].texcoord = { 1.f, 0.f };
 
 	// Counterclockwise as it's the default opengl front winding direction.
-	uint16_t indices[] = { 0, 3, 1, 1, 3, 2 };
+	uint16_t indices[] = { 0, 2, 1, 1, 2, 3 };
 
 	glGenVertexArrays(1, sprite.mesh.vao.data());
 	glGenBuffers(1, sprite.mesh.vbo.data());
@@ -66,7 +66,7 @@ void RenderSystem::createSprite(ShadedMesh& sprite, std::string texture_path, st
 	glBindBuffer(GL_ARRAY_BUFFER, sprite.mesh.vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // sizeof(TexturedVertex) * 4
 	gl_has_errors();
-
+    
 	// Index Buffer creation
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sprite.mesh.ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); // sizeof(uint16_t) * 6
@@ -77,6 +77,7 @@ void RenderSystem::createSprite(ShadedMesh& sprite, std::string texture_path, st
 	// Loading shaders
 	sprite.effect.load_from_file(shader_path(shader_name) + ".vs.glsl", shader_path(shader_name) + ".fs.glsl");
 }
+
 
 // Load a new mesh from disc and register it with ECS
 void RenderSystem::createColoredMesh(ShadedMesh& texmesh, std::string shader_name)
@@ -120,4 +121,3 @@ void RenderSystem::initScreenTexture()
 	screen_state_entity = registry.create();
 	registry.emplace<ScreenState>(screen_state_entity);
 }
-

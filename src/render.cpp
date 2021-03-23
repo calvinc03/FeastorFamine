@@ -3,12 +3,14 @@
 #include "render_components.hpp"
 #include "camera.hpp"
 #include "ui.hpp"
+#include "particle.hpp"
+
 #include "text.hpp"
 #include "entt.hpp"
 #include "grid_map.hpp"
 #include <iostream>
-
-#include "mob.hpp"
+#include "rig.hpp"
+#include "monsters/mob.hpp"
 void RenderSystem::animate(entt::entity entity)
 {
 
@@ -108,11 +110,24 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 		transform.rotate(angle);
 		transform.scale(scale);
 	}
-	else
+	else if (registry.has<RigPart>(entity)) {
+
+		const auto& rigPart = registry.get<RigPart>(entity);
+		Motion root_motion = registry.get<Motion>(rigPart.root_entity);
+
+		transform.mat = mat3(1.0f);
+		transform.translate(root_motion.position * camera_scale);
+		transform.rotate(root_motion.angle);
+		transform.scale(camera_scale);
+
+		const auto& entity_transform = registry.get<Transform>(entity);
+		transform.mat = transform.mat * entity_transform.mat;
+	}
+	else 
 	{
-		transform.translate(vec2({position.x * camera_scale.x, position.y * camera_scale.y}));
+		transform.translate(position*camera_scale);
 		transform.rotate(angle);
-		transform.scale(vec2({scale.x * camera_scale.x, scale.y * camera_scale.y}));
+		transform.scale(scale*camera_scale);
 	}
 
 	// Setting shaders
@@ -285,9 +300,95 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 }
 
+void RenderSystem::drawParticle(GLuint billboard_vertex_buffer, GLuint particles_position_buffer, const mat3 &projection){
+    
+    // Update the buffers that OpenGL uses for rendering.
+    // There are much more sophisticated means to stream data from the CPU to the GPU,
+    // but this is outside the scope of this tutorial.
+    // http://www.opengl.org/wiki/Buffer_Object_Streaming
+    glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
+    // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+    glBufferData(GL_ARRAY_BUFFER, ParticleSystem::PARTICLE_COUNT * 2 * sizeof(GLfloat), ParticleSystem::g_particule_position_size_data.data(), GL_STREAM_DRAW);
+
+    glBufferSubData(GL_ARRAY_BUFFER, 0, ParticleSystem::PARTICLE_COUNT * sizeof(GLfloat) * 2, ParticleSystem::g_particule_position_size_data.data());
+    
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Use our shader
+    auto particle = registry.view<ParticleSystem>();
+    auto& texmesh = *registry.get<ShadedMeshRef>(particle.front()).reference_to_cache;
+    glUseProgram(texmesh.effect.program);
+    
+    glBindVertexArray(texmesh.mesh.vao);
+//    glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
+//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, texmesh.mesh.ibo);
+    gl_has_errors();
+    
+    // Bind our texture in Texture Unit 0
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texmesh.texture.texture_id);
+    // Set our "sampler0" sampler to use Texture Unit 0
+    GLint TextureID = glGetUniformLocation(texmesh.effect.program, "sampler0");
+    glUniform1i(TextureID, 0);
+    gl_has_errors();
+    
+    GLint projection_uloc = glGetUniformLocation(texmesh.effect.program, "projection");
+    
+    GLint in_position_loc = glGetAttribLocation(texmesh.effect.program, "in_position");
+    GLint in_texcoord_loc = glGetAttribLocation(texmesh.effect.program, "in_texcoord");
+    GLint center_point_loc = glGetAttribLocation(texmesh.effect.program, "center_point");
+    
+    if (in_texcoord_loc >= 0)
+    {
+        glEnableVertexAttribArray(in_position_loc);
+        glBindBuffer(GL_ARRAY_BUFFER, texmesh.mesh.vbo);
+        glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), reinterpret_cast<void *>(0));
+        
+        glEnableVertexAttribArray(in_texcoord_loc);
+        glBindBuffer(GL_ARRAY_BUFFER, texmesh.mesh.vbo);
+        glVertexAttribPointer(in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex), reinterpret_cast<void *>(sizeof(vec3))); // note the stride to skip the preceeding vertex position
+        
+        glEnableVertexAttribArray(center_point_loc);
+        glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
+        glVertexAttribPointer(center_point_loc, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat)*2, reinterpret_cast<void *>(0));
+        
+        // Enabling and binding texture to slot 0
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texmesh.texture.texture_id);
+    }
+    else {
+        throw std::runtime_error("This type of entity is not yet supported");
+    }
+    
+    glUniformMatrix3fv(projection_uloc, 1, GL_FALSE, (float *)&projection);
+        
+    gl_has_errors();
+
+    // These functions are specific to glDrawArrays*Instanced*.
+    // The first parameter is the attribute buffer we're talking about.
+    // The second parameter is the "rate at which generic vertex attributes advance when rendering multiple instances"
+    // http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribDivisor.xml
+    glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
+    glVertexAttribDivisor(1, 0); // in_texcoord : always reuse the same 4 vertices        -> 0
+    glVertexAttribDivisor(2, 1); // center positions : one per quad (its center)          -> 1
+
+    // Draw the particules !
+    // This draws many times a small triangle_strip (which looks like a quad).
+    // This is equivalent to :
+    // for(i in ParticlesCount) : glDrawArrays(GL_TRIANGLE_STRIP, 0, 4),
+    // but faster.
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, ParticleSystem::PARTICLE_COUNT);
+    
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+}
+
 // Render our game world
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
-void RenderSystem::draw()
+void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_position_buffer)
 {
 	// Getting size of window
 	ivec2 frame_buffer_size; // in pixels
@@ -305,8 +406,8 @@ void RenderSystem::draw()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	gl_has_errors();
 
-	auto view = registry.view<Motion>();
-	auto &camera_motion = view.get<Motion>(camera);
+
+	auto &camera_motion = registry.get<Motion>(camera);
 	//std::cout << camera_motion.position.x << ", " << camera_motion.position.y << " | " << camera_motion.velocity.x << ", " << camera_motion.velocity.y << "\n";
 	// Fake projection matrix, scales with respect to window coordinates
 	float left = 0.f + camera_motion.position.x;
@@ -332,20 +433,14 @@ void RenderSystem::draw()
 	float ty_ui = -(top_ui + bottom_ui) / (top_ui - bottom_ui);
 	mat3 projection_2D_ui{{sx_ui, 0.f, 0.f}, {0.f, sy_ui, 0.f}, {tx_ui, ty_ui, 1.f}};
 
-	auto view_mesh_ref_motion = registry.view<ShadedMeshRef, Motion>();
-	auto view_mesh_ref_ui = registry.view<UI_element, ShadedMeshRef>();
-
-	auto view_nodes = registry.view<GridNode>();
 
 	auto view_mesh_ref = registry.view<ShadedMeshRef>();
 
-
-	
 	std::vector<std::vector<entt::entity>> sort_by_layer = {};
 
 	// 100 layers
 	sort_by_layer.resize(100);
-
+    
 	for (entt::entity entity : view_mesh_ref)
 	{
 		int layer = view_mesh_ref.get<ShadedMeshRef>(entity).layer;
@@ -366,6 +461,10 @@ void RenderSystem::draw()
 				{
 					drawTexturedMesh(entity, projection_2D_ui);
 				}
+                else if (registry.has<ParticleSystem>(entity))
+                {
+                    continue;
+                }
 				else
 				{
 					drawTexturedMesh(entity, projection_2D);
@@ -378,7 +477,6 @@ void RenderSystem::draw()
 			}
 
 		}
-
 	}
 
 	//useful for rendering entities with only text and no ShadedMeshRef
@@ -387,8 +485,13 @@ void RenderSystem::draw()
 		if(!registry.has<ShadedMeshRef>(entity))
 			drawText(text, frame_buffer_size);
 	}
+    
+    // Truely render to the screen
+    if (registry.view<ParticleSystem>().size() != 0) {
+        glDisable(GL_DEPTH_TEST);
+        drawParticle(billboard_vertex_buffer, particles_position_buffer, projection_2D_ui);
+    }
 
-	// Truely render to the screen
 	drawToScreen();
 
 	// flicker-free display with a double buffer
@@ -428,4 +531,18 @@ void gl_has_errors()
 		error = glGetError();
 	}
 	throw std::runtime_error("last OpenGL error:" + std::string(error_str));
+}
+
+void RenderSystem::show_entity(entt::entity entity)
+{
+	// hide start_button
+	ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity);
+	shaded_mesh_ref.show = true;
+}
+
+void RenderSystem::hide_entity(entt::entity entity)
+{
+	// hide start_button
+	ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity);
+	shaded_mesh_ref.show = false;
 }

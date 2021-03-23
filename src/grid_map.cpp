@@ -44,7 +44,6 @@ entt::entity GridMap::createGridMap()
     }
 
     AISystem::MapAI::setRandomMapPathTerran(map, FOREST_COORD, VILLAGE_COORD);
-    AISystem::MapAI::setRandomMapWeatherTerrain(map);
     return entity;
 }
 
@@ -58,7 +57,7 @@ void GridMap::setGridTerrain(ivec2 grid_coord, int terrain) {
     node.setTerrain(entity, terrain);
 }
 
-void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy, vec2 scale) {
+void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy, entt::entity& occupying_entity, vec2 scale) {
     if (!is_inbounds(grid_coord)) {
         std::cout<<"Debug: out of bounds"<< std::endl;
         return;
@@ -70,7 +69,7 @@ void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy, vec2 scale) {
             ivec2 current_coord = ivec2(i, j);
             if (is_inbounds(current_coord)) {
                 auto& node = getNodeAtCoord(current_coord);
-                node.setOccupancy(occupancy);
+                node.setOccupancy(occupancy, occupying_entity);
             }
         }
     }

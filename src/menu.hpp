@@ -5,7 +5,7 @@
 #include "common.hpp"
 #include "ui.hpp"
 
-enum Menu_texture { title_screen, settings, default_menu, help_menu };
+enum Menu_texture { title_screen, controls, default_menu, help_menu };
 
 struct Menu
 {
@@ -14,3 +14,8 @@ struct Menu
 };
 
 inline std::string menu_texture_path(const std::string& name) { return data_path() + "/textures/menu/" + name; };
+
+struct MenuText
+{
+	std::string menu_name;
+};
