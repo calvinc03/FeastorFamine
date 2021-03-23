@@ -65,7 +65,7 @@ void AISystem::step(float elapsed_ms)
         float distance = sqrt(pow(adjacent, 2) + pow(opposite, 2));
         motion_h.angle = atan2(opposite, adjacent);
 
-        if (placeable_unit.next_projectile_spawn < 0.f) {
+        if (placeable_unit.next_projectile_spawn < 0.f && placeable_unit.health > 0) {
             placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms;
             if (placeable_unit.upgrades >= BULLET_UPGRADE) {
                 Projectile::createProjectile(motion_h.position, motion_monster.position, placeable_unit.damage);
@@ -160,13 +160,25 @@ struct search_node {
     }
 };
 
+// for min priority queue on f cost of nodes
+struct compare_cost {
+    bool operator()(search_node const& n1, search_node const& n2) {
+        return n1.f > n2.f;
+    }
+};
+
+struct iterable_pq: std::priority_queue<search_node, std::vector<search_node>, compare_cost> {
+    auto begin() const { return c.begin(); }
+    auto end() const { return c.end(); }
+};
+
 // diagonal distance
 float heuristic_diagonal_dist(GridMap& current_map, int monster_type, ivec2 from_coord, ivec2 to_coord) {
     float dx = abs(from_coord.x - to_coord.x);
     float dy = abs(from_coord.y - to_coord.y);
     float unit_move_cost = 1;
     // if calculating unit move (as opposed to heuristic over multiple grids), get the corresponding cost of that terrain
-    if (length((vec2)(from_coord - to_coord)) > sqrt(2)) {
+    if (length((vec2)(from_coord - to_coord)) <= sqrt(2)) {
         unit_move_cost = monster_move_cost.at({monster_type, current_map.getNodeAtCoord(to_coord).terrain});
     }
     float diag_cost = sqrt(2 * unit_move_cost);
@@ -176,23 +188,16 @@ float heuristic_diagonal_dist(GridMap& current_map, int monster_type, ivec2 from
 std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int monster_type, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), int neighbor_type) {
     std::vector<ivec2> neighbors = neighbor_map.at(neighbor_type);
     std::vector<std::vector<search_node>> parent(MAP_SIZE_IN_COORD.x,std::vector<search_node> (MAP_SIZE_IN_COORD.y, {ivec2(-1, -1), INFINITY, INFINITY}));
-    std::vector<search_node> open;
+    iterable_pq open;
     std::vector<search_node> closed;
 
     search_node start_node = {start_coord, 0, heuristic_diagonal_dist(current_map, monster_type, start_coord, goal_coord)};
-    open.emplace_back(start_node);
+    open.emplace(start_node);
 
     while (!open.empty()) {
         // get node with smallest f on open list
-        auto min_iter = open.begin();
-        search_node current_node = open.front();
-        for (auto iter = open.begin(); iter != open.end(); iter++) {
-            if ((*iter).f < min_iter->f) {
-                min_iter = iter;
-            }
-        }
-        current_node = *min_iter;
-        open.erase(min_iter);
+        auto current_node = open.top();
+        open.pop();
 
         // check neighbors
         for (ivec2 neighbor : neighbors) {
@@ -232,7 +237,7 @@ std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int mons
                 continue;
             }
             parent[nbr_coord.x][nbr_coord.y] = {current_node.coord, current_node.c, current_node.h};
-            open.emplace_back(nbr_node);
+            open.emplace(nbr_node);
         }
         closed.emplace_back(current_node);
     }
@@ -367,6 +372,7 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
 	//std::shared_ptr <BTNode> stop = std::make_unique<Stop>();
 	std::shared_ptr <BTNode> run = std::make_unique<Run>();
     std::shared_ptr <BTNode> knockback = std::make_unique<Knockback>();
+    std::shared_ptr <BTNode> attack = std::make_unique<Attack>();
 
 	std::shared_ptr <BTIfCondition> conditional_donothing = std::make_unique<BTIfCondition>(
 		donothing,
@@ -376,6 +382,39 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
 		grow,
 		[](entt::entity e) {return registry.has<FallBoss>(e); }
 	);
+    std::shared_ptr <BTIfCondition> conditional_attack = std::make_unique<BTIfCondition>(
+            attack,
+            [](entt::entity e) {
+                // must be spring boss to attack for now
+                if (!registry.has<SpringBoss>(e)) {
+                    return false;
+                }
+                // must be near the center of corresponding grid to attack
+                auto& motion = registry.get<Motion>(e);
+                ivec2 coord = pixel_to_coord(motion.position);
+                if (abs(length(coord_to_pixel(coord) - motion.position)) > length(motion.velocity) * ELAPSED_MS / 1000.f) {
+                    return false;
+                }
+
+                // can attack if next to a placeable unit that has health left
+                // TODO: allow various size monsters
+                for (ivec2 nbr : neighbor_map.at(DIRECT_NBRS)) {
+                    // check if neighbor in-bounds
+                    ivec2 nbr_coord = coord + nbr;
+                    if (!is_inbounds(nbr_coord)) {
+                        continue;
+                    }
+                    // check if containing at least one attackable unit
+                    auto& node = WorldSystem::current_map.getNodeAtCoord(nbr_coord);
+                    if (node.occupancy != NONE
+                            && registry.has<Unit>(node.occupying_entity)
+                            && registry.get<Unit>(node.occupying_entity).health > 0) {
+                       return true;
+                    }
+                }
+                return false;
+            }
+    );
 	/*std::shared_ptr <BTIfCondition> conditional_stop = std::make_unique<BTIfCondition>(
 		stop,
 		[](entt::entity e) {return registry.has<SummerBoss>(e); }
@@ -400,6 +439,7 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
 	cond_nodes.push_back(conditional_run);
     cond_nodes.push_back(conditional_run_sum);
     cond_nodes.push_back(conditional_knockback);
+    //cond_nodes.push_back(conditional_attack);
 
 	std::shared_ptr<BTSelector> selector = std::make_unique<BTSelector>(cond_nodes);
     

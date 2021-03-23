@@ -57,7 +57,7 @@ public:
 	void setup_round_from_round_number(int round_number);
 
 	// Check for collisions
-	void updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster);
+	void updateProjectileMonsterCollision(entt::entity e_projectile, entt::entity e_monster);
 
 	// Steps the game during monster rounds ahead by ms milliseconds
 	void step(float elapsed_ms);
@@ -105,6 +105,7 @@ public:
 
 	// health of the village
 	static int health;
+    static GridMap current_map;
 
 	// decrease reward at higher levels
 	static float reward_multiplier;

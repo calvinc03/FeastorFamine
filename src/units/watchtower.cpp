@@ -42,6 +42,6 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     registry.emplace<WatchTower>(entity);
     registry.emplace<Selectable>(entity);
     registry.emplace<HighlightBool>(entity);
-
+    registry.emplace<HitReaction>(entity);
     return entity;
 }

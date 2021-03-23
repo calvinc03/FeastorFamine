@@ -45,6 +45,6 @@ entt::entity Wall::createWall(vec2 position, bool rotate) // rotation should be 
 	registry.emplace<Wall>(entity);
 	registry.emplace<Selectable>(entity);
 	registry.emplace<HighlightBool>(entity);
-
+    registry.emplace<HitReaction>(entity);
 	return entity;
 }

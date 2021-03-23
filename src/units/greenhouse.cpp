@@ -43,6 +43,6 @@ entt::entity GreenHouse::createGreenHouse(vec2 pos)
     registry.emplace<GreenHouse>(entity);
     registry.emplace<Selectable>(entity);
     registry.emplace<HighlightBool>(entity);
-
+    registry.emplace<HitReaction>(entity);
     return entity;
 }

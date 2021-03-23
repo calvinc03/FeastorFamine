@@ -5,12 +5,11 @@
 enum class BTState {
     Moving,
     Stopped,
+    Attack,
     Failure,
     Dragon,
     Fireball
 };
-
-static GridMap current_map;
 
 // The base class representing any node in our behaviour tree
 class BTNode {

@@ -50,7 +50,7 @@ const int MAX_ROUNDS = 18;
 const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
 int WorldSystem::health = 1000;
 float WorldSystem::reward_multiplier = 1.f;
-
+GridMap WorldSystem::current_map;
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
 std::map<int, std::vector<ivec2>> default_monster_paths;
@@ -703,54 +703,38 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		}
 		std::cout << "SPAWNING FINAL BOSS" << std::endl;
 		create_boss = FinalBoss::createFinalBossEntt;
-        current_round_monster_types.emplace_back(FINAL_BOSS);
+        // current_round_monster_types.emplace_back(FINAL_BOSS);
 	}
 	if (prev_weather != weather) {
 	    AISystem::MapAI::setRandomMapWeatherTerrain(current_map, weather);
 	}
 }
 
-// create hit points when projectile hits monsters
-void create_hit_points_text(int hit_points, entt::entity monster)
+void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, entt::entity e_monster)
 {
-	// used to scale the hit points size 
-	float max_possible_damage = 150;
-	float min_text_size = 0.5;
-	float max_text_size = 1.5;
-
-	auto animal_motion = registry.get<Motion>(monster);
-	float on_screen_time_ms = 300;
-	float text_scale = (float)hit_points * (max_text_size - min_text_size) / max_possible_damage + min_text_size;
-
-	auto d_text = DisappearingText::createDisappearingText(std::to_string(hit_points), animal_motion.position, on_screen_time_ms, text_scale);
-	registry.emplace<HitPointsText>(d_text);
-}
-
-void WorldSystem::updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster)
-{
-	auto &animal = registry.get<Monster>(monster);
-	auto &prj = registry.get<Projectile>(projectile);
+	auto &monster = registry.get<Monster>(e_monster);
+	auto &prj = registry.get<Projectile>(e_projectile);
 
 	Mix_PlayChannel(-1, impact_sound, 0);
 
-	animal.health -= prj.damage;
-	animal.collided = true;
+    monster.health -= prj.damage;
+    monster.collided = true;
 
 	// add hit point text
 	int hit_points = prj.damage;
-	create_hit_points_text(hit_points, monster);
+	create_hit_points_text(hit_points, e_monster);
 
-	auto &hit_reaction = registry.get<HitReaction>(monster);
+	auto &hit_reaction = registry.get<HitReaction>(e_monster);
 	hit_reaction.counter_ms = 750; //ms duration used by health bar
 
-	if (registry.has<RockProjectile>(projectile)) {
-		if (!registry.has<EntityDeath>(projectile)) {
-			auto& death = registry.emplace<EntityDeath>(projectile);
+	if (registry.has<RockProjectile>(e_projectile)) {
+		if (!registry.has<EntityDeath>(e_projectile)) {
+			auto& death = registry.emplace<EntityDeath>(e_projectile);
 			death.timer = 1000;
 
-			auto& rock = registry.get<RockProjectile>(projectile);
-			auto& prj_motion = registry.get<Motion>(projectile);
-			auto& monster_motion = registry.get<Motion>(monster);
+			auto& rock = registry.get<RockProjectile>(e_projectile);
+			auto& prj_motion = registry.get<Motion>(e_projectile);
+			auto& monster_motion = registry.get<Motion>(e_monster);
 
 			vec2 vector = (monster_motion.position - prj_motion.position);
 			vec2 norm;
@@ -766,18 +750,18 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity projectile, entt
 		}
 	}
 	else {
-		registry.destroy(projectile);
+		registry.destroy(e_projectile);
 	}
 
-	if (animal.health <= 0)
+	if (monster.health <= 0)
 	{
-		health += animal.reward * reward_multiplier;
+		health += monster.reward * reward_multiplier;
 
-		if (registry.has<Rig>(monster)) {
-			Rig::delete_rig(monster); //rigs have multiple pieces to be deleted
+		if (registry.has<Rig>(e_monster)) {
+			Rig::delete_rig(e_monster); //rigs have multiple pieces to be deleted
 		}
 		else {
-			registry.destroy(monster);
+			registry.destroy(e_monster);
 		}
 
 	}
@@ -1041,7 +1025,7 @@ void grid_highlight_system(vec2 mouse_pos, unit_type unit_selected, GridMap curr
 	auto &node = current_map.getNodeAtCoord(pixel_to_coord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each())
 	{
-		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == NONE && node.terrain >= TERRAIN_DEFAULT)
+		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == NONE && node.terrain != TERRAIN_PAVEMENT)
 		{
 			highlight.highlight = true;
 		}
@@ -1525,9 +1509,9 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && placement_unit_selected != NONE && in_game_area)
 		{
 			auto &node = current_map.getNodeAtCoord(pixel_to_coord(vec2(x, y)));
-            bool sufficient_funds = true;
+            bool cannot_place_unit = true;
             entt::entity entity;
-			if (node.occupancy == NONE && node.terrain >= TERRAIN_DEFAULT)
+			if (node.occupancy == NONE && node.terrain != TERRAIN_PAVEMENT && node.terrain != TERRAIN_FIRE)
 			{
 				if (placement_unit_selected == HUNTER && health >= HUNTER_COST)
 				{
@@ -1557,9 +1541,9 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				{
 					//insufficent funds -- should feedback be given here, or when the button is pressed?
 					Mix_PlayChannel(-1, ui_sound_negative_tick, 0);
-					sufficient_funds = false;
+                    cannot_place_unit = false;
 				}
-				if (sufficient_funds) {
+				if (cannot_place_unit) {
 				    auto& motion = registry.get<Motion>(entity);
                     current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), placement_unit_selected, entity, motion.scale);
 				}

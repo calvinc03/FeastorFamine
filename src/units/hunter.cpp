@@ -42,6 +42,6 @@ entt::entity Hunter::createHunter(vec2 pos)
     registry.emplace<Hunter>(entity);
     registry.emplace<Selectable>(entity);
     registry.emplace<HighlightBool>(entity);
-
+    registry.emplace<HitReaction>(entity);
     return entity;
 }

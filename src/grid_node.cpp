@@ -55,5 +55,7 @@ void GridNode::setTerrain(entt::entity entity, int new_terrain) {
 
 void GridNode::setOccupancy(int new_occupancy, entt::entity& entity) {
     this->occupancy = new_occupancy;
-    this->occupying_entity = entity;
+    if (new_occupancy != NONE) {
+        this->occupying_entity = entity;
+    }
 }
