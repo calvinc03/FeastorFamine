@@ -931,7 +931,7 @@ bool mouse_in_game_area(vec2 mouse_pos)
 		auto view_ui = registry.view<UI_element>();
 		for (auto [entity, ui_element] : view_ui.each())
 		{
-			if ((sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f) < 0.0f))
+			if ((sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f) <= 0.0f))
 			{
 				return false;
 			}
