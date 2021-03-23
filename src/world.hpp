@@ -46,7 +46,7 @@ public:
 	// helper to save game to disk
 	void save_game();
 
-	void upgrade_unit(PlaceableUnit& unit);
+	void upgrade_unit(Unit& unit);
 
 	void sell_unit(entt::entity& entity);
 
@@ -57,7 +57,7 @@ public:
 	void setup_round_from_round_number(int round_number);
 
 	// Check for collisions
-	void updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster);
+	void updateProjectileMonsterCollision(entt::entity e_projectile, entt::entity e_monster);
 
 	// Steps the game during monster rounds ahead by ms milliseconds
 	void step(float elapsed_ms);

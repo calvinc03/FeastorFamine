@@ -141,7 +141,7 @@ public:
     Attack() noexcept {
         vel = std::map<entt::entity, vec2>();
         next_attack = std::map<entt::entity, int>();
-        attackable_units = std::vector<PlaceableUnit>();
+        attackable_entities = std::vector<entt::entity>();
     }
 
     void init(entt::entity e) override {
@@ -164,11 +164,9 @@ public:
                 }
                 auto& node = WorldSystem::current_map.getNodeAtCoord(nbr_coord);
                 if (node.occupancy != NONE
-                    && registry.has<PlaceableUnit>(node.occupying_entity)) {
-                    auto& unit = registry.get<PlaceableUnit>(node.occupying_entity);
-                    if (unit.health > 0) {
-                        attackable_units.emplace_back(unit);
-                    }
+                    && registry.has<Unit>(node.occupying_entity)
+                    && registry.get<Unit>(node.occupying_entity).health > 0) {
+                    attackable_entities.emplace_back(node.occupying_entity);
                 }
             }
             first_process = false;
@@ -180,16 +178,24 @@ public:
             return BTState::Attack;
         }
 
-        // attack the last unit from attackable list, and if destroyed, remove it
+        // attack a unit from attackable list
         auto& monster = registry.get<Monster>(e);
-        auto& unit_to_attack = attackable_units.back();
-        unit_to_attack.health -= monster.damage;
-        if (unit_to_attack.health <= 0) {
-            attackable_units.pop_back();
+        auto& entity_to_attack = attackable_entities.back();
+        auto& unit = registry.get<Unit>(entity_to_attack);
+        next_attack[e] = monster.attack_interval;
+
+        // TODO: create on hit and damaged(hp<=0) appearances for unit
+        unit.health -= monster.damage;
+        create_hit_points_text(monster.damage, entity_to_attack);
+        auto &hit_reaction = registry.get<HitReaction>(entity_to_attack);
+        hit_reaction.counter_ms = 750;
+
+        if (unit.health <= 0) {
+            attackable_entities.pop_back();
         }
 
         // continue moving if no more attackables
-        if (attackable_units.empty()) {
+        if (attackable_entities.empty()) {
             motion.velocity = vel[e];
             first_process = true;
             return BTState::Failure;
@@ -199,7 +205,7 @@ public:
 private:
     std::map<entt::entity, vec2> vel;
     std::map<entt::entity, int> next_attack;
-    std::vector<PlaceableUnit> attackable_units;
+    std::vector<entt::entity> attackable_entities;
     bool first_process;
 };
 
@@ -329,13 +335,13 @@ void increment_monster_step(entt::entity entity) {
 	}
 
 	assert(monster.path_coords[monster.current_path_index] == current_path_coord);
-
+    float time_step = ELAPSED_MS / 1000.f;
 	ivec2 next_path_coord = monster.path_coords.at(monster.current_path_index + 1);
-	vec2 next_step_position = motion.position + (15 / 1000.f) * motion.velocity;
+	vec2 next_step_position = motion.position + time_step * motion.velocity;
 	ivec2 next_step_coord = pixel_to_coord(next_step_position);
 
 	// change direction if reached the middle of the this node
-	if (abs(length(coord_to_pixel(current_path_coord) - motion.position)) <= length(motion.velocity) * ELAPSED_MS / 1000.f) {
+	if (abs(length(coord_to_pixel(current_path_coord) - motion.position)) <= length(motion.velocity) * time_step) {
 		vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
 		motion.velocity = length(motion.velocity) * move_direction;
 		motion.angle = atan(move_direction.y / move_direction.x);

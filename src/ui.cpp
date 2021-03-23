@@ -220,7 +220,7 @@ static entt::entity createUI_Banner(std::string content, vec2 position, vec3 col
 void change_button_text(entt::entity button_entity, std::string button_text)
 {
 	auto view_ui = registry.view<UI_element>();
-	auto view_unit = registry.view<PlaceableUnit>();
+	auto view_unit = registry.view<Unit>();
 	if (registry.has<Text>(button_entity))
 	{
 		// remove the original text

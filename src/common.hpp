@@ -54,7 +54,7 @@ struct Monster {
     int max_health; //useful for displaying health bars
     int health;
     int damage;
-    int attack_interval = 50;
+    int attack_interval = 20;
     int current_path_index = 0;
     int reward;
     bool collided = false;
@@ -117,6 +117,8 @@ ivec2 pixel_to_coord(vec2 pixel_position);
 vec2 scale_to_grid_units(vec2 original_scale, float cell_units, int frames = 1);
 
 vec2 grid_to_pixel_velocity(vec2 unit_velocity);
+
+void create_hit_points_text(int hit_points, entt::entity e_damaged);
 
 bool is_inbounds(ivec2 coord);
 

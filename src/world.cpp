@@ -696,47 +696,31 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	}
 }
 
-// create hit points when projectile hits monsters
-void create_hit_points_text(int hit_points, entt::entity monster)
+void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, entt::entity e_monster)
 {
-	// used to scale the hit points size 
-	float max_possible_damage = 150;
-	float min_text_size = 0.5;
-	float max_text_size = 1.5;
-
-	auto animal_motion = registry.get<Motion>(monster);
-	float on_screen_time_ms = 300;
-	float text_scale = (float)hit_points * (max_text_size - min_text_size) / max_possible_damage + min_text_size;
-
-	auto d_text = DisappearingText::createDisappearingText(std::to_string(hit_points), animal_motion.position, on_screen_time_ms, text_scale);
-	registry.emplace<HitPointsText>(d_text);
-}
-
-void WorldSystem::updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster)
-{
-	auto &animal = registry.get<Monster>(monster);
-	auto &prj = registry.get<Projectile>(projectile);
+	auto &monster = registry.get<Monster>(e_monster);
+	auto &prj = registry.get<Projectile>(e_projectile);
 
 	Mix_PlayChannel(-1, impact_sound, 0);
 
-	animal.health -= prj.damage;
-	animal.collided = true;
+    monster.health -= prj.damage;
+    monster.collided = true;
 
 	// add hit point text
 	int hit_points = prj.damage;
-	create_hit_points_text(hit_points, monster);
+	create_hit_points_text(hit_points, e_monster);
 
-	auto &hit_reaction = registry.get<HitReaction>(monster);
+	auto &hit_reaction = registry.get<HitReaction>(e_monster);
 	hit_reaction.counter_ms = 750; //ms duration used by health bar
 
-	if (registry.has<RockProjectile>(projectile)) {
-		if (!registry.has<EntityDeath>(projectile)) {
-			auto& death = registry.emplace<EntityDeath>(projectile);
+	if (registry.has<RockProjectile>(e_projectile)) {
+		if (!registry.has<EntityDeath>(e_projectile)) {
+			auto& death = registry.emplace<EntityDeath>(e_projectile);
 			death.timer = 1000;
 
-			auto& rock = registry.get<RockProjectile>(projectile);
-			auto& prj_motion = registry.get<Motion>(projectile);
-			auto& monster_motion = registry.get<Motion>(monster);
+			auto& rock = registry.get<RockProjectile>(e_projectile);
+			auto& prj_motion = registry.get<Motion>(e_projectile);
+			auto& monster_motion = registry.get<Motion>(e_monster);
 
 			vec2 vector = (monster_motion.position - prj_motion.position);
 			vec2 norm;
@@ -752,18 +736,18 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity projectile, entt
 		}
 	}
 	else {
-		registry.destroy(projectile);
+		registry.destroy(e_projectile);
 	}
 
-	if (animal.health <= 0)
+	if (monster.health <= 0)
 	{
-		health += animal.reward * reward_multiplier;
+		health += monster.reward * reward_multiplier;
 
-		if (registry.has<Rig>(monster)) {
-			Rig::delete_rig(monster); //rigs have multiple pieces to be deleted
+		if (registry.has<Rig>(e_monster)) {
+			Rig::delete_rig(e_monster); //rigs have multiple pieces to be deleted
 		}
 		else {
-			registry.destroy(monster);
+			registry.destroy(e_monster);
 		}
 
 	}
@@ -1023,7 +1007,7 @@ void grid_highlight_system(vec2 mouse_pos, unit_type unit_selected, GridMap curr
 	auto &node = current_map.getNodeAtCoord(pixel_to_coord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each())
 	{
-		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == NONE && node.terrain >= TERRAIN_DEFAULT)
+		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == NONE && node.terrain != TERRAIN_PAVEMENT)
 		{
 			highlight.highlight = true;
 		}
@@ -1097,7 +1081,7 @@ void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_
 		return;
 	}
 	auto view_ui_mesh = registry.view<UI_element, ShadedMeshRef>();
-	auto view_unit = registry.view<PlaceableUnit>();
+	auto view_unit = registry.view<Unit>();
 	auto view_selectable = registry.view<Selectable>();
 	entt::entity entity_selected;
 	for (auto entity : view_selectable)
@@ -1112,7 +1096,7 @@ void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_
 		{
 			if (view_ui_mesh.get<UI_element>(entity).tag == UPGRADE_BUTTON_TITLE)
 			{
-				PlaceableUnit& unit = view_unit.get<PlaceableUnit>(entity_selected);
+				Unit& unit = view_unit.get<Unit>(entity_selected);
 				std::string button_text = "-" + std::to_string(unit.upgrade_cost);
 				change_button_text(entity, button_text);
 				auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
@@ -1121,7 +1105,7 @@ void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_
 			else if (view_ui_mesh.get<UI_element>(entity).tag == SELL_BUTTON_TITLE)
 			{
 
-				PlaceableUnit& unit = view_unit.get<PlaceableUnit>(entity_selected);
+				Unit& unit = view_unit.get<Unit>(entity_selected);
 				std::string button_text = "+" + std::to_string(unit.sell_price);
 				change_button_text(entity, button_text);
 				auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
@@ -1229,7 +1213,7 @@ vec2 WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_
 	{
 		bool unit_selected = false;
 		bool sell_clicked = false;
-		auto view_unit = registry.view<PlaceableUnit>();
+		auto view_unit = registry.view<Unit>();
 		auto view_highlight = registry.view<HighlightBool>();
 		auto view_selectable = registry.view<Selectable, Motion>();
 		auto view_ui_mesh = registry.view<UI_element, ShadedMeshRef>();
@@ -1278,9 +1262,9 @@ vec2 WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_
 					selectable.selected = true;
 					view_highlight.get<HighlightBool>(entity).highlight = true;
 
-					if (registry.has<PlaceableUnit>(entity))
+					if (registry.has<Unit>(entity))
 					{
-						auto unit_stats = view_unit.get<PlaceableUnit>(entity);
+						auto unit_stats = view_unit.get<Unit>(entity);
 						std::cout << "=== Unit stats ===\n";
 						std::cout << "attack damage: " << unit_stats.damage << "\n";
 						std::cout << "attack rate: " << unit_stats.attack_interval_ms << "\n";
@@ -1499,9 +1483,9 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && placement_unit_selected != NONE && in_game_area)
 		{
 			auto &node = current_map.getNodeAtCoord(pixel_to_coord(vec2(x, y)));
-            bool sufficient_funds = true;
+            bool cannot_place_unit = true;
             entt::entity entity;
-			if (node.occupancy == NONE && node.terrain >= TERRAIN_DEFAULT)
+			if (node.occupancy == NONE && node.terrain != TERRAIN_PAVEMENT && node.terrain != TERRAIN_FIRE)
 			{
 				if (placement_unit_selected == HUNTER && health >= HUNTER_COST)
 				{
@@ -1531,9 +1515,9 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				{
 					//insufficent funds -- should feedback be given here, or when the button is pressed?
 					Mix_PlayChannel(-1, ui_sound_negative_tick, 0);
-					sufficient_funds = false;
+                    cannot_place_unit = false;
 				}
-				if (sufficient_funds) {
+				if (cannot_place_unit) {
 				    auto& motion = registry.get<Motion>(entity);
                     current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), placement_unit_selected, entity, motion.scale);
 				}
@@ -1566,12 +1550,12 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			else if (ui_button == Button::sell_button)
 			{
 				auto view_selectable = registry.view<Selectable>();
-				auto view_unit = registry.view<PlaceableUnit>();
+				auto view_unit = registry.view<Unit>();
 				for (auto entity : view_selectable)
 				{
 					if (view_selectable.get<Selectable>(entity).selected)
 					{
-						auto& unit = view_unit.get<PlaceableUnit>(entity);
+						auto& unit = view_unit.get<Unit>(entity);
 						health += unit.sell_price;
 						sell_unit(entity);
 					}
@@ -1582,12 +1566,12 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 				// upgrade button is hit
 				auto view_selectable = registry.view<Selectable>();
-				auto view_unit = registry.view<PlaceableUnit>();
+				auto view_unit = registry.view<Unit>();
 				for (auto entity : view_selectable)
 				{
 					if (view_selectable.get<Selectable>(entity).selected)
 					{
-						auto &unit = view_unit.get<PlaceableUnit>(entity);
+						auto &unit = view_unit.get<Unit>(entity);
 						health -= unit.upgrade_cost;
 						upgrade_unit(unit);
 						std::cout << "Damage increased!\n";
@@ -1626,7 +1610,7 @@ void WorldSystem::sell_unit(entt::entity &entity)
 	registry.destroy(entity);
 }
 
-void WorldSystem::upgrade_unit(PlaceableUnit &unit)
+void WorldSystem::upgrade_unit(Unit &unit)
 {
 	unit.damage += 5;
 	unit.upgrades++;
@@ -1639,7 +1623,7 @@ void WorldSystem::save_game()
 	save_json["health"] = health;
 
 	// TODO finish implementing, may need to edit unit struct
-	auto view_unit = registry.view<PlaceableUnit>();
+	auto view_unit = registry.view<Unit>();
 	auto view_motion = registry.view<Motion>();
 	auto view_selectable = registry.view<Selectable>();
 	std::vector<nlohmann::json> unit_list(view_selectable.size());
@@ -1648,7 +1632,7 @@ void WorldSystem::save_game()
 	for (auto &entity : view_selectable)
 	{
 		nlohmann::json curr_unit;
-		auto unit = view_unit.get<PlaceableUnit>(entity);
+		auto unit = view_unit.get<Unit>(entity);
 		auto motion = view_motion.get<Motion>(entity);
 
         curr_unit["type_str"] = unit_str.at(unit.type);
@@ -1731,8 +1715,8 @@ void WorldSystem::load_game()
 		}
 		auto& motion = registry.get<Motion>(entity);
         current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), type, entity, motion.scale);
-		auto view_unit = registry.view<PlaceableUnit>();
-		auto &curr_unit = view_unit.get<PlaceableUnit>(entity);
+		auto view_unit = registry.view<Unit>();
+		auto &curr_unit = view_unit.get<Unit>(entity);
 		for (int i = 0; i < unit["upgrades"]; i++)
 		{
 			upgrade_unit(curr_unit);

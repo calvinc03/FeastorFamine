@@ -28,7 +28,7 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     // Then we scale it to whatever size is needed
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
 
-    auto& unit = registry.emplace<PlaceableUnit>(entity);
+    auto& unit = registry.emplace<Unit>(entity);
     unit.damage = 10;
     unit.attack_interval_ms = 800;
     unit.attack_range = 400;
@@ -42,6 +42,6 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     registry.emplace<WatchTower>(entity);
     registry.emplace<Selectable>(entity);
     registry.emplace<HighlightBool>(entity);
-
+    registry.emplace<HitReaction>(entity);
     return entity;
 }

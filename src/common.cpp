@@ -1,4 +1,5 @@
 #include "common.hpp"
+#include "text.hpp"
 #include <iostream>
 
 // Note, we could also use the functions from GLM but we write the transformations here to show the uderlying math
@@ -66,6 +67,22 @@ vec2 scale_to_grid_units(vec2 original_scale, float cell_units, int frames) {
 // eg. unit_velocity = vec2(1,1) means moving 1 grid right and 1 grid down every second
 vec2 grid_to_pixel_velocity(vec2 unit_velocity) {
     return unit_velocity * (vec2) GRID_CELL_SIZE;
+}
+
+// create hit points when projectile hits monsters
+void create_hit_points_text(int hit_points, entt::entity e_damaged)
+{
+    // used to scale the hit points size
+    float max_possible_damage = 150;
+    float min_text_size = 0.5;
+    float max_text_size = 1.5;
+
+    auto motion = registry.get<Motion>(e_damaged);
+    float on_screen_time_ms = 300;
+    float text_scale = (float)hit_points * (max_text_size - min_text_size) / max_possible_damage + min_text_size;
+
+    auto d_text = DisappearingText::createDisappearingText(std::to_string(hit_points), motion.position, on_screen_time_ms, text_scale);
+    registry.emplace<HitPointsText>(d_text);
 }
 
 bool is_inbounds(ivec2 grid_coord) {

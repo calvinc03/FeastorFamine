@@ -32,7 +32,6 @@ enum unit_type
     FOREST,
     VILLAGE,
     WATCHTOWER,
-    TOWER,
     GREENHOUSE,
     HUNTER,
     WALL,
