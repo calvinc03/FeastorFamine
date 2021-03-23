@@ -105,6 +105,7 @@ public:
 
 	// health of the village
 	static int health;
+    static GridMap current_map;
 
 	// decrease reward at higher levels
 	static float reward_multiplier;

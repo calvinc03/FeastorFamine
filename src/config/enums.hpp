@@ -2,8 +2,8 @@
 // May be refactored later if too hard to keep track
 enum terrain_type
 {
-    TERRAIN_PAVEMENT,
     TERRAIN_DEFAULT,
+    TERRAIN_PAVEMENT,
     TERRAIN_MUD,
     TERRAIN_PUDDLE,
     TERRAIN_DRY,

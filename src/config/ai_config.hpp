@@ -100,7 +100,7 @@ const static std::map<std::pair<int, int>, float> monster_move_cost = {
 // maps <monster type, terrain> to unit move cost
 const static std::map<std::pair<int, int>, int> monster_move_speed_multiplier = {
         // rabbit
-        {std::pair(MOB, TERRAIN_PAVEMENT),         1.2},
+        {std::pair(MOB, TERRAIN_PAVEMENT),         1.5},
         {std::pair(MOB, TERRAIN_DEFAULT),          1.0},
         {std::pair(MOB, TERRAIN_MUD),              0.5},
         {std::pair(MOB, TERRAIN_PUDDLE),           0.3},

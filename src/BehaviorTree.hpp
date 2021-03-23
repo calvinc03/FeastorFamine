@@ -11,8 +11,6 @@ enum class BTState {
     Fireball
 };
 
-static GridMap current_map;
-
 // The base class representing any node in our behaviour tree
 class BTNode {
 public:

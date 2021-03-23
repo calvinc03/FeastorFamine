@@ -160,13 +160,25 @@ struct search_node {
     }
 };
 
+// for min priority queue on f cost of nodes
+struct compare_cost {
+    bool operator()(search_node const& n1, search_node const& n2) {
+        return n1.f > n2.f;
+    }
+};
+
+struct iterable_pq: std::priority_queue<search_node, std::vector<search_node>, compare_cost> {
+    auto begin() const { return c.begin(); }
+    auto end() const { return c.end(); }
+};
+
 // diagonal distance
 float heuristic_diagonal_dist(GridMap& current_map, int monster_type, ivec2 from_coord, ivec2 to_coord) {
     float dx = abs(from_coord.x - to_coord.x);
     float dy = abs(from_coord.y - to_coord.y);
     float unit_move_cost = 1;
     // if calculating unit move (as opposed to heuristic over multiple grids), get the corresponding cost of that terrain
-    if (length((vec2)(from_coord - to_coord)) > sqrt(2)) {
+    if (length((vec2)(from_coord - to_coord)) <= sqrt(2)) {
         unit_move_cost = monster_move_cost.at({monster_type, current_map.getNodeAtCoord(to_coord).terrain});
     }
     float diag_cost = sqrt(2 * unit_move_cost);
@@ -176,23 +188,16 @@ float heuristic_diagonal_dist(GridMap& current_map, int monster_type, ivec2 from
 std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int monster_type, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), int neighbor_type) {
     std::vector<ivec2> neighbors = neighbor_map.at(neighbor_type);
     std::vector<std::vector<search_node>> parent(MAP_SIZE_IN_COORD.x,std::vector<search_node> (MAP_SIZE_IN_COORD.y, {ivec2(-1, -1), INFINITY, INFINITY}));
-    std::vector<search_node> open;
+    iterable_pq open;
     std::vector<search_node> closed;
 
     search_node start_node = {start_coord, 0, heuristic_diagonal_dist(current_map, monster_type, start_coord, goal_coord)};
-    open.emplace_back(start_node);
+    open.emplace(start_node);
 
     while (!open.empty()) {
         // get node with smallest f on open list
-        auto min_iter = open.begin();
-        search_node current_node = open.front();
-        for (auto iter = open.begin(); iter != open.end(); iter++) {
-            if ((*iter).f < min_iter->f) {
-                min_iter = iter;
-            }
-        }
-        current_node = *min_iter;
-        open.erase(min_iter);
+        auto current_node = open.top();
+        open.pop();
 
         // check neighbors
         for (ivec2 neighbor : neighbors) {
@@ -232,7 +237,7 @@ std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int mons
                 continue;
             }
             parent[nbr_coord.x][nbr_coord.y] = {current_node.coord, current_node.c, current_node.h};
-            open.emplace_back(nbr_node);
+            open.emplace(nbr_node);
         }
         closed.emplace_back(current_node);
     }
@@ -398,7 +403,7 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
                         continue;
                     }
                     // check if containing at least one attackable unit
-                    auto& node = current_map.getNodeAtCoord(nbr_coord);
+                    auto& node = WorldSystem::current_map.getNodeAtCoord(nbr_coord);
                     if (node.occupancy != NONE
                             && registry.has<PlaceableUnit>(node.occupying_entity)
                             && registry.get<PlaceableUnit>(node.occupying_entity).health > 0) {

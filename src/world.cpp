@@ -50,7 +50,7 @@ const int MAX_ROUNDS = 18;
 const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
 int WorldSystem::health = 1000;
 float WorldSystem::reward_multiplier = 1.f;
-
+GridMap WorldSystem::current_map;
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
 std::map<int, std::vector<ivec2>> default_monster_paths;
