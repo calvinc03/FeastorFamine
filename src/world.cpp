@@ -525,6 +525,10 @@ void WorldSystem::setup_start_menu()
 	create_start_menu();
 	camera = Camera::createCamera();
 }
+void destroy_entity(const entt::entity entity)
+{
+	registry.destroy(entity);
+}
 
 void WorldSystem::restart()
 {
@@ -542,20 +546,23 @@ void WorldSystem::restart()
 	player_state = set_up_stage;
 	set_up_timer = SET_UP_TIME;
 
+	registry.each(destroy_entity);
 	registry.clear(); // Remove all entities that we created
 
 	screen_state_entity = registry.create();
 	registry.emplace<ScreenState>(screen_state_entity);
 
 	//create UI	
-	UI_button::createUI_button(0, tower_button, WATCHTOWER_COST);
-	UI_button::createUI_button(1, green_house_button, GREENHOUSE_COST);
-	UI_button::createUI_button(2, stick_figure_button, HUNTER_COST);
-	UI_button::createUI_button(3, wall_button, WALL_COST);
-	UI_button::createUI_button(5, upgrade_button, HUNTER_UPGRADE_COST, UPGRADE_BUTTON_TITLE, false);
-	UI_button::createUI_button(6, sell_button, SELL_BUTTON_TITLE, false);
+	UI_button::createUI_build_unit_button(0, tower_button, WATCHTOWER_COST);
+	UI_button::createUI_build_unit_button(1, green_house_button, GREENHOUSE_COST);
+	UI_button::createUI_build_unit_button(2, stick_figure_button, HUNTER_COST);
+	UI_button::createUI_build_unit_button(3, wall_button, WALL_COST );
+	// when unit is selected buttons
+	UI_button::createUI_selected_unit_button(3, upgrade_button, UPGRADE_BUTTON_TITLE, false);
+	UI_button::createUI_selected_unit_button(4, sell_button, SELL_BUTTON_TITLE, false);
+	// general buttons
 	UI_button::createUI_button(8, start_button, START_BUTTON_TITLE);
-	UI_button::createUI_button(9, save_button, 0, SAVE_BUTTON_TITLE);
+	UI_button::createUI_button(9, save_button, SAVE_BUTTON_TITLE);
 	UI_background::createUI_background();
 
 	stage_text_entity = create_ui_text(vec2(5, 65), "PREPARE");
@@ -844,8 +851,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
             auto view = registry.view<Menu, ShadedMeshRef>();
             for (auto entity : view)
             {
-                auto &shaded_mesh_ref = view.get<ShadedMeshRef>(entity);
-                shaded_mesh_ref.show = false;
+				RenderSystem::hide_entity(entity);
             }
             game_state = in_game;
 	    }
@@ -1069,55 +1075,115 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 	}
 }
 
+// helper for update_look_for_selected_buttons
+// update unit stats
+void update_unit_stats(Unit unit)
+{
+	int x_position = 200;
+	int y_position = 65;
+	int y_line_offset = 15;
+	// create stats text
+	auto damage_stats = create_ui_text(vec2(x_position, y_position), "Attack Damage: " + std::to_string(unit.damage));
+	registry.emplace<UI_unit_stats>(damage_stats);
+
+	// attacks per seconds
+	float aps = 0.f;
+	if (unit.attack_interval_ms != 0)
+	{
+		aps = 1000 / (float)unit.attack_interval_ms;
+	}
+	
+	// display aps to 2 decimals
+	std::ostringstream aps_out;
+	aps_out.precision(2);
+	aps_out << std::fixed << aps;
+
+	auto attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), "Attack speed: " + aps_out.str() + " (aps)");
+	registry.emplace<UI_unit_stats>(attack_speed_stats);
+
+	// attack range
+	auto attack_range_stats = create_ui_text(vec2(x_position, y_position - (2 * y_line_offset)), "Attack range: " + std::to_string(unit.attack_range));
+	registry.emplace<UI_unit_stats>(attack_range_stats);
+}
+
+void update_unit_portrait(Unit unit)
+{
+	// clear unit portrait
+	for (auto entity : registry.view<UI_selected_unit_portrait>())
+	{
+		registry.destroy(entity);
+	}
+	UI_selected_unit_portrait::createUI_selected_unit_portrait(unit.type);
+}
+
+// update the appearance of ui depending on the given flags
 void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_clicked)
 {
+	// prevent this function gets called twice with one mouse click (press & release)
 	if (action != GLFW_PRESS)
 	{
 		return;
 	}
-	auto view_ui_mesh = registry.view<UI_element, ShadedMeshRef>();
-	auto view_unit = registry.view<Unit>();
-	auto view_selectable = registry.view<Selectable>();
-	entt::entity entity_selected;
-	for (auto entity : view_selectable)
+	// clear unit stats text
+	for (auto entity : registry.view<UI_unit_stats>())
 	{
-		if (view_selectable.get<Selectable>(entity).selected)
-			entity_selected = entity;
+		registry.destroy(entity);
 	}
+	auto view_ui_selected_buttons = registry.view<UI_selected_unit, UI_element, ShadedMeshRef>();
+	auto view_ui_build_buttons = registry.view<UI_build_unit, UI_element, ShadedMeshRef>();
+	
 	// if a unit is selected and the sell button is not clicked
+	// show upgrade buttons and sell button
 	if (unit_selected && !sell_clicked)
 	{
-		for (auto entity : view_ui_mesh)
+		auto view_unit = registry.view<Unit>();
+		auto view_selectable = registry.view<Selectable>();
+		// get the selected unit
+		Unit selected_unit;
+		for (auto entity : view_selectable)
 		{
-			if (view_ui_mesh.get<UI_element>(entity).tag == UPGRADE_BUTTON_TITLE)
-			{
-				Unit& unit = view_unit.get<Unit>(entity_selected);
-				std::string button_text = "-" + std::to_string(unit.upgrade_cost);
-				change_button_text(entity, button_text);
-				auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
-				shaded_mesh_ref.show = true;
-			}
-			else if (view_ui_mesh.get<UI_element>(entity).tag == SELL_BUTTON_TITLE)
-			{
+			if (view_selectable.get<Selectable>(entity).selected)
+				selected_unit = view_unit.get<Unit>(entity);
+		}
 
-				Unit& unit = view_unit.get<Unit>(entity_selected);
-				std::string button_text = "+" + std::to_string(unit.sell_price);
+		for (auto entity : view_ui_selected_buttons)
+		{
+			// show buttons for selected units
+			RenderSystem::show_entity(entity);
+			if (view_ui_selected_buttons.get<UI_element>(entity).tag == UPGRADE_BUTTON_TITLE)
+			{
+				std::string button_text = "-" + std::to_string(selected_unit.upgrade_cost);
 				change_button_text(entity, button_text);
-				auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
-				shaded_mesh_ref.show = true;
 			}
+			else if (view_ui_selected_buttons.get<UI_element>(entity).tag == SELL_BUTTON_TITLE)
+			{
+				std::string button_text = "+" + std::to_string(selected_unit.sell_price);
+				change_button_text(entity, button_text);
+			}
+		}
+		//update unit portrait
+		update_unit_portrait(selected_unit);
+
+		// update unit stats
+		update_unit_stats(selected_unit);
+
+		// hide all build buttons
+		for (auto entity : view_ui_build_buttons)
+		{
+			RenderSystem::hide_entity(entity);
 		}
 	}
 	else
 	{
-		for (auto entity : view_ui_mesh)
+		// hide selected unit buttons
+		for (auto entity : view_ui_selected_buttons)
 		{
-			if (view_ui_mesh.get<UI_element>(entity).tag == UPGRADE_BUTTON_TITLE || view_ui_mesh.get<UI_element>(entity).tag == SELL_BUTTON_TITLE)
-			{
-				//std::cout << "not upgrading\n";
-				auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
-				shaded_mesh_ref.show = false;
-			}
+			RenderSystem::hide_entity(entity);
+		}
+		// show build unit buttons
+		for (auto entity : view_ui_build_buttons)
+		{
+			RenderSystem::show_entity(entity);
 		}
 	}
 }
@@ -1146,9 +1212,9 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
         }
         case in_game:
         {
-            vec2 selected_flags = unit_select_click_handle(xpos, ypos, button, action, mod);
-            in_game_click_handle(xpos, ypos, button, action, mod);
-            update_look_for_selected_buttons(action, selected_flags.x, selected_flags.y);
+			vec2 selected_flags = on_click_select_unit(xpos, ypos, button, action, mod);
+			in_game_click_handle(xpos, ypos, button, action, mod);
+			update_look_for_selected_buttons(action, selected_flags.x, selected_flags.y);
             break;
         }
         case help_menu:
@@ -1171,8 +1237,7 @@ void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y,
 		auto view = registry.view<Menu, ShadedMeshRef>();
 		for (auto entity : view)
 		{
-			auto& shaded_mesh_ref = view.get<ShadedMeshRef>(entity);
-			shaded_mesh_ref.show = false;
+			RenderSystem::hide_entity(entity);
 		}
 		
 		if (round_number == 0) {
@@ -1211,83 +1276,108 @@ void WorldSystem::sell_unit_click_handle(double mouse_pos_x, double mouse_pos_y,
 {
 }
 
-vec2 WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
+// helper for unit_select_click_handle
+bool check_unit_already_selected()
 {
-	if (action == GLFW_PRESS)
+	auto view_selectable = registry.view<Selectable>();
+	for (auto [entity, selectable] : view_selectable.each())
 	{
-		bool unit_selected = false;
-		bool sell_clicked = false;
-		auto view_unit = registry.view<Unit>();
-		auto view_highlight = registry.view<HighlightBool>();
-		auto view_selectable = registry.view<Selectable, Motion>();
-		auto view_ui_mesh = registry.view<UI_element, ShadedMeshRef>();
-		entt::entity entity_selected;
-		vec2 mouse_pos = mouse_in_world_coord({ mouse_pos_x, mouse_pos_y });
-
-		// get the unit modification buttons
-		auto view_ui = registry.view<UI_element>();
-		UI_element unit_mod_buttons;
-		for (auto entity : view_ui)
+		if (selectable.selected)
 		{
-			unit_mod_buttons = view_ui.get<UI_element>(entity);
-			if (unit_mod_buttons.tag == UPGRADE_BUTTON_TITLE || unit_mod_buttons.tag == SELL_BUTTON_TITLE)
-			{
-				if (sdBox(mouse_pos, unit_mod_buttons.position, unit_mod_buttons.scale / 2.0f) < 0.0f)
-				{
-					// check if something is already selected
-					for (auto [entity, selectable, motion] : view_selectable.each())
-					{
-						if (selectable.selected)
-						{
-							entity_selected = entity;
-							unit_selected = true;
-							break;
-						}
-					}
-					if (unit_mod_buttons.tag == SELL_BUTTON_TITLE)
-					{
-						sell_clicked = true;
-					}
-				}
-			}
-			if (unit_selected)
-			{
-				break;
-			}
+			return true;
 		}
-
-		if (!unit_selected)
-		{
-			for (auto [entity, selectable, motion] : view_selectable.each())
-			{
-				// check click on units
-				if (sdBox(mouse_pos, motion.position, motion.scale / 2.0f) < 0.0f)
-				{
-					selectable.selected = true;
-					view_highlight.get<HighlightBool>(entity).highlight = true;
-
-					if (registry.has<Unit>(entity))
-					{
-						auto unit_stats = view_unit.get<Unit>(entity);
-						std::cout << "=== Unit stats ===\n";
-						std::cout << "attack damage: " << unit_stats.damage << "\n";
-						std::cout << "attack rate: " << unit_stats.attack_interval_ms << "\n";
-						std::cout << "attack range: " << unit_stats.attack_range << "\n";
-						entity_selected = entity;
-						unit_selected = true;
-					}
-				}
-				else
-				{
-					view_highlight.get<HighlightBool>(entity).highlight = false;
-					selectable.selected = false;
-				}
-			}
-		}
-		return { unit_selected, sell_clicked };
-
 	}
-	return { false, false };
+	return false;
+}
+
+// helper for unit_select_click_handle
+bool check_click_on_sell_button(double mouse_pos_x, double mouse_pos_y)
+{
+	auto view_selected_buttons = registry.view<UI_selected_unit, UI_element>();
+	for (auto [ui_selected_unit, ui_element] : view_selected_buttons.each())
+	{
+		if (ui_element.tag == SELL_BUTTON_TITLE)
+		{
+			if (sdBox({ mouse_pos_x, mouse_pos_y }, ui_element.position, ui_element.scale / 2.0f) < 0.0f)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+// helper for unit_select_click_handle
+// return true if click on unit modification buttons, except the sell button
+bool check_click_on_unit_selected_buttons(double mouse_pos_x, double mouse_pos_y)
+{
+	auto view_selected_buttons = registry.view<UI_selected_unit, UI_element>();
+	for (auto [ui_selected_unit, ui_element] : view_selected_buttons.each())
+	{
+		if (sdBox({ mouse_pos_x, mouse_pos_y}, ui_element.position, ui_element.scale / 2.0f) < 0.0f)
+		{
+			if (ui_element.tag != SELL_BUTTON_TITLE)
+				return true;
+		}
+	}
+	return false;
+}
+
+// helper for unit_select_click_handle
+// set the unit to selected
+// return true if a unit is selected; otherwise, false
+bool click_on_unit(double mouse_pos_x, double mouse_pos_y)
+{
+	bool clicked_on_unit = false;
+	auto view_highlight = registry.view<HighlightBool>();
+	auto view_unit = registry.view<Unit>();
+	vec2 mouse_pos = mouse_in_world_coord({ mouse_pos_x, mouse_pos_y });
+	auto view_selectable = registry.view<Selectable, Motion>();
+	for (auto [entity, selectable, motion] : view_selectable.each())
+	{
+		// check click on units
+		if (sdBox(mouse_pos, motion.position, motion.scale / 2.0f) < 0.0f)
+		{
+			// add selected status
+			selectable.selected = true;
+			view_highlight.get<HighlightBool>(entity).highlight = true;
+
+			clicked_on_unit = true;
+		}
+		else
+		{
+			// remove selected status on all other units
+			selectable.selected = false;
+			view_highlight.get<HighlightBool>(entity).highlight = false;
+		}
+	}
+	return clicked_on_unit;
+}
+
+vec2 WorldSystem::on_click_select_unit(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
+{
+	if (action != GLFW_PRESS)
+	{
+		return { false, false };
+	}
+
+	bool unit_selected = false;
+	bool sell_clicked = false;
+
+	if (check_unit_already_selected())
+	{
+		bool on_selected_buttons = check_click_on_unit_selected_buttons(mouse_pos_x, mouse_pos_y);
+		bool on_sell_button = check_click_on_sell_button(mouse_pos_x, mouse_pos_y);
+		unit_selected = (on_selected_buttons || on_sell_button);
+		sell_clicked = on_sell_button;
+	}
+	
+	if (!unit_selected)
+	{
+		unit_selected = click_on_unit(mouse_pos_x, mouse_pos_y);
+	}
+
+	return { unit_selected, sell_clicked };
 }
 
 void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)

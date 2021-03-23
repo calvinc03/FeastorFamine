@@ -28,8 +28,10 @@ struct UI_background
 
 struct UI_button
 {
-	static entt::entity createUI_button(int pos, Button button, size_t cost = 0, std::string tag = "default_ui_button_tag", bool show = true);
+	static entt::entity createUI_build_unit_button(int pos, Button button, size_t cost = 0, std::string tag = "default_ui_button_tag", bool show = true);
 	static entt::entity createUI_button(int pos, Button button, std::string tag = "default_ui_button_tag", bool show = true);
+	// wrapper for buttons that shows up when a unit is selected
+	static entt::entity createUI_selected_unit_button(int pos, Button button, std::string tag = "default_ui_button_tag", bool show = true);
 };
 
 struct UI_banner
@@ -37,6 +39,26 @@ struct UI_banner
 	static entt::entity createUI_Banner(std::string content, vec2 position, vec3 colour, float duration);
 };
 
+struct UI_selected_unit_portrait
+{
+	static entt::entity createUI_selected_unit_portrait(unit_type type);
+};
+
 inline std::string ui_texture_path(const std::string& name) { return data_path() + "/textures/ui/" + name; };
 
 void change_button_text(entt::entity button_entity, std::string button_text);
+
+struct UI_selected_unit
+{
+
+};
+
+struct UI_build_unit
+{
+
+};
+
+struct UI_unit_stats
+{
+
+};
