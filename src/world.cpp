@@ -513,6 +513,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		stage_text.colour = { 1.0f, 0.1f, 0.1f };
 
         // set default paths for monster AI for this round
+		std::cout << "XD \n"; 
         for (int monster_type : current_round_monster_types) {
             default_monster_paths.at(monster_type) = AISystem::MapAI::findPathAStar(current_map, monster_type);
         }
@@ -928,15 +929,18 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 bool mouse_in_game_area(vec2 mouse_pos)
 {
-	auto view_ui = registry.view<UI_element>();
-	for (auto [entity, ui_element] : view_ui.each())
+	if (mouse_pos.x > 0 && mouse_pos.y > 0 && mouse_pos.x < WINDOW_SIZE_IN_PX.x && mouse_pos.y < WINDOW_SIZE_IN_PX.y)
 	{
-		if ((sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f) < 0.0f))
+		auto view_ui = registry.view<UI_element>();
+		for (auto [entity, ui_element] : view_ui.each())
 		{
-			return false;
+			if ((sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f) < 0.0f))
+			{
+				return false;
+			}
 		}
 	}
-	return true;
+	return false;
 }
 
 void WorldSystem::scroll_callback(double xoffset, double yoffset)
@@ -1037,16 +1041,13 @@ void grid_highlight_system(vec2 mouse_pos, unit_type unit_selected, GridMap curr
 void WorldSystem::on_mouse_move(vec2 mouse_pos)
 {
 	//if mouse is hovering over a button, then highlight
-	UI_highlight_system(mouse_pos);
+	if (game_state == in_game) {
+		UI_highlight_system(mouse_pos);
+	}
 
 	bool in_game_area = mouse_in_game_area(mouse_pos);
-	if (in_game_area && placement_unit_selected != NONE && player_state == set_up_stage)
+	if (in_game_area && placement_unit_selected != NONE && player_state == set_up_stage && game_state == in_game)
 		grid_highlight_system(mouse_pos, placement_unit_selected, current_map);
-
-	// if village is alive
-	if (health > 0)
-	{
-	}
 
 	// camera control
 	auto view = registry.view<Motion, MouseMovement>();
@@ -1146,6 +1147,10 @@ void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_
 // mouse click callback function
 void WorldSystem::on_mouse_click(int button, int action, int mod)
 {
+	if (!(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS))
+		return;
+
+	std::cout << "Clicked \n";
 	//getting cursor position
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
