@@ -939,6 +939,7 @@ bool mouse_in_game_area(vec2 mouse_pos)
 				return false;
 			}
 		}
+		return true;
 	}
 	return false;
 }
@@ -1046,7 +1047,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 	}
 
 	bool in_game_area = mouse_in_game_area(mouse_pos);
-	if (in_game_area && placement_unit_selected != NONE && player_state == set_up_stage && game_state == in_game)
+	if (in_game_area && placement_unit_selected != NONE && player_state == set_up_stage)
 		grid_highlight_system(mouse_pos, placement_unit_selected, current_map);
 
 	// camera control
