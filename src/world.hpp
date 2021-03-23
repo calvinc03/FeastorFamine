@@ -170,7 +170,6 @@ private:
 	int fireball_delay_ms;
     
 
-	float next_greenhouse_production;
 	int num_mobs_spawned;
 	int num_bosses_spawned;
 	entt::entity (*create_boss)();

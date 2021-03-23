@@ -43,7 +43,7 @@
 #include "json.hpp"
 
 const size_t ANIMATION_FPS = 20;
-const size_t GREENHOUSE_PRODUCTION_DELAY = 8000;
+const size_t GREENHOUSE_REWARD = 80;
 const int STARTING_HEALTH = 600;
 const int MAX_ROUNDS = 18;
 
@@ -83,7 +83,6 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     num_mobs_spawned(0),
     next_particle_spawn(0),
     num_bosses_spawned(0),
-    next_greenhouse_production(3000.f),
     set_up_timer(SET_UP_TIME),
     round_number(0)
 {
@@ -240,7 +239,6 @@ void WorldSystem::step(float elapsed_ms)
 		{
 			next_mob_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
 			entt::entity mob = Mob::createMobEntt();
-			//entt::entity mob = Spider::createSpider();
 			auto& monster = registry.get<Monster>(mob);
             monster.path_coords = default_monster_paths.at(monster.type);
 
@@ -272,14 +270,6 @@ void WorldSystem::step(float elapsed_ms)
 			}
 		}
 
-		// greenhouse food production
-		next_greenhouse_production -= elapsed_ms * current_speed;
-		if (next_greenhouse_production < 0.f)
-		{
-			health += registry.view<GreenHouse>().size() * 20;
-			next_greenhouse_production = GREENHOUSE_PRODUCTION_DELAY;
-		}
-
 		// Increment round number if all enemies are not on the map and projectiles are removed
 		if (num_bosses_spawned == max_boss && num_mobs_spawned == max_mobs)
 		{
@@ -301,6 +291,8 @@ void WorldSystem::step(float elapsed_ms)
 				num_bosses_spawned = 0;
 				num_mobs_spawned = 0;
 				setup_game_setup_stage();
+
+				health += registry.view<GreenHouse>().size() * GREENHOUSE_REWARD * reward_multiplier;
 			}
 		}
 
@@ -513,7 +505,6 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		stage_text.colour = { 1.0f, 0.1f, 0.1f };
 
         // set default paths for monster AI for this round
-		std::cout << "XD \n"; 
         for (int monster_type : current_round_monster_types) {
             default_monster_paths.at(monster_type) = AISystem::MapAI::findPathAStar(current_map, monster_type);
         }
@@ -926,19 +917,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 bool mouse_in_game_area(vec2 mouse_pos)
 {
-	if (mouse_pos.x > 0 && mouse_pos.y > 0 && mouse_pos.x < WINDOW_SIZE_IN_PX.x && mouse_pos.y < WINDOW_SIZE_IN_PX.y)
-	{
-		auto view_ui = registry.view<UI_element>();
-		for (auto [entity, ui_element] : view_ui.each())
-		{
-			if ((sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f) <= 0.0f))
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-	return false;
+	return (mouse_pos.x > 0 && mouse_pos.y > 0 && mouse_pos.x < MAP_SIZE_IN_PX.x&& mouse_pos.y < MAP_SIZE_IN_PX.y);
 }
 
 void WorldSystem::scroll_callback(double xoffset, double yoffset)
@@ -1022,6 +1001,7 @@ void grid_highlight_system(vec2 mouse_pos, unit_type unit_selected, GridMap curr
 {
 	auto view_ui = registry.view<Motion, HighlightBool>();
 
+	ivec2 mouse_coord = pixel_to_coord(mouse_pos);
 	auto &node = current_map.getNodeAtCoord(pixel_to_coord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each())
 	{
@@ -1148,7 +1128,6 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
 	if (!(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS))
 		return;
 
-	std::cout << "Clicked \n";
 	//getting cursor position
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
