@@ -4,9 +4,9 @@
 class GridNode {
 public:
     ivec2 coord;
-    Unit occupying_unit;
     int terrain = TERRAIN_DEFAULT;
     int occupancy = NONE;
+    entt::entity occupying_entity;
     int num_monsters = 0;
 
     static entt::entity createGridNode(int terrain, vec2 coord);

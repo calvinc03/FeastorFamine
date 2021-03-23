@@ -30,7 +30,7 @@ entt::entity Wall::createWall(vec2 position, bool rotate) // rotation should be 
 	motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
 	motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
 
-	auto& unit = registry.emplace<Unit>(entity);
+	auto& unit = registry.emplace<PlaceableUnit>(entity);
 	unit.damage = 0;
 	unit.attack_interval_ms = 0;
 	unit.attack_range = 0;

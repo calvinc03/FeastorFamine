@@ -689,7 +689,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		}
 		std::cout << "SPAWNING FINAL BOSS" << std::endl;
 		create_boss = FinalBoss::createFinalBossEntt;
-        current_round_monster_types.emplace_back(FINAL_BOSS);
+        // current_round_monster_types.emplace_back(FINAL_BOSS);
 	}
 	if (prev_weather != weather) {
 	    AISystem::MapAI::setRandomMapWeatherTerrain(current_map, weather);
@@ -1097,7 +1097,7 @@ void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_
 		return;
 	}
 	auto view_ui_mesh = registry.view<UI_element, ShadedMeshRef>();
-	auto view_unit = registry.view<Unit>();
+	auto view_unit = registry.view<PlaceableUnit>();
 	auto view_selectable = registry.view<Selectable>();
 	entt::entity entity_selected;
 	for (auto entity : view_selectable)
@@ -1112,7 +1112,7 @@ void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_
 		{
 			if (view_ui_mesh.get<UI_element>(entity).tag == UPGRADE_BUTTON_TITLE)
 			{
-				Unit& unit = view_unit.get<Unit>(entity_selected);
+				PlaceableUnit& unit = view_unit.get<PlaceableUnit>(entity_selected);
 				std::string button_text = "-" + std::to_string(unit.upgrade_cost);
 				change_button_text(entity, button_text);
 				auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
@@ -1121,7 +1121,7 @@ void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_
 			else if (view_ui_mesh.get<UI_element>(entity).tag == SELL_BUTTON_TITLE)
 			{
 
-				Unit& unit = view_unit.get<Unit>(entity_selected);
+				PlaceableUnit& unit = view_unit.get<PlaceableUnit>(entity_selected);
 				std::string button_text = "+" + std::to_string(unit.sell_price);
 				change_button_text(entity, button_text);
 				auto& shaded_mesh_ref = view_ui_mesh.get<ShadedMeshRef>(entity);
@@ -1229,7 +1229,7 @@ vec2 WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_
 	{
 		bool unit_selected = false;
 		bool sell_clicked = false;
-		auto view_unit = registry.view<Unit>();
+		auto view_unit = registry.view<PlaceableUnit>();
 		auto view_highlight = registry.view<HighlightBool>();
 		auto view_selectable = registry.view<Selectable, Motion>();
 		auto view_ui_mesh = registry.view<UI_element, ShadedMeshRef>();
@@ -1278,9 +1278,9 @@ vec2 WorldSystem::unit_select_click_handle(double mouse_pos_x, double mouse_pos_
 					selectable.selected = true;
 					view_highlight.get<HighlightBool>(entity).highlight = true;
 
-					if (registry.has<Unit>(entity))
+					if (registry.has<PlaceableUnit>(entity))
 					{
-						auto unit_stats = view_unit.get<Unit>(entity);
+						auto unit_stats = view_unit.get<PlaceableUnit>(entity);
 						std::cout << "=== Unit stats ===\n";
 						std::cout << "attack damage: " << unit_stats.damage << "\n";
 						std::cout << "attack rate: " << unit_stats.attack_interval_ms << "\n";
@@ -1566,12 +1566,12 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			else if (ui_button == Button::sell_button)
 			{
 				auto view_selectable = registry.view<Selectable>();
-				auto view_unit = registry.view<Unit>();
+				auto view_unit = registry.view<PlaceableUnit>();
 				for (auto entity : view_selectable)
 				{
 					if (view_selectable.get<Selectable>(entity).selected)
 					{
-						auto& unit = view_unit.get<Unit>(entity);
+						auto& unit = view_unit.get<PlaceableUnit>(entity);
 						health += unit.sell_price;
 						sell_unit(entity);
 					}
@@ -1582,12 +1582,12 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 				// upgrade button is hit
 				auto view_selectable = registry.view<Selectable>();
-				auto view_unit = registry.view<Unit>();
+				auto view_unit = registry.view<PlaceableUnit>();
 				for (auto entity : view_selectable)
 				{
 					if (view_selectable.get<Selectable>(entity).selected)
 					{
-						auto &unit = view_unit.get<Unit>(entity);
+						auto &unit = view_unit.get<PlaceableUnit>(entity);
 						health -= unit.upgrade_cost;
 						upgrade_unit(unit);
 						std::cout << "Damage increased!\n";
@@ -1626,7 +1626,7 @@ void WorldSystem::sell_unit(entt::entity &entity)
 	registry.destroy(entity);
 }
 
-void WorldSystem::upgrade_unit(Unit &unit)
+void WorldSystem::upgrade_unit(PlaceableUnit &unit)
 {
 	unit.damage += 5;
 	unit.upgrades++;
@@ -1639,7 +1639,7 @@ void WorldSystem::save_game()
 	save_json["health"] = health;
 
 	// TODO finish implementing, may need to edit unit struct
-	auto view_unit = registry.view<Unit>();
+	auto view_unit = registry.view<PlaceableUnit>();
 	auto view_motion = registry.view<Motion>();
 	auto view_selectable = registry.view<Selectable>();
 	std::vector<nlohmann::json> unit_list(view_selectable.size());
@@ -1648,7 +1648,7 @@ void WorldSystem::save_game()
 	for (auto &entity : view_selectable)
 	{
 		nlohmann::json curr_unit;
-		auto unit = view_unit.get<Unit>(entity);
+		auto unit = view_unit.get<PlaceableUnit>(entity);
 		auto motion = view_motion.get<Motion>(entity);
 
         curr_unit["type_str"] = unit_str.at(unit.type);
@@ -1731,8 +1731,8 @@ void WorldSystem::load_game()
 		}
 		auto& motion = registry.get<Motion>(entity);
         current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), type, entity, motion.scale);
-		auto view_unit = registry.view<Unit>();
-		auto &curr_unit = view_unit.get<Unit>(entity);
+		auto view_unit = registry.view<PlaceableUnit>();
+		auto &curr_unit = view_unit.get<PlaceableUnit>(entity);
 		for (int i = 0; i < unit["upgrades"]; i++)
 		{
 			upgrade_unit(curr_unit);

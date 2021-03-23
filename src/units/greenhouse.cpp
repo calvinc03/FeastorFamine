@@ -29,7 +29,7 @@ entt::entity GreenHouse::createGreenHouse(vec2 pos)
     // Then we scale it to whatever size is needed
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
 
-    auto& unit = registry.emplace<Unit>(entity);
+    auto& unit = registry.emplace<PlaceableUnit>(entity);
     unit.damage = 0;
     unit.attack_interval_ms = 0;
     unit.attack_range = 0;

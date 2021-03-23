@@ -136,6 +136,73 @@ private:
 	std::map<entt::entity, vec2> vel;
 };
 
+class Attack : public BTNode {
+public:
+    Attack() noexcept {
+        vel = std::map<entt::entity, vec2>();
+        next_attack = std::map<entt::entity, int>();
+        attackable_units = std::vector<PlaceableUnit>();
+    }
+
+    void init(entt::entity e) override {
+        auto& motion = registry.get<Motion>(e);
+        vel[e] = motion.velocity;
+        next_attack[e] = 0;
+        first_process = true;
+    }
+
+    BTState process(entt::entity e) override {
+        auto& motion = registry.get<Motion>(e);
+
+        // add all attackable units to list
+        if (first_process) {
+            ivec2 coord = pixel_to_coord(motion.position);
+            for (ivec2 nbr : neighbor_map.at(DIRECT_NBRS)) {
+                ivec2 nbr_coord = coord + nbr;
+                if (!is_inbounds(nbr_coord)) {
+                    continue;
+                }
+                auto& node = current_map.getNodeAtCoord(nbr_coord);
+                if (node.occupancy != NONE
+                    && registry.has<PlaceableUnit>(node.occupying_entity)) {
+                    auto& unit = registry.get<PlaceableUnit>(node.occupying_entity);
+                    if (unit.health > 0) {
+                        attackable_units.emplace_back(unit);
+                    }
+                }
+            }
+            first_process = false;
+        }
+
+        motion.velocity *= 0;
+        if (next_attack[e] > 0) {
+            next_attack[e]--;
+            return BTState::Attack;
+        }
+
+        // attack the last unit from attackable list, and if destroyed, remove it
+        auto& monster = registry.get<Monster>(e);
+        auto& unit_to_attack = attackable_units.back();
+        unit_to_attack.health -= monster.damage;
+        if (unit_to_attack.health <= 0) {
+            attackable_units.pop_back();
+        }
+
+        // continue moving if no more attackables
+        if (attackable_units.empty()) {
+            motion.velocity = vel[e];
+            first_process = true;
+            return BTState::Failure;
+        }
+        return BTState::Attack;
+    }
+private:
+    std::map<entt::entity, vec2> vel;
+    std::map<entt::entity, int> next_attack;
+    std::vector<PlaceableUnit> attackable_units;
+    bool first_process;
+};
+
 class Run : public BTNode {
 public:
 	Run() noexcept {
@@ -176,23 +243,6 @@ public:
 		}
 		return BTState::Failure;
 	}
-};
-
-class AttackUnit : public BTNode {
-public:
-    AttackUnit() noexcept { }
-
-    void init(entt::entity e) override { }
-
-    BTState process(entt::entity e) override {
-        auto& motion = registry.get<Motion>(e);
-        auto& monster = registry.get<Monster>(e);
-        if (monster.collided) {
-            motion.position -= 0.25f * motion.velocity;
-            monster.collided = false;
-        }
-        return BTState::Failure;
-    }
 };
 
 class Dragon : public BTNode { // todo probably delete from here and ai

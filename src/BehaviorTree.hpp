@@ -5,6 +5,7 @@
 enum class BTState {
     Moving,
     Stopped,
+    Attack,
     Failure,
     Dragon,
     Fireball

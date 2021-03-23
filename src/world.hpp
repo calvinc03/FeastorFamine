@@ -46,7 +46,7 @@ public:
 	// helper to save game to disk
 	void save_game();
 
-	void upgrade_unit(Unit& unit);
+	void upgrade_unit(PlaceableUnit& unit);
 
 	void sell_unit(entt::entity& entity);
 

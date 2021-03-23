@@ -17,7 +17,7 @@ const int GREENHOUSE_SELL_PRICE = 250;
 const int HUNTER_SELL_PRICE = 100;
 const int WALL_SELL_PRICE = 80;
 
-struct Unit {
+struct PlaceableUnit {
 	int type;
 	int damage;
 	size_t attack_interval_ms;
@@ -30,4 +30,5 @@ struct Unit {
 	unsigned int cost = 0;
 	unsigned int sell_price = 0;
 	unsigned int health = 200;
+	unsigned int max_health = 200;
 };
