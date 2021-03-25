@@ -16,9 +16,9 @@ void UI_highlight_system(vec2 mouse_pos) {
 }
 
 Button UI_click_system() {
-	auto view_buttons = registry.view<Button, HighlightBool>();
-	for (auto [entity, button, highlight] : view_buttons.each()) {
-		if (highlight.highlight) { // if a button is highlighted and we click -> button was pressed.
+	auto view_buttons = registry.view<Button, HighlightBool, ShadedMeshRef>();
+	for (auto [entity, button, highlight, shadedmeshref] : view_buttons.each()) {
+		if (highlight.highlight && shadedmeshref.show) { // if a button is highlighted and we click -> button was pressed.
 			return button;
 		}
 	}
@@ -76,12 +76,12 @@ entt::entity UI_background::createUI_background()
 	return entity;
 }
 
-entt::entity UI_button::createUI_button(int pos, Button button, size_t cost, std::string tag, bool show) //later: reference vars for cost in world.
+entt::entity UI_button::createUI_button(int pos, Button button, std::string tag, bool show) //later: reference vars for cost in world.
 {
 	auto entity = registry.create();
 
 	// Create rendering primitives
-	std::string key = "UI_button " + pos;
+	std::string key = "UI_button " + pos + tag;
 	ShadedMesh& resource = cache_resource(key);
 	if (resource.effect.program.resource == 0) {
 		resource = ShadedMesh();
@@ -117,6 +117,10 @@ entt::entity UI_button::createUI_button(int pos, Button button, size_t cost, std
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
 	shaded_mesh.layer = 91;
 	shaded_mesh.show = show;
+	
+	RenderProperty& render_property = registry.emplace<RenderProperty>(entity);
+	render_property.show = show;
+	
 	// Setting initial ui_element values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = tag;
@@ -127,6 +131,16 @@ entt::entity UI_button::createUI_button(int pos, Button button, size_t cost, std
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);
 	registry.emplace<UI_button>(entity);
+
+
+	return entity;
+}
+
+entt::entity UI_button::createUI_build_unit_button(int pos, Button button, size_t cost, std::string tag, bool show) //later: reference vars for cost in world.
+{
+	auto entity = UI_button::createUI_button(pos, button, tag, show);
+	auto ui_element = registry.view<UI_element>().get<UI_element>(entity);
+	registry.emplace<UI_build_unit>(entity);
 	if (cost != 0) {
 		auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
 		auto& t = registry.emplace<Text>(entity, Text(std::to_string(cost), notoRegular, vec2(ui_element.position.x, WINDOW_SIZE_IN_PX.y - ui_element.position.y - 40)));
@@ -137,59 +151,51 @@ entt::entity UI_button::createUI_button(int pos, Button button, size_t cost, std
 	return entity;
 }
 
-entt::entity UI_button::createUI_button(int pos, Button button, std::string tag, bool show) //later: reference vars for cost in world.
+entt::entity UI_selected_unit_portrait::createUI_selected_unit_portrait(unit_type type)
 {
 	auto entity = registry.create();
-
-	// Create rendering primitives
-	std::string key = "UI_button " + pos;
+	std::string key = "UI_protrait" + type;
 	ShadedMesh& resource = cache_resource(key);
 	if (resource.effect.program.resource == 0) {
 		resource = ShadedMesh();
-
-		if (button == tower_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("tower_icon.png"), "ui");
+		std::string file_name = "hunter_portrait.png";
+		switch (type)
+		{
+		case HUNTER:
+			file_name = "hunter_portrait.png";
+			break;
+		case WATCHTOWER:
+			file_name = "watchtower_portrait.png";
+			break;
+		case GREENHOUSE:
+			file_name = "greehouse_portrait.png";
+			break;
+		case WALL:
+			file_name = "wall_portrait.png";
+			break;
 		}
-		else if (button == green_house_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("green_house_icon.png"), "ui");
-		}
-		else if (button == stick_figure_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
-		}
-		else if (button == wall_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("wall_icon.png"), "ui");
-		}
-		else if (button == upgrade_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("upgrade_icon.png"), "ui");
-		}
-		else if (button == sell_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("sell_button.png"), "ui");
-		}
-		else if (button == save_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("save_button.png"), "ui");
-		}
-		else if (button == start_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("start_button.png"), "ui");
-		}
+		RenderSystem::createSprite(resource, ui_texture_path(file_name), "textured");
 	}
-
-
-	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 91;
-	shaded_mesh.show = show;
-	// Setting initial ui_element values
+	shaded_mesh.show = true;
+	shaded_mesh.layer = 99;
+
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
-	ui_element.tag = tag;
-	ui_element.scale = vec2({ 1.0f, 1.0f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
-	ui_element.position = vec2(175 + pos * ui_element.scale.x, WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
+	ui_element.tag = "portraits";
+	ui_element.scale = vec2({ 1.2f, 1.2f }) * static_cast<vec2>(resource.texture.size);
+	int x_offset = 100;
+	ui_element.position = vec2(x_offset + ui_element.scale.x / 2, WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
 
+	registry.emplace<UI_selected_unit>(entity);
+	registry.emplace<UI_selected_unit_portrait>(entity);
 
-	registry.emplace<HighlightBool>(entity);
-	registry.emplace<Button>(entity, button);
-	registry.emplace<UI_button>(entity);
+	return entity;
+}
 
-
+entt::entity UI_button::createUI_selected_unit_button(int pos, Button button, std::string tag, bool show)
+{
+	entt::entity entity = UI_button::createUI_button(pos, button, tag, show);
+	registry.emplace<UI_selected_unit>(entity);
 	return entity;
 }
 
@@ -215,7 +221,6 @@ static entt::entity createUI_Banner(std::string content, vec2 position, vec3 col
 	//timer.counter_ms = duration;
 	return entity;
 }
-
 
 void change_button_text(entt::entity button_entity, std::string button_text)
 {

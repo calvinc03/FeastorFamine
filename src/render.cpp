@@ -435,7 +435,7 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 
 
 	auto view_mesh_ref = registry.view<ShadedMeshRef>();
-
+	auto view_render_property = registry.view<RenderProperty>();
 	std::vector<std::vector<entt::entity>> sort_by_layer = {};
 
 	// 100 layers
@@ -461,10 +461,10 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 				{
 					drawTexturedMesh(entity, projection_2D_ui);
 				}
-                else if (registry.has<ParticleSystem>(entity))
-                {
-                    continue;
-                }
+				else if (registry.has<ParticleSystem>(entity))
+				{
+					continue;
+				}
 				else
 				{
 					drawTexturedMesh(entity, projection_2D);
@@ -475,15 +475,17 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 				}
 				gl_has_errors();
 			}
-
 		}
 	}
+
 
 	//useful for rendering entities with only text and no ShadedMeshRef
 	auto view_text = registry.view<Text>();
 	for (auto [entity, text] : view_text.each()) 	{
-		if(!registry.has<ShadedMeshRef>(entity))
+		if (!registry.has<ShadedMeshRef>(entity))
+		{
 			drawText(text, frame_buffer_size);
+		}	
 	}
     
     // Truely render to the screen

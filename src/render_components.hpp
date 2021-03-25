@@ -134,6 +134,13 @@ struct ShadedMeshRef
 	ShadedMeshRef(ShadedMesh& mesh);
 };
 
+// replacing layer and show in shadedmeshref, so that entity without shadedmeshref can also get layers and show property (ex. texts)
+struct RenderProperty
+{
+	bool show = true;
+	int layer = 0;
+};
+
 // A struct to refer to debugging graphics in the ECS
 struct DebugComponent
 {
