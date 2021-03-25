@@ -670,6 +670,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
             weather = CLEAR;
         }
         create_boss = FallBoss::createFallBossEntt;
+		current_round_monster_types.emplace_back(FALL_BOSS);
     }
     else if (season_str == WINTER_TITLE)
     {
