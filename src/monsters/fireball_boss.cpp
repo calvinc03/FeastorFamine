@@ -2,11 +2,11 @@
 #include "fireball_boss.hpp"
 #include "render.hpp"
 
-const std::string WALK_SPRITE = "projectile.png";
+const std::string WALK_SPRITE = "final/fireball.png";
 const std::string RUN_SPRITE = "NA";
 const std::string ATTACK_SPRITE = "NA";
 const std::string DEATH_SPRITE = "NA";
-const size_t WALK_FRAMES = 1.f;
+const size_t WALK_FRAMES = 3.f;
 const size_t RUN_FRAMES = 0.f;
 const size_t ATTACK_FRAMES = 0;
 const size_t DEATH_FRAMES = 0.f;
@@ -27,13 +27,13 @@ entt::entity FireballBoss::createFireballBossEntt()
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 12;
+    shaded_mesh.layer = 60;
 
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 200.f;
-    motion.velocity = vec2(1, 0);
-    motion.position = coord_to_pixel(vec2(7, DRAGON_COORD.y + 1.5));
+    motion.velocity = vec2(1.f, 0.1f);
+    motion.position = coord_to_pixel(vec2(6, DRAGON_COORD.y + 1.5));
     motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), .75f);
     motion.boundingbox = { 75, 75 };
 
