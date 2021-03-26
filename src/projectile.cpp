@@ -79,8 +79,6 @@ entt::entity RockProjectile::createRockProjectile(vec2 hunter_position, vec2 mon
 
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
-    motion.angle = atan2(opposite, adjacent);
-    motion.velocity = grid_to_pixel_velocity(normalize(vec2(adjacent, opposite)) * 0.f);
     motion.position = hunter_position;
     // Setting initial values, scale is negative to make it face the opposite way
     motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), 0.3);
