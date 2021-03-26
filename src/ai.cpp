@@ -248,6 +248,7 @@ std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int mons
 
 int get_random_weather_terrain(int weather) {
     std::map<int, float> weather_terrain_default_prob = {
+            {TERRAIN_DEFAULT,      1},
             {TERRAIN_MUD,      1},
             {TERRAIN_PUDDLE,   1},
             {TERRAIN_DRY,      1},
@@ -269,12 +270,7 @@ int get_random_weather_terrain(int weather) {
         }
     }
 
-    // approx 30% tiles will be weather tiles
-    if (max_prob.y > 0.7) {
-        return max_prob.x;
-    }
-
-    return TERRAIN_DEFAULT;
+    return max_prob.x;
 }
 
 void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map, int weather) {

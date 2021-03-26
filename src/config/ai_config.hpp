@@ -175,30 +175,35 @@ const static std::map<std::pair<int, int>, int> monster_move_speed_multiplier = 
 
 // maps <weather, terrain> to probability
 const static std::map<std::pair<int, int>, float> weather_terrain_prob_multiplier = {
+        {std::pair(CLEAR, TERRAIN_DEFAULT), 1.2},
         {std::pair(CLEAR, TERRAIN_MUD), 0.8},
         {std::pair(CLEAR, TERRAIN_PUDDLE), 0.8},
         {std::pair(CLEAR, TERRAIN_DRY), 0.8},
         {std::pair(CLEAR, TERRAIN_FIRE), 0.5},
         {std::pair(CLEAR, TERRAIN_ICE), 0.5},
 
+        {std::pair(RAIN, TERRAIN_DEFAULT), 1.2},
         {std::pair(RAIN, TERRAIN_MUD), 1.0},
         {std::pair(RAIN, TERRAIN_PUDDLE), 1.2},
         {std::pair(RAIN, TERRAIN_DRY), 0.2},
         {std::pair(RAIN, TERRAIN_FIRE), 0.1},
         {std::pair(RAIN, TERRAIN_ICE), 0.3},
 
+        {std::pair(DROUGHT, TERRAIN_DEFAULT), 1.2},
         {std::pair(DROUGHT, TERRAIN_MUD), 0.8},
         {std::pair(DROUGHT, TERRAIN_PUDDLE), 0.3},
         {std::pair(DROUGHT, TERRAIN_DRY), 1.2},
         {std::pair(DROUGHT, TERRAIN_FIRE), 1.0},
         {std::pair(DROUGHT, TERRAIN_ICE), 0.5},
 
+        {std::pair(FOG, TERRAIN_DEFAULT), 1.2},
         {std::pair(FOG, TERRAIN_MUD), 1.0},
         {std::pair(FOG, TERRAIN_PUDDLE), 1.0},
         {std::pair(FOG, TERRAIN_DRY), 0.8},
         {std::pair(FOG, TERRAIN_FIRE), 0.5},
         {std::pair(FOG, TERRAIN_ICE), 0.5},
 
+        {std::pair(SNOW, TERRAIN_DEFAULT), 1.2},
         {std::pair(SNOW, TERRAIN_MUD), 0.8},
         {std::pair(SNOW, TERRAIN_PUDDLE), 0.5},
         {std::pair(SNOW, TERRAIN_DRY), 0.5},

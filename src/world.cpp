@@ -571,10 +571,7 @@ void WorldSystem::restart()
 
 	// create grid map
 	current_map = registry.get<GridMap>(GridMap::createGridMap());
-
-	// create village
 	village = Village::createVillage(current_map);
-
 	Forest::createForest(current_map);
 
     BTCollision = AISystem::MonstersAI::createBehaviorTree();
@@ -704,7 +701,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		create_boss = FinalBoss::createFinalBossEntt;
         // current_round_monster_types.emplace_back(FINAL_BOSS);
 	}
-	if (prev_weather != weather) {
+	if (prev_weather != weather || round_number == 0) {
 	    AISystem::MapAI::setRandomMapWeatherTerrain(current_map, weather);
 	}
 }
