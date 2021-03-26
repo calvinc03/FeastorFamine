@@ -27,6 +27,39 @@ AISystem::AISystem(PhysicsSystem* physics)
 
 AISystem::~AISystem() {}
 
+// calculates the position of a monster after a given amount of time in milliseconds
+vec2 calculate_position(entt::entity animal, float time)
+{
+    auto& motion = registry.get<Motion>(animal);
+    auto& monster = registry.get<Monster>(animal);
+    float num_frames = round(time / ELAPSED_MS);
+
+    vec2 speed = motion.velocity * ELAPSED_MS / 1000.f; 
+    
+    int current_index = monster.current_path_index;
+    vec2 current_pos = motion.position;
+    ivec2 node;
+    float distance = 0;
+    while (num_frames > 0) {
+        if (current_index + 1>= monster.path_coords.size()) {
+            return coord_to_pixel(VILLAGE_COORD);
+        }
+        current_index += 1;
+        node = monster.path_coords.at(current_index);
+        distance += length(coord_to_pixel(node) - current_pos);
+        speed = length(speed) * normalize(coord_to_pixel(node) - current_pos);
+        float occurrance = 0;
+        while (distance - length(speed) >= 0) {
+            distance -= length(speed);
+            num_frames -= 1;
+            occurrance += 1;
+            if (num_frames <= 0) return current_pos + speed * occurrance;
+        }
+        current_pos = coord_to_pixel(node);
+    }
+    return current_pos;
+}
+
 void AISystem::step(float elapsed_ms)
 {
 	//(void)elapsed_ms; // placeholder to silence unused warning until implemented
@@ -47,6 +80,7 @@ void AISystem::step(float elapsed_ms)
 
         Motion motion_monster;
         float min_distance = INFINITY;
+        entt::entity min_monster; 
         for (auto monster : registry.view<Monster>()) {
             auto animal = entt::to_entity(registry, monster);
             auto& motion_m = registry.get<Motion>(animal);
@@ -56,6 +90,7 @@ void AISystem::step(float elapsed_ms)
             if (distance_to_village < min_distance && distance_to_hunter <= placeable_unit.attack_range) {
                 min_distance = length(motion_m.position - coord_to_pixel(VILLAGE_COORD));
                 motion_monster = motion_m;
+                min_monster = animal;
             }
 		}
         if (min_distance == INFINITY) continue;
@@ -71,7 +106,8 @@ void AISystem::step(float elapsed_ms)
                 Projectile::createProjectile(motion_h.position, motion_monster.position, placeable_unit.damage);
             }
             else {
-                RockProjectile::createRockProjectile(motion_h.position, motion_monster.position, placeable_unit.damage);
+                vec2 projected_pos = calculate_position(min_monster, distance);
+                RockProjectile::createRockProjectile(motion_h.position, projected_pos, placeable_unit.damage);
             }
         }
 	}

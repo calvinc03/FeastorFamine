@@ -170,7 +170,6 @@ void PhysicsSystem::step(float elapsed_ms)
 		rock.current_step += 1;
 	}
 
-
 	for(auto entity: registry.view<Motion>()) {
 	    auto& motion = registry.get<Motion>(entity);
         motion.position += step_seconds * motion.velocity;
