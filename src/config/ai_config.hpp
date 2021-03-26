@@ -174,6 +174,33 @@ const static std::map<std::pair<int, int>, int> monster_move_speed_multiplier = 
 };
 
 // maps <weather, terrain> to probability
+const static std::map<int, std::map<int, float>> season_terrain_prob = {
+        {SPRING,  {{TERRAIN_DEFAULT,  1},
+                        {TERRAIN_MUD,      1},
+                        {TERRAIN_PUDDLE,   1},
+                        {TERRAIN_DRY,      1},
+                        {TERRAIN_FIRE,     1},
+                        {TERRAIN_ICE,      1}}},
+        {SUMMER,  {{TERRAIN_DEFAULT,  1},
+                          {TERRAIN_MUD,      0.5},
+                          {TERRAIN_PUDDLE,   0.5},
+                          {TERRAIN_DRY,      1.2},
+                          {TERRAIN_FIRE,     1},
+                          {TERRAIN_ICE,      0.3}}},
+        {FALL,  {{TERRAIN_DEFAULT,  1},
+                          {TERRAIN_MUD,      0.8},
+                          {TERRAIN_PUDDLE,   0.8},
+                          {TERRAIN_DRY,      0.8},
+                          {TERRAIN_FIRE,     0.3},
+                          {TERRAIN_ICE,      0.5}}},
+        {WINTER,  {{TERRAIN_DEFAULT,  1},
+                          {TERRAIN_MUD,      0.5},
+                          {TERRAIN_PUDDLE,   0.5},
+                          {TERRAIN_DRY,      0.5},
+                          {TERRAIN_FIRE,     0.1},
+                          {TERRAIN_ICE,      1.2}}},
+};
+
 const static std::map<std::pair<int, int>, float> weather_terrain_prob_multiplier = {
         {std::pair(CLEAR, TERRAIN_DEFAULT), 1.2},
         {std::pair(CLEAR, TERRAIN_MUD), 0.8},
@@ -190,11 +217,11 @@ const static std::map<std::pair<int, int>, float> weather_terrain_prob_multiplie
         {std::pair(RAIN, TERRAIN_ICE), 0.3},
 
         {std::pair(DROUGHT, TERRAIN_DEFAULT), 1.2},
-        {std::pair(DROUGHT, TERRAIN_MUD), 0.8},
+        {std::pair(DROUGHT, TERRAIN_MUD), 0.5},
         {std::pair(DROUGHT, TERRAIN_PUDDLE), 0.3},
         {std::pair(DROUGHT, TERRAIN_DRY), 1.2},
         {std::pair(DROUGHT, TERRAIN_FIRE), 1.0},
-        {std::pair(DROUGHT, TERRAIN_ICE), 0.5},
+        {std::pair(DROUGHT, TERRAIN_ICE), 0.3},
 
         {std::pair(FOG, TERRAIN_DEFAULT), 1.2},
         {std::pair(FOG, TERRAIN_MUD), 1.0},

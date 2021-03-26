@@ -283,14 +283,7 @@ std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int mons
 }
 
 int get_random_weather_terrain(int weather) {
-    std::map<int, float> weather_terrain_default_prob = {
-            {TERRAIN_DEFAULT,      1},
-            {TERRAIN_MUD,      1},
-            {TERRAIN_PUDDLE,   1},
-            {TERRAIN_DRY,      1},
-            {TERRAIN_FIRE,     1},
-            {TERRAIN_ICE,      1},
-    };
+    std::map<int, float> weather_terrain_default_prob = season_terrain_prob.at(season);
 
     // multiply each prob with a rand number and weather multiplier
     for (auto& [terrain, prob] : weather_terrain_default_prob) {
