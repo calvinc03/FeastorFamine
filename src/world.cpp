@@ -268,6 +268,9 @@ void WorldSystem::step(float elapsed_ms)
 				restart();
 				return;
 			}
+
+			auto& monster = registry.get<Monster>(entity);
+			monster.dot_delay -= elapsed_ms;
 		}
 
 		// Increment round number if all enemies are not on the map and projectiles are removed
@@ -706,22 +709,38 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	}
 }
 
+void WorldSystem::collision_monster_handle(entt::entity e_monster, int damage) {
+	
+	auto& monster = registry.get<Monster>(e_monster);
+	Mix_PlayChannel(-1, impact_sound, 0);
+
+	monster.health -= damage;
+	monster.collided = true;
+
+	// add hit point text
+	create_hit_points_text(damage, e_monster);
+
+	auto& hit_reaction = registry.get<HitReaction>(e_monster);
+	hit_reaction.counter_ms = 750; //ms duration used by health bar
+
+	if (monster.health <= 0)
+	{
+		health += monster.reward * reward_multiplier;
+
+		if (registry.has<Rig>(e_monster)) {
+			Rig::delete_rig(e_monster); //rigs have multiple pieces to be deleted
+		}
+		else {
+			registry.destroy(e_monster);
+		}
+
+	}
+}
+
 void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, entt::entity e_monster)
 {
 	auto &monster = registry.get<Monster>(e_monster);
 	auto &prj = registry.get<Projectile>(e_projectile);
-
-	Mix_PlayChannel(-1, impact_sound, 0);
-
-    monster.health -= prj.damage;
-    monster.collided = true;
-
-	// add hit point text
-	int hit_points = prj.damage;
-	create_hit_points_text(hit_points, e_monster);
-
-	auto &hit_reaction = registry.get<HitReaction>(e_monster);
-	hit_reaction.counter_ms = 750; //ms duration used by health bar
 
 	if (registry.has<RockProjectile>(e_projectile)) {
 		if (!registry.has<EntityDeath>(e_projectile)) {
@@ -744,24 +763,19 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 
 			rock.bezier_points = bezierVelocities(bezierCurve(points, 1000));
 		}
+		collision_monster_handle(e_monster, prj.damage);
 	}
+	else if (registry.has<Flamethrower>(e_projectile)) {
+		if (monster.dot_delay <= 0) {
+			collision_monster_handle(e_monster, prj.damage);
+			monster.dot_delay = DOT_DELAY;
+		}
+	}
+
 	else {
+		collision_monster_handle(e_monster, prj.damage);
 		registry.destroy(e_projectile);
 	}
-
-	if (monster.health <= 0)
-	{
-		health += monster.reward * reward_multiplier;
-
-		if (registry.has<Rig>(e_monster)) {
-			Rig::delete_rig(e_monster); //rigs have multiple pieces to be deleted
-		}
-		else {
-			registry.destroy(e_monster);
-		}
-
-	}
-
 }
 
 bool WorldSystem::is_over() const

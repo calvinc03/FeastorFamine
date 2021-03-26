@@ -93,3 +93,42 @@ entt::entity RockProjectile::createRockProjectile(vec2 hunter_position, vec2 mon
 
     return entity;
 }
+
+entt::entity Flamethrower::createFlamethrower(entt::entity e_unit, vec2 monster_position, int damage)
+{
+    // Reserve en entity
+    auto entity = registry.create();
+
+    // Create the rendering components
+    std::string key = "flamethrower";
+    ShadedMesh& resource = cache_resource(key);
+    if (resource.effect.program.resource == 0)
+    {
+        resource = ShadedMesh();
+        RenderSystem::createSprite(resource, textures_path("flamethrower.png"), "textured");
+    }
+
+    // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+    ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+    shaded_mesh.layer = 60;
+
+    auto& motion_h = registry.get<Motion>(e_unit);
+    vec2 direction = normalize(monster_position - motion_h.position) * 60.f;
+
+    // Initialize the position, scale, and physics components
+    auto& motion = registry.emplace<Motion>(entity);
+    motion.position = motion_h.position + direction;
+    motion.angle = atan2(-direction.y, -direction.x);
+    // Setting initial values, scale is negative to make it face the opposite way
+    motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), 1.5);
+    motion.boundingbox = motion.scale;
+
+    // Create and (empty) Projectile component to be able to refer to all Projectile
+    Projectile& p = registry.emplace<Projectile>(entity);
+    p.damage = damage;
+
+    auto& flame = registry.emplace<Flamethrower>(entity);
+    flame.e_unit = e_unit;
+
+    return entity;
+}

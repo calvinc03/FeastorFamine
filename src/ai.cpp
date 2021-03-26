@@ -17,6 +17,7 @@
 #include <units/unit.hpp>
 
 const size_t BULLET_UPGRADE = 2;
+const size_t FLAMETHROWER_UPGRADE = 3;
 
 
 AISystem::AISystem(PhysicsSystem* physics) 
@@ -102,7 +103,10 @@ void AISystem::step(float elapsed_ms)
 
         if (placeable_unit.next_projectile_spawn < 0.f && placeable_unit.health > 0) {
             placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms;
-            if (placeable_unit.upgrades >= BULLET_UPGRADE) {
+            if (placeable_unit.upgrades >= FLAMETHROWER_UPGRADE) {
+                Flamethrower::createFlamethrower(hunter, motion_monster.position, placeable_unit.damage);
+            }
+            else if (placeable_unit.upgrades >= BULLET_UPGRADE) {
                 Projectile::createProjectile(motion_h.position, motion_monster.position, placeable_unit.damage);
             }
             else {

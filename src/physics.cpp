@@ -169,6 +169,21 @@ void PhysicsSystem::step(float elapsed_ms)
 		motion.velocity = 1 / step_seconds * rock.bezier_points[rock.current_step];
 		rock.current_step += 1;
 	}
+	
+	for (auto entity : registry.view<Flamethrower>()) {
+		auto& flamethrower = registry.get<Flamethrower>(entity);
+		flamethrower.active_timer -= elapsed_ms;
+		auto& motion_p = registry.get<Motion>(entity);
+		auto& motion_u = registry.get<Motion>(flamethrower.e_unit);
+		float x_direction = cos(motion_u.angle) * 60;
+		float y_direction = sin(motion_u.angle) * 60;
+
+		motion_p.angle = motion_u.angle + PI;
+		motion_p.position = motion_u.position + vec2(x_direction, y_direction);
+		
+		if (flamethrower.active_timer < 0)
+			registry.destroy(entity);
+	}
 
 	for(auto entity: registry.view<Motion>()) {
 	    auto& motion = registry.get<Motion>(entity);

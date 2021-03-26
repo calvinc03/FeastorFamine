@@ -73,6 +73,8 @@ struct Monster {
 	size_t attack_frames;
 	size_t death_frames;
 	size_t frames;
+
+	float dot_delay = 0;
 };
 
 struct Food {
