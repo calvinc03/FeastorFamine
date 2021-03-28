@@ -87,6 +87,7 @@ public:
 
 	// game state
 	int game_state;
+	bool game_tips;
     
     // Particle System
 //    GLuint billboard_vertex_buffer;

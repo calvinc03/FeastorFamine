@@ -64,6 +64,7 @@ const std::string UPGRADE_BUTTON_TITLE = "upgrade_button";
 const std::string SELL_BUTTON_TITLE = "sell_button";
 const std::string START_BUTTON_TITLE = "start_button";
 const std::string SAVE_BUTTON_TITLE = "save_button";
+const std::string TIPS_BUTTON_TITLE = "tips_button";
 const std::string SPRING_TITLE = "spring";
 const std::string SUMMER_TITLE = "summer";
 const std::string FALL_TITLE = "fall";
@@ -82,7 +83,8 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     num_mobs_spawned(0),
     next_particle_spawn(0),
     num_bosses_spawned(0),
-    round_number(0)
+    round_number(0),
+	game_tips(true)
 {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -565,6 +567,7 @@ void WorldSystem::restart()
 	UI_button::createUI_selected_unit_button(3, upgrade_button, UPGRADE_BUTTON_TITLE, false);
 	UI_button::createUI_selected_unit_button(4, sell_button, SELL_BUTTON_TITLE, false);
 	// general buttons
+	UI_button::createUI_button(7, tips_button, TIPS_BUTTON_TITLE);
 	UI_button::createUI_button(8, start_button, START_BUTTON_TITLE);
 	UI_button::createUI_button(9, save_button, SAVE_BUTTON_TITLE);
 	UI_background::createUI_background();
@@ -607,6 +610,10 @@ nlohmann::json WorldSystem::get_json(std::string json_path)
 
 void WorldSystem::setup_round_from_round_number(int round_number)
 {
+	auto& stage_text = registry.get<Text>(stage_text_entity);
+	stage_text.content = "PREPARE";
+	stage_text.colour = { 1.0f, 1.0f, 1.0f };
+
 	nlohmann::json round_json = get_json(INPUT_PATH + std::to_string(round_number) + JSON_EXTENSION);
 	max_mobs = round_json["max_mobs"];
 	mob_delay_ms = round_json["mob_delay_ms"];
@@ -1748,7 +1755,12 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				{
 					start_round();
 				}
-				
+			}
+			else if (ui_button == Button::tips_button)
+			{
+				game_tips = !game_tips;
+				std::cout << std::boolalpha;
+				std::cout << "Game tips: " << game_tips << std::endl;
 			}
 			
 			else
