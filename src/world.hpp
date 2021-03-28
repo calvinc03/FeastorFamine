@@ -48,6 +48,10 @@ public:
 	// helper to load game from save game path
 	void load_game();
 
+	void pause_game();
+
+	void resume_game();
+
 	// helper to save game to disk
 	void save_game();
 
@@ -96,7 +100,8 @@ public:
 		settings_menu,
 		help_menu,
 		story_card,
-		sandbox
+		sandbox,
+		paused
 	};
 
 	// state for set_up and monster_rounds
@@ -105,7 +110,6 @@ public:
 	{
 		set_up_stage,
 		battle_stage,
-		pause_stage,
 		story_stage
 	};
 
@@ -203,6 +207,7 @@ private:
 	// helper for start menu mouse click and in_game mouse click
 	void start_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void in_game_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
+	void paused_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	vec2 on_click_select_unit(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void help_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);

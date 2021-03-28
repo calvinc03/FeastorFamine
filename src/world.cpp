@@ -196,7 +196,7 @@ void WorldSystem::init_audio()
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
-	if (player_state != pause_stage && player_state != story_stage) {
+	if (game_state == in_game) {
 		//rig animation
 		auto view_rigs = registry.view<Timeline>();
 		for (auto entity : view_rigs) {
@@ -529,6 +529,7 @@ void WorldSystem::setup_start_menu()
 	create_start_menu();
 	camera = Camera::createCamera();
 }
+
 void destroy_entity(const entt::entity entity)
 {
 	registry.destroy(entity);
@@ -833,13 +834,11 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		}
 	}
 
-	if (action == GLFW_RELEASE && key == GLFW_KEY_P && player_state == battle_stage) {
-		std::cout << "Paused" << std::endl;
-		player_state = pause_stage;
+	if (action == GLFW_RELEASE && key == GLFW_KEY_P && game_state == in_game) {
+		pause_game();
 	}
-	else if (action == GLFW_RELEASE && key == GLFW_KEY_P && player_state == pause_stage) {
-		std::cout << "Game Resumed" << std::endl;
-		player_state = battle_stage;
+	else if (action == GLFW_RELEASE && key == GLFW_KEY_P && game_state == paused) {
+		resume_game();
 	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
@@ -931,6 +930,18 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		std::cout << "Current speed = " << current_speed << std::endl;
 	}
 	current_speed = std::max(0.f, current_speed);
+}
+
+void WorldSystem::pause_game()
+{
+	std::cout << "Paused" << std::endl;
+	game_state = paused;
+}
+
+void WorldSystem::resume_game()
+{
+	std::cout << "Game Resumed" << std::endl;
+	game_state = in_game;
 }
 
 bool mouse_in_game_area(vec2 mouse_pos)
@@ -1266,6 +1277,11 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
 			update_look_for_selected_buttons(action, selected_flags.x, selected_flags.y);
             break;
         }
+		case paused:
+		{
+			paused_click_handle(xpos, ypos, button, action, mod);
+			break;
+		}
         case help_menu:
         {
             help_menu_click_handle(xpos, ypos, button, action, mod);
@@ -1740,10 +1756,17 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				placement_unit_selected = NONE;
 			}
 		}
+	}
 
-		//std::cout << "selected: " << unit_selected << std::endl;
+	
+}
 
-		// handle clicks in the start menu
+// unpause if paused
+void WorldSystem::paused_click_handle(double xpos, double ypos, int button, int action, int mod)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+		resume_game();
 	}
 }
 
