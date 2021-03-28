@@ -73,8 +73,6 @@ struct Monster {
 	size_t attack_frames;
 	size_t death_frames;
 	size_t frames;
-
-	float dot_delay = 0;
 };
 
 struct Food {
@@ -94,8 +92,7 @@ struct EntityDeath {
 };
 
 struct DOT {
-	entt::entity e_projectile;
-	float dot_delay;
+	std::map<entt::entity, float> dot_map;
 };
 
 // id for entity

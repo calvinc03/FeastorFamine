@@ -225,7 +225,8 @@ void WorldSystem::step(float elapsed_ms)
 			// Reset spawn timer and spawn boss
 			next_boss_spawn = (boss_delay_ms / 2) + uniform_dist(rng) * (boss_delay_ms / 2);
 			entt::entity boss = create_boss();
-		
+			
+			registry.emplace<DOT>(boss);
 			auto& monster = registry.get<Monster>(boss);
 			monster.path_coords = default_monster_paths.at(monster.type);
 
@@ -239,6 +240,8 @@ void WorldSystem::step(float elapsed_ms)
 		{
 			next_mob_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
 			entt::entity mob = Mob::createMobEntt();
+
+			registry.emplace<DOT>(mob);
 			auto& monster = registry.get<Monster>(mob);
             monster.path_coords = default_monster_paths.at(monster.type);
 
@@ -250,10 +253,10 @@ void WorldSystem::step(float elapsed_ms)
 		next_fireball_spawn -= elapsed_ms * current_speed;
 		if (!registry.empty<FinalBoss>() && next_fireball_spawn < 0.f)
 		{
-			std::cout << "fireball" << std::endl;
 			next_fireball_spawn = FIREBALL_DELAY_MS;
 			entt::entity fireball = FireballBoss::createFireballBossEntt();
 
+			registry.emplace<DOT>(fireball);
 			auto& monster = registry.get<Monster>(fireball);
             monster.path_coords = default_monster_paths.at(monster.type);
 
@@ -263,8 +266,10 @@ void WorldSystem::step(float elapsed_ms)
 		// update velocity for every monster
 		for (auto entity : registry.view<Monster>())
 		{
-			auto& monster = registry.get<Monster>(entity);
-			monster.dot_delay -= elapsed_ms;
+			auto& dot = registry.get<DOT>(entity);
+			for (auto& [key, value] : dot.dot_map) {
+				value -= ELAPSED_MS;
+			}
 
 			auto state = BTCollision->process(entity);
 			if (health < 0) {
@@ -777,9 +782,16 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 		collision_monster_handle(e_monster, prj.damage);
 	}
 	else if (registry.has<Flamethrower>(e_projectile)) {
-		if (monster.dot_delay <= 0) {
+		auto& dot = registry.get<DOT>(e_monster);
+		if (dot.dot_map.find(e_projectile) == dot.dot_map.end()) {
+			dot.dot_map.insert({ e_projectile, DOT_DELAY });
 			collision_monster_handle(e_monster, prj.damage);
-			monster.dot_delay = DOT_DELAY;
+		}
+		else {
+			if (dot.dot_map[e_projectile] <= 0) {
+				dot.dot_map[e_projectile] = DOT_DELAY;
+				collision_monster_handle(e_monster, prj.damage);
+			}
 		}
 	}
 
