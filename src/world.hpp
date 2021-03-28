@@ -39,6 +39,9 @@ public:
 	// restart level
 	void restart();
 
+	// start round
+	void start_round();
+
 	// helper to load json from disk
 	nlohmann::json get_json(std::string json_path);
 
@@ -92,7 +95,8 @@ public:
 		in_game,
 		settings_menu,
 		help_menu,
-		story_card
+		story_card,
+		sandbox
 	};
 
 	// state for set_up and monster_rounds
@@ -180,7 +184,6 @@ private:
 
 	// round and set up
 	int round_number;
-	float set_up_timer;
 
 	//UI
 	entt::entity round_text_entity;

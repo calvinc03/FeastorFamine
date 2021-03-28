@@ -47,7 +47,6 @@ const size_t GREENHOUSE_REWARD = 80;
 const int STARTING_HEALTH = 600;
 const int MAX_ROUNDS = 18;
 
-const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
 int WorldSystem::health = 1000;
 float WorldSystem::reward_multiplier = 1.f;
 GridMap WorldSystem::current_map;
@@ -83,7 +82,6 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     num_mobs_spawned(0),
     next_particle_spawn(0),
     num_bosses_spawned(0),
-    set_up_timer(SET_UP_TIME),
     round_number(0)
 {
 	// Seeding rng with random device
@@ -439,8 +437,6 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		reward_multiplier = .5f;
 	}
 
-	set_up_timer -= elapsed_ms;
-    
     auto particle_view = registry.view<ParticleSystem>();
     if (particle_view.size() < MAX_PARTICLES) {
         for (auto particle_entity : particle_view) {
@@ -488,44 +484,38 @@ void WorldSystem::set_up_step(float elapsed_ms)
         ParticleSystem::createParticle(velocity, position, life, texture, shader);
     }
 
-	auto& stage_text = registry.get<Text>(stage_text_entity);
-	stage_text.content = "PREPARE: " + std::to_string((int)round(set_up_timer / 1000));
-	stage_text.colour = { 1.0f, 1.0f, 1.0f };
 	registry.get<Text>(round_text_entity).content = "round: " + std::to_string(round_number);
 	registry.get<Text>(food_text_entity).content = "food: " + std::to_string(health);
+}
 
-
-	if (set_up_timer <= 0)
+void WorldSystem::start_round()
+{
+	// hide start_button
+	auto view_ui_button = registry.view<UI_element, ShadedMeshRef>();
+	for (auto button_entt : view_ui_button)
 	{
-		// hide start_button
-		auto view_ui_button = registry.view<UI_element, ShadedMeshRef>();
-		for (auto button_entt : view_ui_button)
+		auto ui_button = view_ui_button.get<UI_element>(button_entt);
+
+		if (ui_button.tag == START_BUTTON_TITLE)
 		{
-			auto ui_button = view_ui_button.get<UI_element>(button_entt);
-
-			if (ui_button.tag == START_BUTTON_TITLE)
-			{
-				RenderSystem::hide_entity(button_entt);
-			}
+			RenderSystem::hide_entity(button_entt);
 		}
-		player_state = battle_stage;
-		set_up_timer = SET_UP_TIME;
-		next_mob_spawn = 0;
-		next_boss_spawn = 0;
-		un_highlight();
-
-		auto& stage_text = registry.get<Text>(stage_text_entity);
-		stage_text.content = "BATTLE";
-		stage_text.colour = { 1.0f, 0.1f, 0.1f };
-
-        // set default paths for monster AI for this round
-        for (int monster_type : current_round_monster_types) {
-            default_monster_paths.at(monster_type) = AISystem::MapAI::findPathAStar(current_map, monster_type);
-        }
-        std::cout << season_str << " season! \n";
-		std::cout << "weather " << weather << " \n";
 	}
-	
+	player_state = battle_stage;
+	next_mob_spawn = 0;
+	next_boss_spawn = 0;
+	un_highlight();
+
+	auto& stage_text = registry.get<Text>(stage_text_entity);
+	stage_text.content = "BATTLE";
+	stage_text.colour = { 1.0f, 0.1f, 0.1f };
+
+	// set default paths for monster AI for this round
+	for (int monster_type : current_round_monster_types) {
+		default_monster_paths.at(monster_type) = AISystem::MapAI::findPathAStar(current_map, monster_type);
+	}
+	std::cout << season_str << " season! \n";
+	std::cout << "weather " << weather << " \n";
 }
 
 void WorldSystem::setup_start_menu()
@@ -558,7 +548,6 @@ void WorldSystem::restart()
 	num_bosses_spawned = 0;
 	num_mobs_spawned = 0;
 	player_state = set_up_stage;
-	set_up_timer = SET_UP_TIME;
 
 	registry.each(destroy_entity);
 	registry.clear(); // Remove all entities that we created
@@ -822,7 +811,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	{
 		if (player_state == set_up_stage)
 		{
-			set_up_timer = 0;
+			start_round();
 		}
 		else if (player_state == battle_stage)
 		{
@@ -1741,7 +1730,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			{
 				if (player_state == set_up_stage)
 				{
-					set_up_timer = 0;
+					start_round();
 				}
 				
 			}
