@@ -30,15 +30,7 @@ entt::entity GreenHouse::createGreenHouse(vec2 pos)
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
 
     auto& unit = registry.emplace<Unit>(entity);
-    unit.damage = 0;
-    unit.attack_interval_ms = 0;
-    unit.attack_range = 0;
-    unit.workers = 0;
-    unit.upgrades = 0;
-    unit.type = GREENHOUSE;
-    unit.cost = GREENHOUSE_COST;
-    unit.upgrade_cost = GREENHOUSE_UPGRADE_COST;
-    unit.sell_price = GREENHOUSE_SELL_PRICE;
+    unit = greenhouse_unit;
 
     registry.emplace<GreenHouse>(entity);
     registry.emplace<Selectable>(entity);

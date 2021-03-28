@@ -31,16 +31,7 @@ entt::entity Wall::createWall(vec2 position, bool rotate) // rotation should be 
 	motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
 
 	auto& unit = registry.emplace<Unit>(entity);
-	unit.damage = 0;
-	unit.attack_interval_ms = 0;
-	unit.attack_range = 0;
-	unit.workers = 0;
-	unit.upgrades = 0;
-	unit.type = WALL;
-	unit.rotate = rotate;
-	unit.cost = WALL_COST;
-	unit.upgrade_cost = WALL_UPGRADE_COST;
-	unit.sell_price = WALL_SELL_PRICE;
+	unit = wall_unit;
 
 	registry.emplace<Wall>(entity);
 	registry.emplace<Selectable>(entity);

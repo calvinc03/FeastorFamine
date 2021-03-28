@@ -62,6 +62,20 @@ enum weather
     SNOW,
 };
 
+// UI button
+enum Button
+{
+    no_button_pressed,
+    watchtower_button,
+    green_house_button,
+    hunter_button,
+    wall_button,
+    upgrade_button,
+    save_button,
+    sell_button,
+    start_button
+};
+
 //enum directions
 //{
 //    UP,

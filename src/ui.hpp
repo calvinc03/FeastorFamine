@@ -3,11 +3,12 @@
 
 #include "entt.hpp"
 #include "common.hpp"
-#include <vector>
+#include "render.hpp"
 #include "text.hpp"
+#include <vector>
+#include <string>
 
-//enum for ui buttons
-enum Button { no_button_pressed, tower_button, green_house_button, stick_figure_button, wall_button, upgrade_button, save_button, sell_button, start_button};
+
 
 std::string button_to_string(int button); // breaks if enums change
 Button UI_click_system();
@@ -55,10 +56,13 @@ struct UI_selected_unit
 
 struct UI_build_unit
 {
-
+	static void fill_UI_build_unit_component(UI_build_unit& ui_build_unit, Button button);
+	std::string unit_name = "";
+	std::vector<std::string> descriptions = {};
 };
 
 struct UI_unit_stats
 {
 
 };
+

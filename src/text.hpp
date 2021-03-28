@@ -152,6 +152,8 @@ private:
  */
 void drawText(const Text& text, glm::ivec2 frameBufferSize);
 
+vec2 get_center_text_position(vec2 text_box_scale, vec2 text_box_position, float text_scale, std::string text);
+
 struct DisappearingText
 {
     static entt::entity createDisappearingText(std::string text, vec2 position, float on_screen_time_ms, float scale = 1.f);

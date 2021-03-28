@@ -8,6 +8,8 @@
 #include <BehaviorTree.hpp>
 #include "text.hpp"
 #include "units/unit.hpp"
+#include "ui_description.hpp"
+
 // stlib
 #include <vector>
 

@@ -531,6 +531,14 @@ void drawText(const Text& text, glm::ivec2 frameBufferSize) {
     gl_has_errors();
 }
 
+vec2 get_center_text_position(vec2 text_box_scale, vec2 text_box_position, float text_scale, std::string text)
+{
+    auto x_offset = (text_box_scale.x - (text.length() * text_scale * 27)) / 2;
+    // place title text at the top
+    auto y_title_offset = text_box_scale.y / 2;
+    return vec2(text_box_position.x - (text_box_scale.x / 2) + x_offset, WINDOW_SIZE_IN_PX.y - text_box_position.y);
+}
+
 entt::entity DisappearingText::createDisappearingText(std::string text, vec2 position, float on_screen_time_ms, float scale)
 {
     // text

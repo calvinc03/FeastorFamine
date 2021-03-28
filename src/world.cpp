@@ -397,9 +397,20 @@ void un_highlight()
 		highlight.highlight = false;
 	}
 }
+
+// helper for mouse_hover_ui_button
+// show unit description when hover on unit button
+void remove_unit_description()
+{
+	//std::cout << "Hover: " << build_ui.unit_name << "\n";
+	for (auto entity : registry.view<UI_unit_description_card>())
+		registry.destroy(entity);
+}
+
 void WorldSystem::setup_game_setup_stage()
 {
 	player_state = set_up_stage;
+	remove_unit_description();
 	auto view_ui_button = registry.view<UI_element, ShadedMeshRef>();
 	for (auto button_entt : view_ui_button)
 	{
@@ -556,10 +567,10 @@ void WorldSystem::restart()
 	registry.emplace<ScreenState>(screen_state_entity);
 
 	//create UI	
-	UI_button::createUI_build_unit_button(0, tower_button, WATCHTOWER_COST);
-	UI_button::createUI_build_unit_button(1, green_house_button, GREENHOUSE_COST);
-	UI_button::createUI_build_unit_button(2, stick_figure_button, HUNTER_COST);
-	UI_button::createUI_build_unit_button(3, wall_button, WALL_COST );
+	UI_button::createUI_build_unit_button(0, watchtower_button, watchtower_unit.cost);
+	UI_button::createUI_build_unit_button(1, green_house_button, greenhouse_unit.cost);
+	UI_button::createUI_build_unit_button(2, hunter_button, hunter_unit.cost);
+	UI_button::createUI_build_unit_button(3, wall_button, wall_unit.cost );
 	// when unit is selected buttons
 	UI_button::createUI_selected_unit_button(3, upgrade_button, UPGRADE_BUTTON_TITLE, false);
 	UI_button::createUI_selected_unit_button(4, sell_button, SELL_BUTTON_TITLE, false);
@@ -1034,21 +1045,14 @@ void grid_highlight_system(vec2 mouse_pos, unit_type unit_selected, GridMap curr
 	}
 }
 
-void WorldSystem::on_mouse_move(vec2 mouse_pos)
+// helper for on_mouse_move
+// manage camera translation control
+void camera_control(vec2 mouse_pos)
 {
-	//if mouse is hovering over a button, then highlight
-	if (game_state == in_game) {
-		UI_highlight_system(mouse_pos);
-	}
-
-	bool in_game_area = mouse_in_game_area(mouse_pos);
-	if (in_game_area && placement_unit_selected != NONE && player_state == set_up_stage)
-		grid_highlight_system(mouse_pos, placement_unit_selected, current_map);
-
 	// camera control
 	auto view = registry.view<Motion, MouseMovement>();
-	auto &cam_motion = view.get<Motion>(camera);
-	auto &mouse_move = view.get<MouseMovement>(camera);
+	auto& cam_motion = view.get<Motion>(camera);
+	auto& mouse_move = view.get<MouseMovement>(camera);
 	mouse_move.mouse_pos = mouse_pos;
 	if (mouse_move.is_pan_state == 1)
 	{
@@ -1085,6 +1089,50 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 		}
 		cam_motion.position = vec2(new_pos_x, new_pos_y);
 	}
+}
+
+// helper for mouse_hover_ui_button
+// show unit description when hover on unit button
+void update_unit_description(entt::entity entity)
+{
+	//std::cout << "Hover: " << build_ui.unit_name << "\n";
+	for (auto entity : registry.view<UI_unit_description_card>())
+		registry.destroy(entity);
+	UI_unit_description_card::createUI_unit_description_card(entity);
+}
+
+// helper for on_mouse_move
+// check if mouse is on top of unit buttons, and dispaly unit description if it is
+void mouse_hover_ui_button(vec2 mouse_pos)
+{
+	auto view_buttons = registry.view<Button, UI_element, HighlightBool, ShadedMeshRef>();
+	for (auto [entity, button, ui_element, highlight, shadedmeshref] : view_buttons.each()) {
+		if (highlight.highlight && shadedmeshref.show) { // if a button is highlighted and we click -> button was pressed.
+			if (registry.has<UI_build_unit>(entity))
+			{
+				update_unit_description(entity);
+			}
+			break;
+		}
+		else
+		{
+			remove_unit_description();
+		}
+	}
+}
+
+void WorldSystem::on_mouse_move(vec2 mouse_pos)
+{
+	if (game_state == in_game) {
+		//if mouse is hovering over a button, then highlight
+		UI_highlight_system(mouse_pos);
+		camera_control(mouse_pos);
+		mouse_hover_ui_button(mouse_pos);
+	}
+
+	bool in_game_area = mouse_in_game_area(mouse_pos);
+	if (in_game_area && placement_unit_selected != NONE && player_state == set_up_stage)
+		grid_highlight_system(mouse_pos, placement_unit_selected, current_map);
 }
 
 // helper for update_look_for_selected_buttons
@@ -1594,28 +1642,28 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
             entt::entity entity;
 			if (node.occupancy == NONE && node.terrain != TERRAIN_PAVEMENT && node.terrain != TERRAIN_FIRE)
 			{
-				if (placement_unit_selected == HUNTER && health >= HUNTER_COST)
+				if (placement_unit_selected == HUNTER && health >= hunter_unit.cost)
 				{
                     entity = Hunter::createHunter({x, y});
-					health -= HUNTER_COST;
+					health -= hunter_unit.cost;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
-				else if (placement_unit_selected == GREENHOUSE && health >= GREENHOUSE_COST)
+				else if (placement_unit_selected == GREENHOUSE && health >= greenhouse_unit.cost)
 				{
 					entity = GreenHouse::createGreenHouse({x, y});
-					health -= GREENHOUSE_COST;
+					health -= greenhouse_unit.cost;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
-				else if (placement_unit_selected == WATCHTOWER && health >= WATCHTOWER_COST)
+				else if (placement_unit_selected == WATCHTOWER && health >= watchtower_unit.cost)
 				{
 					entity = WatchTower::createWatchTower({x, y});
-					health -= WATCHTOWER_COST;
+					health -= watchtower_unit.cost;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
-				else if (placement_unit_selected == WALL && health >= WALL_COST)
+				else if (placement_unit_selected == WALL && health >= wall_unit.cost)
 				{
 					entity = Wall::createWall({x, y}, false);
-					health -= WALL_COST;
+					health -= wall_unit.cost;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else
@@ -1635,7 +1683,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area)
 		{
 
-			if (ui_button == Button::tower_button)
+			if (ui_button == Button::watchtower_button)
 			{
 
 				placement_unit_selected = WATCHTOWER;
@@ -1645,7 +1693,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 				placement_unit_selected = GREENHOUSE;
 			}
-			else if (ui_button == Button::stick_figure_button)
+			else if (ui_button == Button::hunter_button)
 			{
 
 				placement_unit_selected = HUNTER;
@@ -1668,7 +1716,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					}
 				}
 			}
-			else if (ui_button == Button::upgrade_button && health >= HUNTER_UPGRADE_COST)
+			else if (ui_button == Button::upgrade_button && health >= hunter_unit.upgrade_cost)
 			{
 
 				// upgrade button is hit

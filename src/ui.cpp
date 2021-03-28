@@ -1,6 +1,4 @@
 #include "ui.hpp"
-#include "render.hpp"
-#include <string>
 
 #include "world.hpp"
 void UI_highlight_system(vec2 mouse_pos) {
@@ -27,11 +25,11 @@ Button UI_click_system() {
 
 std::string button_to_string(int button) {
 	switch (button) {
-	case tower_button:
+	case watchtower_button:
 		return "tower_button";
 	case green_house_button:
 		return "green_house_button";
-	case stick_figure_button:
+	case hunter_button:
 		return "stick_figure_button";
 	case wall_button:
 		return "wall_button";
@@ -86,13 +84,13 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 	if (resource.effect.program.resource == 0) {
 		resource = ShadedMesh();
 
-		if (button == tower_button) {
+		if (button == watchtower_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("tower_icon.png"), "ui");
 		}
 		else if (button == green_house_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("green_house_icon.png"), "ui");
 		}
-		else if (button == stick_figure_button) {
+		else if (button == hunter_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
 		}
 		else if (button == wall_button) {
@@ -136,11 +134,29 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 	return entity;
 }
 
+
+
+void UI_build_unit::fill_UI_build_unit_component(UI_build_unit& ui_build_unit, Button button)
+{
+	try
+	{
+		ui_build_unit.unit_name = unit_name_str.at(button);
+		ui_build_unit.descriptions = unit_description_str.at(button);
+		
+	} 
+	catch (const std::out_of_range& oor)
+	{
+		std::cout << "[Warning]: UI button (enum: " << button <<") has no name or description specified in the config.\n";
+	}
+}
+
 entt::entity UI_button::createUI_build_unit_button(int pos, Button button, size_t cost, std::string tag, bool show) //later: reference vars for cost in world.
 {
 	auto entity = UI_button::createUI_button(pos, button, tag, show);
 	auto ui_element = registry.view<UI_element>().get<UI_element>(entity);
-	registry.emplace<UI_build_unit>(entity);
+	auto& ui_build_unit = registry.emplace<UI_build_unit>(entity);
+	UI_build_unit::fill_UI_build_unit_component(ui_build_unit, button);
+
 	if (cost != 0) {
 		auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
 		auto& t = registry.emplace<Text>(entity, Text(std::to_string(cost), notoRegular, vec2(ui_element.position.x, WINDOW_SIZE_IN_PX.y - ui_element.position.y - 40)));

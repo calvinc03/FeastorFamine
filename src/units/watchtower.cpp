@@ -29,15 +29,7 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
 
     auto& unit = registry.emplace<Unit>(entity);
-    unit.damage = 10;
-    unit.attack_interval_ms = 800;
-    unit.attack_range = 400;
-    unit.workers = 0;
-    unit.upgrades = 0;
-    unit.type = WATCHTOWER;
-    unit.cost = WATCHTOWER_COST;
-    unit.upgrade_cost = WATCHTOWER_UPGRADE_COST;
-    unit.sell_price = WATCHTOWER_SELL_PRICE;
+    unit = watchtower_unit;
 
     registry.emplace<WatchTower>(entity);
     registry.emplace<Selectable>(entity);
