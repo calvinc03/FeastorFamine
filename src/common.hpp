@@ -93,6 +93,11 @@ struct EntityDeath {
 	float timer;
 };
 
+struct DOT {
+	entt::entity e_projectile;
+	float dot_delay;
+};
+
 // id for entity
 struct Tag {
 	std::string tag;

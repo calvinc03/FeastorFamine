@@ -263,14 +263,14 @@ void WorldSystem::step(float elapsed_ms)
 		// update velocity for every monster
 		for (auto entity : registry.view<Monster>())
 		{
+			auto& monster = registry.get<Monster>(entity);
+			monster.dot_delay -= elapsed_ms;
+
 			auto state = BTCollision->process(entity);
 			if (health < 0) {
 				restart();
 				return;
 			}
-
-			auto& monster = registry.get<Monster>(entity);
-			monster.dot_delay -= elapsed_ms;
 		}
 
 		// Increment round number if all enemies are not on the map and projectiles are removed
