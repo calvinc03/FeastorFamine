@@ -49,11 +49,11 @@ vec2 mouse_in_world_coord(vec2 mouse_pos)
 }
 
 vec2 coord_to_pixel(ivec2 grid_coord) {
-    return grid_coord * GRID_CELL_SIZE + GRID_OFFSET;
+    return grid_coord * GRID_CELL_SIZE + GRID_OFFSET + ivec2(0, UI_TOP_BAR_HEIGHT);
 }
 
 ivec2 pixel_to_coord(vec2 pixel_position) {
-    return (ivec2)pixel_position / GRID_CELL_SIZE;
+    return ((ivec2)pixel_position - ivec2(0, UI_TOP_BAR_HEIGHT)) / GRID_CELL_SIZE;
 }
 
 // convert original scale to some set multiple of cell units
@@ -73,7 +73,7 @@ vec2 grid_to_pixel_velocity(vec2 unit_velocity) {
 void create_hit_points_text(int hit_points, entt::entity e_damaged)
 {
     // used to scale the hit points size
-    float max_possible_damage = 150;
+    float max_possible_damage = MAX_POSSIBLE_DAMAGE;
     float min_text_size = 0.5;
     float max_text_size = 1.5;
 
@@ -130,4 +130,23 @@ std::vector<float> pascalNRow(int n) {
 	}
 
 	return row;
+}
+
+nlohmann::json get_json(std::string json_path)
+{
+	std::ifstream input_stream(json_path);
+
+	if (input_stream.fail())
+	{
+		std::cout << "Not reading json file for path \"" + json_path + "\" \n";
+		return NULL;
+	}
+
+	try {
+		auto json = nlohmann::json::parse(input_stream);
+		return json;
+	}
+	catch (std::exception) {
+		return NULL;
+	}
 }

@@ -156,7 +156,7 @@ vec2 get_center_text_position(vec2 text_box_scale, vec2 text_box_position, float
 
 struct DisappearingText
 {
-    static entt::entity createDisappearingText(std::string text, vec2 position, float on_screen_time_ms, float scale = 1.f);
+    static entt::entity createDisappearingText(std::string text, vec2 position, float on_screen_time_ms, float scale = 1.f, vec3 colour = { 1.f, 0.f, 0.f });
     float on_screen_time_ms;
 };
 

@@ -43,9 +43,6 @@ public:
 	// start round
 	void start_round();
 
-	// helper to load json from disk
-	nlohmann::json get_json(std::string json_path);
-
 	// helper to load game from save game path
 	void load_game();
 
@@ -147,8 +144,8 @@ private:
 	// animation fps
 	float fps_ms;
 
-	// json object for rounds
-	std::string season_str;
+	// season
+	std::string world_season_str;
 
 	// Game state
 	float current_speed;
@@ -201,6 +198,10 @@ private:
 	entt::entity round_text_entity;
 	entt::entity food_text_entity;
 	entt::entity stage_text_entity;
+	entt::entity season_text_entity;
+	entt::entity weather_text_entity;
+	entt::entity season_wheel_arrow_entity;
+	entt::entity weather_icon_entity;
 	unit_type placement_unit_selected;
 
 
