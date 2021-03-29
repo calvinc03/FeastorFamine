@@ -4,8 +4,13 @@
 #include "common.hpp"
 #include "ui.hpp"
 
-const int TIP_CARD_X = 400;
-const int TIP_CARD_Y = 200;
+const int TIP_CARD_LEFT_X = 300;
+const int TIP_CARD_CENTRE_X = 500;
+const int TIP_CARD_RIGHT_X = 800;
+const int TIP_CARD_TOP_Y = 150;
+const int TIP_CARD_CENTRE_Y = 300;
+const int TIP_CARD_CENBOT_Y = 450;
+const int TIP_CARD_BOTTOM_Y = 600;
 
 class TipManager
 {
@@ -48,6 +53,14 @@ const std::vector<std::string> start_tips_2 = {
 };
 
 const std::vector<std::string> start_tips_3 = {
+	"You can only place, upgrade, and sell units",
+	"during the setup phase, which we are",
+	"currently on. Once the battle phase starts,",
+	"you will not be able to control units until",
+	"they are defeated."
+};
+
+const std::vector<std::string> start_tips_4 = {
 	"Enemies spawn in the forest in the top left",
 	"and will attack your village in the bottom",
 	"right. They will try to take the shortest path,",
@@ -55,26 +68,18 @@ const std::vector<std::string> start_tips_3 = {
 	"will not always take the grey stone road!"
 };
 
-const std::vector<std::string> start_tips_4 = {
+const std::vector<std::string> start_tips_5 = {
 	"Different enemies prefer different map tiles.",
 	"Enemies from the arctic might prefer ice, and",
 	"they will travel faster on those tiles."
 };
 
-const std::vector<std::string> start_tips_5 = {
+const std::vector<std::string> start_tips_6 = {
 	"Different monsters can have different",
 	"abilities. Some may be fast, some have high",
 	"health, and some react differently when you",
 	"attack them. There are even boss levels that",
 	"will attack you in unexpected ways."
-};
-
-const std::vector<std::string> start_tips_6 = {
-	"You can only place, upgrade, and sell units",
-	"during the setup phase, which we are",
-	"currently on. Once the battle phase starts,",
-	"you will not be able to control units until",
-	"they are defeated."
 };
 
 const std::vector<std::string> start_tips_7 = {

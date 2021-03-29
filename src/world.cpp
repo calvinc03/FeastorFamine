@@ -389,58 +389,58 @@ void WorldSystem::handle_game_tips()
 	switch (tip_manager.tip_index)
 	{
 	case 0:
-		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_0);
+		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, start_tips_0);
 		game_state = paused;
 		tip_manager.tip_index++;
 		game_tips = false;
 		break;
 	case 1:
-		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_1);
+		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, start_tips_1);
 		game_state = paused;
 		tip_manager.tip_index++;
 		break;
 	case 2:
-		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_2);
+		TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_BOTTOM_Y, start_tips_2);
 		game_state = paused;
 		tip_manager.tip_index++;
 		break;
 	case 3:
-		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_3);
+		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, start_tips_3);
 		game_state = paused;
 		tip_manager.tip_index++;
 		break;
 	case 4:
-		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_4);
+		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, start_tips_4);
 		game_state = paused;
 		tip_manager.tip_index++;
 		break;
 	case 5:
-		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_5);
+		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, start_tips_5);
 		game_state = paused;
 		tip_manager.tip_index++;
 		break;
 	case 6:
-		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_6);
+		TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_BOTTOM_Y, start_tips_6);
 		game_state = paused;
 		tip_manager.tip_index++;
 		break;
 	case 7:
-		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_7);
+		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_TOP_Y, start_tips_7);
 		game_state = paused;
 		tip_manager.tip_index++;
 		break;
 	case 8:
-		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_8);
+		TipCard::createTipCard(TIP_CARD_RIGHT_X, TIP_CARD_TOP_Y, start_tips_8);
 		game_state = paused;
 		tip_manager.tip_index++;
 		break;
 	case 9:
-		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_9);
+		TipCard::createTipCard(TIP_CARD_LEFT_X - 50, TIP_CARD_TOP_Y, start_tips_9);
 		game_state = paused;
 		tip_manager.tip_index++;
 		break;
 	case 10:
-		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_10);
+		TipCard::createTipCard(TIP_CARD_RIGHT_X, TIP_CARD_BOTTOM_Y, start_tips_10);
 		game_state = paused;
 		tip_manager.tip_index++;
 		break;
@@ -1786,7 +1786,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				{
 					game_state = paused;
 					WorldSystem::tip_manager.tower_tip = false;
-					TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, tower_tips);
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, tower_tips);
 				}
 
 				placement_unit_selected = WATCHTOWER;
@@ -1797,7 +1797,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				{
 					game_state = paused;
 					WorldSystem::tip_manager.greenhouse_tip = false;
-					TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, greenhouse_tips);
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, greenhouse_tips);
 				}
 
 				placement_unit_selected = GREENHOUSE;
@@ -1808,7 +1808,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				{
 					game_state = paused;
 					WorldSystem::tip_manager.hunter_tip = false;
-					TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, hunter_tips);
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, hunter_tips);
 				}
 
 				placement_unit_selected = HUNTER;
@@ -1819,7 +1819,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				{
 					game_state = paused;
 					WorldSystem::tip_manager.wall_tip = false;
-					TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, wall_tips);
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, wall_tips);
 				}
 
 				placement_unit_selected = WALL;
