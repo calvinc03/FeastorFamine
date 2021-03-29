@@ -9,6 +9,7 @@
 #include "text.hpp"
 #include "units/unit.hpp"
 #include "ui_description.hpp"
+#include "tip_manager.hpp"
 
 // stlib
 #include <vector>
@@ -118,6 +119,9 @@ public:
 	static int health;
     static GridMap current_map;
 
+	// tutorial tip manager
+	TipManager tip_manager;
+
 	// decrease reward at higher levels
 	static float reward_multiplier;
 
@@ -133,6 +137,9 @@ private:
 
 	// Loads the audio
 	void init_audio();
+
+	// remove game tip
+	void remove_game_tip();
 
 	// village
 	entt::entity village;

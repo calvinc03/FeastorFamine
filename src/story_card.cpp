@@ -48,7 +48,6 @@ entt::entity StoryCard::createStoryCard(std::string story_card_text, std::string
 
 		int delimiter_pos = story_card_text.find(delimiter);
 		if (delimiter_pos == std::string::npos) {
-			std::cout << "nope" << std::endl;
 			delimiter_pos = story_card_text.length();
 		}
 

@@ -145,6 +145,8 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     for (int monster_type = 0; monster_type < monster_type_count; monster_type++) {
         default_monster_paths.insert(std::pair<int, std::vector<ivec2>>(monster_type, {}));
     }
+
+	tip_manager = TipManager::TipManager();
 }
 
 WorldSystem::~WorldSystem()
@@ -427,7 +429,6 @@ void WorldSystem::setup_game_setup_stage()
 	{
 		registry.destroy(entity);
 	}
-
 }
 
 void WorldSystem::set_up_step(float elapsed_ms)
@@ -580,6 +581,9 @@ void WorldSystem::restart()
 	current_map = registry.get<GridMap>(GridMap::createGridMap());
 	village = Village::createVillage(current_map);
 	Forest::createForest(current_map);
+
+	// set up tip manager
+	tip_manager = TipManager::TipManager();
 
     BTCollision = AISystem::MonstersAI::createBehaviorTree();
 
@@ -1264,6 +1268,10 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
 	//getting cursor position
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
+
+	if (game_tips) {
+		remove_game_tip();
+	}
   
 	switch (game_state)
 	{
@@ -1346,6 +1354,15 @@ void WorldSystem::story_card_click_handle(double mouse_pos_x, double mouse_pos_y
 
 void WorldSystem::sell_unit_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
 {
+}
+
+void WorldSystem::remove_game_tip()
+{
+	auto tip_card_view = registry.view<TipCard>();
+	for (auto entity : tip_card_view)
+	{
+		registry.destroy(entity);
+	}
 }
 
 // helper for unit_select_click_handle
@@ -1642,8 +1659,6 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
 
-	//un_highlight(); // turn off highlights for grid node on click
-
 	if (player_state == set_up_stage)
 	{
 		// Mouse click for placing units
@@ -1694,24 +1709,48 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		}
 		else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area)
 		{
-
 			if (ui_button == Button::watchtower_button)
 			{
+				if (game_tips && WorldSystem::tip_manager.tower_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.tower_tip = false;
+					TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, tower_tips);
+				}
 
 				placement_unit_selected = WATCHTOWER;
 			}
 			else if (ui_button == Button::green_house_button)
 			{
+				if (game_tips && WorldSystem::tip_manager.greenhouse_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.greenhouse_tip = false;
+					TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, greenhouse_tips);
+				}
 
 				placement_unit_selected = GREENHOUSE;
 			}
 			else if (ui_button == Button::hunter_button)
 			{
+				if (game_tips && WorldSystem::tip_manager.hunter_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.hunter_tip = false;
+					TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, hunter_tips);
+				}
 
 				placement_unit_selected = HUNTER;
 			}
 			else if (ui_button == Button::wall_button)
 			{
+				if (game_tips && WorldSystem::tip_manager.wall_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.wall_tip = false;
+					TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, wall_tips);
+				}
+
 				placement_unit_selected = WALL;
 			}
 			else if (ui_button == Button::sell_button)
@@ -1730,7 +1769,6 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			}
 			else if (ui_button == Button::upgrade_button && health >= hunter_unit.upgrade_cost)
 			{
-
 				// upgrade button is hit
 				auto view_selectable = registry.view<Selectable>();
 				auto view_unit = registry.view<Unit>();
@@ -1762,7 +1800,6 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				std::cout << std::boolalpha;
 				std::cout << "Game tips: " << game_tips << std::endl;
 			}
-			
 			else
 			{
 				placement_unit_selected = NONE;
@@ -1778,6 +1815,8 @@ void WorldSystem::paused_click_handle(double xpos, double ypos, int button, int 
 {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
+		// remove game tips if exist
+		remove_game_tip();
 		resume_game();
 	}
 }
