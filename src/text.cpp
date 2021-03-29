@@ -539,14 +539,14 @@ vec2 get_center_text_position(vec2 text_box_scale, vec2 text_box_position, float
     return vec2(text_box_position.x - (text_box_scale.x / 2) + x_offset, WINDOW_SIZE_IN_PX.y - text_box_position.y);
 }
 
-entt::entity DisappearingText::createDisappearingText(std::string text, vec2 position, float on_screen_time_ms, float scale)
+entt::entity DisappearingText::createDisappearingText(std::string text, vec2 position, float on_screen_time_ms, float scale, vec3 colour)
 {
     // text
     auto entity = registry.create();
     auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
     auto& t = registry.emplace<Text>(entity, Text(text, notoRegular, vec2(position.x, WINDOW_SIZE_IN_PX.y - position.y)));
     t.scale = scale;
-    t.colour = { 1.f, 0.f, 0.f };
+    t.colour = colour;
     // on screen time
     auto& disappearing_text = registry.emplace<DisappearingText>(entity);
     disappearing_text.on_screen_time_ms = on_screen_time_ms;

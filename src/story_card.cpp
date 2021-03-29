@@ -4,7 +4,7 @@
 
 entt::entity StoryCard::createStoryCard(std::string story_card_text, std::string level_number)
 {
-	ivec2 pos = ivec2(MAP_SIZE_IN_PX.x - 530, MAP_SIZE_IN_PX.y - 300);
+	ivec2 pos = ivec2(MAP_SIZE_IN_PX.x - 530, MAP_SIZE_IN_PX.y + UI_TOP_BAR_HEIGHT - 300);
 	auto entity = registry.create();
 	// Create rendering primitives
 	std::string key = "story_card";
@@ -31,7 +31,7 @@ entt::entity StoryCard::createStoryCard(std::string story_card_text, std::string
 	auto level_text_entity = registry.create();
 	auto level_text_scale = 1.0f;
 	auto level_x_offset = -370;
-	auto level_y_offset = 165;
+	auto level_y_offset = 165 - UI_TOP_BAR_HEIGHT;
 	auto& t_level = registry.emplace<Text>(level_text_entity, Text("Level " + level_number, font, vec2(pos.x + level_x_offset, pos.y + level_y_offset)));
 	t_level.scale = level_text_scale;
 	t_level.colour = { 1.0f, 1.0f, 1.0f };
@@ -40,7 +40,7 @@ entt::entity StoryCard::createStoryCard(std::string story_card_text, std::string
 	// story text, break up lines based on delimiter '@'
 	auto story_text_scale = .6f;
 	auto story_text_x_offset = -400;
-	auto story_text_y_offset = 100;
+	auto story_text_y_offset = 100 - UI_TOP_BAR_HEIGHT;
 
 	std::string delimiter = "@";
 	while (story_card_text.length() > 0) {

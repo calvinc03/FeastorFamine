@@ -7,6 +7,7 @@
 #include "text.hpp"
 #include <vector>
 #include <string>
+#include <json.hpp>
 
 
 
@@ -14,17 +15,19 @@ std::string button_to_string(int button); // breaks if enums change
 Button UI_click_system();
 void UI_highlight_system(vec2 mouse_pos);
 
-entt::entity create_ui_text(vec2 position, std::string content);
+entt::entity create_ui_text(vec2 position, std::string content, float scale = 0.3f, vec3 colour = { 1.0f,1.0f,1.0f });
 
 struct UI_element {
 	std::string tag;
 	vec2 position;
 	vec2 scale;
+	float angle = 0;
 };
 
 struct UI_background
 {
 	static entt::entity createUI_background();
+	static entt::entity createUI_top_bar();
 };
 
 struct UI_button
@@ -48,6 +51,19 @@ struct UI_selected_unit_portrait
 inline std::string ui_texture_path(const std::string& name) { return data_path() + "/textures/ui/" + name; };
 
 void change_button_text(entt::entity button_entity, std::string button_text);
+
+void aligne_text_right(entt::entity entity, float right_alignment_position);
+
+struct UI_season_wheel {
+	static entt::entity createUI_season_wheel();
+	static entt::entity createUI_season_wheel_arrow();
+	static void get_season_sequence();
+};
+
+struct UI_weather_icon {
+	static entt::entity createUI_weather_icon();
+	static void change_weather_icon(entt::entity entity, int weather);
+};
 
 struct UI_selected_unit
 {

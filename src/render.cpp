@@ -93,6 +93,7 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 		auto &ui_element = registry.get<UI_element>(entity);
 		position = ui_element.position;
 		scale = ui_element.scale;
+		angle = ui_element.angle;
 	}
 
 	// camera zoom
