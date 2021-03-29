@@ -23,7 +23,7 @@ static const float DOT_DELAY = 500;
 
 const int FIREBALL_DELAY_MS = 2385;
 // rounds text 
-static const int MAX_ROUND_NUMBER = 18;
+static const int MAX_ROUND_NUMBER = 17;
 // hit point text size
 static const int MAX_POSSIBLE_DAMAGE = 100;
 // rounds per season

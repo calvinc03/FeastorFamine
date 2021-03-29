@@ -698,7 +698,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	if (game_state != help_menu)
 	{
 		game_state = story_card;
-		StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number));
+		StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number + 1));
 	}
 
     current_round_monster_types.clear();
@@ -1404,7 +1404,7 @@ void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y,
 		
 		if (round_number == 0) {
 			game_state = story_card;
-			StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number));
+			StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(1));
 		}
 
 		if (registry.empty<StoryCard>()) {
