@@ -20,7 +20,7 @@ public:
 
 struct TipCard
 {
-	static entt::entity TipCard::createTipCard(int x, int y, std::vector<std::string> text_lines);
+	static entt::entity createTipCard(int x, int y, std::vector<std::string> text_lines);
 };
 
 const std::vector<std::string> hunter_tips = {

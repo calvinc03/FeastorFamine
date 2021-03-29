@@ -146,7 +146,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
         default_monster_paths.insert(std::pair<int, std::vector<ivec2>>(monster_type, {}));
     }
 
-	tip_manager = TipManager::TipManager();
+	tip_manager = TipManager();
 }
 
 WorldSystem::~WorldSystem()
@@ -583,7 +583,7 @@ void WorldSystem::restart()
 	Forest::createForest(current_map);
 
 	// set up tip manager
-	tip_manager = TipManager::TipManager();
+	tip_manager = TipManager();
 
     BTCollision = AISystem::MonstersAI::createBehaviorTree();
 
