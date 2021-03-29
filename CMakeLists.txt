@@ -25,7 +25,7 @@ endif()
 # Create executable target
 
 # You can switch to use the file GLOB for simplicity but at your own risk
-file(GLOB SOURCE_FILES src/*.cpp src/*.hpp)
+file(GLOB SOURCE_FILES src/*.cpp src/*.hpp src/config/*.cpp src/config/*.hpp src/monsters/*.cpp src/monsters/*.hpp src/units/*.cpp src/units/*.hpp)
 
 # external libraries will be installed into /usr/local/include and /usr/local/lib but that folder is not automatically included in the search on MACs
 if (IS_OS_MAC)
@@ -33,9 +33,7 @@ if (IS_OS_MAC)
   link_directories(/usr/local/lib)
 endif()
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES}  "src/Observer.hpp"  "src/story_card.cpp" "src/story_card.hpp"
-        "src/monsters/mob.cpp" "src/monsters/mob.hpp" "src/monsters/winter_boss.cpp" "src/monsters/winter_boss.hpp" "src/monsters/summer_boss.cpp" "src/monsters/summer_boss.hpp" "src/monsters/fall_boss.cpp" "src/monsters/fall_boss.hpp" "src/monsters/spring_boss.cpp" "src/monsters/spring_boss.hpp"   "src/monsters/burrow_boss.cpp" "src/monsters/burrow_boss.hpp" "src/monsters/fireball_boss.cpp" "src/monsters/fireball_boss.hpp" "src/monsters/final_boss.cpp" "src/monsters/final_boss.hpp" "src/monsters/spider.cpp" "src/monsters/spider.hpp"
-        "src/units/unit.hpp" "src/units/greenhouse.cpp" "src/units/greenhouse.hpp" "src/units/hunter.cpp" "src/units/hunter.hpp" "src/units/village.cpp" "src/units/village.hpp" "src/units/wall.cpp" "src/units/wall.hpp" "src/units/watchtower.cpp" "src/units/watchtower.hpp" "src/units/forest.cpp" "src/units/forest.hpp"  "src/ui_description.hpp" "src/ui_description.cpp" "src/config/unit_config.hpp" "src/units/exterminator.cpp" "src/units/exterminator.hpp")
+add_executable(${PROJECT_NAME} ${SOURCE_FILES}  "src/main.cpp" )
 target_include_directories(${PROJECT_NAME} PUBLIC src/)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/nlohmann)
 

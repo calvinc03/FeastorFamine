@@ -124,7 +124,7 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 		else if (button == wall_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("wall_icon.png"), "ui");
 		}
-		else if (button == upgrade_button) {
+		else if (button == upgrade_path_1_button || button == upgrade_path_2_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("upgrade_icon.png"), "ui");
 		}
 		else if (button == sell_button) {
