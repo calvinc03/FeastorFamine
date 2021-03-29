@@ -2,6 +2,7 @@
 #include "config/enums.hpp"
 #include "config/strings.hpp"
 #include "config/game_config.hpp"
+#include "config/ui_config.hpp"
 // stlib
 #include <string>
 #include <tuple>
@@ -9,6 +10,7 @@
 #include <stdexcept>
 #include <map>
 #include <random>
+#include <fstream>
 
 // glfw (OpenGL)
 #define NOMINMAX
@@ -19,6 +21,7 @@
 #include <glm/ext/vector_int2.hpp>  // ivec2
 #include <glm/vec3.hpp>             // vec3
 #include <glm/mat3x3.hpp>           // mat3
+#include <json.hpp>					// json
 
 using namespace glm;
 static const float PI = 3.14159265359f;
@@ -138,3 +141,5 @@ extern entt::registry registry;
 extern entt::entity screen_state_entity;
 // for camera view; zoom & pan
 extern entt::entity camera;
+
+nlohmann::json get_json(std::string json_path);

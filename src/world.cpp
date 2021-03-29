@@ -45,9 +45,7 @@
 const size_t ANIMATION_FPS = 20;
 const size_t GREENHOUSE_REWARD = 80;
 const int STARTING_HEALTH = 600;
-const int MAX_ROUNDS = 18;
 
-const size_t SET_UP_TIME = 15 * 1000; // 15 seconds to setup
 int WorldSystem::health = 1000;
 float WorldSystem::reward_multiplier = 1.f;
 GridMap WorldSystem::current_map;
@@ -65,13 +63,12 @@ const std::string UPGRADE_BUTTON_TITLE = "upgrade_button";
 const std::string SELL_BUTTON_TITLE = "sell_button";
 const std::string START_BUTTON_TITLE = "start_button";
 const std::string SAVE_BUTTON_TITLE = "save_button";
+const std::string TIPS_BUTTON_TITLE = "tips_button";
 const std::string SPRING_TITLE = "spring";
 const std::string SUMMER_TITLE = "summer";
 const std::string FALL_TITLE = "fall";
 const std::string WINTER_TITLE = "winter";
 const std::string FINAL_TITLE = "final";
-const std::string INPUT_PATH = "data/monster_rounds/";
-const std::string JSON_EXTENSION = ".json";
 const std::string SAVE_PATH = "data/save_files/save_state.json";
 
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_state(start_menu),
@@ -83,8 +80,8 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     num_mobs_spawned(0),
     next_particle_spawn(0),
     num_bosses_spawned(0),
-    set_up_timer(SET_UP_TIME),
-    round_number(0)
+    round_number(0),
+	game_tips(true)
 {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -145,6 +142,8 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     for (int monster_type = 0; monster_type < monster_type_count; monster_type++) {
         default_monster_paths.insert(std::pair<int, std::vector<ivec2>>(monster_type, {}));
     }
+
+	tip_manager = TipManager::TipManager();
 }
 
 WorldSystem::~WorldSystem()
@@ -198,7 +197,8 @@ void WorldSystem::init_audio()
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
-	if (player_state != pause_stage && player_state != story_stage) {
+	if (game_state == in_game) {
+
 		//rig animation
 		auto view_rigs = registry.view<Timeline>();
 		for (auto entity : view_rigs) {
@@ -286,7 +286,7 @@ void WorldSystem::step(float elapsed_ms)
 			{
 				round_number++;
 
-				if (round_number == MAX_ROUNDS)
+				if (round_number == MAX_ROUND_NUMBER)
 				{
 					restart();
 				}
@@ -383,11 +383,73 @@ void WorldSystem::step(float elapsed_ms)
 				registry.destroy(entity);
 			}
 		}
-
-		registry.get<Text>(round_text_entity).content = "round: " + std::to_string(round_number);
-		registry.get<Text>(food_text_entity).content = "food: " + std::to_string(health);
+		auto& food_num_text = registry.get<Text>(food_text_entity);
+		food_num_text.content = std::to_string(health);
 	}
 	
+}
+
+void WorldSystem::handle_game_tips()
+{
+	switch (tip_manager.tip_index)
+	{
+	case 0:
+		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, start_tips_0);
+		game_state = paused;
+		tip_manager.tip_index++;
+		game_tips = false;
+		break;
+	case 1:
+		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, start_tips_1);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 2:
+		TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_BOTTOM_Y, start_tips_2);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 3:
+		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, start_tips_3);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 4:
+		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, start_tips_4);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 5:
+		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, start_tips_5);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 6:
+		TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_BOTTOM_Y, start_tips_6);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 7:
+		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_TOP_Y, start_tips_7);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 8:
+		TipCard::createTipCard(TIP_CARD_RIGHT_X, TIP_CARD_TOP_Y, start_tips_8);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 9:
+		TipCard::createTipCard(TIP_CARD_LEFT_X - 50, TIP_CARD_TOP_Y, start_tips_9);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 10:
+		TipCard::createTipCard(TIP_CARD_RIGHT_X, TIP_CARD_BOTTOM_Y, start_tips_10);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	}
 }
 
 void WorldSystem::deduct_health(int num) {
@@ -432,105 +494,103 @@ void WorldSystem::setup_game_setup_stage()
 	{
 		registry.destroy(entity);
 	}
-
 }
 
 void WorldSystem::set_up_step(float elapsed_ms)
 {
 	// Restart/End game after max rounds
-	
+	if (round_number == 0 && game_tips) {
+		handle_game_tips();
+	}
 
 	if (round_number >= 9) {
 		reward_multiplier = .5f;
 	}
 
-	set_up_timer -= elapsed_ms;
-    
-    auto particle_view = registry.view<ParticleSystem>();
-    if (particle_view.size() < MAX_PARTICLES) {
-        for (auto particle_entity : particle_view) {
-            auto& particle = registry.get<ParticleSystem>(particle_entity);
-            particle.life -= elapsed_ms;
-            if (particle.life <= 0) {
-                registry.destroy(particle_entity);
-            }
-        }
-    }
-    ParticleSystem::updateParticle();
-
-    next_particle_spawn -= elapsed_ms;
-
-    if (weather == RAIN && next_particle_spawn < 0.f)
-    {
-        next_particle_spawn = 60;
-        vec2 velocity = {0.f, 450.0f};
-        vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
-        float life = 1150.0f;
-        std::string texture = "raindrop.png";
-        std::string shader = "rain";
-        ParticleSystem::createParticle(velocity, position, life, texture, shader);
-    }
-    else if (weather == DROUGHT) {
-        // TODO
-    }
-    else if (weather == FOG && next_particle_spawn < 0.f) {
-        next_particle_spawn = 3000;
-        vec2 velocity = {-100.f, 0.f};
-        vec2 position = {WINDOW_SIZE_IN_PX.x, rand() % (WINDOW_SIZE_IN_PX.y - 230)};
-        float life = 13500.f;
-        std::string texture = "cloud.png";
-        std::string shader = "fog";
-        ParticleSystem::createParticle(velocity, position, life, texture, shader);
-    }
-    else if (weather == SNOW && next_particle_spawn < 0.f)
-    {
-        next_particle_spawn = 40;
-        vec2 velocity = {rand() % 400 + (-200), 300.0f};
-        vec2 position = {rand() % WINDOW_SIZE_IN_PX.x + 1 , 0};
-        float life = 1800.0f;
-        std::string texture = "snow.png";
-        std::string shader = "snow";
-        ParticleSystem::createParticle(velocity, position, life, texture, shader);
-    }
-
-	auto& stage_text = registry.get<Text>(stage_text_entity);
-	stage_text.content = "PREPARE: " + std::to_string((int)round(set_up_timer / 1000));
-	stage_text.colour = { 1.0f, 1.0f, 1.0f };
-	registry.get<Text>(round_text_entity).content = "round: " + std::to_string(round_number);
-	registry.get<Text>(food_text_entity).content = "food: " + std::to_string(health);
-
-
-	if (set_up_timer <= 0)
-	{
-		// hide start_button
-		auto view_ui_button = registry.view<UI_element, ShadedMeshRef>();
-		for (auto button_entt : view_ui_button)
-		{
-			auto ui_button = view_ui_button.get<UI_element>(button_entt);
-
-			if (ui_button.tag == START_BUTTON_TITLE)
-			{
-				RenderSystem::hide_entity(button_entt);
+	auto particle_view = registry.view<ParticleSystem>();
+	if (particle_view.size() < MAX_PARTICLES) {
+		for (auto particle_entity : particle_view) {
+			auto& particle = registry.get<ParticleSystem>(particle_entity);
+			particle.life -= elapsed_ms;
+			if (particle.life <= 0) {
+				registry.destroy(particle_entity);
 			}
 		}
-		player_state = battle_stage;
-		set_up_timer = SET_UP_TIME;
-		next_mob_spawn = 0;
-		next_boss_spawn = 0;
-		un_highlight();
-
-		auto& stage_text = registry.get<Text>(stage_text_entity);
-		stage_text.content = "BATTLE";
-		stage_text.colour = { 1.0f, 0.1f, 0.1f };
-
-        // set default paths for monster AI for this round
-        for (int monster_type : current_round_monster_types) {
-            default_monster_paths.at(monster_type) = AISystem::MapAI::findPathAStar(current_map, monster_type);
-        }
-        std::cout << season_str << " season! \n";
-		std::cout << "weather " << weather << " \n";
 	}
-	
+	ParticleSystem::updateParticle();
+
+	next_particle_spawn -= elapsed_ms;
+
+	if (weather == RAIN && next_particle_spawn < 0.f)
+	{
+		next_particle_spawn = 60;
+		vec2 velocity = { 0.f, 450.0f };
+		vec2 position = { rand() % WINDOW_SIZE_IN_PX.x + 1 , UI_TOP_BAR_HEIGHT };
+		float life = 1150.0f;
+		std::string texture = "raindrop.png";
+		std::string shader = "rain";
+		ParticleSystem::createParticle(velocity, position, life, texture, shader);
+	}
+	else if (weather == DROUGHT) {
+		// TODO
+	}
+	else if (weather == FOG && next_particle_spawn < 0.f) {
+		next_particle_spawn = 3000;
+		vec2 velocity = { -100.f, 0.f };
+		vec2 position = { WINDOW_SIZE_IN_PX.x, rand() % (WINDOW_SIZE_IN_PX.y - 230) };
+		float life = 13500.f;
+		std::string texture = "cloud.png";
+		std::string shader = "fog";
+		ParticleSystem::createParticle(velocity, position, life, texture, shader);
+	}
+	else if (weather == SNOW && next_particle_spawn < 0.f)
+	{
+		next_particle_spawn = 40;
+		vec2 velocity = { rand() % 400 + (-200), 300.0f };
+		vec2 position = { rand() % WINDOW_SIZE_IN_PX.x + 1 , UI_TOP_BAR_HEIGHT };
+		float life = 1800.0f;
+		std::string texture = "snow.png";
+		std::string shader = "snow";
+		ParticleSystem::createParticle(velocity, position, life, texture, shader);
+	}
+
+
+	//registry.get<Text>(round_text_entity).content = std::to_string(round_number + 1);
+	// only supports up to 2 digit rounds (99 max round)
+	if (registry.get<Text>(round_text_entity).content.length() == 2)
+		registry.get<Text>(round_text_entity).position.x = ROUND_NUM_X_OFFSET - 20;
+	registry.get<Text>(food_text_entity).content = std::to_string(health);
+}
+
+void WorldSystem::start_round()
+{
+	game_tips = false;
+	// hide start_button
+	auto view_ui_button = registry.view<UI_element, ShadedMeshRef>();
+	for (auto button_entt : view_ui_button)
+	{
+		auto ui_button = view_ui_button.get<UI_element>(button_entt);
+
+		if (ui_button.tag == START_BUTTON_TITLE || ui_button.tag == TIPS_BUTTON_TITLE)
+		{
+			RenderSystem::hide_entity(button_entt);
+		}
+	}
+	player_state = battle_stage;
+	next_mob_spawn = 0;
+	next_boss_spawn = 0;
+	un_highlight();
+
+	auto& stage_text = registry.get<Text>(stage_text_entity);
+	stage_text.content = "BATTLE";
+	stage_text.colour = { 1.0f, 0.1f, 0.1f };
+
+	// set default paths for monster AI for this round
+	for (int monster_type : current_round_monster_types) {
+		default_monster_paths.at(monster_type) = AISystem::MapAI::findPathAStar(current_map, monster_type);
+	}
+	std::cout << world_season_str << " season! \n";
+	std::cout << "weather " << weather << " \n";
 }
 
 void WorldSystem::setup_start_menu()
@@ -544,6 +604,7 @@ void WorldSystem::setup_start_menu()
 	create_start_menu();
 	camera = Camera::createCamera();
 }
+
 void destroy_entity(const entt::entity entity)
 {
 	registry.destroy(entity);
@@ -563,7 +624,6 @@ void WorldSystem::restart()
 	num_bosses_spawned = 0;
 	num_mobs_spawned = 0;
 	player_state = set_up_stage;
-	set_up_timer = SET_UP_TIME;
 
 	registry.each(destroy_entity);
 	registry.clear(); // Remove all entities that we created
@@ -580,18 +640,33 @@ void WorldSystem::restart()
 	UI_button::createUI_selected_unit_button(3, upgrade_button, UPGRADE_BUTTON_TITLE, false);
 	UI_button::createUI_selected_unit_button(4, sell_button, SELL_BUTTON_TITLE, false);
 	// general buttons
+	UI_button::createUI_button(7, tips_button, TIPS_BUTTON_TITLE);
 	UI_button::createUI_button(8, start_button, START_BUTTON_TITLE);
 	UI_button::createUI_button(9, save_button, SAVE_BUTTON_TITLE);
+	// ui background
 	UI_background::createUI_background();
-
+	UI_background::createUI_top_bar();
+	// season wheel
+	UI_season_wheel::createUI_season_wheel();
+	season_wheel_arrow_entity = UI_season_wheel::createUI_season_wheel_arrow();
+	// weather icon
+	weather_icon_entity = UI_weather_icon::createUI_weather_icon();
+	// ui text
+	season_text_entity = create_ui_text(vec2(SEASON_X_OFFSET, WINDOW_SIZE_IN_PX.y - SEASON_Y_OFFSET), "Spring", SEASON_SCALE);
+	weather_text_entity = create_ui_text(vec2(WEATHER_TEXT_X_OFFSET, WINDOW_SIZE_IN_PX.y - WEATHER_TEXT_Y_OFFSET), "Clear", WEATHER_TEXT_SCALE);
 	stage_text_entity = create_ui_text(vec2(5, 65), "PREPARE");
-	round_text_entity = create_ui_text(vec2(5, 50), "");
-	food_text_entity = create_ui_text(vec2(5, 35), "");
+	auto static_round_label_entity = create_ui_text(vec2(ROUND_LABEL_X_OFFSET, WINDOW_SIZE_IN_PX.y - ROUND_LABEL_Y_OFFSET), "Round:          / " + std::to_string(MAX_ROUND_NUMBER), ROUND_LABEL_SCALE);
+	round_text_entity = create_ui_text(vec2(ROUND_NUM_X_OFFSET, WINDOW_SIZE_IN_PX.y - ROUND_NUM_Y_OFFSET), "1", ROUND_NUM_SCALE, { 1.f, 0.f, 0.f });
+	auto static_food_text_entity = create_ui_text(vec2(FOOD_LABEL_X_OFFSET, WINDOW_SIZE_IN_PX.y - FOOD_LABEL_Y_OFFSET), "Food:", FOOD_LABEL_SCALE);
+	food_text_entity = create_ui_text(vec2(FOOD_NUM_X_OFFSET, WINDOW_SIZE_IN_PX.y - FOOD_NUM_Y_OFFSET), "", FOOD_NUM_SCALE, { 0.f, 1.f, 0.f });
 
 	// create grid map
 	current_map = registry.get<GridMap>(GridMap::createGridMap());
 	village = Village::createVillage(current_map);
 	Forest::createForest(current_map);
+
+	// set up tip manager
+	tip_manager = TipManager();
 
     BTCollision = AISystem::MonstersAI::createBehaviorTree();
 
@@ -601,33 +676,18 @@ void WorldSystem::restart()
 	setup_round_from_round_number(0);
 }
 
-nlohmann::json WorldSystem::get_json(std::string json_path)
-{
-	std::ifstream input_stream(json_path);
-
-	if (input_stream.fail())
-	{
-		std::cout << "Not reading json file for path \"" + json_path + "\" \n";
-		return NULL;
-	}
-
-	try {
-		auto json = nlohmann::json::parse(input_stream);
-		return json;
-	}
-	catch (std::exception) {
-		return NULL;
-	}
-}
-
 void WorldSystem::setup_round_from_round_number(int round_number)
 {
+	auto& stage_text = registry.get<Text>(stage_text_entity);
+	stage_text.content = "PREPARE";
+	stage_text.colour = { 1.0f, 1.0f, 1.0f };
+
 	nlohmann::json round_json = get_json(INPUT_PATH + std::to_string(round_number) + JSON_EXTENSION);
 	max_mobs = round_json["max_mobs"];
 	mob_delay_ms = round_json["mob_delay_ms"];
 	max_boss = round_json["max_bosses"];
 	boss_delay_ms = round_json["boss_delay_ms"];
-	season_str = round_json["season"];
+	world_season_str = round_json["season"];
 	int prev_weather = weather;
 
 	for (auto& story_card : registry.view<StoryCard>())
@@ -643,12 +703,12 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	if (game_state != help_menu)
 	{
 		game_state = story_card;
-		StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number));
+		StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number + 1));
 	}
 
     current_round_monster_types.clear();
     current_round_monster_types.emplace_back(MOB);
-    if (season_str == SPRING_TITLE)
+    if (world_season_str == SPRING_TITLE)
     {
         season = SPRING;
         int weather_int = rand() % 2 + 1;
@@ -661,7 +721,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
         create_boss = SpringBoss::createSpringBossEntt;
         current_round_monster_types.emplace_back(SPRING_BOSS);
     }
-    else if (season_str == SUMMER_TITLE)
+    else if (world_season_str == SUMMER_TITLE)
     {
         season = SUMMER;
         int weather_int = rand() % 5 + 1;
@@ -675,7 +735,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		create_boss = Spider::createSpider;
         current_round_monster_types.emplace_back(SPIDER);
     }
-    else if (season_str == FALL_TITLE)
+    else if (world_season_str == FALL_TITLE)
     {
         season = FALL;
         int weather_int = rand() % 5 + 1;
@@ -688,7 +748,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
         create_boss = FallBoss::createFallBossEntt;
         current_round_monster_types.emplace_back(FALL_BOSS);
     }
-    else if (season_str == WINTER_TITLE)
+    else if (world_season_str == WINTER_TITLE)
     {
         season = WINTER;
         int weather_int = rand() % 2 + 1;
@@ -701,7 +761,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
         create_boss = WinterBoss::createWinterBossEntt;
         current_round_monster_types.emplace_back(WINTER_BOSS);
     }
-	else if (season_str == FINAL_TITLE)
+	else if (world_season_str == FINAL_TITLE)
 	{
 		season = SUMMER;
 
@@ -723,6 +783,30 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	if (prev_weather != weather || round_number == 0) {
 	    AISystem::MapAI::setRandomMapWeatherTerrain(current_map, weather);
 	}
+
+	// update text
+	auto& round_text = registry.get<Text>(round_text_entity);
+	round_text.content = std::to_string(round_number + 1);
+	// only supports up to 2 digit rounds (99 max round)
+	if (round_text.content.length() == 2)
+		round_text.position.x = ROUND_NUM_X_OFFSET - 20;
+
+	auto& food_num_text = registry.get<Text>(food_text_entity);
+	food_num_text.content = std::to_string(health);
+
+	auto& season_text = registry.get<Text>(season_text_entity);
+	season_text.content = season_str.at(season);
+	season_text.colour = season_str_colour.at(season);
+	//aligne_text_right(season_text_entity, SEASON_WHEEL_X_OFFSET - 5.f);
+
+	auto& weather_text = registry.get<Text>(weather_text_entity);
+	weather_text.content = weather_str.at(weather);
+	weather_text.colour = weather_str_colour.at(weather);
+	// update season wheel angle
+	auto& season_wheel_arrow = registry.get<UI_element>(season_wheel_arrow_entity);
+	season_wheel_arrow.angle += PI / (2 * ROUND_PER_SEASON);
+
+	UI_weather_icon::change_weather_icon(weather_icon_entity, weather);
 }
 
 void WorldSystem::collision_monster_handle(entt::entity e_monster, int damage) {
@@ -834,7 +918,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	{
 		if (player_state == set_up_stage)
 		{
-			set_up_timer = 0;
+			start_round();
 		}
 		else if (player_state == battle_stage)
 		{
@@ -856,13 +940,11 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		}
 	}
 
-	if (action == GLFW_RELEASE && key == GLFW_KEY_P && player_state == battle_stage) {
-		std::cout << "Paused" << std::endl;
-		player_state = pause_stage;
+	if (action == GLFW_RELEASE && key == GLFW_KEY_P && game_state == in_game) {
+		pause_game();
 	}
-	else if (action == GLFW_RELEASE && key == GLFW_KEY_P && player_state == pause_stage) {
-		std::cout << "Game Resumed" << std::endl;
-		player_state = battle_stage;
+	else if (action == GLFW_RELEASE && key == GLFW_KEY_P && game_state == paused) {
+		resume_game();
 	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
@@ -956,9 +1038,21 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	current_speed = std::max(0.f, current_speed);
 }
 
+void WorldSystem::pause_game()
+{
+	std::cout << "Paused" << std::endl;
+	game_state = paused;
+}
+
+void WorldSystem::resume_game()
+{
+	std::cout << "Game Resumed" << std::endl;
+	game_state = in_game;
+}
+
 bool mouse_in_game_area(vec2 mouse_pos)
 {
-	return (mouse_pos.x > 0 && mouse_pos.y > 0 && mouse_pos.x < MAP_SIZE_IN_PX.x&& mouse_pos.y < MAP_SIZE_IN_PX.y);
+	return (mouse_pos.x > 0 && mouse_pos.y > 0 && mouse_pos.x < MAP_SIZE_IN_PX.x && mouse_pos.y < MAP_SIZE_IN_PX.y + UI_TOP_BAR_HEIGHT);
 }
 
 void WorldSystem::scroll_callback(double xoffset, double yoffset)
@@ -1140,11 +1234,10 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 		UI_highlight_system(mouse_pos);
 		camera_control(mouse_pos);
 		mouse_hover_ui_button(mouse_pos);
+		bool in_game_area = mouse_in_game_area(mouse_pos);
+		if (in_game_area && placement_unit_selected != NONE && player_state == set_up_stage)
+			grid_highlight_system(mouse_pos, placement_unit_selected, current_map);
 	}
-
-	bool in_game_area = mouse_in_game_area(mouse_pos);
-	if (in_game_area && placement_unit_selected != NONE && player_state == set_up_stage)
-		grid_highlight_system(mouse_pos, placement_unit_selected, current_map);
 }
 
 // helper for update_look_for_selected_buttons
@@ -1269,6 +1362,10 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
 	//getting cursor position
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
+
+	if (game_tips) {
+		remove_game_tip();
+	}
   
 	switch (game_state)
 	{
@@ -1289,6 +1386,11 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
 			update_look_for_selected_buttons(action, selected_flags.x, selected_flags.y);
             break;
         }
+		case paused:
+		{
+			paused_click_handle(xpos, ypos, button, action, mod);
+			break;
+		}
         case help_menu:
         {
             help_menu_click_handle(xpos, ypos, button, action, mod);
@@ -1314,7 +1416,7 @@ void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y,
 		
 		if (round_number == 0) {
 			game_state = story_card;
-			StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number));
+			StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(1));
 		}
 
 		if (registry.empty<StoryCard>()) {
@@ -1346,6 +1448,15 @@ void WorldSystem::story_card_click_handle(double mouse_pos_x, double mouse_pos_y
 
 void WorldSystem::sell_unit_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
 {
+}
+
+void WorldSystem::remove_game_tip()
+{
+	auto tip_card_view = registry.view<TipCard>();
+	for (auto entity : tip_card_view)
+	{
+		registry.destroy(entity);
+	}
 }
 
 // helper for unit_select_click_handle
@@ -1626,55 +1737,42 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 	// cursor position in world pos
 	vec2 mouse_world_pos = mouse_in_world_coord(vec2({xpos, ypos}));
 
-	int x_grid = mouse_world_pos.x;
-	int y_grid = mouse_world_pos.y;
-
-	// snap to nearest grid size
-	float x = (x_grid) / GRID_CELL_SIZE; //+ GRID_CELL_SIZE / 2
-	x *= GRID_CELL_SIZE;
-	float y = (y_grid) / GRID_CELL_SIZE; //+ GRID_CELL_SIZE / 2
-	y *= GRID_CELL_SIZE;
-
-	x += GRID_CELL_SIZE / 2.0;
-	y += GRID_CELL_SIZE / 2.0;
-
 	Button ui_button = UI_click_system(); // returns enum of button pressed or no_button_pressed enum
 
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
-
-	//un_highlight(); // turn off highlights for grid node on click
 
 	if (player_state == set_up_stage)
 	{
 		// Mouse click for placing units
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && placement_unit_selected != NONE && in_game_area)
 		{
-			auto &node = current_map.getNodeAtCoord(pixel_to_coord(vec2(x, y)));
-            bool cannot_place_unit = true;
+			auto &node = current_map.getNodeAtCoord(pixel_to_coord(mouse_world_pos));
+			vec2 unit_position = coord_to_pixel(node.coord);
+            bool can_place_unit = true;
             entt::entity entity;
 			if (node.occupancy == NONE && node.terrain != TERRAIN_PAVEMENT && node.terrain != TERRAIN_FIRE)
 			{
 				if (placement_unit_selected == HUNTER && health >= hunter_unit.cost)
 				{
-                    entity = Hunter::createHunter({x, y});
+                    entity = Hunter::createHunter(unit_position);
 					health -= hunter_unit.cost;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == GREENHOUSE && health >= greenhouse_unit.cost)
 				{
-					entity = GreenHouse::createGreenHouse({x, y});
+					entity = GreenHouse::createGreenHouse(unit_position);
 					health -= greenhouse_unit.cost;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == WATCHTOWER && health >= watchtower_unit.cost)
 				{
-					entity = WatchTower::createWatchTower({x, y});
+					entity = WatchTower::createWatchTower(unit_position);
 					health -= watchtower_unit.cost;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == WALL && health >= wall_unit.cost)
 				{
-					entity = Wall::createWall({x, y}, false);
+					entity = Wall::createWall(unit_position, false);
 					health -= wall_unit.cost;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
@@ -1682,11 +1780,11 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				{
 					//insufficent funds -- should feedback be given here, or when the button is pressed?
 					Mix_PlayChannel(-1, ui_sound_negative_tick, 0);
-                    cannot_place_unit = false;
+                    can_place_unit = false;
 				}
-				if (cannot_place_unit) {
+				if (can_place_unit) {
 				    auto& motion = registry.get<Motion>(entity);
-                    current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), placement_unit_selected, entity, motion.scale);
+                    current_map.setGridOccupancy(node.coord, placement_unit_selected, entity, motion.scale);
 				}
 				placement_unit_selected = NONE;
 				un_highlight();
@@ -1694,24 +1792,48 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		}
 		else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area)
 		{
-
 			if (ui_button == Button::watchtower_button)
 			{
+				if (game_tips && tip_manager.tower_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.tower_tip = false;
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, tower_tips);
+				}
 
 				placement_unit_selected = WATCHTOWER;
 			}
 			else if (ui_button == Button::green_house_button)
 			{
+				if (game_tips && tip_manager.greenhouse_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.greenhouse_tip = false;
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, greenhouse_tips);
+				}
 
 				placement_unit_selected = GREENHOUSE;
 			}
 			else if (ui_button == Button::hunter_button)
 			{
+				if (game_tips && tip_manager.hunter_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.hunter_tip = false;
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, hunter_tips);
+				}
 
 				placement_unit_selected = HUNTER;
 			}
 			else if (ui_button == Button::wall_button)
 			{
+				if (game_tips && tip_manager.wall_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.wall_tip = false;
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, wall_tips);
+				}
+
 				placement_unit_selected = WALL;
 			}
 			else if (ui_button == Button::sell_button)
@@ -1730,7 +1852,6 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			}
 			else if (ui_button == Button::upgrade_button && health >= hunter_unit.upgrade_cost)
 			{
-
 				// upgrade button is hit
 				auto view_selectable = registry.view<Selectable>();
 				auto view_unit = registry.view<Unit>();
@@ -1752,20 +1873,33 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			{
 				if (player_state == set_up_stage)
 				{
-					set_up_timer = 0;
+					start_round();
 				}
-				
 			}
-			
+			else if (ui_button == Button::tips_button)
+			{
+				game_tips = !game_tips;
+				std::cout << std::boolalpha;
+				std::cout << "Game tips: " << game_tips << std::endl;
+			}
 			else
 			{
 				placement_unit_selected = NONE;
 			}
 		}
+	}
 
-		//std::cout << "selected: " << unit_selected << std::endl;
+	
+}
 
-		// handle clicks in the start menu
+// unpause if paused
+void WorldSystem::paused_click_handle(double xpos, double ypos, int button, int action, int mod)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+		// remove game tips if exist
+		remove_game_tip();
+		resume_game();
 	}
 }
 

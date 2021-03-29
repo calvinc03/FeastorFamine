@@ -31,7 +31,7 @@ const Unit hunter_unit = {
 	0,		//upgrades
 	1,      //num_projectiles
 	Projectile::createProjectile, //create projectile
-	true,	//rotate
+	false,	//rotate
 	50,		//upgrade_cost
 	150,	//cost
 	100,	//sell_price
@@ -46,9 +46,9 @@ const Unit watchtower_unit = {
 	0,			//next_projectile_spawn
 	400,		//attack_range
 	0,			//upgrades
-	1,      //num_projectiles
+	1,          //num_projectiles
 	LaserBeam::createLaserBeam, //create projectile
-	true,		//rotate
+	false,		//rotate
 	50,			//upgrade_cost
 	200,		//cost
 	150,		//sell_price

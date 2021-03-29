@@ -73,7 +73,8 @@ enum Button
     upgrade_button,
     save_button,
     sell_button,
-    start_button
+    start_button,
+    tips_button
 };
 
 //enum directions

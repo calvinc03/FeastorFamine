@@ -1,6 +1,6 @@
-#include "ui.hpp"
-
+ #include "ui.hpp"
 #include "world.hpp"
+
 void UI_highlight_system(vec2 mouse_pos) {
 	auto view_ui = registry.view<UI_element, HighlightBool>(); //may make separate registry for UI elements. Could have position+scale instead of motion component
 	for (auto [entity, ui_element, highlight] : view_ui.each()) {
@@ -35,17 +35,20 @@ std::string button_to_string(int button) {
 		return "wall_button";
 	case save_button:
 		return "save_button";
+	case tips_button:
+		return "tips_button";
 	}
+		
 	return "no button / invalid button / or this method is broken!";
 }
 
 //creates text that is independent of aspect ratio and resolution
-entt::entity create_ui_text(vec2 position, std::string content) {
+entt::entity create_ui_text(vec2 position, std::string content, float scale, vec3 colour) {
 	auto entity = registry.create();
 	auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
 	auto& ui_text = registry.emplace<Text>(entity, Text(content, notoRegular, position));
-	ui_text.scale = 0.3f;
-	ui_text.colour = { 1.0f,1.0f,1.0f };
+	ui_text.scale = scale;
+	ui_text.colour = colour;
 	return entity;
 }
 
@@ -68,6 +71,31 @@ entt::entity UI_background::createUI_background()
 	ui_element.tag = "in_game_ui_background";
 	ui_element.scale = vec2(WINDOW_SIZE_IN_PX.x, UI_TAB_HEIGHT);
 	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x/2,WINDOW_SIZE_IN_PX.y - ui_element.scale.y/2.0f);
+
+	registry.emplace<UI_background>(entity);
+
+	return entity;
+}
+
+entt::entity UI_background::createUI_top_bar()
+{
+	auto entity = registry.create();
+	// Create rendering primitives
+	std::string key = "UI";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("UI-texture-15.png"), "textured");
+	}
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 90;
+
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = "in_game_ui_background";
+	ui_element.scale = vec2(WINDOW_SIZE_IN_PX.x, UI_TOP_BAR_HEIGHT);
+	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x / 2, 0 + ui_element.scale.y / 2.0f);
 
 	registry.emplace<UI_background>(entity);
 
@@ -107,6 +135,9 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 		}
 		else if (button == start_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("start_button.png"), "ui");
+		}
+		else if (button == tips_button) {
+			RenderSystem::createSprite(resource, ui_texture_path("tips_button.png"), "ui");
 		}
 	}
 
@@ -253,4 +284,121 @@ void change_button_text(entt::entity button_entity, std::string button_text)
 	auto& t = registry.emplace<Text>(button_entity, Text(button_text, notoRegular, vec2(ui_element.position.x, WINDOW_SIZE_IN_PX.y - ui_element.position.y - 40)));
 	t.scale = 0.3f;
 	t.colour = { 1.0f,1.0f,1.0f };
+}
+
+void aligne_text_right(entt::entity entity, float right_alignment_position)
+{
+	auto& text_component = registry.get<Text>(entity);
+	int str_length = text_component.content.length();
+	int x_offset = pow(str_length * text_component.scale, 1.2) * 37;
+	text_component.position = vec2(right_alignment_position - x_offset, text_component.position.y);
+}
+
+entt::entity UI_season_wheel::createUI_season_wheel() {
+	auto entity = registry.create();
+
+	std::string key = "UI_season_wheel";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("season_wheel.png"), "textured");
+	}
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 98 ;
+
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = "UI_season_wheel";
+	ui_element.scale = vec2({ 1.f, 1.f }) * static_cast<vec2>(resource.texture.size);
+	ui_element.position = vec2(SEASON_WHEEL_X_OFFSET, SEASON_WHEEL_Y_OFFSET);
+
+	return entity;
+}
+
+
+void UI_season_wheel::get_season_sequence() {
+	// round_num, angle
+	std::vector<int> season_sequence;
+	for (int round_number = 0; round_number < MAX_ROUND_NUMBER; round_number++) {
+		nlohmann::json round_json = get_json(INPUT_PATH + std::to_string(round_number) + JSON_EXTENSION);
+		std::string season_str = round_json["season"];
+		if (season_str == "spring")
+		{
+			season_sequence.push_back(season::SPRING);
+		}
+		// TODO
+	}
+	
+}
+
+entt::entity UI_season_wheel::createUI_season_wheel_arrow() {
+	auto entity = registry.create();
+
+	std::string key = "UI_season_wheel_arrow";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("season_wheel_arrow.png"), "textured");
+	}
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 99;
+
+
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = "UI_season_wheel_arrow";
+	ui_element.scale = vec2({ 1.f, 1.f }) * static_cast<vec2>(resource.texture.size);
+	ui_element.position = vec2(SEASON_WHEEL_X_OFFSET, SEASON_WHEEL_Y_OFFSET);
+	ui_element.angle = PI + PI / 12 - PI / (2 * ROUND_PER_SEASON);
+
+	return entity;
+}
+
+entt::entity UI_weather_icon::createUI_weather_icon() {
+	auto entity = registry.create();
+
+	std::string key = "UI_weather_icon" + std::to_string(weather::CLEAR);
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("weather_clear.png "), "textured");
+	}
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 98;
+
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = "UI_weather_icon";
+	ui_element.scale = vec2({ 0.5f, 0.5f }) * static_cast<vec2>(resource.texture.size);
+	ui_element.position = vec2(WEATHER_ICON_X_OFFSET, WEATHER_ICON_Y_OFFSET);
+
+	return entity;
+}
+
+void UI_weather_icon::change_weather_icon(entt::entity entity, int weather) {
+
+	std::string key = "UI_weather_icon" + std::to_string(weather);
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		// load weather textuer based on the weather
+		switch (weather)
+		{
+		case weather::CLEAR:
+			RenderSystem::createSprite(resource, ui_texture_path("weather_clear.png "), "textured");
+			break;
+		case weather::RAIN:
+			RenderSystem::createSprite(resource, ui_texture_path("weather_rain.png "), "textured");
+			break;
+		case weather::DROUGHT:
+			RenderSystem::createSprite(resource, ui_texture_path("weather_drought.png "), "textured");
+			break;
+		case weather::FOG:
+			RenderSystem::createSprite(resource, ui_texture_path("weather_fog.png "), "textured");
+			break;
+		case weather::SNOW:
+			RenderSystem::createSprite(resource, ui_texture_path("weather_snow.png "), "textured");
+			break;
+		}
+		
+	}
+	ShadedMeshRef& shaded_mesh = registry.replace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 98;
 }

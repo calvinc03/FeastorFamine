@@ -26,10 +26,19 @@ const std::map<int, std::string> unit_str = {
 };
 
 const std::map<int, std::string> season_str = {
-        {SPRING,    "spring"},
-        {SUMMER,    "summer"},
-        {FALL,      "fall"},
-        {WINTER,    "winter"},
+        {SPRING,    "Spring"},
+        {SUMMER,    "Summer"},
+        {FALL,      "Fall"},
+        {WINTER,    "Winter"},
 };
 
+const std::map<int, std::string> weather_str = {
+        {CLEAR, "Clear"},
+        {RAIN, "Rain"},
+        {DROUGHT, "Drought"},
+        {FOG, "Fog"},
+        {SNOW, "Snow"}
+};
 
+const std::string INPUT_PATH = "data/monster_rounds/";
+const std::string JSON_EXTENSION = ".json";

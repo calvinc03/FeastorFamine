@@ -9,6 +9,7 @@
 #include "text.hpp"
 #include "units/unit.hpp"
 #include "ui_description.hpp"
+#include "tip_manager.hpp"
 
 // stlib
 #include <vector>
@@ -39,11 +40,15 @@ public:
 	// restart level
 	void restart();
 
-	// helper to load json from disk
-	nlohmann::json get_json(std::string json_path);
+	// start round
+	void start_round();
 
 	// helper to load game from save game path
 	void load_game();
+
+	void pause_game();
+
+	void resume_game();
 
 	// helper to save game to disk
 	void save_game();
@@ -80,6 +85,7 @@ public:
 
 	// game state
 	int game_state;
+	bool game_tips;
     
     // Particle System
 //    GLuint billboard_vertex_buffer;
@@ -92,7 +98,9 @@ public:
 		in_game,
 		settings_menu,
 		help_menu,
-		story_card
+		story_card,
+		sandbox,
+		paused
 	};
 
 	// state for set_up and monster_rounds
@@ -101,13 +109,15 @@ public:
 	{
 		set_up_stage,
 		battle_stage,
-		pause_stage,
 		story_stage
 	};
 
 	// health of the village
 	static int health;
     static GridMap current_map;
+
+	// tutorial tip manager
+	TipManager tip_manager;
 
 	// decrease reward at higher levels
 	static float reward_multiplier;
@@ -125,14 +135,19 @@ private:
 	// Loads the audio
 	void init_audio();
 
+	// remove game tip
+	void remove_game_tip();
+
+	void handle_game_tips();
+
 	// village
 	entt::entity village;
 
 	// animation fps
 	float fps_ms;
 
-	// json object for rounds
-	std::string season_str;
+	// season
+	std::string world_season_str;
 
 	// Game state
 	float current_speed;
@@ -180,12 +195,15 @@ private:
 
 	// round and set up
 	int round_number;
-	float set_up_timer;
 
 	//UI
 	entt::entity round_text_entity;
 	entt::entity food_text_entity;
 	entt::entity stage_text_entity;
+	entt::entity season_text_entity;
+	entt::entity weather_text_entity;
+	entt::entity season_wheel_arrow_entity;
+	entt::entity weather_icon_entity;
 	unit_type placement_unit_selected;
 
 
@@ -200,6 +218,7 @@ private:
 	// helper for start menu mouse click and in_game mouse click
 	void start_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void in_game_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
+	void paused_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	vec2 on_click_select_unit(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void help_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
