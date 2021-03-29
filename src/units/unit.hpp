@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include "config/unit_config.hpp"
+#include "projectile.hpp"
 
 struct Unit {
 	unit_type type;
@@ -9,6 +10,10 @@ struct Unit {
 	float next_projectile_spawn;
 	int attack_range;
 	int upgrades;
+
+	int num_projectiles;
+	entt::entity(*create_projectile)(entt::entity e_unit, entt::entity e_monster, int damage);
+
 	bool rotate;
 	unsigned int upgrade_cost = 0;
 	unsigned int cost = 0;
@@ -24,6 +29,8 @@ const Unit hunter_unit = {
 	0,		//next_projectile_spawn
 	300,	//attack_range
 	0,		//upgrades
+	1,      //num_projectiles
+	Projectile::createProjectile, //create projectile
 	true,	//rotate
 	50,		//upgrade_cost
 	150,	//cost
@@ -39,6 +46,8 @@ const Unit watchtower_unit = {
 	0,			//next_projectile_spawn
 	400,		//attack_range
 	0,			//upgrades
+	1,      //num_projectiles
+	LaserBeam::createLaserBeam, //create projectile
 	true,		//rotate
 	50,			//upgrade_cost
 	200,		//cost
@@ -54,6 +63,8 @@ const Unit greenhouse_unit = {
 	0,			//next_projectile_spawn
 	0,			//attack_range
 	0,			//upgrades
+	0,          //num_projectiles
+	NULL,       //create projectile
 	false,		//rotate
 	200,		//upgrade_cost
 	300,		//cost
@@ -69,6 +80,8 @@ const Unit wall_unit = {
 	0,			//next_projectile_spawn
 	0,			//attack_range
 	0,			//upgrades
+	0,          //num_projectiles
+	NULL,       //create projectile
 	false,		//rotate
 	50,   		//upgrade_cost
 	50, 		//cost

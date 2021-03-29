@@ -43,6 +43,8 @@ public:
         static void setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain = TERRAIN_PAVEMENT);
 	};
 
+    static vec2 calculate_position(entt::entity animal, float time);
+
 	struct MonstersAI {
 		static std::shared_ptr<BTSelector> createBehaviorTree();
 	};

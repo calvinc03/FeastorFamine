@@ -24,5 +24,6 @@ public:
 		entt::entity other;
 		Collision(entt::entity& other);
 	};
-
+private:
+	void update_projectiles(float elapsed_ms);
 };

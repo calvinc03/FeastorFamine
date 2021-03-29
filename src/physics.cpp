@@ -34,13 +34,24 @@ bool collides(const Motion& motion1, const Motion& motion2, float elapsed_ms)
 	return false;
 }
 
-std::vector<vec2> get_box_vertices(const Motion& motion)
+std::vector<vec2> get_box_vertices(entt::entity entity)
 {
+	auto& motion = registry.get<Motion>(entity);
 	std::vector<vec2> points;
-	points.push_back(motion.position + motion.boundingbox / 2.f);
-	points.push_back(motion.position + vec2(motion.boundingbox.x, -motion.boundingbox.y) / 2.f);
-	points.push_back(motion.position - motion.boundingbox / 2.f);
-	points.push_back(motion.position + vec2(-motion.boundingbox.x, motion.boundingbox.y) / 2.f);
+
+	if (registry.has<LaserBeam>(entity)) {
+		float x_direction = cos(motion.angle) * 125;
+		float y_direction = sin(motion.angle) * 125;
+
+		points.push_back(motion.position + vec2(x_direction, y_direction));
+		points.push_back(motion.position - vec2(x_direction, y_direction));
+	}
+	else {
+		points.push_back(motion.position + motion.boundingbox / 2.f);
+		points.push_back(motion.position + vec2(motion.boundingbox.x, -motion.boundingbox.y) / 2.f);
+		points.push_back(motion.position - motion.boundingbox / 2.f);
+		points.push_back(motion.position + vec2(-motion.boundingbox.x, motion.boundingbox.y) / 2.f);
+	}
 	return points;
 }
 
@@ -103,8 +114,8 @@ bool collidesSAT(entt::entity entity1, entt::entity entity2)
 	auto& motion1 = registry.get<Motion>(entity1);
 	auto& motion2 = registry.get<Motion>(entity2);
 
-	std::vector<vec2> polygon_a = get_box_vertices(motion1);
-	std::vector<vec2> polygon_b = get_box_vertices(motion2);
+	std::vector<vec2> polygon_a = get_box_vertices(entity1);
+	std::vector<vec2> polygon_b = get_box_vertices(entity2);
 	
 	std::vector<vec2> poly_a_norms = get_norms(polygon_a);
 	std::vector<vec2> poly_b_norms = get_norms(polygon_b);
@@ -118,7 +129,7 @@ bool preciseCollides(entt::entity spider, entt::entity projectile)
 	auto& spider_motion = registry.get<Motion>(spider);
 
 	auto& proj_motion = registry.get<Motion>(projectile);
-	std::vector<vec2> projectile_vertices = get_box_vertices(proj_motion);
+	std::vector<vec2> projectile_vertices = get_box_vertices(projectile);
 	std::vector<vec2> projectile_norms = get_norms(projectile_vertices);
 
 	auto& spider_rig = registry.get<Rig>(spider);
@@ -159,31 +170,7 @@ void PhysicsSystem::step(float elapsed_ms)
 
 	float step_seconds = 1.0f * (elapsed_ms / 1000.f);
 
-	for (auto entity : registry.view<RockProjectile>()) {
-		auto& motion = registry.get<Motion>(entity);
-		motion.angle += 0.2f;
-		auto& rock = registry.get<RockProjectile>(entity);
-		if (rock.current_step == rock.bezier_points.size() - 1) {
-			continue;
-		}
-		motion.velocity = 1 / step_seconds * rock.bezier_points[rock.current_step];
-		rock.current_step += 1;
-	}
-	
-	for (auto entity : registry.view<Flamethrower>()) {
-		auto& flamethrower = registry.get<Flamethrower>(entity);
-		flamethrower.active_timer -= elapsed_ms;
-		auto& motion_p = registry.get<Motion>(entity);
-		auto& motion_u = registry.get<Motion>(flamethrower.e_unit);
-		float x_direction = cos(motion_u.angle) * 60;
-		float y_direction = sin(motion_u.angle) * 60;
-
-		motion_p.angle = motion_u.angle + PI;
-		motion_p.position = motion_u.position + vec2(x_direction, y_direction);
-		
-		if (flamethrower.active_timer < 0)
-			registry.destroy(entity);
-	}
+	update_projectiles(elapsed_ms);
 
 	for(auto entity: registry.view<Motion>()) {
 	    auto& motion = registry.get<Motion>(entity);
@@ -266,6 +253,53 @@ void PhysicsSystem::step(float elapsed_ms)
 		}
 	}
 	
+}
+
+void PhysicsSystem::update_projectiles(float elapsed_ms)
+{
+	float step_seconds = 1.0f * (elapsed_ms / 1000.f);
+
+	for (auto entity : registry.view<RockProjectile>()) {
+		auto& motion = registry.get<Motion>(entity);
+		motion.angle += 0.2f;
+		auto& rock = registry.get<RockProjectile>(entity);
+		if (rock.current_step == rock.bezier_points.size() - 1) {
+			continue;
+		}
+		motion.velocity = 1 / step_seconds * rock.bezier_points[rock.current_step];
+		rock.current_step += 1;
+	}
+
+	for (auto entity : registry.view<Flamethrower>()) {
+		auto& flamethrower = registry.get<Flamethrower>(entity);
+		flamethrower.active_timer -= elapsed_ms;
+		auto& motion_p = registry.get<Motion>(entity);
+		auto& motion_u = registry.get<Motion>(flamethrower.e_unit);
+		float x_direction = cos(motion_u.angle) * 60;
+		float y_direction = sin(motion_u.angle) * 60;
+
+		motion_p.angle = motion_u.angle + PI;
+		motion_p.position = motion_u.position + vec2(x_direction, y_direction);
+
+		if (flamethrower.active_timer < 0)
+			registry.destroy(entity);
+	}
+
+	for (auto entity : registry.view<LaserBeam>()) {
+		auto& laserBeam = registry.get<LaserBeam>(entity);
+		laserBeam.active_timer -= elapsed_ms;
+		auto& motion_p = registry.get<Motion>(entity);
+		auto& motion_u = registry.get<Motion>(laserBeam.e_unit);
+		float x_direction = cos(motion_u.angle) * 125;
+		float y_direction = sin(motion_u.angle) * 125;
+
+		motion_p.angle = motion_u.angle;
+		motion_p.position = motion_u.position + vec2(x_direction, y_direction);
+		motion_p.boundingbox = motion_p.scale;
+
+		if (laserBeam.active_timer < 0)
+			registry.destroy(entity);
+	}
 }
 
 PhysicsSystem::Collision::Collision(entt::entity& other)

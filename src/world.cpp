@@ -781,7 +781,7 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 		}
 		collision_monster_handle(e_monster, prj.damage);
 	}
-	else if (registry.has<Flamethrower>(e_projectile)) {
+	else if (registry.has<Flamethrower>(e_projectile) || registry.has<LaserBeam>(e_projectile)) {
 		auto& dot = registry.get<DOT>(e_monster);
 		if (dot.dot_map.find(e_projectile) == dot.dot_map.end()) {
 			dot.dot_map.insert({ e_projectile, DOT_DELAY });
@@ -1741,7 +1741,6 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 						auto &unit = view_unit.get<Unit>(entity);
 						health -= unit.upgrade_cost;
 						upgrade_unit(unit);
-						std::cout << "Damage increased!\n";
 					}
 				}
 			}
