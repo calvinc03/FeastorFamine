@@ -3,6 +3,7 @@
 // create a unit description card when mouse hovers over a unit build button
 TipManager::TipManager()
 {
+	tip_index = 0;
 	greenhouse_tip = true;
 	hunter_tip = true;
 	wall_tip = true;

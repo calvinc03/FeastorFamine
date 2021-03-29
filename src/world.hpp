@@ -141,6 +141,8 @@ private:
 	// remove game tip
 	void remove_game_tip();
 
+	void handle_game_tips();
+
 	// village
 	entt::entity village;
 

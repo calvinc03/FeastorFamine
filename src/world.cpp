@@ -201,6 +201,7 @@ void WorldSystem::init_audio()
 void WorldSystem::step(float elapsed_ms)
 {
 	if (game_state == in_game) {
+
 		//rig animation
 		auto view_rigs = registry.view<Timeline>();
 		for (auto entity : view_rigs) {
@@ -387,6 +388,69 @@ void WorldSystem::step(float elapsed_ms)
 	
 }
 
+void WorldSystem::handle_game_tips()
+{
+	switch (tip_manager.tip_index)
+	{
+	case 0:
+		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_0);
+		game_state = paused;
+		tip_manager.tip_index++;
+		game_tips = false;
+		break;
+	case 1:
+		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_1);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 2:
+		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_2);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 3:
+		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_3);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 4:
+		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_4);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 5:
+		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_5);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 6:
+		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_6);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 7:
+		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_7);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 8:
+		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_8);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 9:
+		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_9);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	case 10:
+		TipCard::createTipCard(TIP_CARD_X, TIP_CARD_Y, start_tips_10);
+		game_state = paused;
+		tip_manager.tip_index++;
+		break;
+	}
+}
+
 void WorldSystem::deduct_health(int num) {
 	
 }
@@ -434,7 +498,9 @@ void WorldSystem::setup_game_setup_stage()
 void WorldSystem::set_up_step(float elapsed_ms)
 {
 	// Restart/End game after max rounds
-	
+	if (round_number == 0 && game_tips) {
+		handle_game_tips();
+	}
 
 	if (round_number >= 9) {
 		reward_multiplier = .5f;
@@ -493,13 +559,14 @@ void WorldSystem::set_up_step(float elapsed_ms)
 
 void WorldSystem::start_round()
 {
+	game_tips = false;
 	// hide start_button
 	auto view_ui_button = registry.view<UI_element, ShadedMeshRef>();
 	for (auto button_entt : view_ui_button)
 	{
 		auto ui_button = view_ui_button.get<UI_element>(button_entt);
 
-		if (ui_button.tag == START_BUTTON_TITLE)
+		if (ui_button.tag == START_BUTTON_TITLE || ui_button.tag == TIPS_BUTTON_TITLE)
 		{
 			RenderSystem::hide_entity(button_entt);
 		}
@@ -1711,7 +1778,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		{
 			if (ui_button == Button::watchtower_button)
 			{
-				if (game_tips && WorldSystem::tip_manager.tower_tip)
+				if (game_tips && tip_manager.tower_tip)
 				{
 					game_state = paused;
 					WorldSystem::tip_manager.tower_tip = false;
@@ -1722,7 +1789,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			}
 			else if (ui_button == Button::green_house_button)
 			{
-				if (game_tips && WorldSystem::tip_manager.greenhouse_tip)
+				if (game_tips && tip_manager.greenhouse_tip)
 				{
 					game_state = paused;
 					WorldSystem::tip_manager.greenhouse_tip = false;
@@ -1733,7 +1800,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			}
 			else if (ui_button == Button::hunter_button)
 			{
-				if (game_tips && WorldSystem::tip_manager.hunter_tip)
+				if (game_tips && tip_manager.hunter_tip)
 				{
 					game_state = paused;
 					WorldSystem::tip_manager.hunter_tip = false;
@@ -1744,7 +1811,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			}
 			else if (ui_button == Button::wall_button)
 			{
-				if (game_tips && WorldSystem::tip_manager.wall_tip)
+				if (game_tips && tip_manager.wall_tip)
 				{
 					game_state = paused;
 					WorldSystem::tip_manager.wall_tip = false;
