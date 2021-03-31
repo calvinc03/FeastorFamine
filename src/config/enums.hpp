@@ -33,6 +33,10 @@ enum unit_type
     VILLAGE,
     WATCHTOWER,
     GREENHOUSE,
+    EXTERMINATOR,
+    PRIESTESS,
+    SNOWMACHINE,
+    ROBOT,
     HUNTER,
     WALL,
 };

@@ -1,7 +1,7 @@
 // Header
-#include "exterminator.hpp"
+#include "priestess.hpp"
 
-entt::entity Exterminator::createExterminator(vec2 pos)
+entt::entity Priestess::createPriestess(vec2 pos)
 {
     // Reserve an entity
     auto entity = registry.create();
@@ -26,9 +26,9 @@ entt::entity Exterminator::createExterminator(vec2 pos)
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
 
     auto& unit = registry.emplace<Unit>(entity);
-    unit = exterminator_unit;
+    unit = priestess_unit;
 
-    registry.emplace<Exterminator>(entity);
+    registry.emplace<Priestess>(entity);
     registry.emplace<Selectable>(entity);
     registry.emplace<HighlightBool>(entity);
     registry.emplace<HitReaction>(entity);

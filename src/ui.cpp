@@ -220,6 +220,18 @@ entt::entity UI_selected_unit_portrait::createUI_selected_unit_portrait(unit_typ
 		case WALL:
 			file_name = "wall_portrait.png";
 			break;
+		case EXTERMINATOR:
+			file_name = "greehouse_portrait.png";
+			break;
+		case ROBOT:
+			file_name = "greehouse_portrait.png";
+			break;
+		case PRIESTESS:
+			file_name = "greehouse_portrait.png";
+			break;
+		case SNOWMACHINE:
+			file_name = "greehouse_portrait.png";
+			break;
 		}
 		RenderSystem::createSprite(resource, ui_texture_path(file_name), "textured");
 	}

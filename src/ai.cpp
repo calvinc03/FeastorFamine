@@ -96,8 +96,15 @@ void AISystem::step(float elapsed_ms)
                 priority_queue.push(monster);
             }
         }
+        
+        if (!priority_queue.empty()) {
+            auto monster = priority_queue.top();
+            auto& motion_monster = registry.get<Motion>(monster);
+            vec2 direction = motion_monster.position - motion_h.position;
+            motion_h.angle = atan2(direction.y, direction.x);
+        }
 
-        if (placeable_unit.next_projectile_spawn < 0.f && placeable_unit.health > 0) {
+        if (placeable_unit.next_projectile_spawn <= 0.f && placeable_unit.health > 0) {
             int num_spawned_prj = 0;
             while (num_spawned_prj < placeable_unit.num_projectiles && !priority_queue.empty())
             {

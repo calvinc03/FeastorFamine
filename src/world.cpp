@@ -42,6 +42,10 @@
 #include <units/forest.hpp>
 
 #include "json.hpp"
+#include <units/exterminator.hpp>
+#include <units/robot.hpp>
+#include <units/priestess.hpp>
+#include <units/snowmachine.hpp>
 
 const size_t ANIMATION_FPS = 20;
 const size_t GREENHOUSE_REWARD = 80;
@@ -868,7 +872,7 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 		}
 		collision_monster_handle(e_monster, prj.damage);
 	}
-	else if (registry.has<Flamethrower>(e_projectile) || registry.has<LaserBeam>(e_projectile)) {
+	else if (registry.has<Flamethrower>(e_projectile) || registry.has<LaserBeam>(e_projectile) || registry.has<Explosion>(e_projectile)) {
 		auto& dot = registry.get<DOT>(e_monster);
 		if (dot.dot_map.find(e_projectile) == dot.dot_map.end()) {
 			dot.dot_map.insert({ e_projectile, DOT_DELAY });
@@ -880,6 +884,11 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 				collision_monster_handle(e_monster, prj.damage);
 			}
 		}
+	}
+
+	else if (registry.has<Missile>(e_projectile)) {
+		Explosion::createExplosion(e_projectile, prj.damage);
+		registry.destroy(e_projectile);
 	}
 
 	else {
@@ -1004,7 +1013,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
     else if (action == GLFW_PRESS && key == GLFW_KEY_3)
 	{
-		placement_unit_selected = HUNTER;
+		//placement_unit_selected = HUNTER;
+		placement_unit_selected = EXTERMINATOR;
+		//placement_unit_selected = ROBOT;
 	}
     else if (action == GLFW_PRESS && key == GLFW_KEY_4)
     {
@@ -1782,6 +1793,30 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				{
 					entity = WatchTower::createWatchTower(unit_position);
 					health -= watchtower_unit.cost;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
+				}
+				else if (placement_unit_selected == EXTERMINATOR && health >= exterminator_unit.cost)
+				{
+					entity = Exterminator::createExterminator(unit_position);
+					health -= exterminator_unit.cost;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
+				}
+				else if (placement_unit_selected == ROBOT && health >= robot_unit.cost)
+				{
+					entity = Robot::createRobot(unit_position);
+					health -= robot_unit.cost;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
+				}
+				else if (placement_unit_selected == PRIESTESS && health >= priestess_unit.cost)
+				{
+					entity = Priestess::createPriestess(unit_position);
+					health -= priestess_unit.cost;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
+				}
+				else if (placement_unit_selected == SNOWMACHINE && health >= snowmachine_unit.cost)
+				{
+					entity = SnowMachine::createSnowMachine(unit_position);
+					health -= snowmachine_unit.cost;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == WALL && health >= wall_unit.cost)

@@ -208,3 +208,82 @@ entt::entity LaserBeam::createLaserBeam(entt::entity e_unit, entt::entity e_mons
 
     return entity;
 }
+
+
+entt::entity Missile::createMissile(entt::entity e_unit, entt::entity e_monster, int damage)
+{
+    // Reserve en entity
+    auto entity = registry.create();
+
+    // Create the rendering components
+    std::string key = "missile";
+    ShadedMesh& resource = cache_resource(key);
+    if (resource.effect.program.resource == 0)
+    {
+        resource = ShadedMesh();
+        RenderSystem::createSprite(resource, textures_path("rock.png"), "textured");
+    }
+
+    // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+    ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+    shaded_mesh.layer = 60;
+
+    auto monster_motion = registry.get<Motion>(e_monster);
+    auto hunter_motion = registry.get<Motion>(e_unit);
+
+    vec2 direction = normalize(monster_motion.position - hunter_motion.position);
+
+    // Initialize the position, scale, and physics components
+    auto& motion = registry.emplace<Motion>(entity);
+    motion.angle = atan2(direction.y, direction.x);
+    motion.velocity = grid_to_pixel_velocity(direction * 20.f);
+    motion.position = hunter_motion.position;
+    // Setting initial values, scale is negative to make it face the opposite way
+    motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), 0.3);
+    motion.boundingbox = motion.scale;
+
+    // Create and (empty) Projectile component to be able to refer to all Projectile
+    Projectile& p = registry.emplace<Projectile>(entity);
+    p.damage = damage;
+
+    registry.emplace<Missile>(entity);
+
+    return entity;
+}
+
+entt::entity Explosion::createExplosion(entt::entity e_projectile, int damage)
+{
+    // Reserve en entity
+    auto entity = registry.create();
+
+    // Create the rendering components
+    std::string key = "Explosion";
+    ShadedMesh& resource = cache_resource(key);
+    if (resource.effect.program.resource == 0)
+    {
+        resource = ShadedMesh();
+        RenderSystem::createSprite(resource, textures_path("tower.png"), "textured");
+    }
+
+    // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+    ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+    shaded_mesh.layer = 60;
+
+    auto hunter_motion = registry.get<Motion>(e_projectile);
+
+    // Initialize the position, scale, and physics components
+    auto& motion = registry.emplace<Motion>(entity);
+    motion.position = hunter_motion.position;
+    // Setting initial values, scale is negative to make it face the opposite way
+    motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), 1);
+    motion.boundingbox = motion.scale;
+
+    // Create and (empty) Projectile component to be able to refer to all Projectile
+    Projectile& p = registry.emplace<Projectile>(entity);
+    p.damage = damage;
+
+    auto& explosion = registry.emplace<Explosion>(entity);
+    explosion.e_unit = e_projectile;
+
+    return entity;
+}

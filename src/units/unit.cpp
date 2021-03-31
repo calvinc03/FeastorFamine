@@ -5,6 +5,10 @@
 #include <units/greenhouse.hpp>
 #include <world.hpp>
 #include <config/unit_upgrade_configs.hpp>
+#include <units/exterminator.hpp>
+#include <units/robot.hpp>
+#include <units/priestess.hpp>
+#include <units/snowmachine.hpp>
 
 
 void upgrade_unit_path_1(entt::entity e_unit)
@@ -16,26 +20,42 @@ void upgrade_unit_path_1(entt::entity e_unit)
 	if (registry.has<Hunter>(e_unit)) {
 		std::vector<int> upgrades = hunter_path_1.at(unit.path_1_upgrade);
 		unit.upgrade_path_1_cost = upgrades[0];
-		unit.cost = upgrades[1];
+		unit.sell_price += upgrades[1];
 		unit.damage = upgrades[2];
 	}
 
 	else if (registry.has<GreenHouse>(e_unit)) {
-
+		std::vector<int> upgrades = greenhouse_path_1.at(unit.path_1_upgrade);
+		unit.upgrade_path_1_cost = upgrades[0];
+		unit.sell_price += upgrades[1];
+		unit.damage = upgrades[2];
 	}
 
-	/*else if (registry.has<Greenhouse>(e_unit)) {
-
+	else if (registry.has<Exterminator>(e_unit)) {
+		std::vector<int> upgrades = exterminator_path_1.at(unit.path_1_upgrade);
+		unit.upgrade_path_1_cost = upgrades[0];
+		unit.sell_price += upgrades[1];
+		unit.damage = upgrades[2];
 	}
-	else if (registry.has<Greenhouse>(e_unit)) {
 
+	else if (registry.has<Robot>(e_unit)) {
+		std::vector<int> upgrades = robot_path_1.at(unit.path_1_upgrade);
+		unit.upgrade_path_1_cost = upgrades[0];
+		unit.sell_price += upgrades[1];
+		unit.damage = upgrades[2];
 	}
-	else if (registry.has<Greenhouse>(e_unit)) {
-
+	else if (registry.has<Priestess>(e_unit)) {
+		std::vector<int> upgrades = priestess_path_1.at(unit.path_1_upgrade);
+		unit.upgrade_path_1_cost = upgrades[0];
+		unit.sell_price += upgrades[1];
+		unit.damage = upgrades[2];
 	}
-	else if (registry.has<Greenhouse>(e_unit)) {
-
-	}*/
+	else if (registry.has<SnowMachine>(e_unit)) {
+		std::vector<int> upgrades = snowmachine_path_1.at(unit.path_1_upgrade);
+		unit.upgrade_path_1_cost = upgrades[0];
+		unit.sell_price += upgrades[1];
+		unit.damage = upgrades[2];
+	}
 }
 
 void upgrade_unit_path_2(entt::entity e_unit)
@@ -47,24 +67,33 @@ void upgrade_unit_path_2(entt::entity e_unit)
 	if (registry.has<Hunter>(e_unit)) {
 		std::vector<int> upgrades = hunter_path_2.at(unit.path_2_upgrade);
 		unit.upgrade_path_2_cost = upgrades[0];
-		unit.cost = upgrades[1];
+		unit.sell_price += upgrades[1];
 		unit.attack_range = upgrades[2];
 	}
 
-	else if (registry.has<GreenHouse>(e_unit)) {
-
+	else if (registry.has<Exterminator>(e_unit)) {
+		std::vector<int> upgrades = exterminator_path_2.at(unit.path_2_upgrade);
+		unit.upgrade_path_2_cost = upgrades[0];
+		unit.sell_price += upgrades[1];
+		unit.damage = upgrades[2];
 	}
 
-	/*else if (registry.has<Greenhouse>(e_unit)) {
-
+	else if (registry.has<Robot>(e_unit)) {
+		std::vector<int> upgrades = robot_path_2.at(unit.path_2_upgrade);
+		unit.upgrade_path_2_cost = upgrades[0];
+		unit.sell_price += upgrades[1];
+		unit.num_projectiles = upgrades[2];
 	}
-	else if (registry.has<Greenhouse>(e_unit)) {
-
+	else if (registry.has<Priestess>(e_unit)) {
+		std::vector<int> upgrades = priestess_path_2.at(unit.path_2_upgrade);
+		unit.upgrade_path_2_cost = upgrades[0];
+		unit.sell_price += upgrades[1];
+		unit.damage = upgrades[2];
 	}
-	else if (registry.has<Greenhouse>(e_unit)) {
-
+	else if (registry.has<SnowMachine>(e_unit)) {
+		std::vector<int> upgrades = snowmachine_path_2.at(unit.path_2_upgrade);
+		unit.upgrade_path_2_cost = upgrades[0];
+		unit.sell_price += upgrades[1];
+		unit.damage = upgrades[2];
 	}
-	else if (registry.has<Greenhouse>(e_unit)) {
-
-	}*/
 }
