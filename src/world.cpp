@@ -20,6 +20,7 @@
 #include "units/watchtower.hpp"
 #include "units/village.hpp"
 #include "units/wall.hpp"
+#include "units/unit.hpp"
 #include "camera.hpp"
 #include "button.hpp"
 #include "menu.hpp"
@@ -59,7 +60,8 @@ const std::string LOAD_GAME = "load_game";
 const std::string HELP_MENU = "help_menu";
 const std::string SETTINGS_MENU = "settings_menu";
 const std::string EXIT = "exit";
-const std::string UPGRADE_BUTTON_TITLE = "upgrade_button";
+const std::string PATH_1_UPGRADE_BUTTON_TITLE = "path_1_upgrade_button";
+const std::string PATH_2_UPGRADE_BUTTON_TITLE = "path_2_upgrade_button";
 const std::string SELL_BUTTON_TITLE = "sell_button";
 const std::string START_BUTTON_TITLE = "start_button";
 const std::string SAVE_BUTTON_TITLE = "save_button";
@@ -225,7 +227,8 @@ void WorldSystem::step(float elapsed_ms)
 			// Reset spawn timer and spawn boss
 			next_boss_spawn = (boss_delay_ms / 2) + uniform_dist(rng) * (boss_delay_ms / 2);
 			entt::entity boss = create_boss();
-		
+			
+			registry.emplace<DOT>(boss);
 			auto& monster = registry.get<Monster>(boss);
 			monster.path_coords = default_monster_paths.at(monster.type);
 
@@ -239,6 +242,8 @@ void WorldSystem::step(float elapsed_ms)
 		{
 			next_mob_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
 			entt::entity mob = Mob::createMobEntt();
+
+			registry.emplace<DOT>(mob);
 			auto& monster = registry.get<Monster>(mob);
             monster.path_coords = default_monster_paths.at(monster.type);
 
@@ -250,10 +255,10 @@ void WorldSystem::step(float elapsed_ms)
 		next_fireball_spawn -= elapsed_ms * current_speed;
 		if (!registry.empty<FinalBoss>() && next_fireball_spawn < 0.f)
 		{
-			std::cout << "fireball" << std::endl;
 			next_fireball_spawn = FIREBALL_DELAY_MS;
 			entt::entity fireball = FireballBoss::createFireballBossEntt();
 
+			registry.emplace<DOT>(fireball);
 			auto& monster = registry.get<Monster>(fireball);
             monster.path_coords = default_monster_paths.at(monster.type);
 
@@ -263,8 +268,10 @@ void WorldSystem::step(float elapsed_ms)
 		// update velocity for every monster
 		for (auto entity : registry.view<Monster>())
 		{
-			auto& monster = registry.get<Monster>(entity);
-			monster.dot_delay -= elapsed_ms;
+			auto& dot = registry.get<DOT>(entity);
+			for (auto& [key, value] : dot.dot_map) {
+				value -= ELAPSED_MS;
+			}
 
 			auto state = BTCollision->process(entity);
 			if (health < 0) {
@@ -632,8 +639,9 @@ void WorldSystem::restart()
 	UI_button::createUI_build_unit_button(2, hunter_button, hunter_unit.cost);
 	UI_button::createUI_build_unit_button(3, wall_button, wall_unit.cost );
 	// when unit is selected buttons
-	UI_button::createUI_selected_unit_button(3, upgrade_button, UPGRADE_BUTTON_TITLE, false);
-	UI_button::createUI_selected_unit_button(4, sell_button, SELL_BUTTON_TITLE, false);
+	UI_button::createUI_selected_unit_button(3, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE, false);
+	UI_button::createUI_selected_unit_button(4, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE, false);
+	UI_button::createUI_selected_unit_button(5, sell_button, SELL_BUTTON_TITLE, false);
 	// general buttons
 	UI_button::createUI_button(7, tips_button, TIPS_BUTTON_TITLE);
 	UI_button::createUI_button(8, start_button, START_BUTTON_TITLE);
@@ -860,10 +868,17 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 		}
 		collision_monster_handle(e_monster, prj.damage);
 	}
-	else if (registry.has<Flamethrower>(e_projectile)) {
-		if (monster.dot_delay <= 0) {
+	else if (registry.has<Flamethrower>(e_projectile) || registry.has<LaserBeam>(e_projectile)) {
+		auto& dot = registry.get<DOT>(e_monster);
+		if (dot.dot_map.find(e_projectile) == dot.dot_map.end()) {
+			dot.dot_map.insert({ e_projectile, DOT_DELAY });
 			collision_monster_handle(e_monster, prj.damage);
-			monster.dot_delay = DOT_DELAY;
+		}
+		else {
+			if (dot.dot_map[e_projectile] <= 0) {
+				dot.dot_map[e_projectile] = DOT_DELAY;
+				collision_monster_handle(e_monster, prj.damage);
+			}
 		}
 	}
 
@@ -1303,10 +1318,21 @@ void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_
 		{
 			// show buttons for selected units
 			RenderSystem::show_entity(entity);
-			if (view_ui_selected_buttons.get<UI_element>(entity).tag == UPGRADE_BUTTON_TITLE)
+			if (view_ui_selected_buttons.get<UI_element>(entity).tag == PATH_1_UPGRADE_BUTTON_TITLE)
 			{
-				std::string button_text = "-" + std::to_string(selected_unit.upgrade_cost);
+				std::string button_text = "-" + std::to_string(selected_unit.upgrade_path_1_cost);
 				change_button_text(entity, button_text);
+				if (registry.has<HighlightBool>(entity) && selected_unit.path_1_upgrade >= 3) {
+					registry.remove<HighlightBool>(entity);
+				}
+			}
+			else if (view_ui_selected_buttons.get<UI_element>(entity).tag == PATH_2_UPGRADE_BUTTON_TITLE)
+			{
+				std::string button_text = "-" + std::to_string(selected_unit.upgrade_path_2_cost);
+				change_button_text(entity, button_text);
+				if (registry.has<HighlightBool>(entity) && selected_unit.path_2_upgrade >= 3) {
+					registry.remove<HighlightBool>(entity);
+				}
 			}
 			else if (view_ui_selected_buttons.get<UI_element>(entity).tag == SELL_BUTTON_TITLE)
 			{
@@ -1838,7 +1864,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					}
 				}
 			}
-			else if (ui_button == Button::upgrade_button && health >= hunter_unit.upgrade_cost)
+			else if (ui_button == Button::upgrade_path_1_button && health >= hunter_unit.upgrade_path_1_cost)
 			{
 				// upgrade button is hit
 				auto view_selectable = registry.view<Selectable>();
@@ -1847,10 +1873,20 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				{
 					if (view_selectable.get<Selectable>(entity).selected)
 					{
-						auto &unit = view_unit.get<Unit>(entity);
-						health -= unit.upgrade_cost;
-						upgrade_unit(unit);
-						std::cout << "Damage increased!\n";
+						upgrade_unit_path_1(entity);
+					}
+				}
+			}
+			else if (ui_button == Button::upgrade_path_2_button && health >= hunter_unit.upgrade_path_2_cost)
+			{
+				// upgrade button is hit
+				auto view_selectable = registry.view<Selectable>();
+				auto view_unit = registry.view<Unit>();
+				for (auto entity : view_selectable)
+				{
+					if (view_selectable.get<Selectable>(entity).selected)
+					{
+						upgrade_unit_path_2(entity);
 					}
 				}
 			}
@@ -1899,12 +1935,6 @@ void WorldSystem::sell_unit(entt::entity &entity)
 	registry.destroy(entity);
 }
 
-void WorldSystem::upgrade_unit(Unit &unit)
-{
-	unit.damage += 5;
-	unit.upgrades++;
-}
-
 void WorldSystem::save_game()
 {
 	nlohmann::json save_json;
@@ -1928,7 +1958,8 @@ void WorldSystem::save_game()
 		curr_unit["type"] = unit.type;
 		curr_unit["x_coord"] = motion.position.x;
 		curr_unit["y_coord"] = motion.position.y;
-		curr_unit["upgrades"] = unit.upgrades;
+		curr_unit["path_1_upgrades"] = unit.path_1_upgrade;
+		curr_unit["path_2_upgrades"] = unit.path_2_upgrade;
 		curr_unit["rotate"] = unit.rotate;
 
 		unit_list[i++] = curr_unit;
@@ -2006,9 +2037,13 @@ void WorldSystem::load_game()
         current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), type, entity, motion.scale);
 		auto view_unit = registry.view<Unit>();
 		auto &curr_unit = view_unit.get<Unit>(entity);
-		for (int i = 0; i < unit["upgrades"]; i++)
-		{
-			upgrade_unit(curr_unit);
+		
+		for (int i = 0; i < unit["path_1_upgrades"]; i++) {
+			upgrade_unit_path_1(entity);
+		}
+
+		for (int j = 0; j < unit["path_2_upgrades"]; j++) {
+			upgrade_unit_path_2(entity);
 		}
 	}
 

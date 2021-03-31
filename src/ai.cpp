@@ -29,7 +29,7 @@ AISystem::AISystem(PhysicsSystem* physics)
 AISystem::~AISystem() {}
 
 // calculates the position of a monster after a given amount of time in milliseconds
-vec2 calculate_position(entt::entity animal, float time)
+vec2 AISystem::calculate_position(entt::entity animal, float time)
 {
     auto& motion = registry.get<Motion>(animal);
     auto& monster = registry.get<Monster>(animal);
@@ -61,6 +61,12 @@ vec2 calculate_position(entt::entity animal, float time)
     return current_pos;
 }
 
+struct compare_distance_to_village {
+    bool operator()(entt::entity const& e1, entt::entity const& e2) {
+        return length(coord_to_pixel(VILLAGE_COORD) - registry.get<Motion>(e1).position) > length(coord_to_pixel(VILLAGE_COORD) - registry.get<Motion>(e2).position);
+    }
+};
+
 void AISystem::step(float elapsed_ms)
 {
 	//(void)elapsed_ms; // placeholder to silence unused warning until implemented
@@ -73,48 +79,41 @@ void AISystem::step(float elapsed_ms)
 		placeable_unit.next_projectile_spawn -= elapsed_ms;
 	}
 
-	// Attack mobs if in range of hunter
+    // Attack mobs if in range of hunter
     for (auto unit : registry.view<Unit>()) {
         auto hunter = entt::to_entity(registry, unit);
         auto& motion_h = registry.get<Motion>(hunter);
         auto& placeable_unit = registry.get<Unit>(hunter);
 
-        Motion motion_monster;
-        float min_distance = INFINITY;
-        entt::entity min_monster; 
+        // priority queue containing Motion of all monsters to the village
+        std::priority_queue<entt::entity, std::vector<entt::entity>, compare_distance_to_village> priority_queue;
+
         for (auto monster : registry.view<Monster>()) {
-            auto animal = entt::to_entity(registry, monster);
-            auto& motion_m = registry.get<Motion>(animal);
+            auto& motion_m = registry.get<Motion>(monster);
 
-            float distance_to_village = length(motion_m.position - coord_to_pixel(VILLAGE_COORD));
             float distance_to_hunter = length(motion_m.position - motion_h.position);
-            if (distance_to_village < min_distance && distance_to_hunter <= placeable_unit.attack_range) {
-                min_distance = length(motion_m.position - coord_to_pixel(VILLAGE_COORD));
-                motion_monster = motion_m;
-                min_monster = animal;
-            }
-		}
-        if (min_distance == INFINITY) continue;
-
-        float opposite = motion_monster.position.y - motion_h.position.y;
-        float adjacent = motion_monster.position.x - motion_h.position.x;
-        float distance = sqrt(pow(adjacent, 2) + pow(opposite, 2));
-        motion_h.angle = atan2(opposite, adjacent);
-
-        if (placeable_unit.next_projectile_spawn < 0.f && placeable_unit.health > 0) {
-            placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms;
-            if (placeable_unit.upgrades >= FLAMETHROWER_UPGRADE) {
-                Flamethrower::createFlamethrower(hunter, motion_monster.position, placeable_unit.damage);
-            }
-            else if (placeable_unit.upgrades >= BULLET_UPGRADE) {
-                Projectile::createProjectile(motion_h.position, motion_monster.position, placeable_unit.damage);
-            }
-            else {
-                vec2 projected_pos = calculate_position(min_monster, distance);
-                RockProjectile::createRockProjectile(motion_h.position, projected_pos, placeable_unit.damage);
+            if (distance_to_hunter <= placeable_unit.attack_range) {
+                priority_queue.push(monster);
             }
         }
-	}
+
+        if (placeable_unit.next_projectile_spawn < 0.f && placeable_unit.health > 0) {
+            int num_spawned_prj = 0;
+            while (num_spawned_prj < placeable_unit.num_projectiles && !priority_queue.empty())
+            {
+                auto monster = priority_queue.top();
+                priority_queue.pop();
+                auto& motion_monster = registry.get<Motion>(monster);
+
+                vec2 direction = motion_monster.position - motion_h.position;
+                motion_h.angle = atan2(direction.y, direction.x);
+
+                placeable_unit.create_projectile(hunter, monster, placeable_unit.damage);
+                num_spawned_prj += 1;
+            }
+            placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms;
+        }
+    }
 }
 
 void AISystem::updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster)

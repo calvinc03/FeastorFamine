@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include "config/unit_config.hpp"
+#include "projectile.hpp"
 
 struct Unit {
 	unit_type type;
@@ -8,9 +9,15 @@ struct Unit {
 	size_t attack_interval_ms;
 	float next_projectile_spawn;
 	int attack_range;
-	int upgrades;
+	int path_1_upgrade;
+	int path_2_upgrade;
+
+	int num_projectiles;
+	entt::entity(*create_projectile)(entt::entity e_unit, entt::entity e_monster, int damage);
+
 	bool rotate;
-	unsigned int upgrade_cost = 0;
+	unsigned int upgrade_path_1_cost = 0;
+	unsigned int upgrade_path_2_cost = 0;
 	unsigned int cost = 0;
 	unsigned int sell_price = 0;
 	unsigned int health = 100;
@@ -23,7 +30,10 @@ const Unit hunter_unit = {
 	1500,	//attack_interval_ms
 	0,		//next_projectile_spawn
 	300,	//attack_range
-	0,		//upgrades
+	0,		//path_1_upgrade
+	0,      //path_2_upgrade
+	1,      //num_projectiles
+	Projectile::createProjectile, //create projectile
 	false,	//rotate
 	50,		//upgrade_cost
 	150,	//cost
@@ -38,7 +48,10 @@ const Unit watchtower_unit = {
 	800,		//attack_interval_ms
 	0,			//next_projectile_spawn
 	400,		//attack_range
-	0,			//upgrades
+	0,		    //path_1_upgrade
+	0,          //path_2_upgrade
+	1,          //num_projectiles
+	LaserBeam::createLaserBeam, //create projectile
 	false,		//rotate
 	50,			//upgrade_cost
 	200,		//cost
@@ -53,7 +66,10 @@ const Unit greenhouse_unit = {
 	0,			//attack_interval_ms
 	0,			//next_projectile_spawn
 	0,			//attack_range
-	0,			//upgrades
+	0,		    //path_1_upgrade
+	0,          //path_2_upgrade
+	0,          //num_projectiles
+	NULL,       //create projectile
 	false,		//rotate
 	200,		//upgrade_cost
 	300,		//cost
@@ -68,7 +84,10 @@ const Unit wall_unit = {
 	0,			//attack_interval_ms
 	0,			//next_projectile_spawn
 	0,			//attack_range
-	0,			//upgrades
+	0,		    //path_1_upgrade
+	0,          //path_2_upgrade
+	0,          //num_projectiles
+	NULL,       //create projectile
 	false,		//rotate
 	50,   		//upgrade_cost
 	50, 		//cost
@@ -83,3 +102,7 @@ const std::map<unit_type, Unit> unit_configs = {
 	{GREENHOUSE, greenhouse_unit},
 	{WALL, wall_unit},
 };
+
+void upgrade_unit_path_1(entt::entity e_unit);
+
+void upgrade_unit_path_2(entt::entity e_unit);
