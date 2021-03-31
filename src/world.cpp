@@ -82,7 +82,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     num_mobs_spawned(0),
     next_particle_spawn(0),
     num_bosses_spawned(0),
-    round_number(0),
+    world_round_number(0),
 	game_tips(true)
 {
 	// Seeding rng with random device
@@ -204,7 +204,6 @@ void WorldSystem::step(float elapsed_ms)
 		//rig animation
 		auto view_rigs = registry.view<Timeline>();
 		for (auto entity : view_rigs) {
-			auto& motion = registry.get<Motion>(entity);
 			RigSystem::animate_rig_ik(entity, 15); // constant 15ms/frame
 		}
 		// animation
@@ -237,7 +236,7 @@ void WorldSystem::step(float elapsed_ms)
 		}
 
 		// Spawning new mobs
-		next_mob_spawn -= elapsed_ms * current_speed;
+		next_mob_spawn -= (int)(elapsed_ms * current_speed);
 		if (num_mobs_spawned < max_mobs && next_mob_spawn < 0.f)
 		{
 			next_mob_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
@@ -252,7 +251,7 @@ void WorldSystem::step(float elapsed_ms)
 		}
 
 		// spawn new fireballs for the final boss
-		next_fireball_spawn -= elapsed_ms * current_speed;
+		next_fireball_spawn -= (int)(elapsed_ms * current_speed);
 		if (!registry.empty<FinalBoss>() && next_fireball_spawn < 0.f)
 		{
 			next_fireball_spawn = FIREBALL_DELAY_MS;
@@ -286,23 +285,23 @@ void WorldSystem::step(float elapsed_ms)
 			//std::cout << "got here" << std::endl;
 			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty())
 			{
-				round_number++;
+				world_round_number++;
 
-				if (round_number == MAX_ROUND_NUMBER)
+				if (world_round_number == MAX_ROUND_NUMBER)
 				{
 					restart();
 				}
 
-				setup_round_from_round_number(round_number);
+				setup_round_from_round_number(world_round_number);
 				// re-roll some fraction of map for weather terrains
-				int max_rerolls = ceil(0.3*MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
-				AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls);
+				int max_rerolls = (int)ceil(0.3*MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
+				AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
 				player_state = set_up_stage;
 				num_bosses_spawned = 0;
 				num_mobs_spawned = 0;
 				setup_game_setup_stage();
 
-				health += registry.view<GreenHouse>().size() * GREENHOUSE_REWARD * reward_multiplier;
+				health += (int)(registry.view<GreenHouse>().size() * GREENHOUSE_REWARD * reward_multiplier);
 			}
 		}
 
@@ -455,7 +454,8 @@ void WorldSystem::handle_game_tips()
 }
 
 void WorldSystem::deduct_health(int num) {
-	
+	// do nothing
+	(void)num;
 }
 
 void un_highlight()
@@ -501,11 +501,11 @@ void WorldSystem::setup_game_setup_stage()
 void WorldSystem::set_up_step(float elapsed_ms)
 {
 	// Restart/End game after max rounds
-	if (round_number == 0 && game_tips) {
+	if (world_round_number == 0 && game_tips) {
 		handle_game_tips();
 	}
 
-	if (round_number >= 9) {
+	if (world_round_number >= 9) {
 		reward_multiplier = .5f;
 	}
 
@@ -621,7 +621,7 @@ void WorldSystem::restart()
 	current_speed = 1.f;
 	health = STARTING_HEALTH;				  //reset health
 	placement_unit_selected = NONE; // no initial selection
-	round_number = 0;
+	world_round_number = 0;
 	reward_multiplier = 1;
 	num_bosses_spawned = 0;
 	num_mobs_spawned = 0;
@@ -658,9 +658,13 @@ void WorldSystem::restart()
 	season_text_entity = create_ui_text(vec2(SEASON_X_OFFSET, WINDOW_SIZE_IN_PX.y - SEASON_Y_OFFSET), "Spring", SEASON_SCALE);
 	weather_text_entity = create_ui_text(vec2(WEATHER_TEXT_X_OFFSET, WINDOW_SIZE_IN_PX.y - WEATHER_TEXT_Y_OFFSET), "Clear", WEATHER_TEXT_SCALE);
 	stage_text_entity = create_ui_text(vec2(5, 65), "PREPARE");
-	auto static_round_label_entity = create_ui_text(vec2(ROUND_LABEL_X_OFFSET, WINDOW_SIZE_IN_PX.y - ROUND_LABEL_Y_OFFSET), "Round:          / " + std::to_string(MAX_ROUND_NUMBER), ROUND_LABEL_SCALE);
+	// round label
+	create_ui_text(vec2(ROUND_LABEL_X_OFFSET, WINDOW_SIZE_IN_PX.y - ROUND_LABEL_Y_OFFSET), "Round:          / " + std::to_string(MAX_ROUND_NUMBER), ROUND_LABEL_SCALE);
+	// round number text
 	round_text_entity = create_ui_text(vec2(ROUND_NUM_X_OFFSET, WINDOW_SIZE_IN_PX.y - ROUND_NUM_Y_OFFSET), "1", ROUND_NUM_SCALE, { 1.f, 0.f, 0.f });
-	auto static_food_text_entity = create_ui_text(vec2(FOOD_LABEL_X_OFFSET, WINDOW_SIZE_IN_PX.y - FOOD_LABEL_Y_OFFSET), "Food:", FOOD_LABEL_SCALE);
+	// food label
+	create_ui_text(vec2(FOOD_LABEL_X_OFFSET, WINDOW_SIZE_IN_PX.y - FOOD_LABEL_Y_OFFSET), "Food:", FOOD_LABEL_SCALE);
+	// food number text
 	food_text_entity = create_ui_text(vec2(FOOD_NUM_X_OFFSET, WINDOW_SIZE_IN_PX.y - FOOD_NUM_Y_OFFSET), "", FOOD_NUM_SCALE, { 0.f, 1.f, 0.f });
 
 	// create grid map
@@ -828,7 +832,7 @@ void WorldSystem::collision_monster_handle(entt::entity e_monster, int damage) {
 
 	if (monster.health <= 0)
 	{
-		health += monster.reward * reward_multiplier;
+		health += (int)((float)monster.reward * reward_multiplier);
 
 		if (registry.has<Rig>(e_monster)) {
 			Rig::delete_rig(e_monster); //rigs have multiple pieces to be deleted
@@ -842,7 +846,6 @@ void WorldSystem::collision_monster_handle(entt::entity e_monster, int damage) {
 
 void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, entt::entity e_monster)
 {
-	auto &monster = registry.get<Monster>(e_monster);
 	auto &prj = registry.get<Projectile>(e_projectile);
 
 	if (registry.has<RockProjectile>(e_projectile)) {
@@ -963,8 +966,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	{
 	    if (game_state == in_game) {
             // help menu
-            auto help_menu_entity = create_help_menu();
-            ShadedMeshRef &shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(help_menu_entity);
+			create_help_menu();
             game_state = help_menu;
 	    }
 	    else if (game_state == help_menu) {
@@ -988,7 +990,6 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	else if (action == GLFW_RELEASE && key == GLFW_KEY_SPACE)
 	{
 		auto view = registry.view<Motion, MouseMovement>();
-		auto &motion = view.get<Motion>(camera);
 		auto &mouse_move = view.get<MouseMovement>(camera);
 		mouse_move.is_pan_state = 0;
 	}
@@ -1060,6 +1061,7 @@ bool mouse_in_game_area(vec2 mouse_pos)
 
 void WorldSystem::scroll_callback(double xoffset, double yoffset)
 {
+	(void)xoffset; // avoid 'unreferenced formal parameter' warning message
 	if (game_state != in_game) {
 		return;
 	}
@@ -1073,18 +1075,18 @@ void WorldSystem::scroll_callback(double xoffset, double yoffset)
 	double temp_scale = 20.0f;
 
 	// zoom out limit
-	if (camera_scale.y + (yoffset / temp_scale) < 1)
+	if (camera_scale.y + (float)(yoffset / temp_scale) < 1)
 	{
 		camera_scale = {1.f, 1.f};
 		camera_motion.position = {0.f, 0.f};
 		return;
 	}
 
-	camera_scale.y += yoffset / temp_scale;
+	camera_scale.y += (float)yoffset / (float)temp_scale;
 	camera_scale.x = camera_scale.y;
 
-	double mouse_in_world_x = abs(yoffset) * ((mouse_movement.mouse_pos.x + camera_position.x) / camera_scale.x) / temp_scale;
-	double mouse_in_world_y = abs(yoffset) * ((mouse_movement.mouse_pos.y + camera_position.y) / camera_scale.y) / temp_scale;
+	float mouse_in_world_x = (float)abs(yoffset) * ((mouse_movement.mouse_pos.x + camera_position.x) / camera_scale.x) / (float)temp_scale;
+	float mouse_in_world_y = (float)abs(yoffset) * ((mouse_movement.mouse_pos.y + camera_position.y) / camera_scale.y) / (float)temp_scale;
 
 	if (yoffset > 0)
 	{
@@ -1114,13 +1116,13 @@ void WorldSystem::scroll_callback(double xoffset, double yoffset)
 		}
 		// to compensate the ui background blocking the map, increase the threshold in the y position
 		auto view_ui = registry.view<UI_element>();
-		float ui_element_background_height = 0;
+		int ui_element_background_height = 0;
 		for (auto entity : view_ui)
 		{
 			UI_element ui_element = view_ui.get<UI_element>(entity);
 			if (ui_element.tag == "in_game_ui_background")
 			{
-				ui_element_background_height = ui_element.scale.y;
+				ui_element_background_height = (int)ui_element.scale.y;
 			}
 		}
 		int unsigned map_height = WINDOW_SIZE_IN_PX.y - ui_element_background_height;
@@ -1182,13 +1184,13 @@ void camera_control(vec2 mouse_pos)
 		}
 		// to compensate the ui background blocking the map, increase the threshold in the y position
 		auto view_ui = registry.view<UI_element>();
-		float ui_element_background_height = 0;
+		int ui_element_background_height = 0;
 		for (auto entity : view_ui)
 		{
 			UI_element ui_element = view_ui.get<UI_element>(entity);
 			if (ui_element.tag == "in_game_ui_background")
 			{
-				ui_element_background_height = ui_element.scale.y;
+				ui_element_background_height = (int)ui_element.scale.y;
 			}
 		}
 		int unsigned map_height = WINDOW_SIZE_IN_PX.y - ui_element_background_height;
@@ -1205,14 +1207,14 @@ void camera_control(vec2 mouse_pos)
 void update_unit_description(entt::entity entity)
 {
 	//std::cout << "Hover: " << build_ui.unit_name << "\n";
-	for (auto entity : registry.view<UI_unit_description_card>())
-		registry.destroy(entity);
+	for (auto card_entity : registry.view<UI_unit_description_card>())
+		registry.destroy(card_entity);
 	UI_unit_description_card::createUI_unit_description_card(entity);
 }
 
 // helper for on_mouse_move
 // check if mouse is on top of unit buttons, and dispaly unit description if it is
-void mouse_hover_ui_button(vec2 mouse_pos)
+void mouse_hover_ui_button()
 {
 	auto view_buttons = registry.view<Button, UI_element, HighlightBool, ShadedMeshRef>();
 	for (auto [entity, button, ui_element, highlight, shadedmeshref] : view_buttons.each()) {
@@ -1236,7 +1238,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 		//if mouse is hovering over a button, then highlight
 		UI_highlight_system(mouse_pos);
 		camera_control(mouse_pos);
-		mouse_hover_ui_button(mouse_pos);
+		mouse_hover_ui_button();
 		bool in_game_area = mouse_in_game_area(mouse_pos);
 		if (in_game_area && placement_unit_selected != NONE && player_state == set_up_stage)
 			grid_highlight_system(mouse_pos, placement_unit_selected, current_map);
@@ -1428,9 +1430,9 @@ void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y,
 			RenderSystem::hide_entity(entity);
 		}
 		
-		if (round_number == 0) {
+		if (world_round_number == 0) {
 			game_state = story_card;
-			StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(1));
+			StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[world_round_number], std::to_string(1));
 		}
 
 		if (registry.empty<StoryCard>()) {
@@ -1440,6 +1442,11 @@ void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y,
 			game_state = story_card;
 		}
 	}
+	// avoid 'unreferenced formal parameter' warning message
+	(void)mouse_pos_x;
+	(void)mouse_pos_y;
+	(void)button;
+	(void)mod;
 }
 
 void WorldSystem::story_card_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
@@ -1458,10 +1465,11 @@ void WorldSystem::story_card_click_handle(double mouse_pos_x, double mouse_pos_y
 		}
 		game_state = in_game;
 	}
-}
-
-void WorldSystem::sell_unit_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
-{
+	// avoid 'unreferenced formal parameter' warning message
+	(void)mouse_pos_x;
+	(void)mouse_pos_y;
+	(void)button;
+	(void)mod;
 }
 
 void WorldSystem::remove_game_tip()
@@ -1573,7 +1581,9 @@ vec2 WorldSystem::on_click_select_unit(double mouse_pos_x, double mouse_pos_y, i
 	{
 		unit_selected = click_on_unit(mouse_pos_x, mouse_pos_y);
 	}
-
+	// avoid 'unreferenced formal parameter' warning message
+	(void)button;
+	(void)mod;
 	return { unit_selected, sell_clicked };
 }
 
@@ -1598,7 +1608,6 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 		restart();
         // show controls overlay
         auto help_menu_entity = create_help_menu();
-        ShadedMeshRef &shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(help_menu_entity);
         button_tag = HELP_MENU;
 	}
 	else if (button_tag == SETTINGS_MENU)
@@ -1614,6 +1623,9 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 		load_game();
 		game_state = story_card;
 	}
+	// avoid 'unreferenced formal parameter' warning message
+	(void)button;
+	(void)mod;
 }
 
 void WorldSystem::settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
@@ -1641,6 +1653,9 @@ void WorldSystem::settings_menu_click_handle(double mouse_pos_x, double mouse_po
 		game_state = start_menu;
 		create_start_menu();
 	}
+	// avoid 'unreferenced formal parameter' warning message
+	(void)button;
+	(void)mod;
 }
 
 void WorldSystem::remove_menu_buttons()
@@ -1681,9 +1696,9 @@ void WorldSystem::create_controls_menu()
 	auto title_text_scale = 1.2f;
 	auto title_x_offset = (title_text.length() * title_text_scale * 27) / 2;
 	auto notoRegular = TextFont::load("data/fonts/cascadia-code/Cascadia.ttf");
-	auto& t = registry.emplace<Text>(menu, Text(title_text, notoRegular, vec2(WINDOW_SIZE_IN_PX.x / 2 - title_x_offset, WINDOW_SIZE_IN_PX.y - 170)));
-	t.scale = title_text_scale;
-	t.colour = { 1.0f, 0.8f, 0.0f };
+	auto& title = registry.emplace<Text>(menu, Text(title_text, notoRegular, vec2(WINDOW_SIZE_IN_PX.x / 2 - title_x_offset, WINDOW_SIZE_IN_PX.y - 170)));
+	title.scale = title_text_scale;
+	title.colour = { 1.0f, 0.8f, 0.0f };
 	// hotkey text
 	std::vector<std::string> hotkey_list = {"1", "2", "3", "4", "Space + mouse", "Scroll", "H", "Esc"};
 	int para_y_offset = 230;
@@ -1693,13 +1708,12 @@ void WorldSystem::create_controls_menu()
 		auto entity = registry.create();
 		auto& menu_text = registry.emplace<MenuText>(entity);
 		menu_text.menu_name = menu_name;
-		int y_offset = para_y_offset + (i * hotkey_text_scale * 60);
+		int y_offset = para_y_offset + (int)(i * hotkey_text_scale * 60);
 		std::string hotkey_text = hotkey_list[i];
 		auto x_offset = (hotkey_text.length() * hotkey_text_scale * 27);
-		auto notoRegular = TextFont::load("data/fonts/cascadia-code/Cascadia.ttf");
-		auto& t = registry.emplace<Text>(entity, Text(hotkey_text, notoRegular, vec2(hotkey_para_x_offset - x_offset, WINDOW_SIZE_IN_PX.y - y_offset)));
-		t.scale = hotkey_text_scale;
-		t.colour = { 1.0f, 0.8f, 0.0f };
+		auto& hotkey = registry.emplace<Text>(entity, Text(hotkey_text, notoRegular, vec2(hotkey_para_x_offset - x_offset, WINDOW_SIZE_IN_PX.y - y_offset)));
+		hotkey.scale = hotkey_text_scale;
+		hotkey.colour = { 1.0f, 0.8f, 0.0f };
 	}
 	// hotkey description text
 	std::vector<std::string> hotkey_des_list = { "Select watchtower", "Select greenhouse", "Select hunter", "Select wall",
@@ -1709,12 +1723,11 @@ void WorldSystem::create_controls_menu()
 		auto entity = registry.create();
 		auto& menu_text = registry.emplace<MenuText>(entity);
 		menu_text.menu_name = menu_name;
-		int y_offset = para_y_offset + (i * hotkey_text_scale * 60);
+		int y_offset = para_y_offset + (int)(i * hotkey_text_scale * 60);
 		std::string hotkey_text = hotkey_des_list[i];
-		auto notoRegular = TextFont::load("data/fonts/cascadia-code/Cascadia.ttf");
-		auto& t = registry.emplace<Text>(entity, Text(hotkey_text, notoRegular, vec2(des_para_x_offset, WINDOW_SIZE_IN_PX.y - y_offset)));
-		t.scale = hotkey_text_scale;
-		t.colour = { 1.0f, 0.8f, 0.0f };
+		auto& description = registry.emplace<Text>(entity, Text(hotkey_text, notoRegular, vec2(des_para_x_offset, WINDOW_SIZE_IN_PX.y - y_offset)));
+		description.scale = hotkey_text_scale;
+		description.colour = { 1.0f, 0.8f, 0.0f };
 	}
 	// arrows
 	for (int i = 0; i <= 7; i++) {
@@ -1729,7 +1742,7 @@ void WorldSystem::create_controls_menu()
 		UI_element& ui_element = registry.emplace<UI_element>(arrow);
 		ui_element.tag = "control_arrow";
 		ui_element.scale = vec2({ 1.0f, 1.0f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
-		int y_offset = para_y_offset + (i * hotkey_text_scale * 60) - 10;
+		int y_offset = para_y_offset + (int)(i * hotkey_text_scale * 60) - 10;
 		ui_element.position = vec2(hotkey_para_x_offset + (des_para_x_offset - hotkey_para_x_offset) / 2, y_offset);
 		auto& menu_text = registry.emplace<MenuText>(arrow);
 		menu_text.menu_name = menu_name;
@@ -1914,7 +1927,8 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		}
 	}
 
-	
+	// avoid 'unreferenced formal parameter' warning message
+	(void)mod;
 }
 
 // unpause if paused
@@ -1926,6 +1940,11 @@ void WorldSystem::paused_click_handle(double xpos, double ypos, int button, int 
 		remove_game_tip();
 		resume_game();
 	}
+	// avoid 'unreferenced formal parameter' warning message
+	(void)xpos;
+	(void)ypos;
+	(void)button;
+	(void)mod;
 }
 
 void WorldSystem::sell_unit(entt::entity &entity)
@@ -1938,7 +1957,7 @@ void WorldSystem::sell_unit(entt::entity &entity)
 void WorldSystem::save_game()
 {
 	nlohmann::json save_json;
-	save_json["round_number"] = round_number;
+	save_json["round_number"] = world_round_number;
 	save_json["health"] = health;
 
 	// TODO finish implementing, may need to edit unit struct
@@ -2007,9 +2026,9 @@ void WorldSystem::load_game()
 	}
 
 	health = save_json["health"];
-	round_number = save_json["round_number"];
+	world_round_number = save_json["round_number"];
 
-	setup_round_from_round_number(round_number);
+	setup_round_from_round_number(world_round_number);
 
 	for (nlohmann::json unit : save_json["units"])
 	{
@@ -2050,7 +2069,7 @@ void WorldSystem::load_game()
 	std::vector<std::vector<nlohmann::json>> map = save_json["map_data"];
 	for (int x = 0; x < MAP_SIZE_IN_COORD.x; x++) {
 		for (int y = 0; y < MAP_SIZE_IN_COORD.y; y++) {
-			int terrain = map[x][y]["terrain"];
+			terrain_type terrain = map[x][y]["terrain"];
 			current_map.setGridTerrain(ivec2(x, y), terrain);
 		}
 	}

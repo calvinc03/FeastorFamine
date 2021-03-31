@@ -53,7 +53,7 @@ enum season
 };
 
 // Weather
-enum weather
+enum weather_type
 {
     CLEAR,
     RAIN ,

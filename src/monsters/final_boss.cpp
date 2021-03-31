@@ -6,10 +6,10 @@ const std::string WALK_SPRITE = "NA";
 const std::string RUN_SPRITE = "NA";
 const std::string ATTACK_SPRITE = "final/final_boss2.png";
 const std::string DEATH_SPRITE = "NA";
-const size_t WALK_FRAMES = 0.f;
-const size_t RUN_FRAMES = 0.f;
-const size_t ATTACK_FRAMES = 39.f;
-const size_t DEATH_FRAMES = 0.f;
+const int WALK_FRAMES = 0;
+const int RUN_FRAMES = 0;
+const int ATTACK_FRAMES = 39;
+const int DEATH_FRAMES = 0;
 
 entt::entity FinalBoss::createFinalBossEntt()
 {
@@ -58,10 +58,10 @@ entt::entity FinalBoss::createFinalBossEntt()
     monster.death_sprite = DEATH_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
-    animate.frame = 0.f;
-    animate.state = 0.f;
+    animate.frame = 0;
+    animate.state = 0;
     animate.frame_num = ATTACK_FRAMES;
-    animate.state_num = 1.f;
+    animate.state_num = 1;
 
     registry.emplace<FinalBoss>(entity);
     registry.emplace<HitReaction>(entity);

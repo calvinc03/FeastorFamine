@@ -116,7 +116,7 @@ void AISystem::step(float elapsed_ms)
     }
 }
 
-void AISystem::updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster)
+void AISystem::updateProjectileMonsterCollision(entt::entity monster)
 {
 	if (registry.has<Monster>(monster))
 	{
@@ -130,16 +130,11 @@ void AISystem::updateProjectileMonsterCollision(entt::entity projectile, entt::e
 				boss.sprite = boss.run_sprite;
 				boss.frames = boss.run_frames;
 			}
-
-			auto& motion = registry.get<Motion>(monster);
-
 		}
 	}
     else {
 		auto& hit_reaction = registry.get<HitReaction>(monster);
 		hit_reaction.hit_bool = true;
-
-		auto& motion = registry.get<Motion>(monster);
 	}
 }
 
@@ -213,9 +208,9 @@ struct iterable_pq: std::priority_queue<search_node, std::vector<search_node>, c
 
 // diagonal distance
 float heuristic_diagonal_dist(GridMap& current_map, int monster_type, ivec2 from_coord, ivec2 to_coord) {
-    float dx = abs(from_coord.x - to_coord.x);
-    float dy = abs(from_coord.y - to_coord.y);
-    float unit_move_cost = 1;
+    int dx = abs(from_coord.x - to_coord.x);
+    int dy = abs(from_coord.y - to_coord.y);
+    float unit_move_cost = 1.f;
     // if calculating unit move (as opposed to heuristic over multiple grids), get the corresponding cost of that terrain
     if (length((vec2)(from_coord - to_coord)) <= sqrt(2)) {
         unit_move_cost = monster_move_cost.at({monster_type, current_map.getNodeAtCoord(to_coord).terrain});
@@ -285,24 +280,25 @@ std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int mons
     return std::vector<ivec2>();
 }
 
-int get_random_weather_terrain(int weather) {
-    std::map<int, float> weather_terrain_default_prob = season_terrain_prob.at(season);
+terrain_type get_random_weather_terrain(int weather) {
+    std::map<terrain_type, float> weather_terrain_default_prob = season_terrain_prob.at(season);
 
     // multiply each prob with a rand number and weather multiplier
     for (auto& [terrain, prob] : weather_terrain_default_prob) {
         prob = uniform_dist(rng) * weather_terrain_prob_multiplier.at(std::pair(weather,terrain));
     }
 
-    vec2 max_prob(-1, -1);
+    
+    std::pair<terrain_type, float> max_prob;
 
     for (auto& [terrain, prob] : weather_terrain_default_prob) {
-        if (prob > max_prob.y){
-            max_prob.x = terrain;
-            max_prob.y = prob;
+        if (prob > max_prob.second){
+            max_prob.first = terrain;
+            max_prob.second = prob;
         }
     }
 
-    return max_prob.x;
+    return max_prob.first;
 }
 
 void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map, int weather) {
@@ -311,14 +307,14 @@ void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map, int weather) {
             auto& node = map.getNodeAtCoord(ivec2(i,j));
 
             if (node.terrain != TERRAIN_PAVEMENT && node.occupancy != VILLAGE && node.occupancy != FOREST) {
-                int weather_terrain = get_random_weather_terrain(weather);
+                terrain_type weather_terrain = get_random_weather_terrain(weather);
                 map.setGridTerrain(ivec2(i, j), weather_terrain);
             }
         }
     }
 }
 
-void AISystem::MapAI::setRandomWeatherTerrain(GridMap &map, int max_rerolls) {
+void AISystem::MapAI::setRandomWeatherTerrain(GridMap &map, int max_rerolls, int weather) {
     for (int i = 0; i < max_rerolls; i++) {
         ivec2 random_coord(uniform_dist(rng)*MAP_SIZE_IN_COORD.x,  uniform_dist(rng)*MAP_SIZE_IN_COORD.y);
         auto& node = map.getNodeAtCoord(random_coord);
@@ -382,7 +378,7 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord, in
     return ivec2(0,0);
 }
 
-void AISystem::MapAI::setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain) {
+void AISystem::MapAI::setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, terrain_type terrain) {
 
 
     map.setGridTerrain(start_coord, terrain);

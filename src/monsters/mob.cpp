@@ -40,10 +40,10 @@ entt::entity Mob::createMobEntt()
     monster.type = MOB;
 
     Animate& animate = registry.emplace<Animate>(entity);
-    animate.frame = 0.f;
-    animate.state = 0.f;
+    animate.frame = 0;
+    animate.state = 0;
     animate.frame_num = WALK_FRAMES;
-    animate.state_num = 1.f;
+    animate.state_num = 1;
 
     registry.emplace<Mob>(entity);
     registry.emplace<HitReaction>(entity);

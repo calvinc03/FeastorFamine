@@ -18,11 +18,11 @@ void RenderSystem::animate(entt::entity entity)
 
 	auto &sprite = *registry.get<ShadedMeshRef>(entity).reference_to_cache;
 
-	float state_num = animate.state_num;
-	float frame_num = animate.frame_num;
+	float state_num = (float)animate.state_num;
+	float frame_num = (float)animate.frame_num;
 
-	float curr_state = animate.state;
-	float curr_frame = animate.frame;
+	float curr_state = (float)animate.state;
+	float curr_frame = (float)animate.frame;
 
 	vec2 scale_pos = {1.f, 1.f};
 	vec2 scale_tex = {1.f, 1.f};
@@ -301,8 +301,9 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 }
 
-void RenderSystem::drawParticle(GLuint billboard_vertex_buffer, GLuint particles_position_buffer, const mat3 &projection){
-    
+void RenderSystem::drawParticle(GLuint billboard_vertex_buffer, GLuint particles_position_buffer, const mat3 &projection)
+{
+	(void)billboard_vertex_buffer;
     // Update the buffers that OpenGL uses for rendering.
     // There are much more sophisticated means to stream data from the CPU to the GPU,
     // but this is outside the scope of this tutorial.
@@ -413,8 +414,8 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 	// Fake projection matrix, scales with respect to window coordinates
 	float left = 0.f + camera_motion.position.x;
 	float top = 0.f + camera_motion.position.y;
-	float right = WINDOW_SIZE_IN_PX.x + camera_motion.position.x;
-	float bottom = WINDOW_SIZE_IN_PX.y + camera_motion.position.y;
+	float right = (float)WINDOW_SIZE_IN_PX.x + camera_motion.position.x;
+	float bottom = (float)WINDOW_SIZE_IN_PX.y + camera_motion.position.y;
 
 	float sx = 2.f / (right - left);
 	float sy = 2.f / (top - bottom);
@@ -425,8 +426,8 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 	// some repeated code for the ui matrix -- any suggestions on how to avoid this?
 	float left_ui = 0.f;
 	float top_ui = 0.f;
-	float right_ui = WINDOW_SIZE_IN_PX.x;
-	float bottom_ui = WINDOW_SIZE_IN_PX.y;
+	float right_ui = (float)WINDOW_SIZE_IN_PX.x;
+	float bottom_ui = (float)WINDOW_SIZE_IN_PX.y;
 
 	float sx_ui = 2.f / (right_ui - left_ui);
 	float sy_ui = 2.f / (top_ui - bottom_ui);

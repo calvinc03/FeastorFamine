@@ -46,9 +46,9 @@ entt::entity StoryCard::createStoryCard(std::string story_card_text, std::string
 	while (story_card_text.length() > 0) {
 		auto story_text_entity = registry.create();
 
-		int delimiter_pos = story_card_text.find(delimiter);
+		int delimiter_pos = (int)story_card_text.find(delimiter);
 		if (delimiter_pos == std::string::npos) {
-			delimiter_pos = story_card_text.length();
+			delimiter_pos = (int)story_card_text.length();
 		}
 
 		std::string line_string = story_card_text.substr(0, delimiter_pos);
