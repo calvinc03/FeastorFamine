@@ -405,7 +405,7 @@ void WorldSystem::handle_game_tips()
 		tip_manager.tip_index++;
 		break;
 	case 3:
-		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, start_tips_3);
+		TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_BOTTOM_Y, start_tips_3);
 		game_state = paused;
 		tip_manager.tip_index++;
 		break;
@@ -420,7 +420,7 @@ void WorldSystem::handle_game_tips()
 		tip_manager.tip_index++;
 		break;
 	case 6:
-		TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_BOTTOM_Y, start_tips_6);
+		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, start_tips_6);
 		game_state = paused;
 		tip_manager.tip_index++;
 		break;
