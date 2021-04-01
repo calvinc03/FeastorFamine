@@ -29,7 +29,7 @@ const Unit hunter_unit = {
 	10,		//damage
 	1500,	//attack_interval_ms
 	0,		//next_projectile_spawn
-	300,	//attack_range
+	200,	//attack_range
 	0,		//path_1_upgrade
 	0,      //path_2_upgrade
 	1,      //num_projectiles
@@ -48,7 +48,7 @@ const Unit watchtower_unit = {
 	10,			//damage
 	800,		//attack_interval_ms
 	0,			//next_projectile_spawn
-	400,		//attack_range
+	250,		//attack_range
 	0,		    //path_1_upgrade
 	0,          //path_2_upgrade
 	1,          //num_projectiles
@@ -90,7 +90,7 @@ const Unit exterminator_unit = {
 	0,		//path_1_upgrade
 	0,      //path_2_upgrade
 	1,      //num_projectiles
-	Missile::createMissile, //create projectile
+	Flamethrower::createFlamethrower, //create projectile
 	false,	//rotate
 	10,		//upgrade_path_1_cost
 	10,     //upgrade_path_2_cost
@@ -143,7 +143,7 @@ const Unit robot_unit = {
 	10,		//damage
 	2000,	//attack_interval_ms
 	0,		//next_projectile_spawn
-	300,	//attack_range
+	250,	//attack_range
 	0,		//path_1_upgrade
 	0,      //path_2_upgrade
 	1,      //num_projectiles

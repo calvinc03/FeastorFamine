@@ -105,6 +105,7 @@ void AISystem::step(float elapsed_ms)
         }
 
         if (placeable_unit.next_projectile_spawn <= 0.f && placeable_unit.health > 0) {
+            
             int num_spawned_prj = 0;
             while (num_spawned_prj < placeable_unit.num_projectiles && !priority_queue.empty())
             {
@@ -117,8 +118,10 @@ void AISystem::step(float elapsed_ms)
 
                 placeable_unit.create_projectile(hunter, monster, placeable_unit.damage);
                 num_spawned_prj += 1;
+                
             }
-            placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms;
+            if (num_spawned_prj >= 1)
+                placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms;
         }
     }
 }

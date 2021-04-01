@@ -1014,8 +1014,8 @@ void WorldSystem::on_key(int key, int, int action, int mod)
     else if (action == GLFW_PRESS && key == GLFW_KEY_3)
 	{
 		//placement_unit_selected = HUNTER;
-		placement_unit_selected = EXTERMINATOR;
-		//placement_unit_selected = ROBOT;
+		//placement_unit_selected = EXTERMINATOR;
+		placement_unit_selected = ROBOT;
 	}
     else if (action == GLFW_PRESS && key == GLFW_KEY_4)
     {

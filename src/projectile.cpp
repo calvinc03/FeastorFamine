@@ -6,6 +6,9 @@
 #include <iostream>
 #include <ai.hpp>
 
+float EXPLOSION_FRAMES = 4.f;
+float FLAMETHROWER_FRAMES = 4.f;
+
 entt::entity Projectile::createProjectile(entt::entity e_unit, entt::entity e_monster, int damage)
 {
     // Reserve en entity
@@ -129,8 +132,14 @@ entt::entity Flamethrower::createFlamethrower(entt::entity e_unit, entt::entity 
     motion.position = motion_h.position + direction;
     motion.angle = atan2(-direction.y, -direction.x);
     // Setting initial values, scale is negative to make it face the opposite way
-    motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), 1.5);
-    motion.boundingbox = motion.scale;
+    motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y * 1.5), 1);
+    motion.boundingbox = vec2({ motion.scale.x * 0.22f , motion.scale.y });
+
+    Animate& animate = registry.emplace<Animate>(entity);
+    animate.frame = 0.f;
+    animate.state = 0.f;
+    animate.frame_num = FLAMETHROWER_FRAMES;
+    animate.state_num = 1.f;
 
     // Create and (empty) Projectile component to be able to refer to all Projectile
     Projectile& p = registry.emplace<Projectile>(entity);
@@ -152,34 +161,9 @@ entt::entity LaserBeam::createLaserBeam(entt::entity e_unit, entt::entity e_mons
     std::string key = "laserbeam";
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0) {
-        // create a procedural circle
-        constexpr float z = -0.1f;
-        vec3 red = { 0.8,0.1,0.1 };
 
-        // Corner points
-        ColoredVertex v;
-        v.position = { -0.5,-0.5,z };
-        v.color = red;
-        resource.mesh.vertices.push_back(v);
-        v.position = { -0.5,0.5,z };
-        v.color = red;
-        resource.mesh.vertices.push_back(v);
-        v.position = { 0.5,0.5,z };
-        v.color = red;
-        resource.mesh.vertices.push_back(v);
-        v.position = { 0.5,-0.5,z };
-        v.color = red;
-        resource.mesh.vertices.push_back(v);
-
-        // Two triangles
-        resource.mesh.vertex_indices.push_back(0);
-        resource.mesh.vertex_indices.push_back(1);
-        resource.mesh.vertex_indices.push_back(3);
-        resource.mesh.vertex_indices.push_back(1);
-        resource.mesh.vertex_indices.push_back(2);
-        resource.mesh.vertex_indices.push_back(3);
-
-        RenderSystem::createColoredMesh(resource, "colored_mesh");
+        resource = ShadedMesh();
+        RenderSystem::createSprite(resource, textures_path("laserbeam.png"), "textured");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -193,10 +177,10 @@ entt::entity LaserBeam::createLaserBeam(entt::entity e_unit, entt::entity e_mons
 
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
-    motion.position = hunter_position + direction * 125.f;
+    motion.position = hunter_position + direction * static_cast<vec2>(resource.texture.size).x / 2.f;
     motion.angle = atan2(direction.y, direction.x);
     // Setting initial values, scale is negative to make it face the opposite way
-    motion.scale = vec2(length(direction) * 250, 5);
+    motion.scale = vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y);
     motion.boundingbox = motion.scale;
 
     // Create and (empty) Projectile component to be able to refer to all Projectile
@@ -221,7 +205,7 @@ entt::entity Missile::createMissile(entt::entity e_unit, entt::entity e_monster,
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("rock.png"), "textured");
+        RenderSystem::createSprite(resource, textures_path("missile.png"), "textured");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -262,7 +246,7 @@ entt::entity Explosion::createExplosion(entt::entity e_projectile, int damage)
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("tower.png"), "textured");
+        RenderSystem::createSprite(resource, textures_path("explosion_animate.png"), "textured");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -276,7 +260,13 @@ entt::entity Explosion::createExplosion(entt::entity e_projectile, int damage)
     motion.position = hunter_motion.position;
     // Setting initial values, scale is negative to make it face the opposite way
     motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), 1);
-    motion.boundingbox = motion.scale;
+    motion.boundingbox = vec2({ motion.scale.x * 0.22f , motion.scale.y });
+
+    Animate& animate = registry.emplace<Animate>(entity);
+    animate.frame = 0.f;
+    animate.state = 0.f;
+    animate.frame_num = EXPLOSION_FRAMES;
+    animate.state_num = 1.f;
 
     // Create and (empty) Projectile component to be able to refer to all Projectile
     Projectile& p = registry.emplace<Projectile>(entity);
