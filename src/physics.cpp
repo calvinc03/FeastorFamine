@@ -21,7 +21,7 @@ vec2 get_bounding_box(const Motion& motion)
 // This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
 // if the center point of either object is inside the other's bounding-box-circle. You don't
 // need to try to use this technique.
-bool collides(const Motion& motion1, const Motion& motion2, float elapsed_ms)
+bool collides(const Motion& motion1, const Motion& motion2)
 {
 	
 	auto dp = motion1.position - motion2.position;
@@ -111,9 +111,6 @@ bool checkProjection(std::vector<vec2> poly_a_vertices, std::vector<vec2> poly_b
  
 bool collidesSAT(entt::entity entity1, entt::entity entity2)
 {
-	auto& motion1 = registry.get<Motion>(entity1);
-	auto& motion2 = registry.get<Motion>(entity2);
-
 	std::vector<vec2> polygon_a = get_box_vertices(entity1);
 	std::vector<vec2> polygon_b = get_box_vertices(entity2);
 	
@@ -128,7 +125,6 @@ bool preciseCollides(entt::entity spider, entt::entity projectile)
 {
 	auto& spider_motion = registry.get<Motion>(spider);
 
-	auto& proj_motion = registry.get<Motion>(projectile);
 	std::vector<vec2> projectile_vertices = get_box_vertices(projectile);
 	std::vector<vec2> projectile_norms = get_norms(projectile_vertices);
 
@@ -162,9 +158,6 @@ bool preciseCollides(entt::entity spider, entt::entity projectile)
 
 void PhysicsSystem::step(float elapsed_ms)
 {
-	auto view_motion = registry.view<Motion>();
-	
-
 	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
 
@@ -179,16 +172,16 @@ void PhysicsSystem::step(float elapsed_ms)
 
 	// Check for collisions between all moving entities
 
-	auto entity = registry.view<Motion>();
+	auto view_motion = registry.view<Motion>();
 
-	for (unsigned int i = 0; i < entity.size(); i++)
+	for (unsigned int i = 0; i < view_motion.size(); i++)
 	{
-		for (unsigned int j = i + 1; j < entity.size(); j++)
+		for (unsigned int j = i + 1; j < view_motion.size(); j++)
 		{
-			Motion& motion_i = registry.get<Motion>(entity[i]);
-			entt::entity entity_i = entity[i];
-			Motion& motion_j = registry.get<Motion>(entity[j]);
-			entt::entity entity_j = entity[j];
+			Motion& motion_i = registry.get<Motion>(view_motion[i]);
+			entt::entity entity_i = view_motion[i];
+			Motion& motion_j = registry.get<Motion>(view_motion[j]);
+			entt::entity entity_j = view_motion[j];
 
 			// If either entity is already dying, do not consider collisions
 			if (registry.has<EntityDeath>(entity_i) || registry.has<EntityDeath>(entity_j)) continue;
@@ -237,11 +230,10 @@ void PhysicsSystem::step(float elapsed_ms)
 
 	if (DebugSystem::in_debug_mode)
 	{
-		auto view_motion = registry.view<Motion>();
 		for (auto [entity, motion] : view_motion.each())
 		{
 			if (registry.has<Rig>(entity)) {
-				DebugSystem::display_rig_vertices(entity, camera);
+				DebugSystem::display_rig_vertices(entity);
 			}
 			if (!registry.has<GridNode>(entity) 
 				&& !registry.has<HealthComponent>(entity) 

@@ -31,10 +31,10 @@ entt::entity Village::createVillage(GridMap& current_map)
 	food.food_production_speed = 10;
 
 	Animate& animate = registry.emplace<Animate>(entity);
-	animate.frame = 0.f;
-	animate.state = 0.f;
-	animate.frame_num = 1.f;
-	animate.state_num = 1.f;
+	animate.frame = 0;
+	animate.state = 0;
+	animate.frame_num = 1;
+	animate.state_num = 1;
 
 	registry.emplace<Village>(entity);
 

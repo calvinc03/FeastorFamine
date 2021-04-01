@@ -67,6 +67,8 @@ private:
 class DoNothing : public BTNode {
 public:
 	void init(entt::entity e) override {
+		// do nothing
+		(void)e;
 	}
 
 	BTState process(entt::entity e) override {
@@ -94,7 +96,6 @@ public:
 			motion.scale *= 1.3;
 			monster.damage *= 2;
 			visited[e] = false;
-			auto& monster = registry.get<Monster>(e);
 			monster.collided = false;
 			return BTState::Moving;
 		}
@@ -238,7 +239,10 @@ class Knockback : public BTNode {
 public:
 	Knockback() noexcept { }
 
-	void init(entt::entity e) override { }
+	void init(entt::entity e) override {
+		// do nothing
+		(void)e;
+	}
 
 	BTState process(entt::entity e) override {
 		auto& motion = registry.get<Motion>(e);
@@ -255,7 +259,10 @@ class Dragon : public BTNode { // todo probably delete from here and ai
 public:
 	Dragon() noexcept {}
 
-	void init(entt::entity e) override { }
+	void init(entt::entity e) override {
+		// do nothing
+		(void)e;
+	}
 
 	BTState process(entt::entity e) override {
 		auto& motion = registry.get<Motion>(e);
@@ -276,7 +283,10 @@ class Fireball : public BTNode {
 public:
 	Fireball() noexcept {}
 
-	void init(entt::entity e) override { }
+	void init(entt::entity e) override {
+		// do nothing
+		(void)e;
+	}
 	
 	BTState process(entt::entity e) override {
 		auto& monster = registry.get<Monster>(e);
@@ -301,7 +311,10 @@ class Walk : public BTNode {
 public:
 	Walk() noexcept {}
 
-	void init(entt::entity e) override { }
+	void init(entt::entity e) override { 
+		// do nothing
+		(void)e;
+	}
 
 	BTState process(entt::entity e) override {
 		increment_monster_step(e);
@@ -350,8 +363,8 @@ void increment_monster_step(entt::entity entity) {
 	// increment path index and apply terrain speed multiplier
 	if (next_step_coord == next_path_coord) {
 		monster.current_path_index++;
-		int current_terran = WorldSystem::current_map.getNodeAtCoord(current_path_coord).terrain;
-		int next_terran = WorldSystem::current_map.getNodeAtCoord(next_path_coord).terrain;
+		terrain_type current_terran = WorldSystem::current_map.getNodeAtCoord(current_path_coord).terrain;
+		terrain_type next_terran = WorldSystem::current_map.getNodeAtCoord(next_path_coord).terrain;
 		monster.speed_multiplier /= monster_move_speed_multiplier.at({monster.type, current_terran});
 		monster.speed_multiplier *= monster_move_speed_multiplier.at({monster.type, next_terran});
 	}

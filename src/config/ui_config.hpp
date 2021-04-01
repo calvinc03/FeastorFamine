@@ -10,11 +10,11 @@ static const float FOOD_NUM_X_OFFSET = FOOD_LABEL_X_OFFSET + 80.f;
 static const float FOOD_NUM_Y_OFFSET = FOOD_LABEL_Y_OFFSET;
 static const float FOOD_NUM_SCALE = 1.0f;
 // round label
-static const float ROUND_LABEL_X_OFFSET = WINDOW_SIZE_IN_PX.x / 2 - 100;
+static const float ROUND_LABEL_X_OFFSET = (float)WINDOW_SIZE_IN_PX.x / 2.f - 100;
 static const float ROUND_LABEL_Y_OFFSET = FOOD_LABEL_Y_OFFSET;
 static const float ROUND_LABEL_SCALE = 0.6f;
 // round number
-static const float ROUND_NUM_X_OFFSET = WINDOW_SIZE_IN_PX.x / 2 + 20;
+static const float ROUND_NUM_X_OFFSET = (float)WINDOW_SIZE_IN_PX.x / 2 + 20;
 static const float ROUND_NUM_Y_OFFSET = FOOD_LABEL_Y_OFFSET;
 static const float ROUND_NUM_SCALE = 1.2f;
 
@@ -35,10 +35,10 @@ const std::map<int, vec3> weather_str_colour = {
         {SNOW,      {1.f, 1.f, 1.f}}
 };
 // season wheel
-static const float SEASON_WHEEL_X_OFFSET = WINDOW_SIZE_IN_PX.x - 300;
+static const float SEASON_WHEEL_X_OFFSET = (float)WINDOW_SIZE_IN_PX.x - 300;
 static const float SEASON_WHEEL_Y_OFFSET = FOOD_LABEL_Y_OFFSET - 23.f;
 // weather icon
-static const float WEATHER_ICON_X_OFFSET = WINDOW_SIZE_IN_PX.x - 130;
+static const float WEATHER_ICON_X_OFFSET = (float)WINDOW_SIZE_IN_PX.x - 130;
 static const float WEATHER_ICON_Y_OFFSET = FOOD_LABEL_Y_OFFSET - 23.f;
 
 // season text

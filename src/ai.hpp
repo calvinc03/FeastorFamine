@@ -16,7 +16,7 @@ public:
 	~AISystem();
 
 	void step(float elapsed_ms);
-	void updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster);
+	void updateProjectileMonsterCollision(entt::entity monster);
 
 	struct MapAI {
         static bool is_walkable(GridMap& current_map, ivec2 coord)
@@ -39,8 +39,8 @@ public:
                                                 bool is_valid(GridMap&, ivec2) = is_walkable,
                                                 int neighbors = ALL_NBRS);
         static void setRandomMapWeatherTerrain(GridMap& map, int weather);
-        static void setRandomWeatherTerrain(GridMap& map, int max_rerolls);
-        static void setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain = TERRAIN_PAVEMENT);
+        static void setRandomWeatherTerrain(GridMap& map, int max_rerolls, int weather);
+        static void setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, terrain_type terrain = TERRAIN_PAVEMENT);
 	};
 
     static vec2 calculate_position(entt::entity animal, float time);
