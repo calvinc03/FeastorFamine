@@ -37,7 +37,6 @@ struct UI_button
 	static entt::entity createUI_button(int pos, Button button, std::string tag = "default_ui_button_tag", bool show = true);
 	// wrapper for buttons that shows up when a unit is selected
 	static entt::entity createUI_selected_unit_button(int pos, Button button, std::string tag = "default_ui_button_tag", bool show = true);
-	static entt::entity createUI_selected_unit_button_1(int pos, Button button, std::string tag, Unit unit, bool show = true);
 };
 
 struct UI_banner
@@ -70,17 +69,18 @@ struct UI_weather_icon {
 struct UI_selected_unit
 {
 	std::vector<entt::entity> button_components;
-	static entt::entity createUI_selected_unit_button(int pos, Button button, std::string tag, bool show = true);
-};
-
-struct UI_selected_image
-{
+	int path_num; 
+	std::string unit_type; 
+	static entt::entity createUI_selected_unit_upgrade_button(int pos, Button button, std::string tag, int unit_type, int path_num, bool show = true);
 	static entt::entity create_selected_button_image(vec2 pos, std::string tag, Unit unit);
+	static entt::entity create_selected_button_progress_bar(vec2 pos, int path_num);
 };
 
-struct UI_selected_progress
+struct UI_sell_button
 {
-	static entt::entity create_selected_button_progress_bar(vec2 pos, int path_num);
+	static entt::entity createUI_sell_button(int pos, Button button, std::string tag = "default_ui_button_tag", bool show = true);
+	static entt::entity create_sell_button_icon(vec2 pos);
+	entt::entity sell_text;
 };
 
 struct UI_build_unit

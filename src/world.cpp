@@ -1237,6 +1237,7 @@ void update_upgrade_description(entt::entity entity)
 // check if mouse is on top of unit buttons, and dispaly unit description if it is
 void mouse_hover_ui_button(vec2 mouse_pos)
 {
+	remove_descriptions();
 	auto view_buttons = registry.view<Button, UI_element, HighlightBool, ShadedMeshRef>();
 	for (auto [entity, button, ui_element, highlight, shadedmeshref] : view_buttons.each()) {
 		if (highlight.highlight && shadedmeshref.show) { // if a button is highlighted and we click -> button was pressed.
@@ -1246,7 +1247,9 @@ void mouse_hover_ui_button(vec2 mouse_pos)
 			}
 			else if (registry.has<UI_selected_unit>(entity))
 			{
-				update_upgrade_description(entity);
+				auto& selected_unit = registry.get<UI_selected_unit>(entity);
+				if (selected_unit.path_num < 3)
+					update_upgrade_description(entity);
 			}
 			break;
 		}
@@ -1330,8 +1333,8 @@ void update_selected_button(entt::entity e_button, Unit unit)
 		path_num = unit.path_2_upgrade;
 	}
 
-	auto image = UI_selected_image::create_selected_button_image(vec2(ui.position.x - ui.scale.x / 4, ui.position.y + 10), ui.tag, unit);
-	auto progress = UI_selected_progress::create_selected_button_progress_bar(vec2(ui.position.x + ui.scale.x / 4, ui.position.y), path_num);
+	auto image = UI_selected_unit::create_selected_button_image(vec2(ui.position.x - ui.scale.x / 4, ui.position.y + 10), ui.tag, unit);
+	auto progress = UI_selected_unit::create_selected_button_progress_bar(vec2(ui.position.x + ui.scale.x / 4, ui.position.y), path_num);
 
 	// text
 	float line_size = 35; // relative to the text size
@@ -1354,6 +1357,56 @@ void update_selected_button(entt::entity e_button, Unit unit)
 	selected_components.button_components.push_back(progress);
 }
 
+//helper for the selected buttons
+void update_sell_button_text(entt::entity e_button, int sell_price)
+{
+	auto& UI_sell = registry.get<UI_sell_button>(e_button);
+	if (registry.valid(UI_sell.sell_text))
+	{
+		registry.destroy(UI_sell.sell_text);
+	}
+
+	auto text_ent = registry.create();
+	auto& ui = registry.get<UI_element>(e_button);
+	// text
+	float line_size = 35; // relative to the text size
+	// unit name text
+	std::string short_description = "$" + std::to_string(sell_price);
+	auto title_text_scale = 0.4f;
+	auto bubblegum = TextFont::load("data/fonts/MagicalMystery/MAGIMT__.ttf");
+	// place title text at the top
+	float top_margin = 45;
+	auto y_title_offset = ui.scale.y / 2 - title_text_scale * line_size - top_margin;
+	vec2 title_text_position = get_center_text_position(vec2(2 * ui.scale.x / 3, ui.scale.y), vec2(ui.position.x + ui.scale.x / 8, ui.position.y), title_text_scale, short_description);
+	auto& title = registry.emplace_or_replace<Text>(text_ent, Text(short_description, bubblegum, vec2(title_text_position.x, title_text_position.y + y_title_offset)));
+	title.scale = title_text_scale;
+	title.colour = { 0.f, 0.f, 0.f };
+
+	UI_sell.sell_text = text_ent;
+}
+
+// remove upgrade button and sell button
+void remove_selected_unit_buttons()
+{
+	for (auto entity : registry.view<UI_selected_unit, UI_element, ShadedMeshRef>())
+	{
+		auto& selected_components = registry.get<UI_selected_unit>(entity);
+		for (auto component : selected_components.button_components) {
+			registry.destroy(component);
+		}
+		registry.destroy(entity);
+	}
+
+	for (auto entity : registry.view<UI_sell_button>())
+	{
+		auto& UI_sell = registry.get<UI_sell_button>(entity);
+		if (registry.valid(UI_sell.sell_text))
+		{
+			registry.destroy(UI_sell.sell_text);
+		}
+		registry.destroy(entity);
+	}
+}
 
 // update the appearance of ui depending on the given flags
 void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selected, bool sell_clicked)
@@ -1390,18 +1443,11 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selecte
 		}
 
 		if (selected_view_change) {
-			for (auto entity : view_ui_selected_buttons)
-			{
-				auto& selected_components = registry.get<UI_selected_unit>(entity);
-				for (auto component : selected_components.button_components) {
-					registry.destroy(component);
-				}
-				registry.destroy(entity);
-			}
+			remove_selected_unit_buttons();
 
-			upgrade_button_1 = UI_selected_unit::createUI_selected_unit_button(2, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE);
-			upgrade_button_2 = UI_selected_unit::createUI_selected_unit_button(3, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE);
-			button_sell = UI_selected_unit::createUI_selected_unit_button(5, sell_button, SELL_BUTTON_TITLE);
+			upgrade_button_1 = UI_selected_unit::createUI_selected_unit_upgrade_button(2, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE, selected_unit.type, selected_unit.path_1_upgrade);
+			upgrade_button_2 = UI_selected_unit::createUI_selected_unit_upgrade_button(3, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE, selected_unit.type, selected_unit.path_2_upgrade);
+			button_sell = UI_sell_button::createUI_sell_button(5, sell_button, SELL_BUTTON_TITLE);
 			selected_view_change = false;
 		}
 
@@ -1414,6 +1460,8 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selecte
 		if (registry.has<HighlightBool>(upgrade_button_2) && selected_unit.path_2_upgrade >= 3) {
 			registry.remove<HighlightBool>(upgrade_button_2);
 		}
+
+		update_sell_button_text(button_sell, selected_unit.sell_price);
 
 		//update unit portrait
 		update_unit_portrait(selected_unit);
@@ -1430,15 +1478,8 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selecte
 	else
 	{
 		selected_view_change = true;
-		// hide selected unit buttons
-		for (auto entity : view_ui_selected_buttons)
-		{
-			auto& selected_components = registry.get<UI_selected_unit>(entity);
-			for (auto component : selected_components.button_components) {
-				registry.destroy(component);
-			}
-			registry.destroy(entity);
-		}
+		remove_selected_unit_buttons();
+
 		// show build unit buttons
 		for (auto entity : view_ui_build_buttons)
 		{
@@ -1570,7 +1611,7 @@ bool check_unit_already_selected()
 // helper for unit_select_click_handle
 bool check_click_on_sell_button(double mouse_pos_x, double mouse_pos_y)
 {
-	auto view_selected_buttons = registry.view<UI_selected_unit, UI_element>();
+	auto view_selected_buttons = registry.view<UI_sell_button, UI_element>();
 	for (auto [entity, ui_selected_unit, ui_element] : view_selected_buttons.each())
 	{
 		if (ui_element.tag == SELL_BUTTON_TITLE)
@@ -1964,6 +2005,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					{
 						auto& unit = view_unit.get<Unit>(entity);
 						health += unit.sell_price;
+						std::cout << "sell clicked \n";
 						sell_unit(entity);
 					}
 				}
@@ -1978,6 +2020,9 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					if (view_selectable.get<Selectable>(entity).selected)
 					{
 						upgrade_unit_path_1(entity);
+						auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_1);
+						UIselection.path_num += 1;
+						mouse_hover_ui_button(vec2(xpos, ypos));
 					}
 				}
 			}
@@ -1991,6 +2036,9 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					if (view_selectable.get<Selectable>(entity).selected)
 					{
 						upgrade_unit_path_2(entity);
+						auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_2);
+						UIselection.path_num += 1;
+						mouse_hover_ui_button(vec2(xpos, ypos));
 					}
 				}
 			}

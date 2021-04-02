@@ -4,7 +4,6 @@
 #include <units/hunter.hpp>
 #include <units/greenhouse.hpp>
 #include <world.hpp>
-#include <config/unit_upgrade_configs.hpp>
 #include <units/exterminator.hpp>
 #include <units/robot.hpp>
 #include <units/priestess.hpp>
