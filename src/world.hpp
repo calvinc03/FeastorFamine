@@ -152,7 +152,7 @@ private:
 	// Game state
 	float current_speed;
 	float next_boss_spawn;
-	float next_fireball_spawn;
+	int next_fireball_spawn;
 	float next_mob_spawn;
     float next_particle_spawn;
     
@@ -194,7 +194,7 @@ private:
     std::shared_ptr<BTNode> BTCollision;
 
 	// round and set up
-	int round_number;
+	int world_round_number;
 
 	// flag for selected view bottom ui
 	bool selected_view_change;
@@ -230,7 +230,6 @@ private:
 	vec2 on_click_select_unit(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void help_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void story_card_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
-	void sell_unit_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_clicked);
 
 	// music references

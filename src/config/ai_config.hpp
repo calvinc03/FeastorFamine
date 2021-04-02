@@ -98,7 +98,7 @@ const static std::map<std::pair<int, int>, float> monster_move_cost = {
 };
 
 // maps <monster type, terrain> to unit move cost
-const static std::map<std::pair<int, int>, int> monster_move_speed_multiplier = {
+const static std::map<std::pair<monster_type, terrain_type>, float> monster_move_speed_multiplier = {
         // rabbit
         {std::pair(MOB, TERRAIN_PAVEMENT),         1.5},
         {std::pair(MOB, TERRAIN_DEFAULT),          1.0},
@@ -174,7 +174,7 @@ const static std::map<std::pair<int, int>, int> monster_move_speed_multiplier = 
 };
 
 // maps <weather, terrain> to probability
-const static std::map<int, std::map<int, float>> season_terrain_prob = {
+const static std::map<int, std::map<terrain_type, float>> season_terrain_prob = {
         {SPRING,  {{TERRAIN_DEFAULT,  1},
                         {TERRAIN_MUD,      1},
                         {TERRAIN_PUDDLE,   1},
@@ -201,7 +201,7 @@ const static std::map<int, std::map<int, float>> season_terrain_prob = {
                           {TERRAIN_ICE,      1.2}}},
 };
 
-const static std::map<std::pair<int, int>, float> weather_terrain_prob_multiplier = {
+const static std::map<std::pair<int, terrain_type>, float> weather_terrain_prob_multiplier = {
         {std::pair(CLEAR, TERRAIN_DEFAULT), 1.2},
         {std::pair(CLEAR, TERRAIN_MUD), 0.8},
         {std::pair(CLEAR, TERRAIN_PUDDLE), 0.8},

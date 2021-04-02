@@ -134,11 +134,10 @@ namespace DebugSystem
 		createLine(position - vec2(size.x / 2.0, 0.0), scale_vertical_line);
 	}
 
-	void display_rig_vertices(entt::entity character, entt::entity camera) {
+	void display_rig_vertices(entt::entity character) {
 
 		Motion root_motion = registry.get<Motion>(character);
 		auto& rig = registry.get<Rig>(character);
-		auto& camera_motion = registry.get<Motion>(camera);
 
 		Transform transform;
 		transform.mat = mat3(1.0f);

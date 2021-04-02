@@ -3,7 +3,7 @@
 const std::string NODE_SHADER = "node";
 std::string terrain_texture_path(int terrain) { return "map/"+terrain_str.at(terrain)+".png";};
 
-entt::entity GridNode::createGridNode(int terrain, vec2 coord)
+entt::entity GridNode::createGridNode(terrain_type terrain, vec2 coord)
 {
     // get up node components
     auto entity = registry.create();
@@ -34,7 +34,7 @@ entt::entity GridNode::createGridNode(int terrain, vec2 coord)
     return entity;
 }
 
-void GridNode::setTerrain(entt::entity entity, int new_terrain) {
+void GridNode::setTerrain(entt::entity entity, terrain_type new_terrain) {
     this->terrain = new_terrain;
     const std::string& key = terrain_str.at(new_terrain);
 

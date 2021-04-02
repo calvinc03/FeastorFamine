@@ -6,10 +6,10 @@ const std::string WALK_SPRITE = "eagle/eagle_walk.png";
 const std::string RUN_SPRITE = "NA";
 const std::string ATTACK_SPRITE = "eagle/eagle_attack.png";
 const std::string DEATH_SPRITE = "eagle/eagle_death.png";
-const size_t WALK_FRAMES = 4.f;
-const size_t RUN_FRAMES = 0.f;
-const size_t ATTACK_FRAMES = 0.f;
-const size_t DEATH_FRAMES = 0.f;
+const int WALK_FRAMES = 4;
+const int RUN_FRAMES = 0;
+const int ATTACK_FRAMES = 0;
+const int DEATH_FRAMES = 0;
 
 entt::entity SpringBoss::createSpringBossEntt()
 {
@@ -62,10 +62,10 @@ entt::entity SpringBoss::createSpringBossEntt()
     monster.death_sprite = DEATH_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
-    animate.frame = 0.f;
-    animate.state = 0.f;
+    animate.frame = 0;
+    animate.state = 0;
     animate.frame_num = WALK_FRAMES;
-    animate.state_num = 1.f;
+    animate.state_num = 1;
 
     registry.emplace<SpringBoss>(entity);
     registry.emplace<HitReaction>(entity);

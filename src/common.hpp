@@ -27,7 +27,6 @@ using namespace glm;
 static const float PI = 3.14159265359f;
 
 static int season;
-static int weather;
 
 // C++ random number generator
 static std::default_random_engine rng;
@@ -65,17 +64,17 @@ struct Monster {
 
 	bool hit;
 	float speed_multiplier = 1.0;
-	int type;
+	monster_type type;
 	std::string walk_sprite;
 	std::string run_sprite;
 	std::string attack_sprite;
 	std::string death_sprite;
 	std::string sprite;
-	size_t walk_frames;
-	size_t run_frames;
-	size_t attack_frames;
-	size_t death_frames;
-	size_t frames;
+	int walk_frames;
+	int run_frames;
+	int attack_frames;
+	int death_frames;
+	int frames;
 };
 
 struct Food {
@@ -84,10 +83,10 @@ struct Food {
 };
 
 struct Animate {
-	float state = 0.f;
-	float frame = 0.f;
-	float state_num = 1.f;
-	float frame_num = 1.f;
+	int state = 0;
+	int frame = 0;
+	int state_num = 1;
+	int frame_num = 1;
 };
 
 struct EntityDeath {

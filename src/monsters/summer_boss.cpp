@@ -6,10 +6,10 @@ const std::string WALK_SPRITE = "moose/moose_walk.png";
 const std::string RUN_SPRITE = "moose/moose_run.png";
 const std::string ATTACK_SPRITE = "moose/moose_eat.png";
 const std::string DEATH_SPRITE = "moose/moose_death.png";
-const size_t WALK_FRAMES = 10.f;
-const size_t RUN_FRAMES = 8.f;
-const size_t ATTACK_FRAMES = 11.f;
-const size_t DEATH_FRAMES = 11.f;
+const int WALK_FRAMES = 10;
+const int RUN_FRAMES = 8;
+const int ATTACK_FRAMES = 11;
+const int DEATH_FRAMES = 11;
 
 entt::entity SummerBoss::createSummerBossEntt() 
 {
@@ -59,10 +59,10 @@ entt::entity SummerBoss::createSummerBossEntt()
     monster.death_sprite = DEATH_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
-    animate.frame = 0.f;
-    animate.state = 0.f;
+    animate.frame = 0;
+    animate.state = 0;
     animate.frame_num = monster.frames;
-    animate.state_num = 1.f;
+    animate.state_num = 1;
 
     registry.emplace<SummerBoss>(entity);
     registry.emplace<HitReaction>(entity);

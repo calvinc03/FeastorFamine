@@ -37,7 +37,7 @@ entt::entity GridMap::createGridMap()
     // fill node_entity_matrix with default type grid node
     for (int x = 0; x < MAP_SIZE_IN_COORD.x; x++){
         for (int y = 0; y < MAP_SIZE_IN_COORD.y; y++){
-            int terrain = TERRAIN_DEFAULT;
+            terrain_type terrain = TERRAIN_DEFAULT;
             map.node_entity_matrix[x][y] = GridNode::createGridNode(terrain, vec2(x, y));
             map.node_matrix[x][y] = registry.get<GridNode>(map.node_entity_matrix[x][y]);
         }
@@ -47,7 +47,7 @@ entt::entity GridMap::createGridMap()
     return entity;
 }
 
-void GridMap::setGridTerrain(ivec2 grid_coord, int terrain) {
+void GridMap::setGridTerrain(ivec2 grid_coord, terrain_type terrain) {
     if (!is_inbounds(grid_coord)) {
         std::cout<<"Debug: out of bounds"<< std::endl;
         return;
@@ -62,8 +62,8 @@ void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy, entt::entity& oc
         std::cout<<"Debug: out of bounds"<< std::endl;
         return;
     }
-    vec2 over_hang = (scale - (vec2)GRID_CELL_SIZE) / (vec2)GRID_CELL_SIZE / 2.f;
-    over_hang = vec2(ceil(over_hang.x), ceil(over_hang.y));
+    ivec2 over_hang = ((ivec2)scale - (ivec2)GRID_CELL_SIZE) / (ivec2)GRID_CELL_SIZE / 2;
+    over_hang = ivec2((int)ceil(over_hang.x), (int)ceil(over_hang.y));
     for (int i = grid_coord.x - over_hang.x; i <= grid_coord.x + over_hang.x; i++) {
         for (int j = grid_coord.y - over_hang.y; j <= grid_coord.y + over_hang.y; j++) {
             ivec2 current_coord = ivec2(i, j);
@@ -85,7 +85,7 @@ entt::entity& GridMap::getEntityAtCoord(ivec2 grid_coord) {
 
 std::vector<entt::entity> GridMap::getNodeEntitiesFromCoords(std::vector<ivec2>& grid_coords){
     std::vector<entt::entity>  path_nodes;
-    for(vec2 grid_coord : grid_coords) {
+    for(ivec2 grid_coord : grid_coords) {
         entt::entity node = this->node_entity_matrix[grid_coord.x][grid_coord.y];
         path_nodes.push_back(node);
     }
@@ -94,7 +94,7 @@ std::vector<entt::entity> GridMap::getNodeEntitiesFromCoords(std::vector<ivec2>&
 
 std::vector<GridNode> GridMap::getNodesFromCoords(std::vector<ivec2>& grid_coords){
     std::vector<GridNode> path_nodes;
-    for(vec2 grid_coord : grid_coords) {
+    for(ivec2 grid_coord : grid_coords) {
         GridNode node = this->node_matrix[grid_coord.x][grid_coord.y];
         path_nodes.push_back(node);
     }

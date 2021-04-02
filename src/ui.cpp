@@ -174,7 +174,7 @@ void UI_build_unit::fill_UI_build_unit_component(UI_build_unit& ui_build_unit, B
 	} 
 	catch (const std::out_of_range& oor)
 	{
-		std::cout << "[Warning]: UI button (enum: " << button <<") has no name or description specified in the config.\n";
+		std::cout << "[Warning]: UI button (enum: " << button <<") has no name or description specified in the config.\n" << oor.what();
 	}
 }
 
@@ -255,7 +255,7 @@ entt::entity UI_button::createUI_selected_unit_button(int pos, Button button, st
 	return entity;
 }
 
-static entt::entity createUI_Banner(std::string content, vec2 position, vec3 colour, float duration) {
+entt::entity UI_banner::createUI_Banner(std::string content, vec2 position, vec3 colour, float duration) {
 	auto entity = registry.create();
 
 	std::string key = "UI_banner";
@@ -502,8 +502,8 @@ void change_button_text(entt::entity button_entity, std::string button_text)
 void aligne_text_right(entt::entity entity, float right_alignment_position)
 {
 	auto& text_component = registry.get<Text>(entity);
-	int str_length = text_component.content.length();
-	int x_offset = pow(str_length * text_component.scale, 1.2) * 37;
+	int str_length = (int)text_component.content.length();
+	int x_offset = (int)pow(str_length * text_component.scale, 1.2) * 37;
 	text_component.position = vec2(right_alignment_position - x_offset, text_component.position.y);
 }
 
@@ -533,8 +533,8 @@ void UI_season_wheel::get_season_sequence() {
 	std::vector<int> season_sequence;
 	for (int round_number = 0; round_number < MAX_ROUND_NUMBER; round_number++) {
 		nlohmann::json round_json = get_json(INPUT_PATH + std::to_string(round_number) + JSON_EXTENSION);
-		std::string season_str = round_json["season"];
-		if (season_str == "spring")
+		std::string loaded_season_str = round_json["season"];
+		if (loaded_season_str == "spring")
 		{
 			season_sequence.push_back(season::SPRING);
 		}
@@ -568,7 +568,7 @@ entt::entity UI_season_wheel::createUI_season_wheel_arrow() {
 entt::entity UI_weather_icon::createUI_weather_icon() {
 	auto entity = registry.create();
 
-	std::string key = "UI_weather_icon" + std::to_string(weather::CLEAR);
+	std::string key = "UI_weather_icon" + std::to_string(weather_type::CLEAR);
 	ShadedMesh& resource = cache_resource(key);
 	if (resource.effect.program.resource == 0) {
 		resource = ShadedMesh();
@@ -594,19 +594,19 @@ void UI_weather_icon::change_weather_icon(entt::entity entity, int weather) {
 		// load weather textuer based on the weather
 		switch (weather)
 		{
-		case weather::CLEAR:
+		case weather_type::CLEAR:
 			RenderSystem::createSprite(resource, ui_texture_path("weather_clear.png "), "textured");
 			break;
-		case weather::RAIN:
+		case weather_type::RAIN:
 			RenderSystem::createSprite(resource, ui_texture_path("weather_rain.png "), "textured");
 			break;
-		case weather::DROUGHT:
+		case weather_type::DROUGHT:
 			RenderSystem::createSprite(resource, ui_texture_path("weather_drought.png "), "textured");
 			break;
-		case weather::FOG:
+		case weather_type::FOG:
 			RenderSystem::createSprite(resource, ui_texture_path("weather_fog.png "), "textured");
 			break;
-		case weather::SNOW:
+		case weather_type::SNOW:
 			RenderSystem::createSprite(resource, ui_texture_path("weather_snow.png "), "textured");
 			break;
 		}
