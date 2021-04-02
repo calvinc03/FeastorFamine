@@ -156,7 +156,6 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 	ui_element.scale = vec2({ 1.0f, 1.0f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
 	ui_element.position = vec2(175 + pos * ui_element.scale.x, WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
 
-
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);
 	registry.emplace<UI_button>(entity);
@@ -165,7 +164,124 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 	return entity;
 }
 
+entt::entity UI_selected_unit::createUI_selected_unit_button(int pos, Button button, std::string tag, bool show)
+{
+	auto entity = registry.create();
 
+	// Create rendering primitives
+	std::string key = "UI_button " + pos + tag;
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		
+		RenderSystem::createSprite(resource, ui_texture_path("unit_selected_button_background.png"), "ui");
+	}
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 91;
+	shaded_mesh.show = show;
+
+	RenderProperty& render_property = registry.emplace<RenderProperty>(entity);
+	render_property.show = show;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = tag;
+	ui_element.scale = static_cast<vec2>(resource.texture.size);
+	ui_element.position = vec2(175 + pos * (ui_element.scale.x + 10), WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
+
+	auto& UIselection = registry.emplace<UI_selected_unit>(entity);
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, button);
+	registry.emplace<UI_button>(entity);
+	
+	return entity;
+}
+
+entt::entity UI_selected_image::create_selected_button_image(vec2 pos, std::string tag, Unit unit)
+{
+	auto entity = registry.create();
+	int path;
+	if (tag == "path_1_upgrade_button") {
+		path = unit.path_1_upgrade;
+	}
+	else if (tag == "path_2_upgrade_button") {
+		path = unit.path_2_upgrade;
+	}
+	else {
+		path = 5;
+	}
+
+	// Create rendering primitives
+	std::string key = "UI_selected_button " + path + tag + unit_str.at(unit.type);
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+
+		RenderSystem::createSprite(resource, ui_texture_path("damage_upgrade.png"), "ui");
+	}
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 95;
+	shaded_mesh.show = true;
+
+	RenderProperty& render_property = registry.emplace<RenderProperty>(entity);
+	render_property.show = true;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = "UI_selected_button " + path + tag + unit_str.at(unit.type);
+	ui_element.scale = static_cast<vec2>(resource.texture.size);
+	ui_element.position = pos;
+	registry.emplace<UI_selected_image>(entity);
+	return entity;
+}
+
+entt::entity UI_selected_progress::create_selected_button_progress_bar(vec2 pos, int path_num)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "UI_selected_button_progress_bar" + path_num;
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+
+		switch (path_num) {
+		case 0:
+			RenderSystem::createSprite(resource, ui_texture_path("progress_bar_0.png"), "ui");
+			break;
+		case 1:
+			RenderSystem::createSprite(resource, ui_texture_path("progress_bar_1.png"), "ui");
+			break;
+		case 2:
+			RenderSystem::createSprite(resource, ui_texture_path("progress_bar_2.png"), "ui");
+			break;
+		case 3:
+			RenderSystem::createSprite(resource, ui_texture_path("progress_bar_3.png"), "ui");
+			break;
+		}
+	}
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 95;
+	shaded_mesh.show = true;
+
+	RenderProperty& render_property = registry.emplace<RenderProperty>(entity);
+	render_property.show = true;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = "UI_selected_buttonn_progress_bar" + path_num;
+	ui_element.scale = static_cast<vec2>(resource.texture.size) * 0.9f;
+	ui_element.position = pos;
+
+	registry.emplace<UI_selected_progress>(entity);
+	return entity;
+}
 
 void UI_build_unit::fill_UI_build_unit_component(UI_build_unit& ui_build_unit, Button button)
 {

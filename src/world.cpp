@@ -49,7 +49,7 @@
 
 const size_t ANIMATION_FPS = 20;
 const size_t GREENHOUSE_REWARD = 80;
-const int STARTING_HEALTH = 600;
+const int STARTING_HEALTH = 10000;
 
 int WorldSystem::health = 1000;
 float WorldSystem::reward_multiplier = 1.f;
@@ -87,6 +87,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     next_particle_spawn(0),
     num_bosses_spawned(0),
     round_number(0),
+	selected_view_change(true),
 	game_tips(true)
 {
 	// Seeding rng with random device
@@ -473,17 +474,20 @@ void un_highlight()
 
 // helper for mouse_hover_ui_button
 // show unit description when hover on unit button
-void remove_unit_description()
+void remove_descriptions()
 {
 	//std::cout << "Hover: " << build_ui.unit_name << "\n";
 	for (auto entity : registry.view<UI_unit_description_card>())
+		registry.destroy(entity);
+
+	for (auto entity : registry.view<UI_selected_description_card>())
 		registry.destroy(entity);
 }
 
 void WorldSystem::setup_game_setup_stage()
 {
 	player_state = set_up_stage;
-	remove_unit_description();
+	remove_descriptions();
 	auto view_ui_button = registry.view<UI_element, ShadedMeshRef>();
 	for (auto button_entt : view_ui_button)
 	{
@@ -643,13 +647,13 @@ void WorldSystem::restart()
 	UI_button::createUI_build_unit_button(2, hunter_button, hunter_unit.cost);
 	UI_button::createUI_build_unit_button(3, wall_button, wall_unit.cost );
 	// when unit is selected buttons
-	UI_button::createUI_selected_unit_button(3, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE, false);
-	UI_button::createUI_selected_unit_button(4, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE, false);
-	UI_button::createUI_selected_unit_button(5, sell_button, SELL_BUTTON_TITLE, false);
+	//UI_selected_unit::createUI_selected_unit_button_1(2, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE, false);
+	//UI_selected_unit::createUI_selected_unit_button_1(3, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE, false);
+	//UI_selected_unit::createUI_selected_unit_button_1(4, sell_button, SELL_BUTTON_TITLE, false);
 	// general buttons
-	UI_button::createUI_button(7, tips_button, TIPS_BUTTON_TITLE);
-	UI_button::createUI_button(8, start_button, START_BUTTON_TITLE);
-	UI_button::createUI_button(9, save_button, SAVE_BUTTON_TITLE);
+	//UI_button::createUI_button(7, tips_button, TIPS_BUTTON_TITLE);
+	//UI_button::createUI_button(8, start_button, START_BUTTON_TITLE);
+	//UI_button::createUI_button(9, save_button, SAVE_BUTTON_TITLE);
 	// ui background
 	UI_background::createUI_background();
 	UI_background::createUI_top_bar();
@@ -1215,10 +1219,18 @@ void camera_control(vec2 mouse_pos)
 // show unit description when hover on unit button
 void update_unit_description(entt::entity entity)
 {
-	//std::cout << "Hover: " << build_ui.unit_name << "\n";
 	for (auto entity : registry.view<UI_unit_description_card>())
 		registry.destroy(entity);
 	UI_unit_description_card::createUI_unit_description_card(entity);
+}
+
+// helper for mouse_hover_ui_button
+// show upgrade description when hover on upgrade button
+void update_upgrade_description(entt::entity entity)
+{
+	for (auto entity : registry.view<UI_selected_description_card>())
+		registry.destroy(entity);
+	UI_selected_description_card::createUI_selected_description_card(entity);
 }
 
 // helper for on_mouse_move
@@ -1232,11 +1244,15 @@ void mouse_hover_ui_button(vec2 mouse_pos)
 			{
 				update_unit_description(entity);
 			}
+			else if (registry.has<UI_selected_unit>(entity))
+			{
+				update_upgrade_description(entity);
+			}
 			break;
 		}
 		else
 		{
-			remove_unit_description();
+			remove_descriptions();
 		}
 	}
 }
@@ -1295,8 +1311,52 @@ void update_unit_portrait(Unit unit)
 	UI_selected_unit_portrait::createUI_selected_unit_portrait(unit.type);
 }
 
+//helper for the selected buttons
+void update_selected_button(entt::entity e_button, Unit unit)
+{
+	auto& selected_components = registry.get<UI_selected_unit>(e_button);
+	for (auto component : selected_components.button_components) {
+		registry.destroy(component);
+	}
+	selected_components.button_components = std::vector<entt::entity>();
+
+	auto& ui = registry.get<UI_element>(e_button);
+
+	int path_num;
+	if (ui.tag == PATH_1_UPGRADE_BUTTON_TITLE) {
+		path_num = unit.path_1_upgrade;
+	}
+	else {
+		path_num = unit.path_2_upgrade;
+	}
+
+	auto image = UI_selected_image::create_selected_button_image(vec2(ui.position.x - ui.scale.x / 4, ui.position.y + 10), ui.tag, unit);
+	auto progress = UI_selected_progress::create_selected_button_progress_bar(vec2(ui.position.x + ui.scale.x / 4, ui.position.y), path_num);
+
+	// text
+	float line_size = 35; // relative to the text size
+	float left_margin = 3;
+	// unit name text
+	std::string short_description = "Damage";
+	auto title_text_scale = 0.4f;
+	auto bubblegum = TextFont::load("data/fonts/MagicalMystery/MAGIMT__.ttf");
+	// center text
+	auto x_offset = (ui.scale.x - (short_description.length() * title_text_scale * 27)) / 2;
+	// place title text at the top
+	float top_margin = 10;
+	auto y_title_offset = ui.scale.y / 2 - title_text_scale * line_size - top_margin;
+	vec2 title_text_position = get_center_text_position(vec2(ui.scale.x / 2, ui.scale.y), vec2(ui.position.x - ui.scale.x / 4, ui.position.y), title_text_scale, short_description);
+	auto& title = registry.emplace_or_replace<Text>(e_button, Text(short_description, bubblegum, vec2(title_text_position.x, title_text_position.y + y_title_offset)));
+	title.scale = title_text_scale;
+	title.colour = { 0.f, 0.f, 0.f };
+
+	selected_components.button_components.push_back(image);
+	selected_components.button_components.push_back(progress);
+}
+
+
 // update the appearance of ui depending on the given flags
-void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_clicked)
+void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selected, bool sell_clicked)
 {
 	// prevent this function gets called twice with one mouse click (press & release)
 	if (action != GLFW_PRESS)
@@ -1322,35 +1382,39 @@ void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_
 		for (auto entity : view_selectable)
 		{
 			if (view_selectable.get<Selectable>(entity).selected)
+			{
 				selected_unit = view_unit.get<Unit>(entity);
+				selected_view_change = previous_selected != entity || selected_view_change;
+				previous_selected = entity;
+			}
 		}
 
-		for (auto entity : view_ui_selected_buttons)
-		{
-			// show buttons for selected units
-			RenderSystem::show_entity(entity);
-			if (view_ui_selected_buttons.get<UI_element>(entity).tag == PATH_1_UPGRADE_BUTTON_TITLE)
+		if (selected_view_change) {
+			for (auto entity : view_ui_selected_buttons)
 			{
-				std::string button_text = "-" + std::to_string(selected_unit.upgrade_path_1_cost);
-				change_button_text(entity, button_text);
-				if (registry.has<HighlightBool>(entity) && selected_unit.path_1_upgrade >= 3) {
-					registry.remove<HighlightBool>(entity);
+				auto& selected_components = registry.get<UI_selected_unit>(entity);
+				for (auto component : selected_components.button_components) {
+					registry.destroy(component);
 				}
+				registry.destroy(entity);
 			}
-			else if (view_ui_selected_buttons.get<UI_element>(entity).tag == PATH_2_UPGRADE_BUTTON_TITLE)
-			{
-				std::string button_text = "-" + std::to_string(selected_unit.upgrade_path_2_cost);
-				change_button_text(entity, button_text);
-				if (registry.has<HighlightBool>(entity) && selected_unit.path_2_upgrade >= 3) {
-					registry.remove<HighlightBool>(entity);
-				}
-			}
-			else if (view_ui_selected_buttons.get<UI_element>(entity).tag == SELL_BUTTON_TITLE)
-			{
-				std::string button_text = "+" + std::to_string(selected_unit.sell_price);
-				change_button_text(entity, button_text);
-			}
+
+			upgrade_button_1 = UI_selected_unit::createUI_selected_unit_button(2, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE);
+			upgrade_button_2 = UI_selected_unit::createUI_selected_unit_button(3, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE);
+			button_sell = UI_selected_unit::createUI_selected_unit_button(5, sell_button, SELL_BUTTON_TITLE);
+			selected_view_change = false;
 		}
+
+		update_selected_button(upgrade_button_1, selected_unit);
+		if (registry.has<HighlightBool>(upgrade_button_1) && selected_unit.path_1_upgrade >= 3) {
+			registry.remove<HighlightBool>(upgrade_button_1);
+		}
+		
+		update_selected_button(upgrade_button_2, selected_unit);
+		if (registry.has<HighlightBool>(upgrade_button_2) && selected_unit.path_2_upgrade >= 3) {
+			registry.remove<HighlightBool>(upgrade_button_2);
+		}
+
 		//update unit portrait
 		update_unit_portrait(selected_unit);
 
@@ -1365,10 +1429,15 @@ void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_
 	}
 	else
 	{
+		selected_view_change = true;
 		// hide selected unit buttons
 		for (auto entity : view_ui_selected_buttons)
 		{
-			RenderSystem::hide_entity(entity);
+			auto& selected_components = registry.get<UI_selected_unit>(entity);
+			for (auto component : selected_components.button_components) {
+				registry.destroy(component);
+			}
+			registry.destroy(entity);
 		}
 		// show build unit buttons
 		for (auto entity : view_ui_build_buttons)
@@ -1502,7 +1571,7 @@ bool check_unit_already_selected()
 bool check_click_on_sell_button(double mouse_pos_x, double mouse_pos_y)
 {
 	auto view_selected_buttons = registry.view<UI_selected_unit, UI_element>();
-	for (auto [ui_selected_unit, ui_element] : view_selected_buttons.each())
+	for (auto [entity, ui_selected_unit, ui_element] : view_selected_buttons.each())
 	{
 		if (ui_element.tag == SELL_BUTTON_TITLE)
 		{
@@ -1520,7 +1589,7 @@ bool check_click_on_sell_button(double mouse_pos_x, double mouse_pos_y)
 bool check_click_on_unit_selected_buttons(double mouse_pos_x, double mouse_pos_y)
 {
 	auto view_selected_buttons = registry.view<UI_selected_unit, UI_element>();
-	for (auto [ui_selected_unit, ui_element] : view_selected_buttons.each())
+	for (auto [entity, ui_selected_unit, ui_element] : view_selected_buttons.each())
 	{
 		if (sdBox({ mouse_pos_x, mouse_pos_y}, ui_element.position, ui_element.scale / 2.0f) < 0.0f)
 		{

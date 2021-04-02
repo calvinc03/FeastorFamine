@@ -29,7 +29,7 @@ const Unit hunter_unit = {
 	10,		//damage
 	1500,	//attack_interval_ms
 	0,		//next_projectile_spawn
-	200,	//attack_range
+	300,	//attack_range
 	0,		//path_1_upgrade
 	0,      //path_2_upgrade
 	1,      //num_projectiles

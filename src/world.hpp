@@ -196,6 +196,13 @@ private:
 	// round and set up
 	int round_number;
 
+	// flag for selected view bottom ui
+	bool selected_view_change;
+	entt::entity previous_selected;
+	entt::entity upgrade_button_1;
+	entt::entity upgrade_button_2;
+	entt::entity button_sell;
+
 	//UI
 	entt::entity round_text_entity;
 	entt::entity food_text_entity;
@@ -224,6 +231,7 @@ private:
 	void help_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void story_card_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void sell_unit_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
+	void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_clicked);
 
 	// music references
 	Mix_Music* background_music;

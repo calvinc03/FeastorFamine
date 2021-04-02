@@ -4,6 +4,7 @@
 #include "entt.hpp"
 #include "common.hpp"
 #include "render.hpp"
+#include "units/unit.hpp"
 #include "text.hpp"
 #include <vector>
 #include <string>
@@ -36,6 +37,7 @@ struct UI_button
 	static entt::entity createUI_button(int pos, Button button, std::string tag = "default_ui_button_tag", bool show = true);
 	// wrapper for buttons that shows up when a unit is selected
 	static entt::entity createUI_selected_unit_button(int pos, Button button, std::string tag = "default_ui_button_tag", bool show = true);
+	static entt::entity createUI_selected_unit_button_1(int pos, Button button, std::string tag, Unit unit, bool show = true);
 };
 
 struct UI_banner
@@ -67,7 +69,18 @@ struct UI_weather_icon {
 
 struct UI_selected_unit
 {
+	std::vector<entt::entity> button_components;
+	static entt::entity createUI_selected_unit_button(int pos, Button button, std::string tag, bool show = true);
+};
 
+struct UI_selected_image
+{
+	static entt::entity create_selected_button_image(vec2 pos, std::string tag, Unit unit);
+};
+
+struct UI_selected_progress
+{
+	static entt::entity create_selected_button_progress_bar(vec2 pos, int path_num);
 };
 
 struct UI_build_unit

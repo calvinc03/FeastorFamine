@@ -48,3 +48,8 @@ const std::map<int, std::vector<std::string>> unit_description_str = {
     {green_house_button, greenhouse_description},
     {wall_button, wall_description}
 };
+
+struct UI_selected_description_card
+{
+    static entt::entity createUI_selected_description_card(entt::entity button_entity);
+};
