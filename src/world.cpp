@@ -1445,7 +1445,7 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selecte
 			}
 		}
 
-		if (selected_view_change) {
+		/*if (selected_view_change) {
 			remove_selected_unit_buttons();
 
 			upgrade_button_1 = UI_selected_unit::createUI_selected_unit_upgrade_button(2, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE, selected_unit.type, selected_unit.path_1_upgrade);
@@ -1464,7 +1464,7 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selecte
 			registry.remove<HighlightBool>(upgrade_button_2);
 		}
 
-		update_sell_button_text(button_sell, selected_unit.sell_price);
+		update_sell_button_text(button_sell, selected_unit.sell_price);*/
 
 		//update unit portrait
 		update_unit_portrait(selected_unit);
