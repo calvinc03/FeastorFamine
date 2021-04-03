@@ -46,9 +46,10 @@
 #include <units/robot.hpp>
 #include <units/priestess.hpp>
 #include <units/snowmachine.hpp>
+#include <units/rangecircle.hpp>
 
 const size_t ANIMATION_FPS = 20;
-const int STARTING_HEALTH = 100;
+const int STARTING_HEALTH = 1000;
 
 int WorldSystem::health = 1000;
 float WorldSystem::reward_multiplier = 1.f;
@@ -1311,15 +1312,24 @@ void WorldSystem::createEntityRangeIndicator(vec2 mouse_pos)
 		{
 			auto& motion = registry.get<Motion>(entity_selected);
 			motion.position = mouse_pos;
+			auto& circle_motion = registry.get<Motion>(entity_range_circle);
+			circle_motion.position = mouse_pos;
 		}
 		else 
 		{
 			registry.destroy(entity_selected);
 			entity_selected = create_unit_indicator(mouse_pos);
+			unit = registry.get<Unit>(entity_selected);
+			
+			registry.destroy(entity_range_circle);
+			entity_range_circle = RangeCircle::createRangeCircle(mouse_pos, unit.attack_range);
 		}
 	}
 	else {
 		entity_selected = create_unit_indicator(mouse_pos);
+
+		auto& unit = registry.get<Unit>(entity_selected);
+		entity_range_circle = RangeCircle::createRangeCircle(mouse_pos, unit.attack_range);
 	}
 }
 
@@ -1509,6 +1519,9 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selecte
 	}
 	auto view_ui_selected_buttons = registry.view<UI_selected_unit, UI_element, ShadedMeshRef>();
 	auto view_ui_build_buttons = registry.view<UI_build_unit, UI_element, ShadedMeshRef>();
+
+	if (registry.valid(entity_range_circle))
+		registry.destroy(entity_range_circle);
 	
 	// if a unit is selected and the sell button is not clicked
 	// show upgrade buttons and sell button
@@ -1525,6 +1538,8 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selecte
 				selected_unit = view_unit.get<Unit>(entity);
 				selected_view_change = previous_selected != entity || selected_view_change;
 				previous_selected = entity;
+				auto& motion = registry.get<Motion>(entity);
+				entity_range_circle = RangeCircle::createRangeCircle(motion.position, selected_unit.attack_range);
 			}
 		}
 
@@ -1736,7 +1751,7 @@ bool check_click_on_unit_selected_buttons(double mouse_pos_x, double mouse_pos_y
 // helper for unit_select_click_handle
 // set the unit to selected
 // return true if a unit is selected; otherwise, false
-bool click_on_unit(double mouse_pos_x, double mouse_pos_y)
+bool WorldSystem::click_on_unit(double mouse_pos_x, double mouse_pos_y)
 {
 	bool clicked_on_unit = false;
 	auto view_highlight = registry.view<HighlightBool>();
@@ -1746,7 +1761,7 @@ bool click_on_unit(double mouse_pos_x, double mouse_pos_y)
 	for (auto [entity, selectable, motion] : view_selectable.each())
 	{
 		// check click on units
-		if (sdBox(mouse_pos, motion.position, motion.scale / 2.0f) < 0.0f)
+		if (sdBox(mouse_pos, motion.position, motion.scale / 2.0f) < 0.0f && entity != entity_selected)
 		{
 			// add selected status
 			selectable.selected = true;
@@ -2039,7 +2054,10 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				placement_unit_selected = NONE;
 
 				if (registry.valid(entity_selected))
+				{
 					registry.destroy(entity_selected);
+					registry.destroy(entity_range_circle);
+				}
 
 				un_highlight();
 			}

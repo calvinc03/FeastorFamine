@@ -27,7 +27,7 @@ class WorldSystem : public Observer
 {
 public:
 	// Creates a window
-	WorldSystem(ivec2 window_size_px, PhysicsSystem *physics);
+	WorldSystem(ivec2 window_size_px, PhysicsSystem* physics);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -39,6 +39,7 @@ public:
 
 	// restart level
 	void restart();
+	void restart_with_save();
 
 	// start round
 	void start_round();
@@ -81,13 +82,13 @@ public:
 	static void deduct_health(int num);
 
 	// OpenGL window handle
-	GLFWwindow *window;
+	GLFWwindow* window;
 
 	// game state
 	int game_state;
 	bool game_tips;
-    
-    // Particle System
+
+	// Particle System
 //    GLuint billboard_vertex_buffer;
 //    GLuint particles_position_buffer;
 
@@ -114,7 +115,7 @@ public:
 
 	// health of the village
 	static int health;
-    static GridMap current_map;
+	static GridMap current_map;
 
 	// tutorial tip manager
 	TipManager tip_manager;
@@ -124,7 +125,7 @@ public:
 
 private:
 	// PhysicsSystem handle
-	PhysicsSystem *physics;
+	PhysicsSystem* physics;
 
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -154,44 +155,44 @@ private:
 	float next_boss_spawn;
 	int next_fireball_spawn;
 	float next_mob_spawn;
-    float next_particle_spawn;
-    
-    // Season
-    int season;
-    
-    enum season
-    {
-        SPRING = 0,
-        SUMMER = 1,
-        FALL = 2,
-        WINTER = 3
-    };
-        
-    // Weather
-    int weather;
+	float next_particle_spawn;
 
-    
-    enum weather
-    {
-        CLEAR = 0,
-        RAIN = 1,
-        DROUGHT = 2,
-        FOG = 3,
-        SNOW = 4,
-    };
-    
+	// Season
+	int season;
+
+	enum season
+	{
+		SPRING = 0,
+		SUMMER = 1,
+		FALL = 2,
+		WINTER = 3
+	};
+
+	// Weather
+	int weather;
+
+
+	enum weather
+	{
+		CLEAR = 0,
+		RAIN = 1,
+		DROUGHT = 2,
+		FOG = 3,
+		SNOW = 4,
+	};
+
 	int mob_delay_ms;
 	int max_mobs;
 	int boss_delay_ms;
 	int max_boss;
 	int fireball_delay_ms;
-    
+
 
 	int num_mobs_spawned;
 	int num_bosses_spawned;
-	entt::entity (*create_boss)();
+	entt::entity(*create_boss)();
 
-    std::shared_ptr<BTNode> BTCollision;
+	std::shared_ptr<BTNode> BTCollision;
 
 	// round and set up
 	int world_round_number;
@@ -211,10 +212,13 @@ private:
 	entt::entity weather_text_entity;
 	entt::entity season_wheel_arrow_entity;
 	entt::entity weather_icon_entity;
+	entt::entity pause_menu_entity;
+	entt::entity help_menu_entity;
 	
 	unit_type placement_unit_selected;
 	entt::entity entity_selected;
-	entt::entity (* create_unit_indicator)(vec2 pos);
+	entt::entity entity_range_circle;
+	entt::entity(*create_unit_indicator)(vec2 pos);
 
 	// remove entities from start menu
 	void remove_menu_buttons();
@@ -230,11 +234,11 @@ private:
 	void paused_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	vec2 on_click_select_unit(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
+	bool click_on_unit(double mouse_pos_x, double mouse_pos_y);
 	void help_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void story_card_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_clicked);
 
-	//helper for on_mouse_move
 	void createEntityRangeIndicator(vec2 mouse_pos);
 
 	// music references
