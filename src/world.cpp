@@ -68,7 +68,7 @@ const std::string PATH_1_UPGRADE_BUTTON_TITLE = "path_1_upgrade_button";
 const std::string PATH_2_UPGRADE_BUTTON_TITLE = "path_2_upgrade_button";
 const std::string SELL_BUTTON_TITLE = "sell_button";
 const std::string START_BUTTON_TITLE = "start_button";
-const std::string SAVE_BUTTON_TITLE = "save_button";
+
 const std::string TIPS_BUTTON_TITLE = "tips_button";
 const std::string SPRING_TITLE = "spring";
 const std::string SUMMER_TITLE = "summer";
@@ -86,7 +86,6 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     num_mobs_spawned(0),
     next_particle_spawn(0),
     num_bosses_spawned(0),
-	world_round_number(0),
 	selected_view_change(true),
 	game_tips(true)
 {
@@ -279,7 +278,7 @@ void WorldSystem::step(float elapsed_ms)
 
 			auto state = BTCollision->process(entity);
 			if (health < 0) {
-				restart();
+				restart_with_save();
 				return;
 			}
 		}
@@ -294,7 +293,7 @@ void WorldSystem::step(float elapsed_ms)
 
 				if (world_round_number == MAX_ROUND_NUMBER)
 				{
-					restart();
+					restart_with_save();
 				}
 
 				setup_round_from_round_number(world_round_number);
@@ -307,6 +306,8 @@ void WorldSystem::step(float elapsed_ms)
 				setup_game_setup_stage();
 
 				health += (int)(registry.view<GreenHouse>().size() * GREENHOUSE_REWARD * reward_multiplier);
+				// auto save
+				save_game();
 			}
 		}
 
@@ -574,6 +575,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 
 void WorldSystem::start_round()
 {
+
 	game_tips = false;
 	// hide start_button
 	auto view_ui_button = registry.view<UI_element, ShadedMeshRef>();
@@ -674,7 +676,12 @@ void WorldSystem::restart()
 	create_ui_text(vec2(FOOD_LABEL_X_OFFSET, WINDOW_SIZE_IN_PX.y - FOOD_LABEL_Y_OFFSET), "Food:", FOOD_LABEL_SCALE);
 	// food number text
 	food_text_entity = create_ui_text(vec2(FOOD_NUM_X_OFFSET, WINDOW_SIZE_IN_PX.y - FOOD_NUM_Y_OFFSET), "", FOOD_NUM_SCALE, { 0.f, 1.f, 0.f });
-
+	// pause menu
+	pause_menu_entity = Menu::createMenu((float)WINDOW_SIZE_IN_PX.x / 2, (float)WINDOW_SIZE_IN_PX.y / 2, "pause_menu", Menu_texture::pause_menu, 90, vec2({ 22.f, 26.f }));
+	registry.get<ShadedMeshRef>(pause_menu_entity).show = false;
+	// help menu
+	help_menu_entity = Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "help_menu", Menu_texture::help_menu, 98, { 0.5, 0.5 });
+	RenderSystem::hide_entity(help_menu_entity);
 	// create grid map
 	current_map = registry.get<GridMap>(GridMap::createGridMap());
 	village = Village::createVillage(current_map);
@@ -978,16 +985,11 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	if (action == GLFW_RELEASE && key == GLFW_KEY_H)
 	{
 	    if (game_state == in_game) {
-            // help menu
-			create_help_menu();
+			RenderSystem::show_entity(help_menu_entity);
             game_state = help_menu;
 	    }
 	    else if (game_state == help_menu) {
-            auto view = registry.view<Menu, ShadedMeshRef>();
-            for (auto entity : view)
-            {
-				RenderSystem::hide_entity(entity);
-            }
+			RenderSystem::hide_entity(help_menu_entity);
             game_state = in_game;
 	    }
 	}
@@ -1034,7 +1036,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			int w, h;
 			glfwGetWindowSize(window, &w, &h);
 
-			restart();
+			restart_with_save();
 		}
 	}
 
@@ -1061,12 +1063,25 @@ void WorldSystem::pause_game()
 {
 	std::cout << "Paused" << std::endl;
 	game_state = paused;
+	// pause menu
+	registry.get<ShadedMeshRef>(pause_menu_entity).show = true;
+	auto menu_ui = registry.get<UI_element>(pause_menu_entity);
+	
+	float top_button_y_offset = menu_ui.position.y - menu_ui.scale.y / 2.f - 10;
+	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 1.f / 3.5f, MenuButtonType::restart_round_button, "Restart round");
+	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 2.f / 3.5f, MenuButtonType::help_button, "Help");
+	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 3.f / 3.5f, MenuButtonType::exit_button, "Exit");
 }
 
 void WorldSystem::resume_game()
 {
 	std::cout << "Game Resumed" << std::endl;
 	game_state = in_game;
+	// hide pause menu and destroy all menu buttons
+	registry.get<ShadedMeshRef>(pause_menu_entity).show = false;
+	auto menu_button_view = registry.view<MenuButton>();
+	for (auto entity : menu_button_view)
+		registry.destroy(entity);
 }
 
 bool mouse_in_game_area(vec2 mouse_pos)
@@ -1445,7 +1460,7 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selecte
 			}
 		}
 
-		if (selected_view_change) {
+		/*if (selected_view_change) {
 			remove_selected_unit_buttons();
 
 			upgrade_button_1 = UI_selected_unit::createUI_selected_unit_upgrade_button(2, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE, selected_unit.type, selected_unit.path_1_upgrade);
@@ -1464,7 +1479,7 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selecte
 			registry.remove<HighlightBool>(upgrade_button_2);
 		}
 
-		update_sell_button_text(button_sell, selected_unit.sell_price);
+		update_sell_button_text(button_sell, selected_unit.sell_price);*/
 
 		//update unit portrait
 		update_unit_portrait(selected_unit);
@@ -1711,40 +1726,38 @@ vec2 WorldSystem::on_click_select_unit(double mouse_pos_x, double mouse_pos_y, i
 
 void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
 {
-	std::string button_tag = "";
+	MenuButtonType button_tag;
+	
 	if (action == GLFW_PRESS)
 	{
 		button_tag = on_click_button({mouse_pos_x, mouse_pos_y});
-	}
+		switch (button_tag)
+		{
+		case (MenuButtonType::exit_button):
+			// close window
+			glfwSetWindowShouldClose(window, GLFW_TRUE);
+			break;
+		case (MenuButtonType::new_game_button):
+			remove_menu_buttons();
 
-	if (button_tag == EXIT)
-	{
-		// close window
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
-	}
-	else if (button_tag == NEW_GAME)
-	{
-		remove_menu_buttons();
-		
-		game_state = help_menu;
-		restart();
-        // show controls overlay
-        auto help_menu_entity = create_help_menu();
-        button_tag = HELP_MENU;
-	}
-	else if (button_tag == SETTINGS_MENU)
-	{
-		remove_menu_buttons();
-		game_state = settings_menu;
-		create_controls_menu();
-	}
-	else if (button_tag == LOAD_GAME)
-	{
-		remove_menu_buttons();
-		restart();
-		load_game();
-		game_state = story_card;
-	}
+			game_state = help_menu;
+			restart_with_save();
+			// show controls overlay
+			RenderSystem::show_entity(help_menu_entity);
+			break;
+		case (MenuButtonType::settings_button):
+			remove_menu_buttons();
+			game_state = settings_menu;
+			create_controls_menu();
+			break;
+		case (MenuButtonType::load_game_button):
+			remove_menu_buttons();
+			restart();
+			load_game();
+			game_state = story_card;
+			break;
+		}
+	}	
 	// avoid 'unreferenced formal parameter' warning message
 	(void)button;
 	(void)mod;
@@ -1752,28 +1765,29 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 
 void WorldSystem::settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
 {
-	std::string button_tag = "";
+	MenuButtonType menu_button;
 	if (action == GLFW_PRESS)
 	{
-		button_tag = on_click_button({mouse_pos_x, mouse_pos_y});
-	}
-
-	if (button_tag == "back")
-	{
-		// close window
-		remove_menu_buttons();
-		auto view = registry.view<Menu>();
-		for (auto entity : view)
+		menu_button = on_click_button({mouse_pos_x, mouse_pos_y});
+		switch (menu_button)
 		{
-			registry.destroy(entity);
+		case MenuButtonType::back_button:
+			// close window
+			remove_menu_buttons();
+			auto view = registry.view<Menu>();
+			for (auto entity : view)
+			{
+				registry.destroy(entity);
+			}
+			auto menu_text_view = registry.view<MenuText>();
+			for (auto entity : menu_text_view)
+			{
+				registry.destroy(entity);
+			}
+			game_state = start_menu;
+			create_start_menu();
+			break;
 		}
-		auto menu_text_view = registry.view<MenuText>();
-		for (auto entity : menu_text_view)
-		{
-			registry.destroy(entity);
-		}
-		game_state = start_menu;
-		create_start_menu();
 	}
 	// avoid 'unreferenced formal parameter' warning message
 	(void)button;
@@ -1801,10 +1815,10 @@ void WorldSystem::create_start_menu()
 {
 	std::cout << "In Start Menu\n";
 	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "start_menu", Menu_texture::title_screen, 89, {1.0, 0.9});
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 3 / 7, "new_game", empty_button, "New game");
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 7, "load_game", empty_button, "Load game");
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 5 / 7, "settings_menu", empty_button, "Controls");
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 6 / 7, "exit", empty_button, "Exit");
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 3 / 7, MenuButtonType::new_game_button, "New game");
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 7, MenuButtonType::load_game_button, "Load game");
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 5 / 7, MenuButtonType::settings_button, "Controls");
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 6 / 7, MenuButtonType::exit_button, "Exit");
 }
 
 void WorldSystem::create_controls_menu()
@@ -1870,13 +1884,7 @@ void WorldSystem::create_controls_menu()
 		menu_text.menu_name = menu_name;
 	}
 
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 6 / 7, "back", empty_button, "back");
-}
-
-entt::entity WorldSystem::create_help_menu()
-{
-	std::cout << "In Help Menu\n";
-	return Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "help_menu", Menu_texture::help_menu, 98, {0.5, 0.5});
+	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 6 / 7, MenuButtonType::back_button, "back");
 }
 
 void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int action, int mod)
@@ -2056,10 +2064,6 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					}
 				}
 			}
-			else if (ui_button == Button::save_button)
-			{
-				save_game();
-			}
 			else if (ui_button == Button::start_button)
 			{
 				if (player_state == set_up_stage)
@@ -2089,14 +2093,54 @@ void WorldSystem::paused_click_handle(double xpos, double ypos, int button, int 
 {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
-		// remove game tips if exist
-		remove_game_tip();
-		resume_game();
+		vec2 mouse_pos = { (float)xpos, (float)ypos };
+		auto menu_ui = registry.get<UI_element>(pause_menu_entity);
+		// check menu is visible and
+		//click within menu
+		if (registry.get<ShadedMeshRef>(pause_menu_entity).show && sdBox(mouse_pos, menu_ui.position, menu_ui.scale / 2.0f) < 0.0f)
+		{
+			MenuButtonType button_clicked = on_click_button(mouse_pos);
+			// world_round_number get reset to 0 in restart();
+			int temp_world_round_number = world_round_number;
+			switch (button_clicked)
+			{
+			case MenuButtonType::menu_save_button:
+				save_game();
+				break;
+			case MenuButtonType::load_game_button:
+				remove_menu_buttons();
+				restart();
+				load_game();
+				game_state = story_card;
+				break;
+			case MenuButtonType::restart_round_button:
+				remove_menu_buttons();
+				RenderSystem::hide_entity(pause_menu_entity);
+				restart();
+				load_game();
+				game_state = story_card;
+				break;
+			case MenuButtonType::help_button:
+				resume_game();
+				RenderSystem::show_entity(help_menu_entity);
+				game_state = GameState::help_menu;
+				break;
+			case MenuButtonType::exit_button:
+				game_setup();
+				create_start_menu();
+				player_state = set_up_stage;
+				game_state = start_menu;
+				break;
+			}
+		}
+		else
+		{
+			// remove game tips if exist
+			remove_game_tip();
+			resume_game();
+		}
 	}
 	// avoid 'unreferenced formal parameter' warning message
-	(void)xpos;
-	(void)ypos;
-	(void)button;
 	(void)mod;
 }
 
@@ -2211,10 +2255,14 @@ void WorldSystem::load_game()
 		auto &curr_unit = view_unit.get<Unit>(entity);
 		
 		for (int i = 0; i < unit["path_1_upgrades"]; i++) {
+			auto& unit = registry.get<Unit>(entity);
+			health += unit.upgrade_path_1_cost;
 			upgrade_unit_path_1(entity);
 		}
 
 		for (int j = 0; j < unit["path_2_upgrades"]; j++) {
+			auto& unit = registry.get<Unit>(entity);
+			health += unit.upgrade_path_2_cost;
 			upgrade_unit_path_2(entity);
 		}
 	}
@@ -2226,4 +2274,9 @@ void WorldSystem::load_game()
 			current_map.setGridTerrain(ivec2(x, y), terrain);
 		}
 	}
+}
+
+void WorldSystem::restart_with_save() {
+	restart();
+	save_game();
 }
