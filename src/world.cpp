@@ -42,10 +42,14 @@
 #include <units/forest.hpp>
 
 #include "json.hpp"
+#include <units/exterminator.hpp>
+#include <units/robot.hpp>
+#include <units/priestess.hpp>
+#include <units/snowmachine.hpp>
 
 const size_t ANIMATION_FPS = 20;
 const size_t GREENHOUSE_REWARD = 80;
-const int STARTING_HEALTH = 600;
+const int STARTING_HEALTH = 10000;
 
 int WorldSystem::health = 1000;
 float WorldSystem::reward_multiplier = 1.f;
@@ -82,7 +86,8 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     num_mobs_spawned(0),
     next_particle_spawn(0),
     num_bosses_spawned(0),
-    world_round_number(0),
+	world_round_number(0),
+	selected_view_change(true),
 	game_tips(true)
 {
 	// Seeding rng with random device
@@ -469,17 +474,20 @@ void un_highlight()
 
 // helper for mouse_hover_ui_button
 // show unit description when hover on unit button
-void remove_unit_description()
+void remove_descriptions()
 {
 	//std::cout << "Hover: " << build_ui.unit_name << "\n";
 	for (auto entity : registry.view<UI_unit_description_card>())
+		registry.destroy(entity);
+
+	for (auto entity : registry.view<UI_selected_description_card>())
 		registry.destroy(entity);
 }
 
 void WorldSystem::setup_game_setup_stage()
 {
 	player_state = set_up_stage;
-	remove_unit_description();
+	remove_descriptions();
 	auto view_ui_button = registry.view<UI_element, ShadedMeshRef>();
 	for (auto button_entt : view_ui_button)
 	{
@@ -639,13 +647,13 @@ void WorldSystem::restart()
 	UI_button::createUI_build_unit_button(2, hunter_button, hunter_unit.cost);
 	UI_button::createUI_build_unit_button(3, wall_button, wall_unit.cost );
 	// when unit is selected buttons
-	UI_button::createUI_selected_unit_button(3, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE, false);
-	UI_button::createUI_selected_unit_button(4, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE, false);
-	UI_button::createUI_selected_unit_button(5, sell_button, SELL_BUTTON_TITLE, false);
+	//UI_selected_unit::createUI_selected_unit_button_1(2, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE, false);
+	//UI_selected_unit::createUI_selected_unit_button_1(3, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE, false);
+	//UI_selected_unit::createUI_selected_unit_button_1(4, sell_button, SELL_BUTTON_TITLE, false);
 	// general buttons
-	UI_button::createUI_button(7, tips_button, TIPS_BUTTON_TITLE);
-	UI_button::createUI_button(8, start_button, START_BUTTON_TITLE);
-	UI_button::createUI_button(9, save_button, SAVE_BUTTON_TITLE);
+	//UI_button::createUI_button(7, tips_button, TIPS_BUTTON_TITLE);
+	//UI_button::createUI_button(8, start_button, START_BUTTON_TITLE);
+	//UI_button::createUI_button(9, save_button, SAVE_BUTTON_TITLE);
 	// ui background
 	UI_background::createUI_background();
 	UI_background::createUI_top_bar();
@@ -871,7 +879,7 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 		}
 		collision_monster_handle(e_monster, prj.damage);
 	}
-	else if (registry.has<Flamethrower>(e_projectile) || registry.has<LaserBeam>(e_projectile)) {
+	else if (registry.has<Flamethrower>(e_projectile) || registry.has<LaserBeam>(e_projectile) || registry.has<Explosion>(e_projectile)) {
 		auto& dot = registry.get<DOT>(e_monster);
 		if (dot.dot_map.find(e_projectile) == dot.dot_map.end()) {
 			dot.dot_map.insert({ e_projectile, DOT_DELAY });
@@ -883,6 +891,11 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 				collision_monster_handle(e_monster, prj.damage);
 			}
 		}
+	}
+
+	else if (registry.has<Missile>(e_projectile)) {
+		Explosion::createExplosion(e_projectile, prj.damage);
+		registry.destroy(e_projectile);
 	}
 
 	else {
@@ -1005,7 +1018,9 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
     else if (action == GLFW_PRESS && key == GLFW_KEY_3)
 	{
-		placement_unit_selected = HUNTER;
+		//placement_unit_selected = HUNTER;
+		//placement_unit_selected = EXTERMINATOR;
+		placement_unit_selected = ROBOT;
 	}
     else if (action == GLFW_PRESS && key == GLFW_KEY_4)
     {
@@ -1212,10 +1227,20 @@ void update_unit_description(entt::entity entity)
 	UI_unit_description_card::createUI_unit_description_card(entity);
 }
 
+// helper for mouse_hover_ui_button
+// show upgrade description when hover on upgrade button
+void update_upgrade_description(entt::entity entity)
+{
+	for (auto entity : registry.view<UI_selected_description_card>())
+		registry.destroy(entity);
+	UI_selected_description_card::createUI_selected_description_card(entity);
+}
+
 // helper for on_mouse_move
 // check if mouse is on top of unit buttons, and dispaly unit description if it is
 void mouse_hover_ui_button()
 {
+	remove_descriptions();
 	auto view_buttons = registry.view<Button, UI_element, HighlightBool, ShadedMeshRef>();
 	for (auto [entity, button, ui_element, highlight, shadedmeshref] : view_buttons.each()) {
 		if (highlight.highlight && shadedmeshref.show) { // if a button is highlighted and we click -> button was pressed.
@@ -1223,11 +1248,17 @@ void mouse_hover_ui_button()
 			{
 				update_unit_description(entity);
 			}
+			else if (registry.has<UI_selected_unit>(entity))
+			{
+				auto& selected_unit = registry.get<UI_selected_unit>(entity);
+				if (selected_unit.path_num < 3)
+					update_upgrade_description(entity);
+			}
 			break;
 		}
 		else
 		{
-			remove_unit_description();
+			remove_descriptions();
 		}
 	}
 }
@@ -1286,8 +1317,102 @@ void update_unit_portrait(Unit unit)
 	UI_selected_unit_portrait::createUI_selected_unit_portrait(unit.type);
 }
 
+//helper for the selected buttons
+void update_selected_button(entt::entity e_button, Unit unit)
+{
+	auto& selected_components = registry.get<UI_selected_unit>(e_button);
+	for (auto component : selected_components.button_components) {
+		registry.destroy(component);
+	}
+	selected_components.button_components = std::vector<entt::entity>();
+
+	auto& ui = registry.get<UI_element>(e_button);
+
+	int path_num;
+	if (ui.tag == PATH_1_UPGRADE_BUTTON_TITLE) {
+		path_num = unit.path_1_upgrade;
+	}
+	else {
+		path_num = unit.path_2_upgrade;
+	}
+
+	auto image = UI_selected_unit::create_selected_button_image(vec2(ui.position.x - ui.scale.x / 4, ui.position.y + 10), ui.tag, unit);
+	auto progress = UI_selected_unit::create_selected_button_progress_bar(vec2(ui.position.x + ui.scale.x / 4, ui.position.y), path_num);
+
+	// text
+	float line_size = 35; // relative to the text size
+	float left_margin = 3;
+	// unit name text
+	std::string short_description = "Damage";
+	auto title_text_scale = 0.4f;
+	auto bubblegum = TextFont::load("data/fonts/MagicalMystery/MAGIMT__.ttf");
+	// center text
+	auto x_offset = (ui.scale.x - (short_description.length() * title_text_scale * 27)) / 2;
+	// place title text at the top
+	float top_margin = 10;
+	auto y_title_offset = ui.scale.y / 2 - title_text_scale * line_size - top_margin;
+	vec2 title_text_position = get_center_text_position(vec2(ui.scale.x / 2, ui.scale.y), vec2(ui.position.x - ui.scale.x / 4, ui.position.y), title_text_scale, short_description);
+	auto& title = registry.emplace_or_replace<Text>(e_button, Text(short_description, bubblegum, vec2(title_text_position.x, title_text_position.y + y_title_offset)));
+	title.scale = title_text_scale;
+	title.colour = { 0.f, 0.f, 0.f };
+
+	selected_components.button_components.push_back(image);
+	selected_components.button_components.push_back(progress);
+}
+
+//helper for the selected buttons
+void update_sell_button_text(entt::entity e_button, int sell_price)
+{
+	auto& UI_sell = registry.get<UI_sell_button>(e_button);
+	if (registry.valid(UI_sell.sell_text))
+	{
+		registry.destroy(UI_sell.sell_text);
+	}
+
+	auto text_ent = registry.create();
+	auto& ui = registry.get<UI_element>(e_button);
+	// text
+	float line_size = 35; // relative to the text size
+	// unit name text
+	std::string short_description = "$" + std::to_string(sell_price);
+	auto title_text_scale = 0.4f;
+	auto bubblegum = TextFont::load("data/fonts/MagicalMystery/MAGIMT__.ttf");
+	// place title text at the top
+	float top_margin = 45;
+	auto y_title_offset = ui.scale.y / 2 - title_text_scale * line_size - top_margin;
+	vec2 title_text_position = get_center_text_position(vec2(2 * ui.scale.x / 3, ui.scale.y), vec2(ui.position.x + ui.scale.x / 8, ui.position.y), title_text_scale, short_description);
+	auto& title = registry.emplace_or_replace<Text>(text_ent, Text(short_description, bubblegum, vec2(title_text_position.x, title_text_position.y + y_title_offset)));
+	title.scale = title_text_scale;
+	title.colour = { 0.f, 0.f, 0.f };
+
+	UI_sell.sell_text = text_ent;
+}
+
+// remove upgrade button and sell button
+void remove_selected_unit_buttons()
+{
+	for (auto entity : registry.view<UI_selected_unit, UI_element, ShadedMeshRef>())
+	{
+		auto& selected_components = registry.get<UI_selected_unit>(entity);
+		for (auto component : selected_components.button_components) {
+			registry.destroy(component);
+		}
+		registry.destroy(entity);
+	}
+
+	for (auto entity : registry.view<UI_sell_button>())
+	{
+		auto& UI_sell = registry.get<UI_sell_button>(entity);
+		if (registry.valid(UI_sell.sell_text))
+		{
+			registry.destroy(UI_sell.sell_text);
+		}
+		registry.destroy(entity);
+	}
+}
+
 // update the appearance of ui depending on the given flags
-void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_clicked)
+void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selected, bool sell_clicked)
 {
 	// prevent this function gets called twice with one mouse click (press & release)
 	if (action != GLFW_PRESS)
@@ -1313,35 +1438,34 @@ void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_
 		for (auto entity : view_selectable)
 		{
 			if (view_selectable.get<Selectable>(entity).selected)
+			{
 				selected_unit = view_unit.get<Unit>(entity);
+				selected_view_change = previous_selected != entity || selected_view_change;
+				previous_selected = entity;
+			}
 		}
 
-		for (auto entity : view_ui_selected_buttons)
-		{
-			// show buttons for selected units
-			RenderSystem::show_entity(entity);
-			if (view_ui_selected_buttons.get<UI_element>(entity).tag == PATH_1_UPGRADE_BUTTON_TITLE)
-			{
-				std::string button_text = "-" + std::to_string(selected_unit.upgrade_path_1_cost);
-				change_button_text(entity, button_text);
-				if (registry.has<HighlightBool>(entity) && selected_unit.path_1_upgrade >= 3) {
-					registry.remove<HighlightBool>(entity);
-				}
-			}
-			else if (view_ui_selected_buttons.get<UI_element>(entity).tag == PATH_2_UPGRADE_BUTTON_TITLE)
-			{
-				std::string button_text = "-" + std::to_string(selected_unit.upgrade_path_2_cost);
-				change_button_text(entity, button_text);
-				if (registry.has<HighlightBool>(entity) && selected_unit.path_2_upgrade >= 3) {
-					registry.remove<HighlightBool>(entity);
-				}
-			}
-			else if (view_ui_selected_buttons.get<UI_element>(entity).tag == SELL_BUTTON_TITLE)
-			{
-				std::string button_text = "+" + std::to_string(selected_unit.sell_price);
-				change_button_text(entity, button_text);
-			}
+		if (selected_view_change) {
+			remove_selected_unit_buttons();
+
+			upgrade_button_1 = UI_selected_unit::createUI_selected_unit_upgrade_button(2, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE, selected_unit.type, selected_unit.path_1_upgrade);
+			upgrade_button_2 = UI_selected_unit::createUI_selected_unit_upgrade_button(3, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE, selected_unit.type, selected_unit.path_2_upgrade);
+			button_sell = UI_sell_button::createUI_sell_button(5, sell_button, SELL_BUTTON_TITLE);
+			selected_view_change = false;
 		}
+
+		update_selected_button(upgrade_button_1, selected_unit);
+		if (registry.has<HighlightBool>(upgrade_button_1) && selected_unit.path_1_upgrade >= 3) {
+			registry.remove<HighlightBool>(upgrade_button_1);
+		}
+		
+		update_selected_button(upgrade_button_2, selected_unit);
+		if (registry.has<HighlightBool>(upgrade_button_2) && selected_unit.path_2_upgrade >= 3) {
+			registry.remove<HighlightBool>(upgrade_button_2);
+		}
+
+		update_sell_button_text(button_sell, selected_unit.sell_price);
+
 		//update unit portrait
 		update_unit_portrait(selected_unit);
 
@@ -1356,11 +1480,9 @@ void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_
 	}
 	else
 	{
-		// hide selected unit buttons
-		for (auto entity : view_ui_selected_buttons)
-		{
-			RenderSystem::hide_entity(entity);
-		}
+		selected_view_change = true;
+		remove_selected_unit_buttons();
+
 		// show build unit buttons
 		for (auto entity : view_ui_build_buttons)
 		{
@@ -1498,8 +1620,8 @@ bool check_unit_already_selected()
 // helper for unit_select_click_handle
 bool check_click_on_sell_button(double mouse_pos_x, double mouse_pos_y)
 {
-	auto view_selected_buttons = registry.view<UI_selected_unit, UI_element>();
-	for (auto [ui_selected_unit, ui_element] : view_selected_buttons.each())
+	auto view_selected_buttons = registry.view<UI_sell_button, UI_element>();
+	for (auto [entity, ui_selected_unit, ui_element] : view_selected_buttons.each())
 	{
 		if (ui_element.tag == SELL_BUTTON_TITLE)
 		{
@@ -1517,7 +1639,7 @@ bool check_click_on_sell_button(double mouse_pos_x, double mouse_pos_y)
 bool check_click_on_unit_selected_buttons(double mouse_pos_x, double mouse_pos_y)
 {
 	auto view_selected_buttons = registry.view<UI_selected_unit, UI_element>();
-	for (auto [ui_selected_unit, ui_element] : view_selected_buttons.each())
+	for (auto [entity, ui_selected_unit, ui_element] : view_selected_buttons.each())
 	{
 		if (sdBox({ mouse_pos_x, mouse_pos_y}, ui_element.position, ui_element.scale / 2.0f) < 0.0f)
 		{
@@ -1797,6 +1919,30 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					health -= watchtower_unit.cost;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
+				else if (placement_unit_selected == EXTERMINATOR && health >= exterminator_unit.cost)
+				{
+					entity = Exterminator::createExterminator(unit_position);
+					health -= exterminator_unit.cost;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
+				}
+				else if (placement_unit_selected == ROBOT && health >= robot_unit.cost)
+				{
+					entity = Robot::createRobot(unit_position);
+					health -= robot_unit.cost;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
+				}
+				else if (placement_unit_selected == PRIESTESS && health >= priestess_unit.cost)
+				{
+					entity = Priestess::createPriestess(unit_position);
+					health -= priestess_unit.cost;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
+				}
+				else if (placement_unit_selected == SNOWMACHINE && health >= snowmachine_unit.cost)
+				{
+					entity = SnowMachine::createSnowMachine(unit_position);
+					health -= snowmachine_unit.cost;
+					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
+				}
 				else if (placement_unit_selected == WALL && health >= wall_unit.cost)
 				{
 					entity = Wall::createWall(unit_position, false);
@@ -1873,6 +2019,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					{
 						auto& unit = view_unit.get<Unit>(entity);
 						health += unit.sell_price;
+						std::cout << "sell clicked \n";
 						sell_unit(entity);
 					}
 				}
@@ -1887,6 +2034,9 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					if (view_selectable.get<Selectable>(entity).selected)
 					{
 						upgrade_unit_path_1(entity);
+						auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_1);
+						UIselection.path_num += 1;
+						mouse_hover_ui_button();
 					}
 				}
 			}
@@ -1900,6 +2050,9 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					if (view_selectable.get<Selectable>(entity).selected)
 					{
 						upgrade_unit_path_2(entity);
+						auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_2);
+						UIselection.path_num += 1;
+						mouse_hover_ui_button();
 					}
 				}
 			}

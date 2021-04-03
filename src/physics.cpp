@@ -292,6 +292,14 @@ void PhysicsSystem::update_projectiles(float elapsed_ms)
 		if (laserBeam.active_timer < 0)
 			registry.destroy(entity);
 	}
+
+	for (auto entity : registry.view<Explosion>()) {
+		auto& laserBeam = registry.get<Explosion>(entity);
+		laserBeam.active_timer -= elapsed_ms;
+		
+		if (laserBeam.active_timer < 0)
+			registry.destroy(entity);
+	}
 }
 
 PhysicsSystem::Collision::Collision(entt::entity& other)

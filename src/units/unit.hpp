@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include "config/unit_config.hpp"
+#include "config/unit_upgrade_configs.hpp"
 #include "projectile.hpp"
 
 struct Unit {
@@ -25,75 +26,155 @@ struct Unit {
 };
 
 const Unit hunter_unit = {
-	HUNTER, //type
-	10,		//damage
-	1500,	//attack_interval_ms
-	0,		//next_projectile_spawn
-	300,	//attack_range
-	0,		//path_1_upgrade
-	0,      //path_2_upgrade
-	1,      //num_projectiles
-	Projectile::createProjectile, //create projectile
-	false,	//rotate
-	50,		//upgrade_cost
-	150,	//cost
-	100,	//sell_price
-	100,	//health
-	100,	//max_health
+	HUNTER,                                 //type
+	unit_damage.at(HUNTER),		            //damage
+	unit_attack_interval_ms.at(HUNTER),     //attack_interval_ms
+	0,		                                //next_projectile_spawn
+	unit_attack_range.at(HUNTER),	        //attack_range
+	0,		                                //path_1_upgrade
+	0,                                      //path_2_upgrade
+	unit_num_projectiles.at(HUNTER),        //num_projectiles
+	unit_create_projectiles.at(HUNTER),     //create projectile
+	unit_rotate.at(HUNTER),	                //rotate
+	hunter_path_1.at(0)[0],                 //upgrade_path_1_cost
+	hunter_path_2.at(0)[0],                 //upgrade_path_2_cost
+	unit_cost.at(HUNTER),	                //cost
+	unit_sell_price.at(HUNTER),	            //sell_price
+	unit_health.at(HUNTER),	                //health
+	unit_health.at(HUNTER),	                //max_health
 };
 
 const Unit watchtower_unit = {
-	WATCHTOWER, //type
-	10,			//damage
-	800,		//attack_interval_ms
-	0,			//next_projectile_spawn
-	400,		//attack_range
-	0,		    //path_1_upgrade
-	0,          //path_2_upgrade
-	1,          //num_projectiles
-	LaserBeam::createLaserBeam, //create projectile
-	false,		//rotate
-	50,			//upgrade_cost
-	200,		//cost
-	150,		//sell_price
-	100,		//health
-	100,		//max_health
+	WATCHTOWER,                                 //type
+	unit_damage.at(WATCHTOWER),		            //damage
+	unit_attack_interval_ms.at(WATCHTOWER),     //attack_interval_ms
+	0,		                                    //next_projectile_spawn
+	unit_attack_range.at(WATCHTOWER),	        //attack_range
+	0,		                                    //path_1_upgrade
+	0,                                          //path_2_upgrade
+	unit_num_projectiles.at(WATCHTOWER),        //num_projectiles
+	unit_create_projectiles.at(WATCHTOWER),     //create projectile
+	unit_rotate.at(WATCHTOWER),	                //rotate
+	hunter_path_1.at(0)[0],                     //upgrade_path_1_cost
+	hunter_path_2.at(0)[0],                     //upgrade_path_2_cost
+	unit_cost.at(WATCHTOWER),	                //cost
+	unit_sell_price.at(WATCHTOWER),	            //sell_price
+	unit_health.at(WATCHTOWER),	                //health
+	unit_health.at(WATCHTOWER),	                //max_health
 };
 
 const Unit greenhouse_unit = {
-	GREENHOUSE, //type
-	0,			//damage
-	0,			//attack_interval_ms
-	0,			//next_projectile_spawn
-	0,			//attack_range
-	0,		    //path_1_upgrade
-	0,          //path_2_upgrade
-	0,          //num_projectiles
-	NULL,       //create projectile
-	false,		//rotate
-	200,		//upgrade_cost
-	300,		//cost
-	200,		//sell_price
-	100,		//health
-	100,		//max_health
+	GREENHOUSE,                                 //type
+	unit_damage.at(GREENHOUSE),		            //damage
+	unit_attack_interval_ms.at(GREENHOUSE),     //attack_interval_ms
+	0,		                                    //next_projectile_spawn
+	unit_attack_range.at(GREENHOUSE),	        //attack_range
+	0,		                                    //path_1_upgrade
+	0,                                          //path_2_upgrade
+	unit_num_projectiles.at(GREENHOUSE),        //num_projectiles
+	unit_create_projectiles.at(GREENHOUSE),     //create projectile
+	unit_rotate.at(GREENHOUSE),	                //rotate
+	greenhouse_path_1.at(0)[0],                 //upgrade_path_1_cost
+	0,                                          //upgrade_path_2_cost
+	unit_cost.at(GREENHOUSE),	                //cost
+	unit_sell_price.at(GREENHOUSE),	            //sell_price
+	unit_health.at(GREENHOUSE),	                //health
+	unit_health.at(GREENHOUSE),	                //max_health
+};
+
+const Unit exterminator_unit = {
+	EXTERMINATOR,                                 //type
+	unit_damage.at(EXTERMINATOR),		          //damage
+	unit_attack_interval_ms.at(EXTERMINATOR),     //attack_interval_ms
+	0,		                                      //next_projectile_spawn
+	unit_attack_range.at(EXTERMINATOR),	          //attack_range
+	0,		                                      //path_1_upgrade
+	0,                                            //path_2_upgrade
+	unit_num_projectiles.at(EXTERMINATOR),        //num_projectiles
+	unit_create_projectiles.at(EXTERMINATOR),     //create projectile
+	unit_rotate.at(EXTERMINATOR),	              //rotate
+	exterminator_path_1.at(0)[0],                 //upgrade_path_1_cost
+	exterminator_path_2.at(0)[0],                 //upgrade_path_2_cost
+	unit_cost.at(EXTERMINATOR),	                  //cost
+	unit_sell_price.at(EXTERMINATOR),	          //sell_price
+	unit_health.at(EXTERMINATOR),	              //health
+	unit_health.at(EXTERMINATOR),	              //max_health
+};
+
+const Unit priestess_unit = {
+	PRIESTESS,                                  //type
+	unit_damage.at(PRIESTESS),		            //damage
+	unit_attack_interval_ms.at(PRIESTESS),      //attack_interval_ms
+	0,		                                    //next_projectile_spawn
+	unit_attack_range.at(PRIESTESS),	        //attack_range
+	0,		                                    //path_1_upgrade
+	0,                                          //path_2_upgrade
+	unit_num_projectiles.at(PRIESTESS),         //num_projectiles
+	unit_create_projectiles.at(PRIESTESS),      //create projectile
+	unit_rotate.at(PRIESTESS),	                //rotate
+	priestess_path_1.at(0)[0],                  //upgrade_path_1_cost
+	priestess_path_2.at(0)[0],                  //upgrade_path_2_cost
+	unit_cost.at(PRIESTESS),	                //cost
+	unit_sell_price.at(PRIESTESS),	            //sell_price
+	unit_health.at(PRIESTESS),	                //health
+	unit_health.at(PRIESTESS),	                //max_health
+};
+
+const Unit snowmachine_unit = {
+	SNOWMACHINE,                                 //type
+	unit_damage.at(SNOWMACHINE),		         //damage
+	unit_attack_interval_ms.at(SNOWMACHINE),     //attack_interval_ms
+	0,		                                     //next_projectile_spawn
+	unit_attack_range.at(SNOWMACHINE),	         //attack_range
+	0,		                                     //path_1_upgrade
+	0,                                           //path_2_upgrade
+	unit_num_projectiles.at(SNOWMACHINE),        //num_projectiles
+	unit_create_projectiles.at(SNOWMACHINE),     //create projectile
+	unit_rotate.at(SNOWMACHINE),	             //rotate
+	snowmachine_path_1.at(0)[0],                 //upgrade_path_1_cost
+	snowmachine_path_2.at(0)[0],                 //upgrade_path_2_cost
+	unit_cost.at(SNOWMACHINE),	                 //cost
+	unit_sell_price.at(SNOWMACHINE),	         //sell_price
+	unit_health.at(SNOWMACHINE),	             //health
+	unit_health.at(SNOWMACHINE),	             //max_health
+};
+
+const Unit robot_unit = {
+	ROBOT,                                 //type
+	unit_damage.at(ROBOT),		           //damage
+	unit_attack_interval_ms.at(ROBOT),     //attack_interval_ms
+	0,		                               //next_projectile_spawn
+	unit_attack_range.at(ROBOT),	       //attack_range
+	0,		                               //path_1_upgrade
+	0,                                     //path_2_upgrade
+	unit_num_projectiles.at(ROBOT),        //num_projectiles
+	unit_create_projectiles.at(ROBOT),     //create projectile
+	unit_rotate.at(ROBOT),	               //rotate
+	robot_path_1.at(0)[0],                 //upgrade_path_1_cost
+	robot_path_2.at(0)[0],                 //upgrade_path_2_cost
+	unit_cost.at(ROBOT),	               //cost
+	unit_sell_price.at(ROBOT),	           //sell_price
+	unit_health.at(ROBOT),	               //health
+	unit_health.at(ROBOT),	               //max_health
 };
 
 const Unit wall_unit = {
-	WALL,		//type
-	0,			//damage
-	0,			//attack_interval_ms
-	0,			//next_projectile_spawn
-	0,			//attack_range
-	0,		    //path_1_upgrade
-	0,          //path_2_upgrade
-	0,          //num_projectiles
-	NULL,       //create projectile
-	false,		//rotate
-	50,   		//upgrade_cost
-	50, 		//cost
-	50, 		//sell_price
-	100,		//health
-	100,		//max_health
+	WALL,                                 //type
+	unit_damage.at(WALL),		          //damage
+	unit_attack_interval_ms.at(WALL),     //attack_interval_ms
+	0,		                              //next_projectile_spawn
+	unit_attack_range.at(WALL),	          //attack_range
+	0,		                              //path_1_upgrade
+	0,                                    //path_2_upgrade
+	unit_num_projectiles.at(WALL),        //num_projectiles
+	unit_create_projectiles.at(WALL),     //create projectile
+	unit_rotate.at(WALL),	              //rotate
+	0,                                    //upgrade_path_1_cost
+	0,                                    //upgrade_path_2_cost
+	unit_cost.at(WALL),	                  //cost
+	unit_sell_price.at(WALL),	          //sell_price
+	unit_health.at(WALL),	              //health
+	unit_health.at(WALL),	              //max_health
 };
 
 const std::map<unit_type, Unit> unit_configs = {
@@ -101,6 +182,7 @@ const std::map<unit_type, Unit> unit_configs = {
 	{WATCHTOWER, watchtower_unit},
 	{GREENHOUSE, greenhouse_unit},
 	{WALL, wall_unit},
+	{EXTERMINATOR, exterminator_unit}
 };
 
 void upgrade_unit_path_1(entt::entity e_unit);

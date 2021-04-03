@@ -128,7 +128,7 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 			RenderSystem::createSprite(resource, ui_texture_path("upgrade_icon.png"), "ui");
 		}
 		else if (button == sell_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("sell_button.png"), "ui");
+			RenderSystem::createSprite(resource, ui_texture_path("unit_selected_button_background.png"), "ui");
 		}
 		else if (button == save_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("save_button.png"), "ui");
@@ -156,7 +156,6 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 	ui_element.scale = vec2({ 1.0f, 1.0f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
 	ui_element.position = vec2(175 + pos * ui_element.scale.x, WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
 
-
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);
 	registry.emplace<UI_button>(entity);
@@ -164,8 +163,6 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 
 	return entity;
 }
-
-
 
 void UI_build_unit::fill_UI_build_unit_component(UI_build_unit& ui_build_unit, Button button)
 {
@@ -220,6 +217,18 @@ entt::entity UI_selected_unit_portrait::createUI_selected_unit_portrait(unit_typ
 		case WALL:
 			file_name = "wall_portrait.png";
 			break;
+		case EXTERMINATOR:
+			file_name = "greehouse_portrait.png";
+			break;
+		case ROBOT:
+			file_name = "greehouse_portrait.png";
+			break;
+		case PRIESTESS:
+			file_name = "greehouse_portrait.png";
+			break;
+		case SNOWMACHINE:
+			file_name = "greehouse_portrait.png";
+			break;
 		}
 		RenderSystem::createSprite(resource, ui_texture_path(file_name), "textured");
 	}
@@ -268,6 +277,210 @@ entt::entity UI_banner::createUI_Banner(std::string content, vec2 position, vec3
 	//timer.counter_ms = duration;
 	return entity;
 }
+
+entt::entity UI_selected_unit::createUI_selected_unit_upgrade_button(int pos, Button button, std::string tag, int unit_type, int path_num, bool show)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "UI_button " + pos + tag;
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		
+		RenderSystem::createSprite(resource, ui_texture_path("unit_selected_button_background.png"), "ui");
+	}
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 91;
+	shaded_mesh.show = show;
+
+	RenderProperty& render_property = registry.emplace<RenderProperty>(entity);
+	render_property.show = show;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = tag;
+	ui_element.scale = static_cast<vec2>(resource.texture.size);
+	ui_element.position = vec2(175 + pos * (ui_element.scale.x + 10), WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
+
+	auto& UIselection = registry.emplace<UI_selected_unit>(entity);
+	UIselection.path_num = path_num;
+	UIselection.unit_type = unit_str.at(unit_type);
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, button);
+	registry.emplace<UI_button>(entity);
+	
+	return entity;
+}
+
+entt::entity UI_selected_unit::create_selected_button_image(vec2 pos, std::string tag, Unit unit)
+{
+	auto entity = registry.create();
+	int path;
+	if (tag == "path_1_upgrade_button") {
+		path = unit.path_1_upgrade;
+	}
+	else if (tag == "path_2_upgrade_button") {
+		path = unit.path_2_upgrade;
+	}
+	else {
+		path = 5;
+	}
+
+	// Create rendering primitives
+	std::string key = "UI_selected_button " + path + tag + unit_str.at(unit.type);
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+
+		RenderSystem::createSprite(resource, ui_texture_path("damage_upgrade.png"), "ui");
+	}
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 95;
+	shaded_mesh.show = true;
+
+	RenderProperty& render_property = registry.emplace<RenderProperty>(entity);
+	render_property.show = true;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = "UI_selected_button " + path + tag + unit_str.at(unit.type);
+	ui_element.scale = static_cast<vec2>(resource.texture.size);
+	ui_element.position = pos;
+
+	return entity;
+}
+
+entt::entity UI_selected_unit::create_selected_button_progress_bar(vec2 pos, int path_num)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "UI_selected_button_progress_bar" + path_num;
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+
+		switch (path_num) {
+		case 0:
+			RenderSystem::createSprite(resource, ui_texture_path("progress_bar_0.png"), "ui");
+			break;
+		case 1:
+			RenderSystem::createSprite(resource, ui_texture_path("progress_bar_1.png"), "ui");
+			break;
+		case 2:
+			RenderSystem::createSprite(resource, ui_texture_path("progress_bar_2.png"), "ui");
+			break;
+		case 3:
+			RenderSystem::createSprite(resource, ui_texture_path("progress_bar_3.png"), "ui");
+			break;
+		}
+	}
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 95;
+	shaded_mesh.show = true;
+
+	RenderProperty& render_property = registry.emplace<RenderProperty>(entity);
+	render_property.show = true;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = "UI_selected_buttonn_progress_bar" + path_num;
+	ui_element.scale = static_cast<vec2>(resource.texture.size) * 0.9f;
+	ui_element.position = pos;
+
+	return entity;
+}
+
+entt::entity UI_sell_button::createUI_sell_button(int pos, Button button, std::string tag, bool show)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "UI_sell_button";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+
+		RenderSystem::createSprite(resource, ui_texture_path("unit_selected_button_background.png"), "ui");
+	}
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 91;
+	shaded_mesh.show = show;
+
+	RenderProperty& render_property = registry.emplace<RenderProperty>(entity);
+	render_property.show = show;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = tag;
+	ui_element.scale = static_cast<vec2>(resource.texture.size);
+	ui_element.position = vec2(175 + pos * (ui_element.scale.x + 10), WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
+
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, button);
+	registry.emplace<UI_button>(entity);
+	registry.emplace<UI_sell_button>(entity);
+
+	UI_sell_button::create_sell_button_icon(vec2(ui_element.position.x - ui_element.scale.x / 4, ui_element.position.y));
+
+	// text
+	float line_size = 35; // relative to the text size
+	// unit name text
+	std::string short_description = "Sell";
+	auto title_text_scale = 0.4f;
+	auto magicalMystery = TextFont::load("data/fonts/MagicalMystery/MAGIMT__.ttf");
+	// place title text at the top
+	float top_margin = 25;
+	auto y_title_offset = ui_element.scale.y / 2 - title_text_scale * line_size - top_margin;
+	vec2 title_text_position = get_center_text_position(vec2(2* ui_element.scale.x / 3, ui_element.scale.y), vec2(ui_element.position.x + ui_element.scale.x / 6, ui_element.position.y), title_text_scale, short_description);
+	auto& title = registry.emplace<Text>(entity, Text(short_description, magicalMystery, vec2(title_text_position.x, title_text_position.y + y_title_offset)));
+	title.scale = title_text_scale;
+	title.colour = { 0.f, 0.f, 0.f };
+
+	return entity;
+}
+
+entt::entity UI_sell_button::create_sell_button_icon(vec2 pos)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "UI_sell_icon";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+
+		RenderSystem::createSprite(resource, ui_texture_path("sell_icon.png"), "ui");
+	}
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 95;
+	shaded_mesh.show = true;
+
+	RenderProperty& render_property = registry.emplace<RenderProperty>(entity);
+	render_property.show = true;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = "UI_sell_icon";
+	ui_element.scale = static_cast<vec2>(resource.texture.size);
+	ui_element.position = pos;
+
+	registry.emplace<UI_sell_button>(entity);
+
+	return entity;
+}
+
 
 void change_button_text(entt::entity button_entity, std::string button_text)
 {

@@ -31,3 +31,15 @@ struct LaserBeam
     float active_timer = 1500;
     entt::entity e_unit;
 };
+
+struct Missile
+{
+    static entt::entity createMissile(entt::entity e_unit, entt::entity e_monster, int damage);
+};
+
+struct Explosion
+{
+    static entt::entity createExplosion(entt::entity e_projectile, int damage);
+    float active_timer = 1500;
+    entt::entity e_unit;
+};
