@@ -86,7 +86,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     num_mobs_spawned(0),
     next_particle_spawn(0),
     num_bosses_spawned(0),
-    round_number(0),
+	world_round_number(0),
 	selected_view_change(true),
 	game_tips(true)
 {
@@ -2036,7 +2036,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 						upgrade_unit_path_1(entity);
 						auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_1);
 						UIselection.path_num += 1;
-						mouse_hover_ui_button(vec2(xpos, ypos));
+						mouse_hover_ui_button();
 					}
 				}
 			}
@@ -2052,7 +2052,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 						upgrade_unit_path_2(entity);
 						auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_2);
 						UIselection.path_num += 1;
-						mouse_hover_ui_button(vec2(xpos, ypos));
+						mouse_hover_ui_button();
 					}
 				}
 			}
