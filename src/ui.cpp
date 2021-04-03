@@ -33,7 +33,7 @@ std::string button_to_string(int button) {
 		return "stick_figure_button";
 	case wall_button:
 		return "wall_button";
-	case save_button:
+	case menu_save_button:
 		return "save_button";
 	case tips_button:
 		return "tips_button";

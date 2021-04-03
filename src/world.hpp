@@ -39,6 +39,7 @@ public:
 
 	// restart level
 	void restart();
+	void restart_with_save();
 
 	// start round
 	void start_round();
@@ -211,6 +212,8 @@ private:
 	entt::entity weather_text_entity;
 	entt::entity season_wheel_arrow_entity;
 	entt::entity weather_icon_entity;
+	entt::entity pause_menu_entity;
+	entt::entity help_menu_entity;
 	unit_type placement_unit_selected;
 
 
