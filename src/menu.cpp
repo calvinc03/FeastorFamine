@@ -3,7 +3,7 @@
 #include "menu.hpp"
 #include "render.hpp"
 
-entt::entity Menu::createMenu(double x, double y, std::string menu_name, Menu_texture texture, int layer, vec2 scale)
+entt::entity Menu::createMenu(float x, float y, std::string menu_name, Menu_texture texture, int layer, vec2 scale)
 {
 	auto entity = registry.create();
 	// Create rendering primitives
@@ -23,6 +23,9 @@ entt::entity Menu::createMenu(double x, double y, std::string menu_name, Menu_te
 			case help_menu:
 				texture_file_name = "help_menu.png";
 				break;
+			case pause_menu:
+				texture_file_name = "pause_menu_background.png";
+				break;
 			default:
 				texture_file_name = "title_screen.png";
 				break;
@@ -35,11 +38,11 @@ entt::entity Menu::createMenu(double x, double y, std::string menu_name, Menu_te
 	shaded_mesh_ref.layer = layer;
 
 	// Setting initial motion values
-	Motion& motion = registry.emplace<Motion>(entity);
-	motion.angle = 0.f;
-	motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
-	motion.scale = scale * static_cast<vec2>(resource.texture.size);
-	motion.position = { x, y };
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.angle = 0.f;
+	ui_element.tag = menu_name;
+	ui_element.scale = scale * static_cast<vec2>(resource.texture.size);
+	ui_element.position = { x, y };
 
 	registry.emplace<Menu>(entity);
 

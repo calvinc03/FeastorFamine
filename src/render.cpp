@@ -4,6 +4,7 @@
 #include "camera.hpp"
 #include "ui.hpp"
 #include "particle.hpp"
+#include "menu.hpp"
 
 #include "text.hpp"
 #include "entt.hpp"
