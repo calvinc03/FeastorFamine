@@ -187,7 +187,7 @@ public:
 
         // TODO: create on hit and damaged(hp<=0) appearances for unit
         unit.health -= monster.damage;
-        create_hit_points_text(monster.damage, entity_to_attack);
+        
         auto &hit_reaction = registry.get<HitReaction>(entity_to_attack);
         hit_reaction.counter_ms = 750;
 

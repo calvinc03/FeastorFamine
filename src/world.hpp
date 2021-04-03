@@ -80,7 +80,7 @@ public:
 	bool is_over() const;
 
 	static void deduct_health(int num);
-
+	static void add_health(int num);
 	// OpenGL window handle
 	GLFWwindow *window;
 

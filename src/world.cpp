@@ -49,7 +49,7 @@
 
 const size_t ANIMATION_FPS = 20;
 const size_t GREENHOUSE_REWARD = 80;
-const int STARTING_HEALTH = 10000;
+const int STARTING_HEALTH = 1000;
 
 int WorldSystem::health = 1000;
 float WorldSystem::reward_multiplier = 1.f;
@@ -390,6 +390,20 @@ void WorldSystem::step(float elapsed_ms)
 				registry.destroy(entity);
 			}
 		}
+
+		// change hit point text scale
+		auto view_hitpoints_text = registry.view<HitPointsText>();
+		for (auto entity : view_hitpoints_text)
+		{
+			auto& hitpoints_text = view_hitpoints_text.get<HitPointsText>(entity);
+			auto& text = registry.get<Text>(entity);
+			float scale_change = 0.005 * elapsed_ms * current_speed;
+			if (text.scale - scale_change > hitpoints_text.min_scale)
+			{
+				text.scale -= scale_change;
+			}
+		}
+
 		auto& food_num_text = registry.get<Text>(food_text_entity);
 		food_num_text.content = std::to_string(health);
 	}
@@ -460,8 +474,14 @@ void WorldSystem::handle_game_tips()
 }
 
 void WorldSystem::deduct_health(int num) {
-	// do nothing
-	(void)num;
+	WorldSystem::health -= num;
+	HealthChangeText::create_haelth_deduct_text(num, health);
+}
+
+
+void WorldSystem::add_health(int num) {
+	WorldSystem::health += num;
+	HealthChangeText::create_haelth_gain_text(num, health);
 }
 
 void un_highlight()
@@ -500,7 +520,7 @@ void WorldSystem::setup_game_setup_stage()
 		}
 	}
 	// remove hit point text that are still on the screen
-	auto view_hit_point_text = registry.view<HitPointsText>();
+	auto view_hit_point_text = registry.view<DisappearingText>();
 	for (auto entity : view_hit_point_text)
 	{
 		registry.destroy(entity);
@@ -565,6 +585,17 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		ParticleSystem::createParticle(velocity, position, life, texture, shader);
 	}
 
+	// remove disapperaing text when time's up 
+	auto view_disappearing_text = registry.view<DisappearingText>();
+	for (auto entity : view_disappearing_text)
+	{
+		auto& disap_time = view_disappearing_text.get<DisappearingText>(entity);
+		disap_time.on_screen_time_ms -= elapsed_ms * current_speed;
+		if (disap_time.on_screen_time_ms < 0)
+		{
+			registry.destroy(entity);
+		}
+	}
 
 	//registry.get<Text>(round_text_entity).content = std::to_string(round_number + 1);
 	// only supports up to 2 digit rounds (99 max round)
@@ -840,15 +871,15 @@ void WorldSystem::collision_monster_handle(entt::entity e_monster, int damage) {
 	monster.collided = true;
 
 	// add hit point text
-	create_hit_points_text(damage, e_monster);
+	HitPointsText::create_hit_points_text(damage, e_monster);
 
 	auto& hit_reaction = registry.get<HitReaction>(e_monster);
 	hit_reaction.counter_ms = 750; //ms duration used by health bar
 
 	if (monster.health <= 0)
 	{
-		health += (int)((float)monster.reward * reward_multiplier);
-
+		//health += (int)((float)monster.reward * reward_multiplier);
+		add_health((int)((float)monster.reward * reward_multiplier));
 		if (registry.has<Rig>(e_monster)) {
 			Rig::delete_rig(e_monster); //rigs have multiple pieces to be deleted
 		}
@@ -1912,49 +1943,49 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				if (placement_unit_selected == HUNTER && health >= hunter_unit.cost)
 				{
                     entity = Hunter::createHunter(unit_position);
-					health -= hunter_unit.cost;
+					deduct_health(hunter_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == GREENHOUSE && health >= greenhouse_unit.cost)
 				{
 					entity = GreenHouse::createGreenHouse(unit_position);
-					health -= greenhouse_unit.cost;
+					deduct_health(greenhouse_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == WATCHTOWER && health >= watchtower_unit.cost)
 				{
 					entity = WatchTower::createWatchTower(unit_position);
-					health -= watchtower_unit.cost;
+					deduct_health(watchtower_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == EXTERMINATOR && health >= exterminator_unit.cost)
 				{
 					entity = Exterminator::createExterminator(unit_position);
-					health -= exterminator_unit.cost;
+					deduct_health(exterminator_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == ROBOT && health >= robot_unit.cost)
 				{
 					entity = Robot::createRobot(unit_position);
-					health -= robot_unit.cost;
+					deduct_health(robot_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == PRIESTESS && health >= priestess_unit.cost)
 				{
 					entity = Priestess::createPriestess(unit_position);
-					health -= priestess_unit.cost;
+					deduct_health(priestess_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == SNOWMACHINE && health >= snowmachine_unit.cost)
 				{
 					entity = SnowMachine::createSnowMachine(unit_position);
-					health -= snowmachine_unit.cost;
+					deduct_health(snowmachine_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == WALL && health >= wall_unit.cost)
 				{
 					entity = Wall::createWall(unit_position, false);
-					health -= wall_unit.cost;
+					deduct_health(wall_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else
