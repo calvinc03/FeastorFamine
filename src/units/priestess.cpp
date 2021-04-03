@@ -1,5 +1,6 @@
 // Header
 #include "priestess.hpp"
+#include <iostream>
 
 entt::entity Priestess::createPriestess(vec2 pos)
 {
@@ -33,4 +34,32 @@ entt::entity Priestess::createPriestess(vec2 pos)
     registry.emplace<HighlightBool>(entity);
     registry.emplace<HitReaction>(entity);
     return entity;
+}
+
+void Priestess::updateBuffs() {
+
+    for (auto e_unit : registry.view<Unit>())
+    {
+        if (registry.has<Priestess>(e_unit)) continue;
+        auto& unit_motion = registry.get<Motion>(e_unit);
+
+        float largest_damage_buff = 0.f;
+        float largest_attack_speed_buff = 1.0f;
+        for (auto e_priestess : registry.view<Priestess>()) {
+            auto& priestess_motion = registry.get<Motion>(e_priestess);
+            auto& priestess_unit = registry.get<Unit>(e_priestess);
+
+            float distance = length(unit_motion.position - priestess_motion.position);
+            if (distance < priestess_unit.attack_range)
+            {
+                largest_damage_buff = largest_damage_buff < priestess_unit.damage ? priestess_unit.damage : largest_damage_buff;
+                largest_attack_speed_buff = largest_attack_speed_buff < priestess_unit.attack_interval_ms ? priestess_unit.attack_interval_ms : largest_attack_speed_buff;
+                std::cout << largest_attack_speed_buff << "\n";
+            }
+        }
+        std::cout << largest_attack_speed_buff << "\n";
+        auto& unit = registry.get<Unit>(e_unit);
+        unit.damage_buff = largest_damage_buff;
+        unit.attack_speed_buff = largest_attack_speed_buff;
+    }
 }

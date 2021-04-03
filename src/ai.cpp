@@ -15,6 +15,7 @@
 #include <monsters/final_boss.hpp>
 #include <monsters/fireball_boss.hpp>
 #include <units/unit.hpp>
+#include <units/priestess.hpp>
 
 const size_t BULLET_UPGRADE = 2;
 const size_t FLAMETHROWER_UPGRADE = 3;
@@ -92,7 +93,7 @@ void AISystem::step(float elapsed_ms)
             auto& motion_m = registry.get<Motion>(monster);
 
             float distance_to_hunter = length(motion_m.position - motion_h.position);
-            if (distance_to_hunter <= placeable_unit.attack_range) {
+            if (distance_to_hunter < placeable_unit.attack_range) {
                 priority_queue.push(monster);
             }
         }
@@ -115,13 +116,12 @@ void AISystem::step(float elapsed_ms)
 
                 vec2 direction = motion_monster.position - motion_h.position;
                 motion_h.angle = atan2(direction.y, direction.x);
-
-                placeable_unit.create_projectile(hunter, monster, placeable_unit.damage);
+                placeable_unit.create_projectile(hunter, monster, placeable_unit.damage + placeable_unit.damage_buff);
                 num_spawned_prj += 1;
                 
             }
             if (num_spawned_prj >= 1)
-                placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms;
+                placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms / placeable_unit.attack_speed_buff;
         }
     }
 }

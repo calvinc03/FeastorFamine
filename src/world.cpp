@@ -48,8 +48,7 @@
 #include <units/snowmachine.hpp>
 
 const size_t ANIMATION_FPS = 20;
-const size_t GREENHOUSE_REWARD = 80;
-const int STARTING_HEALTH = 10000;
+const int STARTING_HEALTH = 100;
 
 int WorldSystem::health = 1000;
 float WorldSystem::reward_multiplier = 1.f;
@@ -305,8 +304,11 @@ void WorldSystem::step(float elapsed_ms)
 				num_mobs_spawned = 0;
 				setup_game_setup_stage();
 
-				health += (int)(registry.view<GreenHouse>().size() * GREENHOUSE_REWARD * reward_multiplier);
-				// auto save
+				for (auto entity : registry.view<GreenHouse>())
+				{
+					auto greenhouse = registry.get<Unit>(entity);
+					health += greenhouse.damage * (int) reward_multiplier;
+				}
 				save_game();
 			}
 		}
@@ -1013,22 +1015,43 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	else if (action == GLFW_PRESS && key == GLFW_KEY_1)
 	{
 		placement_unit_selected = WATCHTOWER;
+		create_unit_indicator = WatchTower::createWatchTower;
 	}
 	else if (action == GLFW_PRESS && key == GLFW_KEY_2)
 	{
 		placement_unit_selected = GREENHOUSE;
+		create_unit_indicator = GreenHouse::createGreenHouse;
 	}
     else if (action == GLFW_PRESS && key == GLFW_KEY_3)
 	{
-		//placement_unit_selected = HUNTER;
-		//placement_unit_selected = EXTERMINATOR;
-		placement_unit_selected = ROBOT;
+		placement_unit_selected = HUNTER;
+		create_unit_indicator = Hunter::createHunter;
 	}
     else if (action == GLFW_PRESS && key == GLFW_KEY_4)
     {
         placement_unit_selected = WALL;
+		create_unit_indicator = Wall::createWall;
     }
-
+	else if (action == GLFW_PRESS && key == GLFW_KEY_5)
+	{
+		placement_unit_selected = EXTERMINATOR;
+		create_unit_indicator = Exterminator::createExterminator;
+	}
+	else if (action == GLFW_PRESS && key == GLFW_KEY_6)
+	{
+		placement_unit_selected = ROBOT;
+		create_unit_indicator = Robot::createRobot;
+	}
+	else if (action == GLFW_PRESS && key == GLFW_KEY_7)
+	{
+		placement_unit_selected = PRIESTESS;
+		create_unit_indicator = Priestess::createPriestess;
+	}
+	else if (action == GLFW_PRESS && key == GLFW_KEY_8)
+	{
+		placement_unit_selected = SNOWMACHINE;
+		create_unit_indicator = SnowMachine::createSnowMachine;
+	}
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R)
 	{
@@ -1086,7 +1109,7 @@ void WorldSystem::resume_game()
 
 bool mouse_in_game_area(vec2 mouse_pos)
 {
-	return (mouse_pos.x > 0 && mouse_pos.y > 0 && mouse_pos.x < MAP_SIZE_IN_PX.x && mouse_pos.y < MAP_SIZE_IN_PX.y + UI_TOP_BAR_HEIGHT);
+	return (mouse_pos.x > 0 && mouse_pos.y > UI_TOP_BAR_HEIGHT && mouse_pos.x < MAP_SIZE_IN_PX.x && mouse_pos.y < MAP_SIZE_IN_PX.y + UI_TOP_BAR_HEIGHT);
 }
 
 void WorldSystem::scroll_callback(double xoffset, double yoffset)
@@ -1278,6 +1301,28 @@ void mouse_hover_ui_button()
 	}
 }
 
+//helper function for on_mouse_move 
+void WorldSystem::createEntityRangeIndicator(vec2 mouse_pos)
+{
+	if (registry.valid(entity_selected)) {
+		auto& unit = registry.get<Unit>(entity_selected);
+		
+		if (placement_unit_selected == unit.type)
+		{
+			auto& motion = registry.get<Motion>(entity_selected);
+			motion.position = mouse_pos;
+		}
+		else 
+		{
+			registry.destroy(entity_selected);
+			entity_selected = create_unit_indicator(mouse_pos);
+		}
+	}
+	else {
+		entity_selected = create_unit_indicator(mouse_pos);
+	}
+}
+
 void WorldSystem::on_mouse_move(vec2 mouse_pos)
 {
 	if (game_state == in_game) {
@@ -1287,7 +1332,14 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 		mouse_hover_ui_button();
 		bool in_game_area = mouse_in_game_area(mouse_pos);
 		if (in_game_area && placement_unit_selected != NONE && player_state == set_up_stage)
+		{
 			grid_highlight_system(mouse_pos, placement_unit_selected, current_map);
+			createEntityRangeIndicator(mouse_pos);
+		}
+		else {
+			if (registry.valid(entity_selected))
+				registry.destroy(entity_selected);
+		}
 	}
 }
 
@@ -1298,8 +1350,12 @@ void update_unit_stats(Unit unit)
 	int x_position = 200;
 	int y_position = 65;
 	int y_line_offset = 15;
+	entt::entity damage_stats;
 	// create stats text
-	auto damage_stats = create_ui_text(vec2(x_position, y_position), "Attack Damage: " + std::to_string(unit.damage));
+	if (unit.damage_buff > 0) 
+		damage_stats = create_ui_text(vec2(x_position, y_position), "Attack Damage: " + std::to_string(unit.damage + unit.damage_buff), 0.3f, {1, 0, 0});
+	else
+		damage_stats = create_ui_text(vec2(x_position, y_position), "Attack Damage: " + std::to_string(unit.damage));
 	registry.emplace<UI_unit_stats>(damage_stats);
 
 	// attacks per seconds
@@ -1309,12 +1365,24 @@ void update_unit_stats(Unit unit)
 		aps = 1000 / (float)unit.attack_interval_ms;
 	}
 	
-	// display aps to 2 decimals
-	std::ostringstream aps_out;
-	aps_out.precision(2);
-	aps_out << std::fixed << aps;
+	entt::entity attack_speed_stats;
+	if (unit.attack_speed_buff > 1) {
+		// display aps to 2 decimals
+		std::ostringstream aps_out;
+		aps_out.precision(2);
+		aps_out << std::fixed << (aps * unit.attack_speed_buff);
 
-	auto attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), "Attack speed: " + aps_out.str() + " (aps)");
+		attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), "Attack speed: " + aps_out.str() + " (aps)", 0.3f, {1,0,0});
+	}
+	else {
+		// display aps to 2 decimals
+		std::ostringstream aps_out;
+		aps_out.precision(2);
+		aps_out << std::fixed << aps;
+
+		attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), "Attack speed: " + aps_out.str() + " (aps)");
+	}
+	
 	registry.emplace<UI_unit_stats>(attack_speed_stats);
 
 	// attack range
@@ -1944,6 +2012,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					entity = Priestess::createPriestess(unit_position);
 					health -= priestess_unit.cost;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
+					Priestess::updateBuffs();
 				}
 				else if (placement_unit_selected == SNOWMACHINE && health >= snowmachine_unit.cost)
 				{
@@ -1953,7 +2022,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				}
 				else if (placement_unit_selected == WALL && health >= wall_unit.cost)
 				{
-					entity = Wall::createWall(unit_position, false);
+					entity = Wall::createWall(unit_position/*, false*/);
 					health -= wall_unit.cost;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
@@ -1968,6 +2037,10 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
                     current_map.setGridOccupancy(node.coord, placement_unit_selected, entity, motion.scale);
 				}
 				placement_unit_selected = NONE;
+
+				if (registry.valid(entity_selected))
+					registry.destroy(entity_selected);
+
 				un_highlight();
 			}
 		}
@@ -1981,7 +2054,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					WorldSystem::tip_manager.tower_tip = false;
 					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, tower_tips);
 				}
-
+				create_unit_indicator = WatchTower::createWatchTower;
 				placement_unit_selected = WATCHTOWER;
 			}
 			else if (ui_button == Button::green_house_button)
@@ -1994,6 +2067,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				}
 
 				placement_unit_selected = GREENHOUSE;
+				create_unit_indicator = GreenHouse::createGreenHouse;
 			}
 			else if (ui_button == Button::hunter_button)
 			{
@@ -2005,6 +2079,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				}
 
 				placement_unit_selected = HUNTER;
+				create_unit_indicator = Hunter::createHunter;
 			}
 			else if (ui_button == Button::wall_button)
 			{
@@ -2014,7 +2089,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					WorldSystem::tip_manager.wall_tip = false;
 					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, wall_tips);
 				}
-
+				create_unit_indicator = Wall::createWall;
 				placement_unit_selected = WALL;
 			}
 			else if (ui_button == Button::sell_button)
@@ -2027,7 +2102,6 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					{
 						auto& unit = view_unit.get<Unit>(entity);
 						health += unit.sell_price;
-						std::cout << "sell clicked \n";
 						sell_unit(entity);
 					}
 				}
@@ -2243,7 +2317,7 @@ void WorldSystem::load_game()
 		}
 		else if (type == WALL)
 		{
-			entity = Wall::createWall({x, y}, unit["rotate"]);
+			entity = Wall::createWall({x, y}/*, unit["rotate"]*/);
 		}
 		else if (type == HUNTER)
 		{

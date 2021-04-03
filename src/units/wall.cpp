@@ -4,18 +4,18 @@
 #include "render.hpp"
 #include "unit.hpp"
 
-entt::entity Wall::createWall(vec2 position, bool rotate) // rotation should be based on direction of path
+entt::entity Wall::createWall(vec2 position/*, bool rotate*/) // rotation should be based on direction of path
 {
 	auto entity = registry.create();
 	// Create rendering primitives
-	std::string key = "wall" + rotate;
+	std::string key = "wall"/* + rotate*/;
 	ShadedMesh& resource = cache_resource(key);
 	if (resource.effect.program.resource == 0) {
 		resource = ShadedMesh();
 		
-		if(rotate) 
+		/*if(rotate) 
 			RenderSystem::createSprite(resource, textures_path("units/wall90.png"), "textured");
-		else
+		else*/
 			RenderSystem::createSprite(resource, textures_path("units/wall.png"), "textured");
 	}
 

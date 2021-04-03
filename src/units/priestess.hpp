@@ -10,4 +10,5 @@ struct Priestess
 {
     // Creates all the associated render resources and default transform
     static entt::entity createPriestess(vec2 pos);
+    static void updateBuffs();
 };

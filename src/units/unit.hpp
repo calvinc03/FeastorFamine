@@ -23,6 +23,8 @@ struct Unit {
 	unsigned int sell_price = 0;
 	unsigned int health = 100;
 	unsigned int max_health = 100;
+	int damage_buff;
+	float attack_speed_buff;
 };
 
 const Unit hunter_unit = {
@@ -42,6 +44,8 @@ const Unit hunter_unit = {
 	unit_sell_price.at(HUNTER),	            //sell_price
 	unit_health.at(HUNTER),	                //health
 	unit_health.at(HUNTER),	                //max_health
+	0,                                      //damage_buff
+	1                                       //attack_speed_buff
 };
 
 const Unit watchtower_unit = {
@@ -61,6 +65,8 @@ const Unit watchtower_unit = {
 	unit_sell_price.at(WATCHTOWER),	            //sell_price
 	unit_health.at(WATCHTOWER),	                //health
 	unit_health.at(WATCHTOWER),	                //max_health
+	0,                                          //damage_buff
+	1                                           //attack_speed_buff
 };
 
 const Unit greenhouse_unit = {
@@ -80,6 +86,8 @@ const Unit greenhouse_unit = {
 	unit_sell_price.at(GREENHOUSE),	            //sell_price
 	unit_health.at(GREENHOUSE),	                //health
 	unit_health.at(GREENHOUSE),	                //max_health
+	0,                                          //damage_buff
+	1                                           //attack_speed_buff
 };
 
 const Unit exterminator_unit = {
@@ -99,6 +107,8 @@ const Unit exterminator_unit = {
 	unit_sell_price.at(EXTERMINATOR),	          //sell_price
 	unit_health.at(EXTERMINATOR),	              //health
 	unit_health.at(EXTERMINATOR),	              //max_health
+	0,                                            //damage_buff
+	1                                             //attack_speed_buff
 };
 
 const Unit priestess_unit = {
@@ -118,6 +128,8 @@ const Unit priestess_unit = {
 	unit_sell_price.at(PRIESTESS),	            //sell_price
 	unit_health.at(PRIESTESS),	                //health
 	unit_health.at(PRIESTESS),	                //max_health
+	0,                                          //damage_buff
+	1                                           //attack_speed_buff
 };
 
 const Unit snowmachine_unit = {
@@ -137,6 +149,8 @@ const Unit snowmachine_unit = {
 	unit_sell_price.at(SNOWMACHINE),	         //sell_price
 	unit_health.at(SNOWMACHINE),	             //health
 	unit_health.at(SNOWMACHINE),	             //max_health
+	0,                                           //damage_buff
+	1                                            //attack_speed_buff
 };
 
 const Unit robot_unit = {
@@ -156,6 +170,8 @@ const Unit robot_unit = {
 	unit_sell_price.at(ROBOT),	           //sell_price
 	unit_health.at(ROBOT),	               //health
 	unit_health.at(ROBOT),	               //max_health
+	0,                                     //damage_buff
+	1                                      //attack_speed_buff
 };
 
 const Unit wall_unit = {
@@ -175,6 +191,8 @@ const Unit wall_unit = {
 	unit_sell_price.at(WALL),	          //sell_price
 	unit_health.at(WALL),	              //health
 	unit_health.at(WALL),	              //max_health
+	0,                                    //damage_buff
+	1                                     //attack_speed_buff
 };
 
 const std::map<unit_type, Unit> unit_configs = {

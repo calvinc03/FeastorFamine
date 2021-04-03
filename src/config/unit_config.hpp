@@ -6,23 +6,23 @@
 const std::map<unit_type, int> unit_damage = {
 	{HUNTER, 15},
 	{WATCHTOWER, 10},
-	{GREENHOUSE, 0},
+	{GREENHOUSE, 60},
 	{EXTERMINATOR, 10},
 	{ROBOT, 15},
-	{PRIESTESS, 10},
+	{PRIESTESS, 5},
 	{SNOWMACHINE, 10},
 	{WALL, 0}
 };
 
-const std::map<unit_type, size_t> unit_attack_interval_ms = {
-	{HUNTER, 1500},
-	{WATCHTOWER, 800},
-	{GREENHOUSE, 0},
-	{EXTERMINATOR, 2000},
-	{ROBOT, 2000},
-	{PRIESTESS, 0},
-	{SNOWMACHINE, 1500},
-	{WALL, 0}
+const std::map<unit_type, float> unit_attack_interval_ms = {
+	{HUNTER, 1500.f},
+	{WATCHTOWER, 800.f},
+	{GREENHOUSE, 0.f},
+	{EXTERMINATOR, 2000.f},
+	{ROBOT, 2000.f},
+	{PRIESTESS, 1.25f},
+	{SNOWMACHINE, 1500.f},
+	{WALL, 0.f}
 };
 
 const std::map<unit_type, int> unit_attack_range = {
@@ -31,7 +31,7 @@ const std::map<unit_type, int> unit_attack_range = {
 	{GREENHOUSE, 0},
 	{EXTERMINATOR, 200},
 	{ROBOT, 300},
-	{PRIESTESS, 0},
+	{PRIESTESS, 300},
 	{SNOWMACHINE, 300},
 	{WALL, 0}
 };

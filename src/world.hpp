@@ -211,8 +211,10 @@ private:
 	entt::entity weather_text_entity;
 	entt::entity season_wheel_arrow_entity;
 	entt::entity weather_icon_entity;
+	
 	unit_type placement_unit_selected;
-
+	entt::entity entity_selected;
+	entt::entity (* create_unit_indicator)(vec2 pos);
 
 	// remove entities from start menu
 	void remove_menu_buttons();
@@ -231,6 +233,9 @@ private:
 	void help_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void story_card_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_clicked);
+
+	//helper for on_mouse_move
+	void createEntityRangeIndicator(vec2 mouse_pos);
 
 	// music references
 	Mix_Music* background_music;
