@@ -334,7 +334,7 @@ void increment_monster_step(entt::entity entity) {
 	// TODO: make disappearance fancier
 	if (pixel_to_coord(motion.position) == VILLAGE_COORD
 		|| monster.current_path_index >= monster.path_coords.size() - 1) {
-		WorldSystem::health -= monster.damage;
+		WorldSystem::deduct_health(monster.damage);
 		motion.velocity *= 0;
 
 		if (registry.has<Rig>(entity)) {
