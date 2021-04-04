@@ -27,7 +27,7 @@ class WorldSystem : public Observer
 {
 public:
 	// Creates a window
-	WorldSystem(ivec2 window_size_px, PhysicsSystem *physics);
+	WorldSystem(ivec2 window_size_px, PhysicsSystem* physics);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -39,6 +39,7 @@ public:
 
 	// restart level
 	void restart();
+	void restart_with_save();
 
 	// start round
 	void start_round();
@@ -58,7 +59,7 @@ public:
 	void sell_unit(entt::entity& entity);
 
 	// setup game setup stage
-	void setup_game_setup_stage();
+	void prepare_setup_stage();
 
 	// helper for path to round jsons
 	void setup_round_from_round_number(int round_number);
@@ -72,6 +73,9 @@ public:
 	// Steps the game during set up rounds
 	void set_up_step(float elapsed_ms);
 
+	// End of battle phase
+	void end_battle_phase();
+
 	// Renders our scene
 	void draw();
 
@@ -79,15 +83,15 @@ public:
 	bool is_over() const;
 
 	static void deduct_health(int num);
-
+	static void add_health(int num);
 	// OpenGL window handle
-	GLFWwindow *window;
+	GLFWwindow* window;
 
 	// game state
 	int game_state;
 	bool game_tips;
-    
-    // Particle System
+
+	// Particle System
 //    GLuint billboard_vertex_buffer;
 //    GLuint particles_position_buffer;
 
@@ -114,7 +118,7 @@ public:
 
 	// health of the village
 	static int health;
-    static GridMap current_map;
+	static GridMap current_map;
 
 	// tutorial tip manager
 	TipManager tip_manager;
@@ -122,9 +126,12 @@ public:
 	// decrease reward at higher levels
 	static float reward_multiplier;
 
+	// speed up factor for fastforwarding time
+	static float speed_up_factor;
+
 private:
 	// PhysicsSystem handle
-	PhysicsSystem *physics;
+	PhysicsSystem* physics;
 
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -154,47 +161,57 @@ private:
 	float next_boss_spawn;
 	int next_fireball_spawn;
 	float next_mob_spawn;
-    float next_particle_spawn;
-    
-    // Season
-    int season;
-    
-    enum season
-    {
-        SPRING = 0,
-        SUMMER = 1,
-        FALL = 2,
-        WINTER = 3
-    };
-        
-    // Weather
-    int weather;
+	float next_particle_spawn;
 
-    
-    enum weather
-    {
-        CLEAR = 0,
-        RAIN = 1,
-        DROUGHT = 2,
-        FOG = 3,
-        SNOW = 4,
-    };
-    
+	// Season
+	int season;
+
+	enum season
+	{
+		SPRING = 0,
+		SUMMER = 1,
+		FALL = 2,
+		WINTER = 3
+	};
+
+	// Weather
+	int weather;
+
+
+	enum weather
+	{
+		CLEAR = 0,
+		RAIN = 1,
+		DROUGHT = 2,
+		FOG = 3,
+		SNOW = 4,
+	};
+
 	int mob_delay_ms;
 	int max_mobs;
 	int boss_delay_ms;
 	int max_boss;
 	int fireball_delay_ms;
-    
+	// end of battle stage delay 
+	float end_of_battle_stage_dealy_ms = END_OF_BATTLE_STAGE_DELAY_MS;
+	// greenhouse food already increased
+	bool greenhouse_food_increased = false;
 
 	int num_mobs_spawned;
 	int num_bosses_spawned;
-	entt::entity (*create_boss)();
+	entt::entity(*create_boss)();
 
-    std::shared_ptr<BTNode> BTCollision;
+	std::shared_ptr<BTNode> BTCollision;
 
 	// round and set up
 	int world_round_number;
+
+	// flag for selected view bottom ui
+	bool selected_view_change;
+	entt::entity previous_selected;
+	entt::entity upgrade_button_1;
+	entt::entity upgrade_button_2;
+	entt::entity button_sell;
 
 	//UI
 	entt::entity round_text_entity;
@@ -204,8 +221,14 @@ private:
 	entt::entity weather_text_entity;
 	entt::entity season_wheel_arrow_entity;
 	entt::entity weather_icon_entity;
+	entt::entity pause_menu_entity;
+	entt::entity help_menu_entity;
+	
 	unit_type placement_unit_selected;
-
+	entt::entity entity_selected;
+	entt::entity entity_range_circle;
+	entt::entity selected_range_circle;
+	entt::entity(*create_unit_indicator)(vec2 pos);
 
 	// remove entities from start menu
 	void remove_menu_buttons();
@@ -221,8 +244,12 @@ private:
 	void paused_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void settings_menu_click_handle(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod);
 	vec2 on_click_select_unit(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
+	bool click_on_unit(double mouse_pos_x, double mouse_pos_y);
 	void help_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void story_card_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
+	void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_clicked);
+
+	void createEntityRangeIndicator(vec2 mouse_pos);
 
 	// music references
 	Mix_Music* background_music;

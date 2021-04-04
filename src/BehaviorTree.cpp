@@ -187,7 +187,7 @@ public:
 
         // TODO: create on hit and damaged(hp<=0) appearances for unit
         unit.health -= monster.damage;
-        create_hit_points_text(monster.damage, entity_to_attack);
+        
         auto &hit_reaction = registry.get<HitReaction>(entity_to_attack);
         hit_reaction.counter_ms = 750;
 
@@ -334,7 +334,7 @@ void increment_monster_step(entt::entity entity) {
 	// TODO: make disappearance fancier
 	if (pixel_to_coord(motion.position) == VILLAGE_COORD
 		|| monster.current_path_index >= monster.path_coords.size() - 1) {
-		WorldSystem::health -= monster.damage;
+		WorldSystem::deduct_health(monster.damage);
 		motion.velocity *= 0;
 
 		if (registry.has<Rig>(entity)) {
@@ -348,7 +348,7 @@ void increment_monster_step(entt::entity entity) {
 	}
 
 	assert(monster.path_coords[monster.current_path_index] == current_path_coord);
-    float time_step = ELAPSED_MS / 1000.f;
+    float time_step = ELAPSED_MS / 1000.f * WorldSystem::speed_up_factor;
 	ivec2 next_path_coord = monster.path_coords.at(monster.current_path_index + 1);
 	vec2 next_step_position = motion.position + time_step * motion.velocity;
 	ivec2 next_step_coord = pixel_to_coord(next_step_position);

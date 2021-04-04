@@ -1,7 +1,7 @@
 // Header
-#include "exterminator.hpp"
+#include "snowmachine.hpp"
 
-entt::entity Exterminator::createExterminator(vec2 pos)
+entt::entity SnowMachine::createSnowMachine(vec2 pos)
 {
     // Reserve an entity
     auto entity = registry.create();
@@ -14,7 +14,7 @@ entt::entity Exterminator::createExterminator(vec2 pos)
         resource = ShadedMesh();
         RenderSystem::createSprite(resource, textures_path("units/hunter.png"), "unit");
     }
-    
+
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
     shaded_mesh.layer = 50;
@@ -26,9 +26,9 @@ entt::entity Exterminator::createExterminator(vec2 pos)
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
 
     auto& unit = registry.emplace<Unit>(entity);
-    unit = exterminator_unit;
+    unit = snowmachine_unit;
 
-    registry.emplace<Exterminator>(entity);
+    registry.emplace<SnowMachine>(entity);
     registry.emplace<Selectable>(entity);
     registry.emplace<HighlightBool>(entity);
     registry.emplace<HitReaction>(entity);

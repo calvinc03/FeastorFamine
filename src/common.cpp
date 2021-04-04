@@ -69,22 +69,6 @@ vec2 grid_to_pixel_velocity(vec2 unit_velocity) {
     return unit_velocity * (vec2) GRID_CELL_SIZE;
 }
 
-// create hit points when projectile hits monsters
-void create_hit_points_text(int hit_points, entt::entity e_damaged)
-{
-    // used to scale the hit points size
-    float max_possible_damage = MAX_POSSIBLE_DAMAGE;
-    float min_text_size = 0.5;
-    float max_text_size = 1.5;
-
-    auto motion = registry.get<Motion>(e_damaged);
-    float on_screen_time_ms = 300;
-    float text_scale = (float)hit_points * (max_text_size - min_text_size) / max_possible_damage + min_text_size;
-
-    auto d_text = DisappearingText::createDisappearingText(std::to_string(hit_points), motion.position, on_screen_time_ms, text_scale);
-    registry.emplace<HitPointsText>(d_text);
-}
-
 bool is_inbounds(ivec2 grid_coord) {
     return grid_coord.x >= 0 && grid_coord.y >= 0 && grid_coord.x < MAP_SIZE_IN_COORD.x && grid_coord.y < MAP_SIZE_IN_COORD.y;
 }

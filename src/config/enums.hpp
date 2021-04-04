@@ -33,6 +33,10 @@ enum unit_type
     VILLAGE,
     WATCHTOWER,
     GREENHOUSE,
+    EXTERMINATOR,
+    PRIESTESS,
+    SNOWMACHINE,
+    ROBOT,
     HUNTER,
     WALL,
 };
@@ -78,6 +82,20 @@ enum Button
     tips_button
 };
 
+// Menu button
+enum MenuButtonType
+{ 
+    no_menu_button_pressed,
+    new_game_button,
+    load_game_button,
+    help_button,
+    settings_button,
+    exit_button,
+    empty_button,
+    back_button,
+    restart_round_button,
+    menu_save_button
+};
 //enum directions
 //{
 //    UP,

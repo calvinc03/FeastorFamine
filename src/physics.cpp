@@ -46,6 +46,12 @@ std::vector<vec2> get_box_vertices(entt::entity entity)
 		points.push_back(motion.position + vec2(x_direction, y_direction));
 		points.push_back(motion.position - vec2(x_direction, y_direction));
 	}
+	else if (registry.has<IceField>(entity)) {
+		for (float i = 0; i < 2 * PI; i += PI / 4)
+		{
+			points.push_back(motion.position + 148.f * vec2(cos(i), sin(i)));
+		}
+	}
 	else {
 		points.push_back(motion.position + motion.boundingbox / 2.f);
 		points.push_back(motion.position + vec2(motion.boundingbox.x, -motion.boundingbox.y) / 2.f);
@@ -251,10 +257,10 @@ void PhysicsSystem::update_projectiles(float elapsed_ms)
 {
 	float step_seconds = 1.0f * (elapsed_ms / 1000.f);
 
-	for (auto entity : registry.view<RockProjectile>()) {
+	for (auto entity : registry.view<Snowball>()) {
 		auto& motion = registry.get<Motion>(entity);
 		motion.angle += 0.2f;
-		auto& rock = registry.get<RockProjectile>(entity);
+		auto& rock = registry.get<Snowball>(entity);
 		if (rock.current_step == rock.bezier_points.size() - 1) {
 			continue;
 		}
@@ -281,15 +287,29 @@ void PhysicsSystem::update_projectiles(float elapsed_ms)
 		auto& laserBeam = registry.get<LaserBeam>(entity);
 		laserBeam.active_timer -= elapsed_ms;
 		auto& motion_p = registry.get<Motion>(entity);
-		auto& motion_u = registry.get<Motion>(laserBeam.e_unit);
-		float x_direction = cos(motion_u.angle) * 125;
-		float y_direction = sin(motion_u.angle) * 125;
+		auto& motion_m = registry.get<Motion>(laserBeam.e_unit);
+		vec2 direction = normalize(motion_m.position - laserBeam.unit_pos);
 
-		motion_p.angle = motion_u.angle;
-		motion_p.position = motion_u.position + vec2(x_direction, y_direction);
-		motion_p.boundingbox = motion_p.scale;
+		motion_p.angle = atan2(direction.y, direction.x);
+		motion_p.position = laserBeam.unit_pos + direction * abs(motion_p.scale.x) / 2.f;
 
 		if (laserBeam.active_timer < 0)
+			registry.destroy(entity);
+	}
+
+	for (auto entity : registry.view<Explosion>()) {
+		auto& laserBeam = registry.get<Explosion>(entity);
+		laserBeam.active_timer -= elapsed_ms;
+		
+		if (laserBeam.active_timer < 0)
+			registry.destroy(entity);
+	}
+
+	for (auto entity : registry.view<IceField>()) {
+		auto& icefield = registry.get<IceField>(entity);
+		icefield.active_timer -= elapsed_ms;
+
+		if (icefield.active_timer < 0)
 			registry.destroy(entity);
 	}
 }

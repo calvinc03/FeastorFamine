@@ -20,7 +20,11 @@ const std::map<int, std::string> terrain_str = {
 
 const std::map<int, std::string> unit_str = {
         {WATCHTOWER, "watchtower"},
+        {ROBOT,      "robot"},
         {GREENHOUSE, "greenhouse"},
+        {EXTERMINATOR, "exterminator"},
+        {PRIESTESS, "priestess"},
+        {SNOWMACHINE, "snowmachine"},
         {HUNTER,     "hunter"},
         {WALL,       "wall"},
 };
@@ -38,6 +42,18 @@ const std::map<int, std::string> weather_str = {
         {DROUGHT, "Drought"},
         {FOG, "Fog"},
         {SNOW, "Snow"}
+};
+
+const std::map<MenuButtonType, std::string> menu_button_ui_tag = {
+    {new_game_button,   "new_game_button"},
+    {restart_round_button, "restart_round_button"},
+    {load_game_button,  "load_game_button"},
+    {settings_button,   "settings_menu_button"},
+    {exit_button,       "exit_button"},
+    {help_button,       "help_button"},
+    {back_button,       "back_button"},
+    {menu_save_button,  "save_game_button"},
+    {empty_button,      "empty_button"}
 };
 
 const std::string INPUT_PATH = "data/monster_rounds/";

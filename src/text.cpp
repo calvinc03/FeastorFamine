@@ -539,16 +539,75 @@ vec2 get_center_text_position(vec2 text_box_scale, vec2 text_box_position, float
     return vec2(text_box_position.x - (text_box_scale.x / 2) + x_offset, WINDOW_SIZE_IN_PX.y - text_box_position.y);
 }
 
-entt::entity DisappearingText::createDisappearingText(std::string text, vec2 position, float on_screen_time_ms, float scale, vec3 colour)
+entt::entity DisappearingText::createDisappearingText(std::shared_ptr<TextFont> text_font, std::string text, vec2 position, float on_screen_time_ms, float scale, vec3 colour)
 {
     // text
     auto entity = registry.create();
-    auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
-    auto& t = registry.emplace<Text>(entity, Text(text, notoRegular, vec2(position.x, WINDOW_SIZE_IN_PX.y - position.y)));
+    
+    auto& t = registry.emplace<Text>(entity, Text(text, text_font, vec2(position.x, WINDOW_SIZE_IN_PX.y - position.y)));
     t.scale = scale;
     t.colour = colour;
     // on screen time
     auto& disappearing_text = registry.emplace<DisappearingText>(entity);
     disappearing_text.on_screen_time_ms = on_screen_time_ms;
     return entity;
+
+    return entity;
+}
+
+
+// create hit points when projectile hits monsters
+void HitPointsText::create_hit_points_text(int hit_points, entt::entity e_damaged)
+{
+    // used to scale the hit points size
+    float max_possible_damage = MAX_POSSIBLE_DAMAGE;
+    float min_text_size = 0.3;
+    float max_text_size = 1.3;
+
+    auto motion = registry.get<Motion>(e_damaged);
+    float on_screen_time_ms = 300;
+    float initial_text_scale = ((float)hit_points * (max_text_size - min_text_size) / max_possible_damage + min_text_size) * 2.f;
+    float text_scale = (float)hit_points * (max_text_size - min_text_size) / max_possible_damage + min_text_size;
+    auto closeness_outline = TextFont::load("data/fonts/Closeness/closeness.outline-regular.ttf");
+    auto closeness_regular = TextFont::load("data/fonts/Closeness/closeness.regular.ttf");
+    vec3 text_colour = { 1.f, 0.f, 0.f };
+    vec3 outline_colour = { 0.f, 0.f, 0.f };
+    auto d_text_outline = DisappearingText::createDisappearingText(closeness_outline, std::to_string(hit_points), motion.position, on_screen_time_ms, initial_text_scale, outline_colour);
+    auto d_text = DisappearingText::createDisappearingText(closeness_regular, std::to_string(hit_points), motion.position, on_screen_time_ms, initial_text_scale, text_colour);
+    auto& hitpoints = registry.emplace<HitPointsText>(d_text);
+    hitpoints.min_scale = text_scale;
+    auto& hitpoints_outline = registry.emplace<HitPointsText>(d_text_outline);
+    hitpoints_outline.min_scale = text_scale;
+}
+
+unsigned GetNumberOfDigits(unsigned i)
+{
+    return i > 0 ? (int)log10((double)i) + 1 : 1;
+}
+
+
+void HealthChangeText::create_haelth_gain_text(int num, int health)
+{
+    int health_text_num = (int)registry.view<HealthChangeText>().size();
+    float on_screen_time_ms = 400;
+    vec3 text_colour = { 0.f, 1.f, 0.f };
+    float text_scale = 0.55f;
+    float x_offset = GetNumberOfDigits((unsigned)health) * FOOD_NUM_SCALE * 30.f;// +health_text_num * 2.f * text_scale * 37.f;
+    float y_offset = health_text_num * 0.3f * text_scale * 37.f;
+    auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
+    auto d_text = DisappearingText::createDisappearingText(notoRegular, "+" + std::to_string(num), { FOOD_NUM_X_OFFSET + x_offset, FOOD_NUM_Y_OFFSET - y_offset }, on_screen_time_ms, text_scale, text_colour);
+    registry.emplace<HealthChangeText>(d_text);
+}
+
+void HealthChangeText::create_haelth_deduct_text(int num, int health)
+{
+    int health_text_num = (int)registry.view<HealthChangeText>().size();
+    float on_screen_time_ms = 400;
+    vec3 text_colour = { 1.f, 0.f, 0.f };
+    float text_scale = 0.55f;
+    float x_offset = GetNumberOfDigits((unsigned)health) * FOOD_NUM_SCALE * 30.f;// +health_text_num * 2.f * text_scale * 37.f;
+    float y_offset = health_text_num * 0.3f * text_scale * 37.f;
+    auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
+    auto d_text = DisappearingText::createDisappearingText(notoRegular, "-" + std::to_string(num), { FOOD_NUM_X_OFFSET + x_offset, FOOD_NUM_Y_OFFSET - y_offset }, on_screen_time_ms, text_scale, text_colour);
+    registry.emplace<HealthChangeText>(d_text);
 }
