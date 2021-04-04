@@ -80,7 +80,7 @@ public:
 	bool is_over() const;
 
 	static void deduct_health(int num);
-
+	static void add_health(int num);
 	// OpenGL window handle
 	GLFWwindow* window;
 
@@ -218,6 +218,7 @@ private:
 	unit_type placement_unit_selected;
 	entt::entity entity_selected;
 	entt::entity entity_range_circle;
+	entt::entity selected_range_circle;
 	entt::entity(*create_unit_indicator)(vec2 pos);
 
 	// remove entities from start menu
