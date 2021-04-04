@@ -58,6 +58,7 @@ struct Monster {
     int damage;
     int attack_interval = 20;
     int current_path_index = 0;
+	bool current_node_visited = false;
     int reward;
     bool collided = false;
     std::vector<ivec2> path_coords;
