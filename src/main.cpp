@@ -84,13 +84,13 @@ int main()
 		HealthSystem::updateHealthComponents(elapsed_ms);
 		if (world.game_state == WorldSystem::in_game) {
 			if (world.player_state == WorldSystem::set_up_stage) {
-				world.set_up_step(elapsed_ms);
-                physics.step(elapsed_ms);
+				world.set_up_step(elapsed_ms * world.speed_up_factor);
+                physics.step(elapsed_ms * world.speed_up_factor);
 			}
 			else if (world.player_state == WorldSystem::battle_stage) {
-				ai.step(elapsed_ms);
-				world.step(elapsed_ms);
-				physics.step(elapsed_ms);
+				ai.step(elapsed_ms * world.speed_up_factor);
+				world.step(elapsed_ms * world.speed_up_factor);
+				physics.step(elapsed_ms * world.speed_up_factor);
 			}
 		}
         

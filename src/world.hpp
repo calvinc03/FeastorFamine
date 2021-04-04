@@ -126,6 +126,9 @@ public:
 	// decrease reward at higher levels
 	static float reward_multiplier;
 
+	// speed up factor for fastforwarding time
+	static float speed_up_factor;
+
 private:
 	// PhysicsSystem handle
 	PhysicsSystem* physics;
