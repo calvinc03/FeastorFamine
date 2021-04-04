@@ -59,7 +59,7 @@ public:
 	void sell_unit(entt::entity& entity);
 
 	// setup game setup stage
-	void setup_game_setup_stage();
+	void prepare_setup_stage();
 
 	// helper for path to round jsons
 	void setup_round_from_round_number(int round_number);
@@ -72,6 +72,9 @@ public:
 
 	// Steps the game during set up rounds
 	void set_up_step(float elapsed_ms);
+
+	// End of battle phase
+	void end_battle_phase();
 
 	// Renders our scene
 	void draw();
@@ -186,7 +189,10 @@ private:
 	int boss_delay_ms;
 	int max_boss;
 	int fireball_delay_ms;
-
+	// end of battle stage delay 
+	float end_of_battle_stage_dealy_ms = END_OF_BATTLE_STAGE_DELAY_MS;
+	// greenhouse food already increased
+	bool greenhouse_food_increased = false;
 
 	int num_mobs_spawned;
 	int num_bosses_spawned;

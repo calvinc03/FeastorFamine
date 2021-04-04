@@ -283,36 +283,7 @@ void WorldSystem::step(float elapsed_ms)
 			}
 		}
 
-		// Increment round number if all enemies are not on the map and projectiles are removed
-		if (num_bosses_spawned == max_boss && num_mobs_spawned == max_mobs)
-		{
-			//std::cout << "got here" << std::endl;
-			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty())
-			{
-				world_round_number++;
-
-				if (world_round_number == MAX_ROUND_NUMBER)
-				{
-					restart_with_save();
-				}
-
-				setup_round_from_round_number(world_round_number);
-				// re-roll some fraction of map for weather terrains
-				int max_rerolls = (int)ceil(0.3*MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
-				AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
-				player_state = set_up_stage;
-				num_bosses_spawned = 0;
-				num_mobs_spawned = 0;
-				setup_game_setup_stage();
-
-				for (auto entity : registry.view<GreenHouse>())
-				{
-					auto greenhouse = registry.get<Unit>(entity);
-					health += greenhouse.damage * (int) reward_multiplier;
-				}
-				save_game();
-			}
-		}
+		
 
 		// removes projectiles that are out of the screen
 		for (auto projectile : registry.view<Projectile>())
@@ -409,8 +380,61 @@ void WorldSystem::step(float elapsed_ms)
 
 		auto& food_num_text = registry.get<Text>(food_text_entity);
 		food_num_text.content = std::to_string(health);
+
+		// Increment round number if all enemies are not on the map and projectiles are removed
+		if (num_bosses_spawned == max_boss && num_mobs_spawned == max_mobs)
+		{
+			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty())
+			{
+				// greenhouse triggers at the end of battle phase once
+				if (!greenhouse_food_increased && (end_of_battle_stage_dealy_ms < END_OF_BATTLE_STAGE_DELAY_MS - 500))
+				{
+					int total_greenhouse_food = 0;
+					for (auto entity : registry.view<GreenHouse>())
+					{
+						auto greenhouse = registry.get<Unit>(entity);
+						total_greenhouse_food += (int)((float)greenhouse.damage * reward_multiplier);
+					}
+					add_health(total_greenhouse_food);
+					greenhouse_food_increased = true;
+				}
+				// count down timer
+				end_of_battle_stage_dealy_ms -= elapsed_ms * current_speed;
+				// end battle phase and set up next round 
+				if (end_of_battle_stage_dealy_ms <= 0.f)
+				{
+					end_battle_phase();
+					greenhouse_food_increased = false;
+					end_of_battle_stage_dealy_ms = END_OF_BATTLE_STAGE_DELAY_MS;
+				}
+				
+			}
+		}
 	}
 	
+}
+
+// called at the end of battle pahse to set up next round
+void WorldSystem::end_battle_phase()
+{
+	world_round_number++;
+
+	if (world_round_number == MAX_ROUND_NUMBER)
+	{
+		restart_with_save();
+	}
+
+	setup_round_from_round_number(world_round_number);
+	// re-roll some fraction of map for weather terrains
+	int max_rerolls = (int)ceil(0.3 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
+	AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
+	player_state = set_up_stage;
+	num_bosses_spawned = 0;
+	num_mobs_spawned = 0;
+	prepare_setup_stage();
+
+	
+	save_game();
 }
 
 void WorldSystem::handle_game_tips()
@@ -508,7 +532,7 @@ void remove_descriptions()
 		registry.destroy(entity);
 }
 
-void WorldSystem::setup_game_setup_stage()
+void WorldSystem::prepare_setup_stage()
 {
 	player_state = set_up_stage;
 	remove_descriptions();
