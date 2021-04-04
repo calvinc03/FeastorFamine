@@ -52,6 +52,7 @@ const size_t ANIMATION_FPS = 20;
 const int STARTING_HEALTH = 1000;
 
 int WorldSystem::health = 1000;
+float WorldSystem::speed_up_factor = 1.f;
 float WorldSystem::reward_multiplier = 1.f;
 GridMap WorldSystem::current_map;
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
@@ -148,7 +149,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     for (int monster_type = 0; monster_type < monster_type_count; monster_type++) {
         default_monster_paths.insert(std::pair<int, std::vector<ivec2>>(monster_type, {}));
     }
-
+	speed_up_factor = 1.f;
 	tip_manager = TipManager::TipManager();
 }
 
@@ -273,7 +274,7 @@ void WorldSystem::step(float elapsed_ms)
 		{
 			auto& dot = registry.get<DOT>(entity);
 			for (auto& [key, value] : dot.dot_map) {
-				value -= ELAPSED_MS;
+				value -= ELAPSED_MS * WorldSystem::speed_up_factor;
 			}
 
 			auto state = BTCollision->process(entity);
@@ -985,19 +986,11 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
 	if (key == GLFW_KEY_T) // for testing rigs
 	{
-		//auto view_rigs = registry.view<Timeline>();
-		//for (auto entity : view_rigs) {
-		//	auto& motion = registry.get<Motion>(entity);
-		//	RigSystem::animate_rig_ik(entity, 15);
-		//}
+		speed_up_factor = 1.f;
 	}
 	if (key == GLFW_KEY_Y) // for testing rigs
 	{
-		//auto& mouse = registry.get <MouseMovement>(camera);
-		//auto view_rigs = registry.view<Rig>();
-		//for (auto entity : view_rigs) {
-		//	RigSystem::ik_solve(entity, mouse.mouse_pos, 1);
-		//}
+		speed_up_factor = 2.f;
 	}
 
 	// keys used to skip rounds; used to debug and test rounds

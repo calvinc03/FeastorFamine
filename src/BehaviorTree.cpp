@@ -348,7 +348,7 @@ void increment_monster_step(entt::entity entity) {
 	}
 
 	assert(monster.path_coords[monster.current_path_index] == current_path_coord);
-    float time_step = ELAPSED_MS / 1000.f;
+    float time_step = ELAPSED_MS / 1000.f * WorldSystem::speed_up_factor;
 	ivec2 next_path_coord = monster.path_coords.at(monster.current_path_index + 1);
 	vec2 next_step_position = motion.position + time_step * motion.velocity;
 	ivec2 next_step_coord = pixel_to_coord(next_step_position);
