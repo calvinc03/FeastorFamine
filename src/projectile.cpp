@@ -8,6 +8,7 @@
 
 float EXPLOSION_FRAMES = 4.f;
 float FLAMETHROWER_FRAMES = 4.f;
+float ICEFIELD_FRAMES = 5.f;
 
 entt::entity Projectile::createProjectile(entt::entity e_unit, entt::entity e_monster, int damage)
 {
@@ -48,7 +49,7 @@ entt::entity Projectile::createProjectile(entt::entity e_unit, entt::entity e_mo
     return entity;
 }
 
-entt::entity RockProjectile::createRockProjectile(entt::entity e_unit, entt::entity e_monster, int damage)
+entt::entity Snowball::createSnowball(entt::entity e_unit, entt::entity e_monster, int damage)
 {
     // Reserve en entity
     auto entity = registry.create();
@@ -99,7 +100,7 @@ entt::entity RockProjectile::createRockProjectile(entt::entity e_unit, entt::ent
     Projectile& p = registry.emplace<Projectile>(entity);
     p.damage = damage;
     
-    RockProjectile& rock = registry.emplace<RockProjectile>(entity);
+    Snowball& rock = registry.emplace<Snowball>(entity);
     rock.bezier_points = bezier;
 
     return entity;
@@ -188,7 +189,8 @@ entt::entity LaserBeam::createLaserBeam(entt::entity e_unit, entt::entity e_mons
     p.damage = damage;
 
     auto& beam = registry.emplace<LaserBeam>(entity);
-    beam.e_unit = e_unit;
+    beam.e_unit = e_monster;
+    beam.unit_pos = hunter_position;
 
     return entity;
 }
@@ -274,6 +276,52 @@ entt::entity Explosion::createExplosion(entt::entity e_projectile, int damage)
 
     auto& explosion = registry.emplace<Explosion>(entity);
     explosion.e_unit = e_projectile;
+
+    return entity;
+}
+
+entt::entity IceField::createIceField(entt::entity e_unit, entt::entity e_monster, int damage)
+{
+    // Reserve an entity
+    auto entity = registry.create();
+
+    // Create the rendering components
+    std::string key = "ice_field";
+    ShadedMesh& resource = cache_resource(key);
+    if (resource.effect.program.resource == 0)
+    {
+        resource = ShadedMesh();
+        RenderSystem::createSprite(resource, textures_path("ice_field.png"), "textured");
+    }
+
+    // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+    ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+    shaded_mesh.layer = 20;
+
+    auto monster_motion = registry.get<Motion>(e_monster);
+    auto hunter_motion = registry.get<Motion>(e_unit);
+
+    vec2 direction = normalize(monster_motion.position - hunter_motion.position);
+
+    // Initialize the position, scale, and physics components
+    auto& motion = registry.emplace<Motion>(entity);
+    motion.angle = atan2(direction.y, direction.x);
+    motion.position = hunter_motion.position;
+    // Setting initial values, scale is negative to make it face the opposite way
+    motion.scale = vec2(static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y);
+    motion.boundingbox = vec2({ motion.scale.x * 0.18f , motion.scale.y });
+
+    // Create and (empty) Projectile component to be able to refer to all Projectile
+    Projectile& p = registry.emplace<Projectile>(entity);
+    p.damage = damage;
+
+    /*Animate& animate = registry.emplace<Animate>(entity);
+    animate.frame = 0.f;
+    animate.state = 0.f;
+    animate.frame_num = ICEFIELD_FRAMES;
+    animate.state_num = 1.f;*/
+
+    auto& field = registry.emplace<IceField>(entity);
 
     return entity;
 }

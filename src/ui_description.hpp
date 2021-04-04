@@ -88,12 +88,12 @@ const std::map<std::string, std::string> selected_upgrade_title = {
     {"path_2_upgrade_button_priestess_1", "Attack Speed Increase" },
     {"path_2_upgrade_button_priestess_2", "Attack Speed Increase" },
 
-    {"path_1_upgrade_button_snowmamchine_0", "More Snowballs!" },
-    {"path_1_upgrade_button_snowmamchine_1", "More Snowballs!" },
-    {"path_1_upgrade_button_snowmamchine_2", "More Snowballs!" },
-    {"path_2_upgrade_button_snowmamchine_0", "Range Increase" },
-    {"path_2_upgrade_button_snowmamchine_1", "Range Increase" },
-    {"path_2_upgrade_button_snowmamchine_2", "Range Increase" }
+    {"path_1_upgrade_button_snowmachine_0", "More Snowballs!" },
+    {"path_1_upgrade_button_snowmachine_1", "More Snowballs!" },
+    {"path_1_upgrade_button_snowmachine_2", "More Snowballs!" },
+    {"path_2_upgrade_button_snowmachine_0", "Range Increase" },
+    {"path_2_upgrade_button_snowmachine_1", "Range Increase" },
+    {"path_2_upgrade_button_snowmachine_2", "Range Increase" }
 };
 
 const std::map<std::string, std::vector<std::string>> selected_upgrade_descriptions = {

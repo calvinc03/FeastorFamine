@@ -924,12 +924,12 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 {
 	auto &prj = registry.get<Projectile>(e_projectile);
 
-	if (registry.has<RockProjectile>(e_projectile)) {
+	if (registry.has<Snowball>(e_projectile)) {
 		if (!registry.has<EntityDeath>(e_projectile)) {
 			auto& death = registry.emplace<EntityDeath>(e_projectile);
 			death.timer = 1000;
 
-			auto& rock = registry.get<RockProjectile>(e_projectile);
+			auto& rock = registry.get<Snowball>(e_projectile);
 			auto& prj_motion = registry.get<Motion>(e_projectile);
 			auto& monster_motion = registry.get<Motion>(e_monster);
 
@@ -947,7 +947,7 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 		}
 		collision_monster_handle(e_monster, prj.damage);
 	}
-	else if (registry.has<Flamethrower>(e_projectile) || registry.has<LaserBeam>(e_projectile) || registry.has<Explosion>(e_projectile)) {
+	else if (registry.has<Flamethrower>(e_projectile) || registry.has<LaserBeam>(e_projectile) || registry.has<Explosion>(e_projectile) || registry.has<IceField>(e_projectile)) {
 		auto& dot = registry.get<DOT>(e_monster);
 		if (dot.dot_map.find(e_projectile) == dot.dot_map.end()) {
 			dot.dot_map.insert({ e_projectile, DOT_DELAY });
@@ -1603,7 +1603,7 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selecte
 			}
 		}
 
-		/*if (selected_view_change) {
+		if (selected_view_change) {
 			remove_selected_unit_buttons();
 
 			upgrade_button_1 = UI_selected_unit::createUI_selected_unit_upgrade_button(2, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE, selected_unit.type, selected_unit.path_1_upgrade);
@@ -1622,7 +1622,7 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selecte
 			registry.remove<HighlightBool>(upgrade_button_2);
 		}
 
-		update_sell_button_text(button_sell, selected_unit.sell_price);*/
+		update_sell_button_text(button_sell, selected_unit.sell_price);
 
 		//update unit portrait
 		update_unit_portrait(selected_unit);
