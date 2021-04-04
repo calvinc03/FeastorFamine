@@ -8,7 +8,7 @@ const std::map<unit_type, int> unit_damage = {
 	{WATCHTOWER, 10},
 	{GREENHOUSE, 60},
 	{EXTERMINATOR, 10},
-	{ROBOT, 15},
+	{ROBOT, 1},
 	{PRIESTESS, 5},
 	{SNOWMACHINE, 10},
 	{WALL, 0}
@@ -56,7 +56,7 @@ const std::map<unit_type, fnc_pointer> unit_create_projectiles = {
 	{EXTERMINATOR, Flamethrower::createFlamethrower},
 	{ROBOT, LaserBeam::createLaserBeam},
 	{PRIESTESS, NULL},
-	{SNOWMACHINE, RockProjectile::createRockProjectile},
+	{SNOWMACHINE, Snowball::createSnowball},
 	{WALL, NULL}
 };
 

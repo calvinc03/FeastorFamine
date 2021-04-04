@@ -11,9 +11,9 @@ struct Projectile
     int damage;
 };
 
-struct RockProjectile
+struct Snowball
 {
-    static entt::entity createRockProjectile(entt::entity e_unit, entt::entity e_monster, int damage);
+    static entt::entity createSnowball(entt::entity e_unit, entt::entity e_monster, int damage);
     std::vector<vec2> bezier_points;
     int current_step = 0;
 };
@@ -30,6 +30,7 @@ struct LaserBeam
     static entt::entity createLaserBeam(entt::entity e_unit, entt::entity e_monster, int damage);
     float active_timer = 1500;
     entt::entity e_unit;
+    vec2 unit_pos;
 };
 
 struct Missile
@@ -42,4 +43,10 @@ struct Explosion
     static entt::entity createExplosion(entt::entity e_projectile, int damage);
     float active_timer = 1500;
     entt::entity e_unit;
+};
+
+struct IceField
+{
+    static entt::entity createIceField(entt::entity e_unit, entt::entity e_monster, int damage);
+    float active_timer = 1500;
 };
