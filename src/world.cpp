@@ -395,7 +395,10 @@ void WorldSystem::step(float elapsed_ms)
 						auto greenhouse = registry.get<Unit>(entity);
 						total_greenhouse_food += (int)((float)greenhouse.damage * reward_multiplier);
 					}
-					add_health(total_greenhouse_food);
+					if (total_greenhouse_food != 0)
+					{
+						add_health(total_greenhouse_food);
+					}
 					greenhouse_food_increased = true;
 				}
 				// count down timer
