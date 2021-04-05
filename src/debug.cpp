@@ -145,7 +145,7 @@ namespace DebugSystem
 		transform.rotate(root_motion.angle);
 
 		for (auto chain : rig.chains) {
-			for (auto part : chain) {
+			for (auto part : chain.chain_vector) {
 				auto mesh_ref = registry.get<ShadedMeshRef>(part).reference_to_cache->mesh.vertices;
 
 				const auto& entity_transform = registry.get<Transform>(part);

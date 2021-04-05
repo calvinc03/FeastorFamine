@@ -348,21 +348,31 @@ void increment_monster_step(entt::entity entity) {
 	}
 
 	assert(monster.path_coords[monster.current_path_index] == current_path_coord);
-    float time_step = ELAPSED_MS / 1000.f * WorldSystem::speed_up_factor;
+	float time_step = (ELAPSED_MS / 1000.f) * WorldSystem::speed_up_factor;
 	ivec2 next_path_coord = monster.path_coords.at(monster.current_path_index + 1);
 	vec2 next_step_position = motion.position + time_step * motion.velocity;
 	ivec2 next_step_coord = pixel_to_coord(next_step_position);
 
 	// change direction if reached the middle of the this node
-	if (abs(length(coord_to_pixel(current_path_coord) - motion.position)) <= length(motion.velocity) * time_step) {
-		vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
-		motion.velocity = length(motion.velocity) * move_direction;
-		motion.angle = atan(move_direction.y / move_direction.x);
+	if (!monster.current_node_visited) {
+		if (length(coord_to_pixel(current_path_coord) - motion.position) <= length(motion.velocity * time_step)) {
+			vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
+			motion.position = coord_to_pixel(current_path_coord);
+			motion.velocity = length(motion.velocity) * move_direction;
+			motion.angle = atan(move_direction.y / move_direction.x);
+			monster.current_node_visited = true;
+			//std::cout << "distance to center: " << length(coord_to_pixel(current_path_coord) - motion.position) << "\n\n";
+		}
+		/*else {
+			std::cout << "distance to center: "<< length(coord_to_pixel(current_path_coord) - motion.position) << "\n";
+			std::cout << "step size: " << length(motion.velocity * time_step) << "\n\n";
+		}*/
 	}
 
 	// increment path index and apply terrain speed multiplier
 	if (next_step_coord == next_path_coord) {
 		monster.current_path_index++;
+		monster.current_node_visited = false;
 		terrain_type current_terran = WorldSystem::current_map.getNodeAtCoord(current_path_coord).terrain;
 		terrain_type next_terran = WorldSystem::current_map.getNodeAtCoord(next_path_coord).terrain;
 		monster.speed_multiplier /= monster_move_speed_multiplier.at({monster.type, current_terran});

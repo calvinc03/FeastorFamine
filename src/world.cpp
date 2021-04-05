@@ -279,7 +279,8 @@ void WorldSystem::step(float elapsed_ms)
 
 			auto state = BTCollision->process(entity);
 			if (health < 0) {
-				restart_with_save();
+				//restart_with_save();
+				start_lost_game_screen();
 				return;
 			}
 		}
@@ -387,22 +388,38 @@ void WorldSystem::step(float elapsed_ms)
 		{
 			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty())
 			{
-				// greenhouse triggers at the end of battle phase once
-				if (!greenhouse_food_increased && (end_of_battle_stage_dealy_ms < END_OF_BATTLE_STAGE_DELAY_MS - 500))
+				// round cleared text
+				auto closeness_outline = TextFont::load("data/fonts/Closeness/closeness.outline-regular.ttf");
+				auto closeness_regular = TextFont::load("data/fonts/Closeness/closeness.regular.ttf");
+				vec2 text_position = get_center_text_position(WINDOW_SIZE_IN_PX, {WINDOW_SIZE_IN_PX.x/2, WINDOW_SIZE_IN_PX.y/2}, 2.f, "ROUND CLEARED!");
+				DisappearingText::createDisappearingText(closeness_regular, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 245.f / 255.f, 216.f / 255.f, 51.f / 255.f}));
+				DisappearingText::createDisappearingText(closeness_outline, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 0.f, 0.f, 0.f }));
+				// if no greenhouse, shorten the end phase delay
+				if (!greenhouse_food_increased)
 				{
-					int total_greenhouse_food = 0;
-					for (auto entity : registry.view<GreenHouse>())
+					if (registry.view<GreenHouse>().size() == 0)
 					{
-						auto greenhouse = registry.get<Unit>(entity);
-						total_greenhouse_food += (int)((float)greenhouse.damage * reward_multiplier);
+						end_of_battle_stage_dealy_ms -= 500;
+						greenhouse_food_increased = true;
 					}
-					if (total_greenhouse_food != 0)
+					else if (end_of_battle_stage_dealy_ms < END_OF_BATTLE_STAGE_DELAY_MS - 500)
 					{
-						add_health(total_greenhouse_food);
+						// greenhouse triggers at the end of battle phase once with a short delay
+						int total_greenhouse_food = 0;
+						for (auto entity : registry.view<GreenHouse>())
+						{
+							auto greenhouse = registry.get<Unit>(entity);
+							total_greenhouse_food += (int)((float)greenhouse.damage * reward_multiplier);
+						}
+						if (total_greenhouse_food != 0)
+						{
+							add_health(total_greenhouse_food);
+						}
+						greenhouse_food_increased = true;
 					}
-					greenhouse_food_increased = true;
+
 				}
-				// count down timer
+								// count down timer
 				end_of_battle_stage_dealy_ms -= elapsed_ms * current_speed;
 				// end battle phase and set up next round 
 				if (end_of_battle_stage_dealy_ms <= 0.f)
@@ -415,6 +432,56 @@ void WorldSystem::step(float elapsed_ms)
 			}
 		}
 	}
+	
+}
+
+void WorldSystem::lost_game_screen_step(float elapsed_ms)
+{
+	// animation
+	fps_ms -= elapsed_ms;
+	if (fps_ms < 0.f)
+	{
+		for (auto entity : registry.view<Animate>())
+		{
+			auto& animate = registry.get<Animate>(entity);
+			animate.frame += 1;
+			animate.frame = (int)animate.frame % (int)animate.frame_num;
+		}
+		fps_ms = 1000 / ANIMATION_FPS;
+	}
+}
+
+void WorldSystem::darken_screen_step(float elapsed_ms)
+{
+	auto& screen_state = registry.get<ScreenState>(screen_state_entity);
+	if (screen_state.darken_screen_factor < 2.f)
+	{
+		screen_state.darken_screen_factor += elapsed_ms / 1000;
+	}
+	else
+	{
+		game_state = GameState::lost_game_screen;
+		screen_state.darken_screen_factor = 0.f;
+		registry.clear();
+		screen_state_entity = registry.create();
+		registry.emplace<ScreenState>(screen_state_entity);
+		camera = Camera::createCamera();
+		Menu::createLostMenu();
+		/*auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
+		registry.emplace<Text>(registry.create(), Text::Text("Famine", notoRegular, { WINDOW_SIZE_IN_PX.x / 2, 200 }, 2.0f, { 1.f, 0.f, 0.f }));*/
+		MenuButton::create_button(RESTART_ROUND_BUTTON_X, RESTART_ROUND_BUTTON_Y, MenuButtonType::restart_round_button, "Restart round");
+		MenuButton::create_button(EXIT_BUTTON_X, EXIT_BUTTON_Y, MenuButtonType::exit_button, "Exit");
+	}
+	
+}
+
+// lost game
+void WorldSystem::start_lost_game_screen()
+{
+	auto& screen_state = registry.get<ScreenState>(screen_state_entity);
+	screen_state.darken_screen_factor = 0.3;
+	screen_state.all_dark = false;
+	game_state = GameState::darken_screen;
 	
 }
 
@@ -599,8 +666,8 @@ void WorldSystem::set_up_step(float elapsed_ms)
 	else if (weather == FOG && next_particle_spawn < 0.f) {
 		next_particle_spawn = 3000;
 		vec2 velocity = { -100.f, 0.f };
-		vec2 position = { WINDOW_SIZE_IN_PX.x, rand() % (WINDOW_SIZE_IN_PX.y - 230) };
-		float life = 13500.f;
+		vec2 position = { WINDOW_SIZE_IN_PX.x + 500, rand() % (WINDOW_SIZE_IN_PX.y - 230) };
+		float life = 22000.f;
 		std::string texture = "cloud.png";
 		std::string shader = "fog";
 		ParticleSystem::createParticle(velocity, position, life, texture, shader);
@@ -1690,6 +1757,11 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
             story_card_click_handle(xpos, ypos, button, action, mod);
             break;
         }
+		case lost_game_screen:
+		{
+			lost_game_click_handle(xpos, ypos, button, action, mod);
+			break;
+		}
 	}
 }
 
@@ -2231,6 +2303,33 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 	// avoid 'unreferenced formal parameter' warning message
 	(void)mod;
+}
+
+void WorldSystem::lost_game_click_handle(double xpos, double ypos, int button, int action, int mod)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+		vec2 mouse_pos = { (float)xpos, (float)ypos };
+		MenuButtonType button_clicked = on_click_button(mouse_pos);
+		// world_round_number get reset to 0 in restart();
+		int temp_world_round_number = world_round_number;
+		switch (button_clicked)
+		{
+		case MenuButtonType::restart_round_button:
+			remove_menu_buttons();
+			restart();
+			load_game();
+			game_state = story_card;
+			break;
+		case MenuButtonType::exit_button:
+			game_setup();
+			create_start_menu();
+			player_state = set_up_stage;
+			game_state = start_menu;
+			break;
+		}
+	}
+	
 }
 
 // unpause if paused
