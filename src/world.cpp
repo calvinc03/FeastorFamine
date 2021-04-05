@@ -49,7 +49,7 @@
 #include <units/rangecircle.hpp>
 
 const size_t ANIMATION_FPS = 20;
-const int STARTING_HEALTH = 5;
+const int STARTING_HEALTH = 1000;
 
 int WorldSystem::health = 1000;
 float WorldSystem::speed_up_factor = 1.f;
