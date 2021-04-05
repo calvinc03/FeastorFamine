@@ -666,8 +666,8 @@ void WorldSystem::set_up_step(float elapsed_ms)
 	else if (weather == FOG && next_particle_spawn < 0.f) {
 		next_particle_spawn = 3000;
 		vec2 velocity = { -100.f, 0.f };
-		vec2 position = { WINDOW_SIZE_IN_PX.x, rand() % (WINDOW_SIZE_IN_PX.y - 230) };
-		float life = 13500.f;
+		vec2 position = { WINDOW_SIZE_IN_PX.x + 500, rand() % (WINDOW_SIZE_IN_PX.y - 230) };
+		float life = 22000.f;
 		std::string texture = "cloud.png";
 		std::string shader = "fog";
 		ParticleSystem::createParticle(velocity, position, life, texture, shader);
