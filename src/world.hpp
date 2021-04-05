@@ -72,6 +72,10 @@ public:
 
 	// Steps the game during set up rounds
 	void set_up_step(float elapsed_ms);
+	
+	// lost game 
+	void darken_screen_step(float elapsed_ms);
+	void lost_game_screen_step(float elapsed_ms);
 
 	// End of battle phase
 	void end_battle_phase();
@@ -104,7 +108,9 @@ public:
 		help_menu,
 		story_card,
 		sandbox,
-		paused
+		paused,
+		darken_screen,
+		lost_game_screen
 	};
 
 	// state for set_up and monster_rounds
@@ -224,6 +230,7 @@ private:
 	entt::entity pause_menu_entity;
 	entt::entity help_menu_entity;
 	
+
 	unit_type placement_unit_selected;
 	entt::entity entity_selected;
 	entt::entity entity_range_circle;
@@ -248,8 +255,11 @@ private:
 	void help_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void story_card_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_clicked);
-
+	void lost_game_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void createEntityRangeIndicator(vec2 mouse_pos);
+
+	// lost game
+	void start_lost_game_screen();
 
 	// music references
 	Mix_Music* background_music;

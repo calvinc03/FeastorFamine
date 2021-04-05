@@ -75,23 +75,31 @@ int main()
 		float actual_ms = static_cast<float>((std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count()) / 1000.f;
 
 		while (actual_ms < elapsed_ms) {
-            now = Clock::now();
-            actual_ms = static_cast<float>((std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count()) / 1000.f;
-        }
-        t = now;
+			now = Clock::now();
+			actual_ms = static_cast<float>((std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count()) / 1000.f;
+		}
+		t = now;
 
 		DebugSystem::clearDebugComponents();
 		HealthSystem::updateHealthComponents(elapsed_ms);
 		if (world.game_state == WorldSystem::in_game) {
 			if (world.player_state == WorldSystem::set_up_stage) {
 				world.set_up_step(elapsed_ms * world.speed_up_factor);
-                physics.step(elapsed_ms * world.speed_up_factor);
+				physics.step(elapsed_ms * world.speed_up_factor);
 			}
 			else if (world.player_state == WorldSystem::battle_stage) {
 				ai.step(elapsed_ms * world.speed_up_factor);
 				world.step(elapsed_ms * world.speed_up_factor);
 				physics.step(elapsed_ms * world.speed_up_factor);
 			}
+		}
+		else if (world.game_state == WorldSystem::darken_screen)
+		{
+			world.darken_screen_step(elapsed_ms);
+		}
+		else if (world.game_state == WorldSystem::lost_game_screen)
+		{
+			world.lost_game_screen_step(elapsed_ms);
 		}
         
 		renderer.draw(billboard_vertex_buffer, particles_position_buffer);
