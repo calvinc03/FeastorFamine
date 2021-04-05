@@ -354,10 +354,14 @@ void increment_monster_step(entt::entity entity) {
 	ivec2 next_step_coord = pixel_to_coord(next_step_position);
 
 	// change direction if reached the middle of the this node
-	if (abs(length(coord_to_pixel(current_path_coord) - motion.position)) <= length(motion.velocity) * time_step) {
-		vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
-		motion.velocity = length(motion.velocity) * move_direction;
-		motion.angle = atan(move_direction.y / move_direction.x);
+	if (!monster.current_node_visited) {
+		if (length(coord_to_pixel(current_path_coord) - motion.position) <= length(motion.velocity * time_step)) {
+			vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
+			motion.position = coord_to_pixel(current_path_coord);
+			motion.velocity = length(motion.velocity) * move_direction;
+			motion.angle = atan(move_direction.y / move_direction.x);
+			monster.current_node_visited = true;
+		}
 	}
 
 	// increment path index and apply terrain speed multiplier

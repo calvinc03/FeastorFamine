@@ -678,7 +678,7 @@ void WorldSystem::restart()
 	registry.emplace<ScreenState>(screen_state_entity);
 
 	//create UI	
-	UI_button::createUI_build_unit_button(0, watchtower_button, watchtower_unit.cost);
+	//UI_button::createUI_build_unit_button(0, watchtower_button, watchtower_unit.cost);
 	UI_button::createUI_build_unit_button(1, green_house_button, greenhouse_unit.cost);
 	UI_button::createUI_build_unit_button(2, hunter_button, hunter_unit.cost);
 	UI_button::createUI_build_unit_button(3, wall_button, wall_unit.cost );
@@ -1044,11 +1044,11 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
 
 	// Hot keys for selecting placeable units
-	else if (action == GLFW_PRESS && key == GLFW_KEY_1)
+	/*else if (action == GLFW_PRESS && key == GLFW_KEY_1)
 	{
 		placement_unit_selected = WATCHTOWER;
 		create_unit_indicator = WatchTower::createWatchTower;
-	}
+	}*/
 	else if (action == GLFW_PRESS && key == GLFW_KEY_2)
 	{
 		placement_unit_selected = GREENHOUSE;
@@ -2037,12 +2037,12 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					deduct_health(greenhouse_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
-				else if (placement_unit_selected == WATCHTOWER && health >= watchtower_unit.cost)
+				/*else if (placement_unit_selected == WATCHTOWER && health >= watchtower_unit.cost)
 				{
 					entity = WatchTower::createWatchTower(unit_position);
 					deduct_health(watchtower_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
-				}
+				}*/
 				else if (placement_unit_selected == EXTERMINATOR && health >= exterminator_unit.cost)
 				{
 					entity = Exterminator::createExterminator(unit_position);
@@ -2097,7 +2097,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		}
 		else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area)
 		{
-			if (ui_button == Button::watchtower_button)
+			/*if (ui_button == Button::watchtower_button)
 			{
 				if (game_tips && tip_manager.tower_tip)
 				{
@@ -2108,7 +2108,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				create_unit_indicator = WatchTower::createWatchTower;
 				placement_unit_selected = WATCHTOWER;
 			}
-			else if (ui_button == Button::green_house_button)
+			else*/ if (ui_button == Button::green_house_button)
 			{
 				if (game_tips && tip_manager.greenhouse_tip)
 				{
@@ -2358,11 +2358,11 @@ void WorldSystem::load_game()
 		int y = unit["y_coord"];
 		int type = unit["type"];
 		entt::entity entity;
-		if (type == WATCHTOWER)
+		/*if (type == WATCHTOWER)
 		{
 			entity = WatchTower::createWatchTower({x, y});
 		}
-		else if (type == GREENHOUSE)
+		else */if (type == GREENHOUSE)
 		{
 			entity = GreenHouse::createGreenHouse({x, y});
 		}

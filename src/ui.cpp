@@ -208,9 +208,9 @@ entt::entity UI_selected_unit_portrait::createUI_selected_unit_portrait(unit_typ
 		case HUNTER:
 			file_name = "hunter_portrait.png";
 			break;
-		case WATCHTOWER:
+		/*case WATCHTOWER:
 			file_name = "watchtower_portrait.png";
-			break;
+			break;*/
 		case GREENHOUSE:
 			file_name = "greehouse_portrait.png";
 			break;

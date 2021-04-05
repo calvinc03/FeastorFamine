@@ -31,7 +31,7 @@ enum unit_type
     NONE,
     FOREST,
     VILLAGE,
-    WATCHTOWER,
+    //WATCHTOWER,
     GREENHOUSE,
     EXTERMINATOR,
     PRIESTESS,

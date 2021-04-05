@@ -67,6 +67,28 @@ const std::vector<std::string> path_1_upgrade_button_greenhouse_2 = {
     "Cost: " + std::to_string(greenhouse_path_1.at(2)[0])
 };
 
+// description cards for greenhouse path 1 upgrades
+const std::vector<std::string> path_2_upgrade_button_greenhouse_0 = {
+    "Current Production: " + std::to_string(unit_damage.at(GREENHOUSE)),
+    "",
+    "Upgraded Production: " + std::to_string(greenhouse_path_2.at(1)[2]),
+    "Cost: " + std::to_string(greenhouse_path_2.at(0)[0])
+};
+
+const std::vector<std::string> path_2_upgrade_button_greenhouse_1 = {
+    "Current Production: " + std::to_string(greenhouse_path_2.at(1)[2]),
+    "",
+    "Upgraded Production: " + std::to_string(greenhouse_path_2.at(2)[2]),
+    "Cost: " + std::to_string(greenhouse_path_2.at(1)[0])
+};
+
+const std::vector<std::string> path_2_upgrade_button_greenhouse_2 = {
+    "Current Production: " + std::to_string(greenhouse_path_2.at(2)[2]),
+    "",
+    "Upgraded Production: " + std::to_string(greenhouse_path_2.at(3)[2]),
+    "Cost: " + std::to_string(greenhouse_path_2.at(2)[0])
+};
+
 // description cards for exterminator path 1 upgrades
 const std::vector<std::string> path_1_upgrade_button_exterminator_0 = {
     "Current Attack Damage: " + std::to_string(unit_damage.at(EXTERMINATOR)),
@@ -244,4 +266,48 @@ const std::vector<std::string> path_2_upgrade_button_snowmachine_2 = {
     "",
     "Upgraded Range: " + std::to_string(snowmachine_path_2.at(3)[2]),
     "Cost: " + std::to_string(snowmachine_path_2.at(2)[0])
+};
+
+// description cards for wall path 1 upgrades
+const std::vector<std::string> path_1_upgrade_button_wall_0 = {
+    "Current Attack Damage: " + std::to_string(unit_damage.at(WALL)),
+    "",
+    "Upgraded Attack Damage: " + std::to_string(wall_path_1.at(1)[2]),
+    "Cost: " + std::to_string(wall_path_1.at(0)[0])
+};
+
+const std::vector<std::string> path_1_upgrade_button_wall_1 = {
+    "Current Attack Damage: " + std::to_string(wall_path_1.at(1)[2]),
+    "",
+    "Upgraded Attack Damage: " + std::to_string(wall_path_1.at(2)[2]),
+    "Cost: " + std::to_string(wall_path_1.at(1)[0])
+};
+
+const std::vector<std::string> path_1_upgrade_button_wall_2 = {
+    "Current Attack Damage: " + std::to_string(wall_path_1.at(2)[2]),
+    "",
+    "Upgraded Attack Damage: " + std::to_string(wall_path_1.at(3)[2]),
+    "Cost: " + std::to_string(wall_path_1.at(2)[0])
+};
+
+// description cards for wall path 2 upgrades
+const std::vector<std::string> path_2_upgrade_button_wall_0 = {
+    "Current Range: " + std::to_string(unit_attack_range.at(WALL)),
+    "",
+    "Upgraded Range: " + std::to_string(wall_path_2.at(1)[2]),
+    "Cost: " + std::to_string(wall_path_2.at(0)[0])
+};
+
+const std::vector<std::string> path_2_upgrade_button_wall_1 = {
+    "Current Range: " + std::to_string(wall_path_2.at(1)[2]),
+    "",
+    "Upgraded Range: " + std::to_string(wall_path_2.at(2)[2]),
+    "Cost: " + std::to_string(wall_path_2.at(1)[0])
+};
+
+const std::vector<std::string> path_2_upgrade_button_wall_2 = {
+    "Current Range: " + std::to_string(wall_path_2.at(2)[2]),
+    "",
+    "Upgraded Range: " + std::to_string(wall_path_2.at(3)[2]),
+    "Cost: " + std::to_string(wall_path_2.at(2)[0])
 };
