@@ -112,6 +112,7 @@ struct Mesh
 struct ScreenState
 {
 	float darken_screen_factor = -1;
+	bool all_dark = false;
 };
 
 // ShadedMesh datastructure for storing mesh, shader, and texture objects
