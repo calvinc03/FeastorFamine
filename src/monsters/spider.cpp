@@ -20,24 +20,28 @@ entt::entity  Spider::createSpider() {
     //create entities/parts to be part of the kinematic chains -- requires setting position offset, pivot/origin of rotation, and intial angle
     auto body = Rig::createPart(entity, "face_box");
 
-    auto L_upper_leg = Rig::createPart(entity,"arm_simple", vec2(1.0f, -0.5f), vec2(0, 0.5f), 0); // position, origin, angle
+    auto L_upper_leg = Rig::createPart(entity,"arm_simple", vec2(1.0f, -0.5f), vec2(0, 0.5f), 0); // position offset, origin, angle
     auto L_lower_leg = Rig::createPart(entity, "arm_simple", vec2(), vec2(0, -0.5f), 3.14f);
 
     auto R_upper_leg = Rig::createPart(entity, "arm_simple", vec2(-1.0f, -0.5f), vec2(0, 0.5f), 0);
     auto R_lower_leg = Rig::createPart(entity, "arm_simple", vec2(), vec2(0, -0.5f), 3.14f);
 
+    //auto ext = Rig::createPart(entity, "arm_simple", vec2(), vec2(0, -0.5f),3.14f);
+    
+
     //create a component <Rig> to then point to these entities for later
     auto& rig = registry.emplace<Rig>(entity);
-    rig.chains.push_back({ body });
-    rig.chains.push_back({ L_upper_leg, L_lower_leg }); // added by the chain, leaf node last
-    rig.chains.push_back({ R_upper_leg, R_lower_leg });
+    rig.chains.push_back(Chain(entity, { body }));
+    rig.chains.push_back(Chain(body, { L_upper_leg, L_lower_leg })); // added by the chain, leaf node last
+    rig.chains.push_back(Chain(body,  { R_upper_leg, R_lower_leg }));
 
+    //rig.chains.push_back(Chain(R_lower_leg, { ext }));
     //has a current_time var used to animate fk/ik systems
     auto& timeline = registry.emplace<Timeline>(entity);
+    auto& animations = registry.emplace<Animations>(entity);
 
-    add_frames_FK(rig); //add hardcoded angles to joints
-
-    auto& keyframes_ik = registry.emplace<KeyFrames_IK>(entity); //FK lives in each rig part... IK lives here!
+    auto& keyframes_ik = animations.anims[animations.anim_state];
+    //auto& keyframes_ik = registry.emplace<KeyFrames_IK>(entity); //FK lives in each rig part... IK lives here!
     add_frames_IK(keyframes_ik);
 
 
@@ -49,19 +53,22 @@ entt::entity  Spider::createSpider() {
     monster.reward = 30;
     registry.emplace<HitReaction>(entity);
 
+    auto& transform = registry.emplace<Transform>(entity);
+    transform.mat = glm::mat3(1.0);
+
     return entity;
 }
 
 
 //hardcoded test frames
 void add_frames_FK(Rig rig) {
-    auto& kfs0 = registry.get<KeyFrames_FK>(rig.chains[1][0]);
+    auto& kfs0 = registry.get<KeyFrames_FK>(rig.chains[1].chain_vector[0]);
     kfs0.data.emplace(0.0f, 3.14f);
     kfs0.data.emplace(1.0f, 0.5f);
     kfs0.data.emplace(2.0f, 1.0f);
     kfs0.data.emplace(5.0f, 1.3f);
 
-    auto& kfs1 = registry.get<KeyFrames_FK>(rig.chains[1][1]);
+    auto& kfs1 = registry.get<KeyFrames_FK>(rig.chains[1].chain_vector[1]);
     kfs1.data.emplace(0.0f, 3.14f);
     kfs1.data.emplace(1.0f, 0.5f);
     kfs1.data.emplace(2.0f, 2.0f);
