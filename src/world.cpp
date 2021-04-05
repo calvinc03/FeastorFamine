@@ -388,22 +388,38 @@ void WorldSystem::step(float elapsed_ms)
 		{
 			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty())
 			{
-				// greenhouse triggers at the end of battle phase once
-				if (!greenhouse_food_increased && (end_of_battle_stage_dealy_ms < END_OF_BATTLE_STAGE_DELAY_MS - 500))
+				// round cleared text
+				auto closeness_outline = TextFont::load("data/fonts/Closeness/closeness.outline-regular.ttf");
+				auto closeness_regular = TextFont::load("data/fonts/Closeness/closeness.regular.ttf");
+				vec2 text_position = get_center_text_position(WINDOW_SIZE_IN_PX, {WINDOW_SIZE_IN_PX.x/2, WINDOW_SIZE_IN_PX.y/2}, 2.f, "ROUND CLEARED!");
+				DisappearingText::createDisappearingText(closeness_regular, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 245.f / 255.f, 216.f / 255.f, 51.f / 255.f}));
+				DisappearingText::createDisappearingText(closeness_outline, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 0.f, 0.f, 0.f }));
+				// if no greenhouse, shorten the end phase delay
+				if (!greenhouse_food_increased)
 				{
-					int total_greenhouse_food = 0;
-					for (auto entity : registry.view<GreenHouse>())
+					if (registry.view<GreenHouse>().size() == 0)
 					{
-						auto greenhouse = registry.get<Unit>(entity);
-						total_greenhouse_food += (int)((float)greenhouse.damage * reward_multiplier);
+						end_of_battle_stage_dealy_ms -= 500;
+						greenhouse_food_increased = true;
 					}
-					if (total_greenhouse_food != 0)
+					else if (end_of_battle_stage_dealy_ms < END_OF_BATTLE_STAGE_DELAY_MS - 500)
 					{
-						add_health(total_greenhouse_food);
+						// greenhouse triggers at the end of battle phase once with a short delay
+						int total_greenhouse_food = 0;
+						for (auto entity : registry.view<GreenHouse>())
+						{
+							auto greenhouse = registry.get<Unit>(entity);
+							total_greenhouse_food += (int)((float)greenhouse.damage * reward_multiplier);
+						}
+						if (total_greenhouse_food != 0)
+						{
+							add_health(total_greenhouse_food);
+						}
+						greenhouse_food_increased = true;
 					}
-					greenhouse_food_increased = true;
+
 				}
-				// count down timer
+								// count down timer
 				end_of_battle_stage_dealy_ms -= elapsed_ms * current_speed;
 				// end battle phase and set up next round 
 				if (end_of_battle_stage_dealy_ms <= 0.f)
