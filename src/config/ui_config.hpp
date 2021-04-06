@@ -64,11 +64,13 @@ static const float EXIT_BUTTON_X = WINDOW_SIZE_IN_PX.x / 2;
 static const float EXIT_BUTTON_Y = WINDOW_SIZE_IN_PX.y * 7 / 8;
 
 // Title Screen Buttons
-static const float NEW_GAME_BUTTON_X = 199;
+static const float NEW_GAME_BUTTON_X = 194;
 static const float NEW_GAME_BUTTON_Y = 347;
-static const float LOAD_GAME_BUTTON_X = 213;
+static const float NEW_GAME_BUTTON_ANGLE = -3.1415926 / 16;
+static const float LOAD_GAME_BUTTON_X = 208;
 static const float LOAD_GAME_BUTTON_Y = 437;
-static const float TITLE_HELP_BUTTON_X = 218;
+static const float TITLE_HELP_BUTTON_X = 213;
 static const float TITLE_HELP_BUTTON_Y = 521;
-static const float TITLE_EXIT_BUTTON_X = 226;
+static const float TITLE_HELP_BUTTON_ANGLE = -3.1415926 / 32;
+static const float TITLE_EXIT_BUTTON_X = 221;
 static const float TITLE_EXIT_BUTTON_Y = 613;

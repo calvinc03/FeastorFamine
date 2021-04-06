@@ -1508,6 +1508,9 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 			auto ui_element = registry.get<UI_element>(ui_entity);
 			if (sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f) < 0.0f) {
 				is_hovering = true;
+				registry.get<UI_element>(title_button_arrow_entity).position = vec2({ ui_element.position.x,  ui_element.position.y });
+				registry.get<UI_element>(title_button_arrow_entity).angle = ui_element.angle;
+				registry.get<ShadedMeshRef>(title_button_arrow_entity).show = true;
 			}
 		}
 		if (is_hovering)
@@ -1517,6 +1520,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 		}
 		else
 		{
+			registry.get<ShadedMeshRef>(title_button_arrow_entity).show = false;
 			for (auto entity : registry.view<TitleEyes>())
 				registry.get<TitleEyes>(entity).show = false;
 		}
@@ -2084,10 +2088,11 @@ void WorldSystem::create_start_menu()
 	Menu::createMenu(300, 150, "title_screen_title2", Menu_texture::title_screen_title2, 86, { 1.1, 1.1 });
 	Menu::createMenu(470, 120, "title_screen_title_or", Menu_texture::title_screen_title2_or, 86, { 0.7, 0.7 });
 	//buttons
-	MenuButton::create_button(NEW_GAME_BUTTON_X, NEW_GAME_BUTTON_Y, MenuButtonType::new_game_button, "");
-	MenuButton::create_button(LOAD_GAME_BUTTON_X, LOAD_GAME_BUTTON_Y, MenuButtonType::load_game_button, "");
-	MenuButton::create_button(TITLE_HELP_BUTTON_X, TITLE_HELP_BUTTON_Y, MenuButtonType::title_help_button, "");
-	MenuButton::create_button(TITLE_EXIT_BUTTON_X, TITLE_EXIT_BUTTON_Y, MenuButtonType::title_exit_button, "");
+	MenuButton::create_button(NEW_GAME_BUTTON_X, NEW_GAME_BUTTON_Y, MenuButtonType::new_game_button, "", NEW_GAME_BUTTON_ANGLE);
+	MenuButton::create_button(LOAD_GAME_BUTTON_X, LOAD_GAME_BUTTON_Y, MenuButtonType::load_game_button);
+	MenuButton::create_button(TITLE_HELP_BUTTON_X, TITLE_HELP_BUTTON_Y, MenuButtonType::title_help_button, "", TITLE_HELP_BUTTON_ANGLE);
+	MenuButton::create_button(TITLE_EXIT_BUTTON_X, TITLE_EXIT_BUTTON_Y, MenuButtonType::title_exit_button);
+	title_button_arrow_entity = MenuButton::create_button_arrow();
 	// blinking eyes
 	std::vector<vec2> locations = { vec2({984, 442}), vec2({891, 429}), vec2({851, 427}), vec2({764, 434}), vec2({719, 435}),
 								   vec2({576, 410}), vec2({501, 417}), vec2({397, 421}), vec2({355, 422}), vec2({40, 420}) };

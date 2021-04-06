@@ -4,8 +4,9 @@
 #include "ui.hpp"
 
 struct MenuButton {
-	static entt::entity create_button(float x, float y, MenuButtonType button_type, std::string button_text = "");
+	static entt::entity create_button(float x, float y, MenuButtonType button_type, std::string button_text = "", float angle = 0.f);
 	MenuButtonType button_type;
+	static entt::entity create_button_arrow();
 };
 
 MenuButtonType on_click_button(vec2 mouse_pos);

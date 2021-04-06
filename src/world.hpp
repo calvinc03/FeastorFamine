@@ -232,7 +232,7 @@ private:
 	entt::entity weather_icon_entity;
 	entt::entity pause_menu_entity;
 	entt::entity help_menu_entity;
-	
+	entt::entity title_button_arrow_entity;
 
 	unit_type placement_unit_selected;
 	entt::entity entity_selected;

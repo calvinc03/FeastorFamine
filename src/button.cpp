@@ -1,7 +1,7 @@
 #include "button.hpp"
 #include "render.hpp"
 
-entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_type, std::string button_text)
+entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_type, std::string button_text, float angle)
 {
 	auto entity = registry.create();
 	// Create rendering primitives
@@ -29,7 +29,8 @@ entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_t
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = menu_button_ui_tag.at(button_type);
-	ui_element.scale = vec2({ 1.4f, 1.2f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.angle = angle;
+	ui_element.scale = vec2({ 1.2f, 1.2f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
 	ui_element.position = vec2(x, y);
 
 	auto& menu_button = registry.emplace<MenuButton>(entity);
@@ -55,4 +56,27 @@ MenuButtonType on_click_button(vec2 mouse_pos)
 		}
 	}
 	return MenuButtonType::no_menu_button_pressed;
+}
+
+
+entt::entity MenuButton::create_button_arrow()
+{
+	auto entity = registry.create();
+	// Create rendering primitives
+	std::string key = "title_button_arrow";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, menu_button_texture_path("title_button_highlight.png"), "textured");
+	}
+
+	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh_ref.layer = 97;
+	shaded_mesh_ref.show = false;
+
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = "title_button_arrow";
+	ui_element.scale = vec2({ 1.1f, 1.1f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.position = { 0.f, 0.f };
+	return entity;
 }
