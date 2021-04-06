@@ -73,6 +73,9 @@ public:
 	// Steps the game during set up rounds
 	void set_up_step(float elapsed_ms);
 	
+	// steps the game during title screen
+	void title_screen_step(float elapsed_ms);
+
 	// lost game 
 	void darken_screen_step(float elapsed_ms);
 	void lost_game_screen_step(float elapsed_ms);

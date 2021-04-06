@@ -12,10 +12,12 @@ entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_t
 		std::string texture_file_name = "empty_button.png";
 		switch (button_type)
 		{
-			case new_game_button : texture_file_name = "empty_button.png";  break;
-			case exit_button	 : texture_file_name = "empty_button.png";	break;
-			case load_game_button: texture_file_name = "empty_button.png";  break;
-			case settings_button : texture_file_name = "empty_button.png";  break;
+			case new_game_button : texture_file_name = "new_game_button.png";  break;
+			case title_exit_button: texture_file_name = "exit_button.png";	break;
+			case title_help_button: texture_file_name = "help_button.png";  break;
+			case load_game_button: texture_file_name = "load_game_button.png";  break;			
+			case exit_button     : texture_file_name = "empty_button.png";	break;
+			case help_button	 : texture_file_name = "empty_button.png";  break;
 			case back_button     : texture_file_name = "empty_button.png";	break;
 			case empty_button    : texture_file_name = "empty_button.png";  break;
 			default              : texture_file_name = "empty_button.png";  break;
