@@ -22,6 +22,10 @@ public:
 	bool tower_tip;
 	bool wall_tip;
 	bool greenhouse_tip;
+	bool exterminator_tip;
+	bool robot_tip;
+	bool priestess_tip;
+	bool snowmachine_tip;
 };
 
 struct TipCard
@@ -141,4 +145,36 @@ const std::vector<std::string> wall_tips = {
 	"from traveling through that square. Place",
 	"them strategically to funnel the enemies",
 	"towards your defenses!"
+};
+
+const std::vector<std::string> exterminator_tips = {
+	"These units are slow and deal ranged damage.",
+	"Place them at the front of your forces",
+	"to make up for their limited range.",
+	"Upgrading them will increase their damage,",
+	"accuracy, and projectile speed."
+};
+
+const std::vector<std::string> robot_tips = {
+	"These units are slow and deal ranged damage.",
+	"Place them at the front of your forces",
+	"to make up for their limited range.",
+	"Upgrading them will increase their damage,",
+	"accuracy, and projectile speed."
+};
+
+const std::vector<std::string> priestess_tips = {
+	"These units are slow and deal ranged damage.",
+	"Place them at the front of your forces",
+	"to make up for their limited range.",
+	"Upgrading them will increase their damage,",
+	"accuracy, and projectile speed."
+};
+
+const std::vector<std::string> snowmachine_tips = {
+	"These units are slow and deal ranged damage.",
+	"Place them at the front of your forces",
+	"to make up for their limited range.",
+	"Upgrading them will increase their damage,",
+	"accuracy, and projectile speed."
 };

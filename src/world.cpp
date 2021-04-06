@@ -679,13 +679,13 @@ void WorldSystem::restart()
 
 	//create UI	
 	//UI_button::createUI_build_unit_button(0, watchtower_button, watchtower_unit.cost);
-	UI_button::createUI_build_unit_button(1, green_house_button, greenhouse_unit.cost);
-	UI_button::createUI_build_unit_button(2, hunter_button, hunter_unit.cost);
-	UI_button::createUI_build_unit_button(3, wall_button, wall_unit.cost );
-	// when unit is selected buttons
-	//UI_selected_unit::createUI_selected_unit_button_1(2, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE, false);
-	//UI_selected_unit::createUI_selected_unit_button_1(3, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE, false);
-	//UI_selected_unit::createUI_selected_unit_button_1(4, sell_button, SELL_BUTTON_TITLE, false);
+	UI_button::createUI_build_unit_button(0, hunter_button, unit_cost.at(HUNTER));
+	UI_button::createUI_build_unit_button(1, exterminator_button, unit_cost.at(EXTERMINATOR));
+	UI_button::createUI_build_unit_button(2, robot_button, unit_cost.at(ROBOT));
+	UI_button::createUI_build_unit_button(3, priestess_button, unit_cost.at(PRIESTESS));
+	UI_button::createUI_build_unit_button(4, snowmachine_button, unit_cost.at(SNOWMACHINE));
+	UI_button::createUI_build_unit_button(5, green_house_button, unit_cost.at(GREENHOUSE));
+	UI_button::createUI_build_unit_button(6, wall_button, unit_cost.at(WALL));
 	// general buttons
 	//UI_button::createUI_button(7, tips_button, TIPS_BUTTON_TITLE);
 	//UI_button::createUI_button(8, start_button, START_BUTTON_TITLE);
@@ -1452,7 +1452,7 @@ void update_selected_button(entt::entity e_button, Unit unit)
 	}
 	selected_components.button_components = std::vector<entt::entity>();
 
-	auto& ui = registry.get<UI_element>(e_button);
+	auto ui = registry.get<UI_element>(e_button);
 
 	int path_num;
 	if (ui.tag == PATH_1_UPGRADE_BUTTON_TITLE) {
@@ -1469,7 +1469,8 @@ void update_selected_button(entt::entity e_button, Unit unit)
 	float line_size = 35; // relative to the text size
 	float left_margin = 3;
 	// unit name text
-	std::string short_description = "Damage";
+	std::string key = ui.tag + "_" + unit_str.at(unit.type) + "_" + std::to_string(path_num);
+	std::string short_description = upgrade_short_descriptions.at(key);
 	auto title_text_scale = 0.4f;
 	auto bubblegum = TextFont::load("data/fonts/MagicalMystery/MAGIMT__.ttf");
 	// center text
@@ -2060,7 +2061,6 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					entity = Priestess::createPriestess(unit_position);
 					deduct_health(priestess_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
-					Priestess::updateBuffs();
 				}
 				else if (placement_unit_selected == SNOWMACHINE && health >= snowmachine_unit.cost)
 				{
@@ -2131,6 +2131,54 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 				placement_unit_selected = HUNTER;
 				create_unit_indicator = Hunter::createHunter;
+			}
+			else if (ui_button == Button::exterminator_button)
+			{
+				if (game_tips && tip_manager.exterminator_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.exterminator_tip = false;
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, exterminator_tips);
+				}
+
+				placement_unit_selected = EXTERMINATOR;
+				create_unit_indicator = Exterminator::createExterminator;
+			}
+			else if (ui_button == Button::robot_button)
+			{
+				if (game_tips && tip_manager.robot_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.robot_tip = false;
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, robot_tips);
+				}
+
+				placement_unit_selected = ROBOT;
+				create_unit_indicator = Robot::createRobot;
+			}
+			else if (ui_button == Button::priestess_button)
+			{
+				if (game_tips && tip_manager.priestess_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.priestess_tip = false;
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, priestess_tips);
+				}
+
+				placement_unit_selected = PRIESTESS;
+				create_unit_indicator = Priestess::createPriestess;
+			}
+			else if (ui_button == Button::snowmachine_button)
+			{
+				if (game_tips && tip_manager.snowmachine_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.snowmachine_tip = false;
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, snowmachine_tips);
+				}
+
+				placement_unit_selected = SNOWMACHINE;
+				create_unit_indicator = SnowMachine::createSnowMachine;
 			}
 			else if (ui_button == Button::wall_button)
 			{
@@ -2207,6 +2255,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				placement_unit_selected = NONE;
 			}
 		}
+		Priestess::updateBuffs();
 	}
 
 	// avoid 'unreferenced formal parameter' warning message
