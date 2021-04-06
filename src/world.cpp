@@ -419,6 +419,13 @@ void WorldSystem::step(float elapsed_ms)
 					}
 
 				}
+
+				if (particle_view.size() != 0) {
+					for (auto particle : particle_view) {
+						registry.destroy(particle);
+					}
+				}
+
 								// count down timer
 				end_of_battle_stage_dealy_ms -= elapsed_ms * current_speed;
 				// end battle phase and set up next round 
