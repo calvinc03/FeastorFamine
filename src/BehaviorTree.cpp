@@ -334,7 +334,7 @@ void increment_monster_step(entt::entity entity) {
 	// TODO: make disappearance fancier
 	if (pixel_to_coord(motion.position) == VILLAGE_COORD
 		|| monster.current_path_index >= monster.path_coords.size() - 1) {
-		WorldSystem::health -= monster.damage;
+		WorldSystem::deduct_health(monster.damage);
 		motion.velocity *= 0;
 
 		if (registry.has<Rig>(entity)) {
@@ -348,7 +348,7 @@ void increment_monster_step(entt::entity entity) {
 	}
 
 	assert(monster.path_coords[monster.current_path_index] == current_path_coord);
-    float time_step = ELAPSED_MS / 1000.f;
+	float time_step = (ELAPSED_MS / 1000.f) * WorldSystem::speed_up_factor;
 	ivec2 next_path_coord = monster.path_coords.at(monster.current_path_index + 1);
 	vec2 next_step_position = motion.position + time_step * motion.velocity * monster.speed_multiplier;
 	ivec2 next_step_coord = pixel_to_coord(next_step_position);
@@ -361,12 +361,18 @@ void increment_monster_step(entt::entity entity) {
 			motion.velocity = length(motion.velocity) * move_direction;
 			motion.angle = atan(move_direction.y / move_direction.x);
 			monster.current_node_visited = true;
+			//std::cout << "distance to center: " << length(coord_to_pixel(current_path_coord) - motion.position) << "\n\n";
 		}
+		/*else {
+			std::cout << "distance to center: "<< length(coord_to_pixel(current_path_coord) - motion.position) << "\n";
+			std::cout << "step size: " << length(motion.velocity * time_step) << "\n\n";
+		}*/
 	}
 
 	// increment path index and apply terrain speed multiplier
 	if (next_step_coord == next_path_coord) {
 		monster.current_path_index++;
+		monster.current_node_visited = false;
 		terrain_type current_terran = WorldSystem::current_map.getNodeAtCoord(current_path_coord).terrain;
 		terrain_type next_terran = WorldSystem::current_map.getNodeAtCoord(next_path_coord).terrain;
 		monster.speed_multiplier /= monster_move_speed_multiplier.at({monster.type, current_terran});

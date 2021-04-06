@@ -450,6 +450,7 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 		sort_by_layer[layer].push_back(entity);
 
 	}
+	bool drawn_particle = false;
 	for (auto entities : sort_by_layer)
 	{
 		for (auto entity : entities)
@@ -466,7 +467,14 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 				}
 				else if (registry.has<ParticleSystem>(entity))
 				{
-					continue;
+					// Truely render to the screen
+					if (!drawn_particle) {
+						if (registry.view<ParticleSystem>().size() != 0) {
+							glDisable(GL_DEPTH_TEST);
+							drawParticle(billboard_vertex_buffer, particles_position_buffer, projection_2D_ui);
+						}
+						drawn_particle = true;
+					}
 				}
 				else
 				{
@@ -491,11 +499,7 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 		}	
 	}
     
-    // Truely render to the screen
-    if (registry.view<ParticleSystem>().size() != 0) {
-        glDisable(GL_DEPTH_TEST);
-        drawParticle(billboard_vertex_buffer, particles_position_buffer, projection_2D_ui);
-    }
+
 
 	drawToScreen();
 

@@ -56,3 +56,9 @@ static const float WEATHER_TEXT_SCALE = 0.45f;
 //// weather icon
 //static const float WEATHER_ICON_X_OFFSET = WEATHER_TEXT_X_OFFSET + 105.f;
 //static const float WEATHER_ICON_Y_OFFSET = WEATHER_TEXT_Y_OFFSET - 13.f;
+
+// Lost Screen Buttons
+static const float RESTART_ROUND_BUTTON_X = WINDOW_SIZE_IN_PX.x / 2;
+static const float RESTART_ROUND_BUTTON_Y = WINDOW_SIZE_IN_PX.y * 6 / 8;
+static const float EXIT_BUTTON_X = WINDOW_SIZE_IN_PX.x / 2;
+static const float EXIT_BUTTON_Y = WINDOW_SIZE_IN_PX.y * 7 / 8;

@@ -137,7 +137,7 @@ bool preciseCollides(entt::entity spider, entt::entity projectile)
 	auto& spider_rig = registry.get<Rig>(spider);
 
 	for (auto rig_vector : spider_rig.chains) {
-		for (auto rig_entity : rig_vector) {
+		for (auto rig_entity : rig_vector.chain_vector) {
 			auto& motion = registry.get<Motion>(rig_entity);
 			auto& meshref = registry.get<ShadedMeshRef>(rig_entity);
 

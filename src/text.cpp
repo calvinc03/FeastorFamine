@@ -589,7 +589,7 @@ unsigned GetNumberOfDigits(unsigned i)
 void HealthChangeText::create_haelth_gain_text(int num, int health)
 {
     int health_text_num = (int)registry.view<HealthChangeText>().size();
-    float on_screen_time_ms = 200;
+    float on_screen_time_ms = 400;
     vec3 text_colour = { 0.f, 1.f, 0.f };
     float text_scale = 0.55f;
     float x_offset = GetNumberOfDigits((unsigned)health) * FOOD_NUM_SCALE * 30.f;// +health_text_num * 2.f * text_scale * 37.f;

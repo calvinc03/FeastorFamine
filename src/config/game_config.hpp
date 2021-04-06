@@ -28,3 +28,5 @@ static const int MAX_ROUND_NUMBER = 17;
 static const int MAX_POSSIBLE_DAMAGE = 100;
 // rounds per season
 static const int ROUND_PER_SEASON = 2;
+
+static const float END_OF_BATTLE_STAGE_DELAY_MS = 1500.f;
