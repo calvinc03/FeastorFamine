@@ -4,6 +4,8 @@
 entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_type, std::string button_text, float angle)
 {
 	auto entity = registry.create();
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	vec2 ui_scale = { 1.2f, 1.2f };
 	// Create rendering primitives
 	std::string key = "menu_button" + std::to_string(button_type);
 	ShadedMesh& resource = cache_resource(key);
@@ -12,25 +14,49 @@ entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_t
 		std::string texture_file_name = "empty_button.png";
 		switch (button_type)
 		{
-			case new_game_button : texture_file_name = "new_game_button.png";  break;
-			case title_exit_button: texture_file_name = "exit_button.png";	break;
-			case title_help_button: texture_file_name = "help_button.png";  break;
-			case load_game_button: texture_file_name = "load_game_button.png";  break;			
-			case exit_button     : texture_file_name = "empty_button.png";	break;
-			case help_button	 : texture_file_name = "empty_button.png";  break;
-			case back_button     : texture_file_name = "empty_button.png";	break;
-			case empty_button    : texture_file_name = "empty_button.png";  break;
-			default              : texture_file_name = "empty_button.png";  break;
+			case new_game_button:
+				texture_file_name = "new_game_button.png";
+				break;
+			case title_exit_button:
+				texture_file_name = "exit_button.png";
+				break;
+			case title_help_button:
+				texture_file_name = "help_button.png";
+				break;
+			case load_game_button:
+				texture_file_name = "load_game_button.png";
+				break;			
+			case exit_button:
+				ui_scale = { 1.2f, 1.0f };
+				texture_file_name = "empty_button.png";
+				break;
+			case help_button:
+				ui_scale = { 1.2f, 1.0f };
+				texture_file_name = "empty_button.png";
+				break;
+			case back_button:
+				texture_file_name = "empty_button.png";
+				break;
+			case empty_button:
+				texture_file_name = "empty_button.png";
+				break;
+			case restart_round_button:
+				ui_scale = { 1.4f, 1.0f };
+				texture_file_name = "empty_button.png";
+				break;
+			default:
+				texture_file_name = "empty_button.png";
+				break;
 		}
 		RenderSystem::createSprite(resource, menu_button_texture_path(texture_file_name), "textured");
 	}
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
 	shaded_mesh_ref.layer = 98;
 
-	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	
 	ui_element.tag = menu_button_ui_tag.at(button_type);
 	ui_element.angle = angle;
-	ui_element.scale = vec2({ 1.2f, 1.2f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.scale = ui_scale * static_cast<vec2>(resource.texture.size) / 2.0f;
 	ui_element.position = vec2(x, y);
 
 	auto& menu_button = registry.emplace<MenuButton>(entity);
