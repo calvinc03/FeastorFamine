@@ -29,6 +29,15 @@ entt::entity Menu::createMenu(float x, float y, std::string menu_name, Menu_text
 			case lost_game:
 				texture_file_name = "lost_game.png";
 				break;
+			case title_screen_title:
+				texture_file_name = "title_screen_title.png";
+				break;
+			case title_screen_title2:
+				texture_file_name = "title_screen_title2.png";
+				break;
+			case title_screen_title2_or:
+				texture_file_name = "title_screen_title2_or.png";
+				break;
 			default:
 				texture_file_name = "title_screen.png";
 				break;
@@ -100,4 +109,30 @@ entt::entity Menu::createLostMenu()
 	rabbit_ui_element.position = { WINDOW_SIZE_IN_PX.x / 2 + 30, WINDOW_SIZE_IN_PX.y / 2 };
 
 	return background_entity;
+}
+
+
+entt::entity TitleEyes::createTitleEyes(vec2 position)
+{
+	auto entity = registry.create();
+	std::string key = "title_eyes";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, menu_texture_path("eyes.png"), "textured");
+	}
+	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh_ref.layer = 86;
+	shaded_mesh_ref.show = false;
+
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = "eyes";
+	ui_element.scale = vec2({ 0.8f, 0.8f }) * static_cast<vec2>(resource.texture.size);
+	ui_element.position = position;
+
+	auto eyes = registry.emplace<TitleEyes>(entity);
+	eyes.blink_delay_ms = rand() % 5000 + 1000;
+	eyes.blink_time_ms = 200;
+	eyes.show = false;
+	return entity;
 }

@@ -9,7 +9,7 @@ void animate_rig_fk_helper(entt::entity character, float elapsed_ms);
 
 
 //create a simple entity that takes part in kinematic chain
-entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 offset, vec2 origin, float angle)
+entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 offset, vec2 origin, float angle, vec2 scale)
 {
     auto entity = registry.create();
 
@@ -26,7 +26,7 @@ entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 of
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = angle;
     motion.velocity = { 0, 0 };
-    motion.scale = resource.mesh.original_size;
+    motion.scale = resource.mesh.original_size*scale;
     motion.position =  offset;
     motion.scale.y *= -1;
     motion.boundingbox = motion.scale;
@@ -51,7 +51,6 @@ void RigSystem::update_rig(entt::entity character) {
     for (auto& chain : rig.chains) {
 
         Transform previous_transform = registry.get<Transform>(chain.root);
-        //previous_transform.mat = glm::mat3(1.0);
 
         for (auto& part : chain.chain_vector) {
             auto& transform = registry.get<Transform>(part);
@@ -156,8 +155,11 @@ void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
             vec2 a1 = hi->second;
             float ratio = (t_current - t0) / (t1 - t0);
 
-            vec2 new_pos = mix(a0, a1, ratio); // linear interpolation
-            ik_solve(character, new_pos * root_motion.scale, i);
+            if (a0 != a1) {
+                vec2 new_pos = mix(a0, a1, ratio); // linear interpolation
+                ik_solve(character, new_pos * root_motion.scale, i); // i == which chain. keyframe data has to manually align with chain #
+            }
+ 
 
             finished_loop = false;
         }
@@ -182,7 +184,6 @@ void RigSystem::ik_solve(entt::entity character, vec2 goal, int chain_idx) {
     root_transform.translate(root_motion.position);
     root_transform.rotate(root_motion.angle);
     
-    //vec2 goal_world_space = goal;
     vec2 goal_world_space = root_transform.mat*vec3(goal.x, goal.y,1); 
     
     std::vector<float> segment;
@@ -191,7 +192,7 @@ void RigSystem::ik_solve(entt::entity character, vec2 goal, int chain_idx) {
     //get total length of arm and the length of each segment
     for (int k = 0; k < rig.chains[chain_idx].chain_vector.size(); k++) {
         auto& part_motion = registry.get<Motion>(rig.chains[chain_idx].chain_vector[k]);
-        float len = 2 * length(part_motion.origin * root_motion.scale);
+        float len = 2 * length(part_motion.origin * root_motion.scale * part_motion.scale);
         segment.push_back(len);
         total_length += len;
     }
@@ -204,8 +205,6 @@ void RigSystem::ik_solve(entt::entity character, vec2 goal, int chain_idx) {
         auto& part_transform = registry.get<Transform>(part);
 
         offset_goal -= segment[k];
-        //vec2 pt = point_in_world_space(part_motion.origin, part_transform, root_transform) - root_motion.position;
-        //std::cout << pt.x << " " << pt.y << std::endl;
 
         float score_old = length(goal_world_space - point_in_world_space(part_motion.origin, part_transform, root_transform));
         for (int i = 0; i < 10; i++) {        

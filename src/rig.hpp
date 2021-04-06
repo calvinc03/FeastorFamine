@@ -16,9 +16,7 @@ public:
 };
 struct Rig { 
 	std::vector< Chain> chains;
-
-
-	static entt::entity createPart(entt::entity root_entity, std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0);
+	static entt::entity createPart(entt::entity root_entity, std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0, vec2 scale = {1,1});
 	static void delete_rig(entt::entity character);
 };
 
@@ -40,7 +38,7 @@ struct KeyFrames_FK { // per joint keyframes -- might change this, kind of weird
 };
 
 struct KeyFrames_IK {
-	// timestamp, angle
+	// vector of ik goals-- timestamp,ik goal pos
 	std::vector<std::map<float, vec2>> data;
 };
 

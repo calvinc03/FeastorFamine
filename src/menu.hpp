@@ -5,7 +5,7 @@
 #include "common.hpp"
 #include "ui.hpp"
 
-enum Menu_texture { title_screen, controls, default_menu, help_menu, pause_menu, lost_game};
+enum Menu_texture { title_screen, controls, default_menu, help_menu, pause_menu, lost_game, title_screen_title, title_screen_title2, title_screen_title2_or};
 
 struct Menu
 {
@@ -19,4 +19,12 @@ inline std::string menu_texture_path(const std::string& name) { return data_path
 struct MenuText
 {
 	std::string menu_name;
+};
+
+struct TitleEyes
+{
+	bool show;
+	float blink_delay_ms;
+	float blink_time_ms;
+	static entt::entity createTitleEyes(vec2 position);
 };

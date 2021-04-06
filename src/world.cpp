@@ -435,6 +435,33 @@ void WorldSystem::step(float elapsed_ms)
 	
 }
 
+void WorldSystem::title_screen_step(float elapsed_ms)
+{
+	// eyes blinking
+	for (auto entity : registry.view<TitleEyes, ShadedMeshRef>())
+	{
+		auto& eyes = registry.get<TitleEyes>(entity);
+		auto& shaded_mesh_ref = registry.get<ShadedMeshRef>(entity);
+		
+		eyes.blink_delay_ms -= elapsed_ms;
+		// time to blink
+		if (eyes.blink_delay_ms < 0.f)
+		{
+			shaded_mesh_ref.show = false;
+			eyes.blink_time_ms -= elapsed_ms;
+		}
+		// time to open eyes
+		if (eyes.blink_time_ms < 0.f)
+		{
+			if (eyes.show) {
+				shaded_mesh_ref.show = true;
+			}
+			eyes.blink_delay_ms = rand() % 4000 + 1000; // 1 ~ 5 sec
+			eyes.blink_time_ms = 200;
+		}
+	}
+}
+
 void WorldSystem::lost_game_screen_step(float elapsed_ms)
 {
 	// animation
@@ -1471,6 +1498,33 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 				registry.destroy(entity_range_circle);
 		}
 	}
+	else if (game_state == start_menu)
+	{
+		// hover on title screen buttons, show eyes
+		auto view_ui = registry.view<MenuButton, UI_element>();
+		bool is_hovering = false;
+		for (auto ui_entity : view_ui)
+		{
+			auto ui_element = registry.get<UI_element>(ui_entity);
+			if (sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f) < 0.0f) {
+				is_hovering = true;
+				registry.get<UI_element>(title_button_highlight_entity).position = vec2({ ui_element.position.x,  ui_element.position.y });
+				registry.get<UI_element>(title_button_highlight_entity).angle = ui_element.angle;
+				registry.get<ShadedMeshRef>(title_button_highlight_entity).show = true;
+			}
+		}
+		if (is_hovering)
+		{
+			for (auto entity : registry.view<TitleEyes>())
+				registry.get<TitleEyes>(entity).show = true;
+		}
+		else
+		{
+			registry.get<ShadedMeshRef>(title_button_highlight_entity).show = false;
+			for (auto entity : registry.view<TitleEyes>())
+				registry.get<TitleEyes>(entity).show = false;
+		}
+	}
 }
 
 // helper for update_look_for_selected_buttons
@@ -1938,31 +1992,38 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 	
 	if (action == GLFW_PRESS)
 	{
+		/*for (auto entity : registry.view<TitleEyes>())
+		{
+			registry.destroy(entity);
+		}
+		std::cout << "mouse pos :" << mouse_pos_x << ", " << mouse_pos_y << "\n";
+		TitleEyes::createTitleEyes(vec2({ mouse_pos_x, mouse_pos_y }));*/
+		//MenuButton::create_button(mouse_pos_x, mouse_pos_y, MenuButtonType::exit_button, "X");
 		button_tag = on_click_button({mouse_pos_x, mouse_pos_y});
 		switch (button_tag)
 		{
-		case (MenuButtonType::exit_button):
-			// close window
-			glfwSetWindowShouldClose(window, GLFW_TRUE);
-			break;
 		case (MenuButtonType::new_game_button):
 			remove_menu_buttons();
-
 			game_state = help_menu;
 			restart_with_save();
 			// show controls overlay
 			RenderSystem::show_entity(help_menu_entity);
-			break;
-		case (MenuButtonType::settings_button):
-			remove_menu_buttons();
-			game_state = settings_menu;
-			create_controls_menu();
 			break;
 		case (MenuButtonType::load_game_button):
 			remove_menu_buttons();
 			restart();
 			load_game();
 			game_state = story_card;
+			break;
+		case (MenuButtonType::title_help_button):
+			remove_menu_buttons();
+			registry.destroy(title_button_highlight_entity);
+			game_state = settings_menu;
+			create_controls_menu();
+			break;
+		case (MenuButtonType::title_exit_button):
+			// close window
+			glfwSetWindowShouldClose(window, GLFW_TRUE);
 			break;
 		}
 	}	
@@ -2022,11 +2083,25 @@ void WorldSystem::game_setup()
 void WorldSystem::create_start_menu()
 {
 	std::cout << "In Start Menu\n";
-	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "start_menu", Menu_texture::title_screen, 89, {1.0, 0.9});
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 3 / 7, MenuButtonType::new_game_button, "New game");
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 4 / 7, MenuButtonType::load_game_button, "Load game");
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 5 / 7, MenuButtonType::settings_button, "Controls");
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 6 / 7, MenuButtonType::exit_button, "Exit");
+	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "start_menu", Menu_texture::title_screen, 85, {1.0, 0.9});
+	//Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, 100, "title_screen_title", Menu_texture::title_screen_title, 86, { 0.9, 0.9 });
+	// title: Feast or Famine
+	Menu::createMenu(300, 150, "title_screen_title2", Menu_texture::title_screen_title2, 86, { 1.1, 1.1 });
+	Menu::createMenu(470, 120, "title_screen_title_or", Menu_texture::title_screen_title2_or, 86, { 0.7, 0.7 });
+	//buttons
+	MenuButton::create_button(NEW_GAME_BUTTON_X, NEW_GAME_BUTTON_Y, MenuButtonType::new_game_button, "", NEW_GAME_BUTTON_ANGLE);
+	MenuButton::create_button(LOAD_GAME_BUTTON_X, LOAD_GAME_BUTTON_Y, MenuButtonType::load_game_button);
+	MenuButton::create_button(TITLE_HELP_BUTTON_X, TITLE_HELP_BUTTON_Y, MenuButtonType::title_help_button, "", TITLE_HELP_BUTTON_ANGLE);
+	MenuButton::create_button(TITLE_EXIT_BUTTON_X, TITLE_EXIT_BUTTON_Y, MenuButtonType::title_exit_button);
+	title_button_highlight_entity = MenuButton::create_button_arrow();
+	// blinking eyes
+	std::vector<vec2> locations = { vec2({984, 442}), vec2({891, 429}), vec2({851, 427}), vec2({764, 434}), vec2({719, 435}),
+								   vec2({576, 410}), vec2({501, 417}), vec2({397, 421}), vec2({355, 422}), vec2({40, 420}) };
+	for (vec2 position : locations)
+	{
+		TitleEyes::createTitleEyes(position);
+	}
+	
 }
 
 void WorldSystem::create_controls_menu()
