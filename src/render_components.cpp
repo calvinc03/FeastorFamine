@@ -172,6 +172,17 @@ namespace {
         }
         return is;
     };
+	std::istream& consumeSlash(std::istream& is) {
+		auto c = char{};
+		for (int i = 0; i < 1; ++i) {
+			is.get(c);
+			if (!is || (c != '/')) {
+				is.setstate(std::ios_base::failbit);
+				return is;
+			}
+		}
+		return is;
+	};
 
 } // anonymous namespace 
 
@@ -283,3 +294,117 @@ ShadedMesh& cache_resource(std::string key)
 ShadedMeshRef::ShadedMeshRef(ShadedMesh& mesh) : 
 	reference_to_cache(&mesh) 
 {};
+
+
+//void Mesh::loadFromOBJFile_textured(std::string obj_path) {
+//	std::cout << "Loading OBJ file " << obj_path << std::endl;
+//
+//	// Note: normal and UV indices are currently not used
+//	auto out_vertices = std::vector<ColoredVertex>{};
+//	auto out_vertices_indices = std::vector<uint16_t>{};
+//
+//	auto out_uvs = std::vector<glm::vec2>{};
+//	auto out_uv_indices = std::vector<uint16_t>{};
+//
+//	auto out_normals = std::vector<glm::vec3>{};
+//	auto out_normal_indices = std::vector<uint16_t>{};
+//
+//	// make sure we start from scratch
+//	this->vertices.clear();
+//	this->vertex_indices.clear();
+//
+//
+//	auto obj_file = std::ifstream{ obj_path };
+//	if (!obj_file) {
+//		throw std::runtime_error("Could not open OBJ file " + obj_path);
+//	}
+//
+//	auto line = std::string{};
+//
+//	while (std::getline(obj_file, line)) {
+//		auto ss = std::istringstream{ line };
+//
+//		auto firstWord = std::string{};
+//		ss >> firstWord;
+//
+//		if (!ss) {
+//			continue;
+//		}
+//
+//		if (firstWord == "v") {
+//			//auto vertex = TexturedVertex{};
+//
+//			//ss >> vertex.position.x >> vertex.position.y >> vertex.position.z;
+//			//vertices.push_back(vertex);
+//			ss >> vertices[vertices.size() - 1].position.x >> vertices[vertices.size() - 1].position.y >> vertices[vertices.size() - 1].position.z;
+//			//auto vertex = TexturedVertex{};
+//			//ss >> vertex.position.x >> vertex.position.y >> vertex.position.z;
+//			//out_vertices.push_back(vertex);
+//		}
+//		else if (firstWord == "vt") {
+//			auto vertex = ColoredVertex{};
+//			ss >> vertex.texcoord.x >> vertex.texcoord.y;
+//			vertices.push_back(vertex);
+//			//ss >> vertices[vertices.size() - 1].texcoord.x >> vertices[vertices.size() - 1].texcoord.y;
+//			//auto uv = glm::vec2{};
+//			//ss >> uv.x >> uv.y;
+//			//uv.y = -uv.y; 
+//			//out_uvs.push_back(uv);
+//		}
+//		else if (firstWord == "vn") {
+//			auto normal = glm::vec3{};
+//			ss >> normal.x >> normal.y >> normal.z;
+//			out_normals.push_back(normal);
+//		}
+//		else if (firstWord == "f") {
+//			for (unsigned int i = 0; i < 3; ++i) {
+//				auto vi = std::uint16_t{};
+//				auto ni = std::uint16_t{};
+//				auto ti = std::uint16_t{};
+//				ss >> vi >> consumeSlash >> ti >> consumeSlash >> ni;
+//				if (!ss) {
+//					throw std::runtime_error("File can't be read by our simple parser :-( Try exporting with other options\n");
+//				}
+//				// -1 since .obj starts counting at 1 and OpenGL starts at 0
+//				assert(vi > 0);
+//				assert(ni > 0);
+//				assert(ti > 0);
+//				--vi;
+//				--ni;
+//				--ti;
+//
+//				this->vertex_indices.push_back(vi);
+//				out_normal_indices.push_back(ni);
+//				out_vertices_indices.push_back(vi);
+//				out_uv_indices.push_back(ti);
+//			}
+//		}
+//		else {
+//			// Probably a comment
+//		}
+//	}
+//
+//	// Compute bounds of the mesh
+//	constexpr auto float_min = std::numeric_limits<float>::min();
+//	constexpr auto float_max = std::numeric_limits<float>::max();
+//
+//	auto max_position = vec3{ float_min, float_min, float_min };
+//	auto min_position = vec3{ float_max, float_max, float_max };
+//
+//	for (auto& pos : vertices) {
+//		max_position = glm::max(max_position, pos.position);
+//		min_position = glm::min(min_position, pos.position);
+//	}
+//
+//	// don't scale z direction
+//	min_position.z = 0;
+//	max_position.z = 1;
+//
+//	auto extent = max_position - min_position;
+//	this->original_size = extent;
+//
+//	// Normalize mesh to range -0.5 ... 0.5
+//	for (auto& pos : vertices) {
+//		pos.position = ((pos.position - min_position) / extent) - vec3(0.5f, 0.5f, 0.0f);
+//	}
+//}

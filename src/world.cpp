@@ -30,6 +30,7 @@
 #include "particle.hpp"
 
 #include "rig.hpp"
+//#include "monsters/test_rig.hpp"
 #include "monsters/spider.hpp"
 #include <BehaviorTree.hpp>
 
@@ -209,7 +210,12 @@ void WorldSystem::step(float elapsed_ms)
 		//rig animation
 		auto view_rigs = registry.view<Timeline>();
 		for (auto entity : view_rigs) {
-			RigSystem::animate_rig_ik(entity, 15); // constant 15ms/frame
+			if (registry.has<FK_Animations>(entity)) {
+				RigSystem::animate_rig_fk(entity, elapsed_ms);
+			}
+			else {
+				RigSystem::animate_rig_ik(entity, 15); // constant 15ms/frame
+			}
 		}
 		// animation
 		fps_ms -= elapsed_ms;
@@ -852,6 +858,9 @@ void WorldSystem::restart()
 
 	// set up variables for first round
 	setup_round_from_round_number(0);
+
+	//TestRig::createTest();
+
 }
 
 void WorldSystem::setup_round_from_round_number(int round_number)
@@ -910,7 +919,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
             weather = CLEAR;
         }
         //create_boss = SummerBoss::createSummerBossEntt;
-		create_boss = Spider::createSpider;
+		create_boss =  Spider::createSpider;
         current_round_monster_types.emplace_back(SPIDER);
     }
     else if (world_season_str == FALL_TITLE)
@@ -1086,7 +1095,15 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	{
 		speed_up_factor = 2.f;
 	}
+	if (key == GLFW_KEY_N) // for testing rigs
+	{
+		//auto& camera1 = registry.get<MouseMovement>(camera);
+		//auto view_rigs = registry.view<Rig>();
+		//for (entt::entity rig : view_rigs) {
+		//	RigSystem::ik_solve(rig, camera1.mouse_pos, 1);
+		//}
 
+	}
 	// keys used to skip rounds; used to debug and test rounds
 	if (action == GLFW_RELEASE && key == GLFW_KEY_G)
 	{

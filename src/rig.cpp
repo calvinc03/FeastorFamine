@@ -36,11 +36,41 @@ entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 of
     transform.mat = glm::mat3(1.0);
     auto& rigPart = registry.emplace<RigPart>(entity, root_entity);
 
-    registry.emplace<KeyFrames_FK>(entity);
-
     return entity;
 }
 
+
+entt::entity Rig::createPartTextured(std::string name, vec2 offset, float angle, vec2 scale)
+{
+    auto entity = registry.create();
+
+    std::string key = name;
+    ShadedMesh& resource = cache_resource(key);
+    if (resource.effect.program.resource == 0)
+    {
+        resource = ShadedMesh();
+        RenderSystem::createSprite(resource, textures_path(name), "monster");
+    }
+
+
+    ShadedMeshRef& mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
+    mesh_ref.layer = 22;
+
+    auto& motion = registry.emplace<Motion>(entity);
+    motion.angle = angle;
+    motion.velocity = { 0, 0 };
+    motion.scale = resource.mesh.original_size * scale;
+    motion.position = offset;
+    //motion.scale.y *= -1;
+    motion.boundingbox = motion.scale;
+
+    auto& transform = registry.emplace<Transform>(entity);
+    transform.mat = glm::mat3(1.0);
+    
+
+
+    return entity;
+}
 
 //updates transforms after updating angles
 void RigSystem::update_rig(entt::entity character) {
@@ -90,18 +120,27 @@ void RigSystem::animate_rig_fk(entt::entity character, float elapsed_ms) {
     update_rig(character);
 }
 
+//TODO check if FK component exists
 //TODO: check corner cases of lower/upper bound
 void animate_rig_fk_helper(entt::entity character, float elapsed_ms) {
+    if (!registry.has<FK_Animations>(character)) {
+        return;
+    }
+
     auto& timeline = registry.get<Timeline>(character);
     timeline.current_time += elapsed_ms/1000.0f;
     float t_current = timeline.current_time;
     
     bool finished_loop = true;
+
     auto& rig = registry.get<Rig>(character);
+    auto& fk_animations = registry.get<FK_Animations>(character);
+    auto& animation = fk_animations.anims[fk_animations.anim_state].anim;
+
     for (auto chain : rig.chains) {
         for (auto part : chain.chain_vector) {
             std::map<float, float>::iterator lo, hi;
-            auto& keyframes = registry.get<KeyFrames_FK>(part);
+            auto& keyframes = animation[part];
             lo = keyframes.data.lower_bound(t_current);
             hi = keyframes.data.upper_bound(t_current);
 
@@ -129,6 +168,9 @@ void animate_rig_fk_helper(entt::entity character, float elapsed_ms) {
 //make a procedurally animated character. animation speed based on velocity.
 //able to take recoil from hits
 void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
+    if (!registry.has<Animations>(character)) {
+        return;
+    }
     auto& rig = registry.get<Rig>(character);
     auto& root_motion = registry.get<Motion>(character);
     auto& timeline = registry.get<Timeline>(character);

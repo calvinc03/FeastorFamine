@@ -15,6 +15,7 @@ public:
 	}
 };
 struct Rig { 
+	static entt::entity createPartTextured(std::string name, vec2 offset = { 0,0 }, float angle = 0, vec2 scale = { 1,1 });
 	std::vector< Chain> chains;
 	static entt::entity createPart(entt::entity root_entity, std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0, vec2 scale = {1,1});
 	static void delete_rig(entt::entity character);
@@ -32,9 +33,18 @@ struct RigSystem {
 	static void ik_solve(entt::entity character, vec2 goal, int chain_idx);
 };
 
-struct KeyFrames_FK { // per joint keyframes -- might change this, kind of weird!
+struct Joint_angles { // per joint keyframes -- might change this, kind of weird!
 	// timestamp, angle
 	std::map<float, float> data;
+};
+
+struct Keyframes_FK {
+	std::map<entt::entity, Joint_angles> anim;
+};
+
+struct FK_Animations {
+	int anim_state = 0;
+	std::vector<Keyframes_FK> anims;
 };
 
 struct KeyFrames_IK {
@@ -52,4 +62,7 @@ struct Timeline { // per rig time
 	bool loop = true;
 };
 
-
+//temp
+struct Rig_textures {
+	
+};
