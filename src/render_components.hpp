@@ -112,6 +112,7 @@ struct Mesh
 struct ScreenState
 {
 	float darken_screen_factor = -1;
+	bool all_dark = false;
 };
 
 // ShadedMesh datastructure for storing mesh, shader, and texture objects
@@ -132,6 +133,13 @@ struct ShadedMeshRef
 	int layer = 0;
 	ShadedMesh* reference_to_cache;
 	ShadedMeshRef(ShadedMesh& mesh);
+};
+
+// replacing layer and show in shadedmeshref, so that entity without shadedmeshref can also get layers and show property (ex. texts)
+struct RenderProperty
+{
+	bool show = true;
+	int layer = 0;
 };
 
 // A struct to refer to debugging graphics in the ECS

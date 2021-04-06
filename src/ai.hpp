@@ -5,7 +5,6 @@
 
 #include "common.hpp"
 #include "entt.hpp"
-#include "grid_map.hpp"
 #include "Observer.hpp"
 #include "physics.hpp"
 #include <BehaviorTree.cpp>
@@ -17,17 +16,34 @@ public:
 	~AISystem();
 
 	void step(float elapsed_ms);
-	void updateCollisions(entt::entity entity_i, entt::entity entity_j);
+	void updateProjectileMonsterCollision(entt::entity monster);
 
 	struct MapAI {
-        static std::vector<ivec2> findPathBFS(GridMap& current_map, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2),
-                                              const std::vector<ivec2>& neighbors = {ivec2(1,0), ivec2(1,-1),ivec2(1,1),
-                                                                                    ivec2(0,-1),ivec2(0,1),
-                                                                                    ivec2(-1,0),ivec2(-1,1),ivec2(-1,-1)});
-        static void setRandomMapWeatherTerrain(GridMap& map);
-        static void setRandomGridsWeatherTerrain(GridMap& map, int max_grids);
-        static void setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain = TERRAIN_PAVEMENT);
+        static bool is_walkable(GridMap& current_map, ivec2 coord)
+        {
+            if (is_inbounds(coord))
+            {
+                int occupancy = current_map.getNodeAtCoord(coord).occupancy;
+                return occupancy == NONE || occupancy == FOREST || occupancy == VILLAGE;
+            }
+            return false;
+        }
+        static std::vector<ivec2> findPathBFS(GridMap& current_map,
+                                              ivec2 start_coord = FOREST_COORD,
+                                              ivec2 goal_coord = VILLAGE_COORD,
+                                              bool is_valid(GridMap&, ivec2) = is_walkable,
+                                              int neighbors = ALL_NBRS);
+        static std::vector<ivec2> findPathAStar(GridMap& current_map, int monster_type,
+                                                ivec2 start_coord = FOREST_COORD,
+                                                ivec2 goal_coord = VILLAGE_COORD,
+                                                bool is_valid(GridMap&, ivec2) = is_walkable,
+                                                int neighbors = ALL_NBRS);
+        static void setRandomMapWeatherTerrain(GridMap& map, int weather);
+        static void setRandomWeatherTerrain(GridMap& map, int max_rerolls, int weather);
+        static void setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, terrain_type terrain = TERRAIN_PAVEMENT);
 	};
+
+    static vec2 calculate_position(entt::entity animal, float time);
 
 	struct MonstersAI {
 		static std::shared_ptr<BTSelector> createBehaviorTree();

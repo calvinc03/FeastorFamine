@@ -25,7 +25,7 @@ endif()
 # Create executable target
 
 # You can switch to use the file GLOB for simplicity but at your own risk
-file(GLOB SOURCE_FILES src/*.cpp src/*.hpp)
+file(GLOB SOURCE_FILES src/*.cpp src/*.hpp src/config/*.cpp src/config/*.hpp src/monsters/*.cpp src/monsters/*.hpp src/units/*.cpp src/units/*.hpp)
 
 # external libraries will be installed into /usr/local/include and /usr/local/lib but that folder is not automatically included in the search on MACs
 if (IS_OS_MAC)
@@ -33,7 +33,7 @@ if (IS_OS_MAC)
   link_directories(/usr/local/lib)
 endif()
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES}  "src/Observer.hpp" "src/bosses/winter_boss.cpp" "src/bosses/winter_boss.hpp" "src/bosses/summer_boss.cpp" "src/bosses/summer_boss.hpp" "src/bosses/fall_boss.cpp" "src/bosses/fall_boss.hpp" "src/bosses/spring_boss.cpp" "src/bosses/spring_boss.hpp"   "src/bosses/burrow_boss.cpp" "src/bosses/burrow_boss.hpp" "src/unit.hpp" )
+add_executable(${PROJECT_NAME} ${SOURCE_FILES}  "src/main.cpp" )
 target_include_directories(${PROJECT_NAME} PUBLIC src/)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/nlohmann)
 

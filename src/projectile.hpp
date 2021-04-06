@@ -7,6 +7,46 @@
 struct Projectile
 {
 // Creates all the associated render resources and default transform
-    static entt::entity createProjectile(vec2 pos, vec2 velocity, int damage);
+    static entt::entity createProjectile(entt::entity e_unit, entt::entity e_monster, int damage);
+    int damage;
 };
 
+struct Snowball
+{
+    static entt::entity createSnowball(entt::entity e_unit, entt::entity e_monster, int damage);
+    std::vector<vec2> bezier_points;
+    int current_step = 0;
+};
+
+struct Flamethrower
+{
+    static entt::entity createFlamethrower(entt::entity e_unit, entt::entity e_monster, int damage);
+    float active_timer = 1500;
+    entt::entity e_unit; 
+};
+
+struct LaserBeam
+{
+    static entt::entity createLaserBeam(entt::entity e_unit, entt::entity e_monster, int damage);
+    float active_timer = 1500;
+    entt::entity e_unit;
+    vec2 unit_pos;
+};
+
+struct Missile
+{
+    static entt::entity createMissile(entt::entity e_unit, entt::entity e_monster, int damage);
+};
+
+struct Explosion
+{
+    static entt::entity createExplosion(entt::entity e_projectile, int damage);
+    float active_timer = 1500;
+    entt::entity e_unit;
+};
+
+struct IceField
+{
+    static entt::entity createIceField(entt::entity e_unit, entt::entity e_monster, int damage);
+    float active_timer = 1500;
+};

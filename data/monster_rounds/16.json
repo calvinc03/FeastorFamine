@@ -1,8 +1,8 @@
 {
-  "round_num": 16,
-  "max_mobs": 100,
-  "mob_delay_ms": 3000,
-  "max_bosses": 50,
-  "boss_delay_ms": 8000,
-  "season": "spring"
+  "round_num": 17,
+  "max_mobs": 0,
+  "mob_delay_ms": 200,
+  "max_bosses": 1,
+  "boss_delay_ms": 1000,
+  "season": "final"
 }

@@ -5,7 +5,10 @@
 enum class BTState {
     Moving,
     Stopped,
+    Attack,
     Failure,
+    Dragon,
+    Fireball
 };
 
 // The base class representing any node in our behaviour tree

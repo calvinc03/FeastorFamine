@@ -7,7 +7,7 @@
 #include <iostream>
 
 #include "render_components.hpp"
-
+#include "rig.hpp"
 
 namespace DebugSystem
 {
@@ -119,7 +119,9 @@ namespace DebugSystem
 		registry.emplace<DebugComponent>(entity);
 
 	}
-
+	void createPoint(vec2 position, float size) {
+		createLine(position, vec2(size, size));
+	}
 	void createBox(vec2 position, vec2 size) {
 		auto scale_horizontal_line = size;
 		scale_horizontal_line.y *= 0.05f;
@@ -131,6 +133,34 @@ namespace DebugSystem
 		createLine(position - vec2(0, size.y / 2.0), scale_horizontal_line);
 		createLine(position - vec2(size.x / 2.0, 0.0), scale_vertical_line);
 	}
+
+	void display_rig_vertices(entt::entity character) {
+
+		Motion root_motion = registry.get<Motion>(character);
+		auto& rig = registry.get<Rig>(character);
+
+		Transform transform;
+		transform.mat = mat3(1.0f);
+		transform.translate(root_motion.position);
+		transform.rotate(root_motion.angle);
+
+		for (auto chain : rig.chains) {
+			for (auto part : chain.chain_vector) {
+				auto mesh_ref = registry.get<ShadedMeshRef>(part).reference_to_cache->mesh.vertices;
+
+				const auto& entity_transform = registry.get<Transform>(part);
+				Transform temp_transform;
+				temp_transform.mat = transform.mat * entity_transform.mat;
+
+				for (int i = 0; i < mesh_ref.size(); i++) {
+					auto& v = mesh_ref[i];
+					vec3 g = temp_transform.mat * vec3(v.position.x, v.position.y, 1.0f);
+					DebugSystem::createPoint(g, 5.0f);
+				}
+			}
+		}
+	}
+
 	void clearDebugComponents() {
 		auto view_debug = registry.view<DebugComponent>();
 		for (auto [entity] : view_debug.each()) {

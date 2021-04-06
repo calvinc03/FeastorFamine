@@ -1,4 +1,6 @@
 #include "common.hpp"
+#include "text.hpp"
+#include <iostream>
 
 // Note, we could also use the functions from GLM but we write the transformations here to show the uderlying math
 void Transform::scale(vec2 scale)
@@ -47,11 +49,11 @@ vec2 mouse_in_world_coord(vec2 mouse_pos)
 }
 
 vec2 coord_to_pixel(ivec2 grid_coord) {
-    return grid_coord * GRID_CELL_SIZE + GRID_OFFSET;
+    return grid_coord * GRID_CELL_SIZE + GRID_OFFSET + ivec2(0, UI_TOP_BAR_HEIGHT);
 }
 
 ivec2 pixel_to_coord(vec2 pixel_position) {
-    return (ivec2)pixel_position / GRID_CELL_SIZE;
+    return ((ivec2)pixel_position - ivec2(0, UI_TOP_BAR_HEIGHT)) / GRID_CELL_SIZE;
 }
 
 // convert original scale to some set multiple of cell units
@@ -71,3 +73,64 @@ bool is_inbounds(ivec2 grid_coord) {
     return grid_coord.x >= 0 && grid_coord.y >= 0 && grid_coord.x < MAP_SIZE_IN_COORD.x && grid_coord.y < MAP_SIZE_IN_COORD.y;
 }
 
+std::vector<vec2> bezierVelocities(std::vector<vec2> points) {
+	std::vector<vec2> velocities;
+	for (int i = 0; i < points.size() - 1; i++) {
+		velocities.push_back(points[i + 1] - points[i]);
+	}
+	return velocities;
+}
+
+// total time in milliseconds
+std::vector<vec2> bezierCurve(std::vector<vec2> points, float total_time) {
+	size_t num_points = points.size();
+	float num_frames = round(total_time / ELAPSED_MS); 
+	float step = 1 / num_frames;
+	std::vector<float> coefficients = pascalNRow((int)num_points);
+	
+	std::vector<vec2> bezier_points; 
+	for (int i = 0; i <= num_frames; i++) {
+		vec2 point = { 0, 0 };
+		for (int j = 0; j < num_points; j++) {
+			point += coefficients[j] * (float) pow(1 - step * i, num_points - j - 1) * (float) pow(step * i, j) * points[j];
+		}
+		bezier_points.push_back(point);
+	}
+	return bezier_points;
+}
+
+std::vector<float> pascalNRow(int n) {
+	std::vector<float> row;
+	row.push_back(1.f);
+
+	for (int i = 1; i < n; i++) {
+		std::vector<float> next_row;
+		next_row.push_back(1.f);
+		for (int j = 0; j < row.size() - 1; j++) {
+			next_row.push_back(row[j] + row[j + 1]);
+		}
+		next_row.push_back(1.f);
+		row = next_row;
+	}
+
+	return row;
+}
+
+nlohmann::json get_json(std::string json_path)
+{
+	std::ifstream input_stream(json_path);
+
+	if (input_stream.fail())
+	{
+		std::cout << "Not reading json file for path \"" + json_path + "\" \n";
+		return NULL;
+	}
+
+	try {
+		auto json = nlohmann::json::parse(input_stream);
+		return json;
+	}
+	catch (std::exception) {
+		return NULL;
+	}
+}

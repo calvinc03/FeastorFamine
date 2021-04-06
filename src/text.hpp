@@ -151,3 +151,24 @@ private:
  * not to be used otherwise.
  */
 void drawText(const Text& text, glm::ivec2 frameBufferSize);
+
+vec2 get_center_text_position(vec2 text_box_scale, vec2 text_box_position, float text_scale, std::string text);
+
+struct DisappearingText
+{
+    static entt::entity createDisappearingText(std::shared_ptr<TextFont> text_font, std::string text, vec2 position, float on_screen_time_ms, float scale = 1.f, vec3 colour = { 1.f, 0.f, 0.f });
+    float on_screen_time_ms;
+};
+
+struct HealthChangeText
+{
+    static void create_haelth_gain_text(int num, int health);
+    static void create_haelth_deduct_text(int num, int health);
+};
+
+struct HitPointsText
+{
+    // create hit points when projectile hits monsters
+    static void create_hit_points_text(int hit_points, entt::entity e_damaged);
+    float min_scale;
+};

@@ -1,6 +1,6 @@
 #include "entt.hpp"
 #include "common.hpp"
-
+#include "config/ai_config.hpp"
 #include <cassert>
 #include <iostream>
 #include <functional>
@@ -10,59 +10,10 @@
 #include <type_traits>
 #include <debug.hpp>
 #include <BehaviorTree.hpp>
-#include <mob.hpp>
+#include <monsters/mob.hpp>
 #include <world.hpp>
+#include <rig.hpp>
 #pragma once
-
-// A composite node that loops through all children and exits when one fails
-//class BTAndSequence : public BTNode {
-//public:
-//	BTAndSequence(std::vector<std::shared_ptr<BTNode>> children)
-//		: m_children(std::move(children)) {
-//		m_index = std::map<entt::entity, int>();
-//	}
-//
-//private:
-//	void init(entt::entity e)
-//	{
-//		m_index[e] = 0;
-//		assert(m_index[e] < m_children.size());
-//		// initialize the first child
-//		const auto& child = m_children[m_index[e]];
-//		assert(child);
-//		child->init(e);
-//	}
-//
-//	BTState process(entt::entity e) override {
-//		if (m_index[e] >= m_children.size())
-//			return BTState::Success;
-//
-//		// process current child
-//		const auto& child = m_children[m_index[e]];
-//		assert(child);
-//		BTState state = child->process(e);
-//
-//		// select a new active child and initialize its internal state
-//		if (state == BTState::Success) {
-//			++m_index[e];
-//			if (m_index[e] >= m_children.size()) {
-//				return BTState::Success;
-//			}
-//			else {
-//				const auto& nextChild = m_children[m_index[e]];
-//				assert(nextChild);
-//				nextChild->init(e);
-//				return BTState::Running;
-//			}
-//		}
-//		else {
-//			return state;
-//		}
-//	}
-//
-//	std::map<entt::entity, int> m_index;
-//	std::vector<std::shared_ptr<BTNode>> m_children;
-//};
 
 // A general decorator with lambda condition
 class BTIfCondition : public BTNode
@@ -116,6 +67,8 @@ private:
 class DoNothing : public BTNode {
 public:
 	void init(entt::entity e) override {
+		// do nothing
+		(void)e;
 	}
 
 	BTState process(entt::entity e) override {
@@ -141,9 +94,8 @@ public:
 
 		if (visited[e]) {
 			motion.scale *= 1.3;
-			monster.health += 200;
+			monster.damage *= 2;
 			visited[e] = false;
-			auto& monster = registry.get<Monster>(e);
 			monster.collided = false;
 			return BTState::Moving;
 		}
@@ -185,6 +137,79 @@ private:
 	std::map<entt::entity, vec2> vel;
 };
 
+class Attack : public BTNode {
+public:
+    Attack() noexcept {
+        vel = std::map<entt::entity, vec2>();
+        next_attack = std::map<entt::entity, int>();
+        attackable_entities = std::vector<entt::entity>();
+    }
+
+    void init(entt::entity e) override {
+        auto& motion = registry.get<Motion>(e);
+        vel[e] = motion.velocity;
+        next_attack[e] = 0;
+        first_process = true;
+    }
+
+    BTState process(entt::entity e) override {
+        auto& motion = registry.get<Motion>(e);
+
+        // add all attackable units to list
+        if (first_process) {
+            ivec2 coord = pixel_to_coord(motion.position);
+            for (ivec2 nbr : neighbor_map.at(DIRECT_NBRS)) {
+                ivec2 nbr_coord = coord + nbr;
+                if (!is_inbounds(nbr_coord)) {
+                    continue;
+                }
+                auto& node = WorldSystem::current_map.getNodeAtCoord(nbr_coord);
+                if (node.occupancy != NONE
+                    && registry.has<Unit>(node.occupying_entity)
+                    && registry.get<Unit>(node.occupying_entity).health > 0) {
+                    attackable_entities.emplace_back(node.occupying_entity);
+                }
+            }
+            first_process = false;
+        }
+
+        motion.velocity *= 0;
+        if (next_attack[e] > 0) {
+            next_attack[e]--;
+            return BTState::Attack;
+        }
+
+        // attack a unit from attackable list
+        auto& monster = registry.get<Monster>(e);
+        auto& entity_to_attack = attackable_entities.back();
+        auto& unit = registry.get<Unit>(entity_to_attack);
+        next_attack[e] = monster.attack_interval;
+
+        // TODO: create on hit and damaged(hp<=0) appearances for unit
+        unit.health -= monster.damage;
+        
+        auto &hit_reaction = registry.get<HitReaction>(entity_to_attack);
+        hit_reaction.counter_ms = 750;
+
+        if (unit.health <= 0) {
+            attackable_entities.pop_back();
+        }
+
+        // continue moving if no more attackables
+        if (attackable_entities.empty()) {
+            motion.velocity = vel[e];
+            first_process = true;
+            return BTState::Failure;
+        }
+        return BTState::Attack;
+    }
+private:
+    std::map<entt::entity, vec2> vel;
+    std::map<entt::entity, int> next_attack;
+    std::vector<entt::entity> attackable_entities;
+    bool first_process;
+};
+
 class Run : public BTNode {
 public:
 	Run() noexcept {
@@ -214,7 +239,10 @@ class Knockback : public BTNode {
 public:
 	Knockback() noexcept { }
 
-	void init(entt::entity e) override { }
+	void init(entt::entity e) override {
+		// do nothing
+		(void)e;
+	}
 
 	BTState process(entt::entity e) override {
 		auto& motion = registry.get<Motion>(e);
@@ -227,11 +255,66 @@ public:
 	}
 };
 
+class Dragon : public BTNode { // todo probably delete from here and ai
+public:
+	Dragon() noexcept {}
+
+	void init(entt::entity e) override {
+		// do nothing
+		(void)e;
+	}
+
+	BTState process(entt::entity e) override {
+		auto& motion = registry.get<Motion>(e);
+
+		motion.position += motion.velocity;
+
+		// stop when dragon is at edge of screen
+		if (motion.position.x > 240) {
+			// if velocity is 0 it faces upwards??
+			motion.velocity.x = 0.01f;
+		}
+
+		return BTState::Dragon;
+	}
+};
+
+class Fireball : public BTNode {
+public:
+	Fireball() noexcept {}
+
+	void init(entt::entity e) override {
+		// do nothing
+		(void)e;
+	}
+	
+	BTState process(entt::entity e) override {
+		auto& monster = registry.get<Monster>(e);
+		auto& motion = registry.get<Motion>(e);
+
+		motion.position += motion.velocity;
+
+		if (motion.position.x + 100 >= coord_to_pixel(VILLAGE_COORD).x) {
+			std::cout << "hit the village with a fireball" << std::endl;
+			WorldSystem::health -= monster.damage;
+			motion.velocity *= 0;
+			registry.destroy(e);
+		}
+
+		return BTState::Fireball;
+	}
+};
+
+
+
 class Walk : public BTNode {
 public:
 	Walk() noexcept {}
 
-	void init(entt::entity e) override { }
+	void init(entt::entity e) override { 
+		// do nothing
+		(void)e;
+	}
 
 	BTState process(entt::entity e) override {
 		increment_monster_step(e);
@@ -240,7 +323,6 @@ public:
 };
 
 void increment_monster_step(entt::entity entity) {
-
 	auto& monster = registry.get<Monster>(entity);
 	auto& motion = registry.get<Motion>(entity);
 	auto& current_path_coord = monster.path_coords.at(monster.current_path_index);
@@ -252,29 +334,50 @@ void increment_monster_step(entt::entity entity) {
 	// TODO: make disappearance fancier
 	if (pixel_to_coord(motion.position) == VILLAGE_COORD
 		|| monster.current_path_index >= monster.path_coords.size() - 1) {
-		WorldSystem::health -= monster.damage;
+		WorldSystem::deduct_health(monster.damage);
 		motion.velocity *= 0;
-		registry.destroy(entity);
+
+		if (registry.has<Rig>(entity)) {
+			Rig::delete_rig(entity); //rigs have multiple pieces to be deleted
+		}
+		else {
+			registry.destroy(entity);
+		}
+		
 		return;
 	}
 
 	assert(monster.path_coords[monster.current_path_index] == current_path_coord);
-
+	float time_step = (ELAPSED_MS / 1000.f) * WorldSystem::speed_up_factor;
 	ivec2 next_path_coord = monster.path_coords.at(monster.current_path_index + 1);
-	vec2 next_step_position = motion.position + (15 / 1000.f) * motion.velocity;
+	vec2 next_step_position = motion.position + time_step * motion.velocity;
 	ivec2 next_step_coord = pixel_to_coord(next_step_position);
 
 	// change direction if reached the middle of the this node
-	if (abs(length(coord_to_pixel(current_path_coord) - motion.position)) <= length(motion.velocity) * 15 / 1000.f) {
-		vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
-		motion.velocity = length(motion.velocity) * move_direction;
-		motion.angle = atan(move_direction.y / move_direction.x);
-		monster.current_path_index++;
+	if (!monster.current_node_visited) {
+		if (length(coord_to_pixel(current_path_coord) - motion.position) <= length(motion.velocity * time_step)) {
+			vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
+			motion.position = coord_to_pixel(current_path_coord);
+			motion.velocity = length(motion.velocity) * move_direction;
+			motion.angle = atan(move_direction.y / move_direction.x);
+			monster.current_node_visited = true;
+			//std::cout << "distance to center: " << length(coord_to_pixel(current_path_coord) - motion.position) << "\n\n";
+		}
+		/*else {
+			std::cout << "distance to center: "<< length(coord_to_pixel(current_path_coord) - motion.position) << "\n";
+			std::cout << "step size: " << length(motion.velocity * time_step) << "\n\n";
+		}*/
 	}
 
-	/*if (next_step_coord == next_path_coord) {
+	// increment path index and apply terrain speed multiplier
+	if (next_step_coord == next_path_coord) {
 		monster.current_path_index++;
-	}*/
+		monster.current_node_visited = false;
+		terrain_type current_terran = WorldSystem::current_map.getNodeAtCoord(current_path_coord).terrain;
+		terrain_type next_terran = WorldSystem::current_map.getNodeAtCoord(next_path_coord).terrain;
+		monster.speed_multiplier /= monster_move_speed_multiplier.at({monster.type, current_terran});
+		monster.speed_multiplier *= monster_move_speed_multiplier.at({monster.type, next_terran});
+	}
 
 	if (DebugSystem::in_debug_mode)
 	{
