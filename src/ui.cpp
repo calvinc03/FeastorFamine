@@ -113,16 +113,16 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 		resource = ShadedMesh();
 
 		if (button == watchtower_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("tower_icon.png"), "ui");
+			RenderSystem::createSprite(resource, units_texture_path("watchtower.png"), "ui");
 		}
 		else if (button == green_house_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("green_house_icon.png"), "ui");
+			RenderSystem::createSprite(resource, units_texture_path("greenhouse.png"), "ui");
 		}
 		else if (button == hunter_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
+			RenderSystem::createSprite(resource, units_texture_path("hunter_slingshot.png"), "ui");
 		}
 		else if (button == exterminator_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
+			RenderSystem::createSprite(resource, units_texture_path("hunter_flamethrower.png"), "ui");
 		}
 		else if (button == robot_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
@@ -162,7 +162,7 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 	// Setting initial ui_element values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = tag;
-	ui_element.scale = vec2({ 1.0f, 1.0f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
 	ui_element.position = vec2(175 + pos * ui_element.scale.x, WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
 
 	registry.emplace<HighlightBool>(entity);

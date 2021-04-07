@@ -9,7 +9,7 @@ inline std::string audio_path(const std::string& name) { return data_path() + "/
 inline std::string mesh_path(const std::string& name) { return data_path() + "/meshes/" + name; };
 
 const std::map<int, std::string> terrain_str = {
-        {TERRAIN_DEFAULT,  "grass"},
+        {TERRAIN_DEFAULT,  "default"},
         {TERRAIN_PAVEMENT, "pavement"},
         {TERRAIN_MUD,      "mud"},
         {TERRAIN_PUDDLE,   "puddle"},

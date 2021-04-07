@@ -51,6 +51,7 @@
 #include <units/rangecircle.hpp>
 
 const size_t ANIMATION_FPS = 20;
+const size_t SPEAKER_FPS = 3;
 const int STARTING_HEALTH = 1000;
 
 int WorldSystem::health = 1000;
@@ -82,7 +83,7 @@ const std::string SAVE_PATH = "data/save_files/save_state.json";
 
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_state(start_menu),
     player_state(set_up_stage),
-    fps_ms(1000 / ANIMATION_FPS),
+    fps_ms(0),
     next_boss_spawn(0),
 	next_fireball_spawn(0),
     next_mob_spawn(0),
@@ -213,7 +214,7 @@ void WorldSystem::animate_speaker(float elapsed_ms)
 			animate.frame += 1;
 			animate.frame = (int)animate.frame % (int)animate.frame_num;
 		}
-		fps_ms = 1000 / ANIMATION_FPS;
+		fps_ms = 1000 / SPEAKER_FPS;
 	}
 }
 
@@ -239,8 +240,19 @@ void WorldSystem::step(float elapsed_ms)
 			for (auto entity : registry.view<Animate>())
 			{
 				auto& animate = registry.get<Animate>(entity);
-				animate.frame += 1;
-				animate.frame = (int)animate.frame % (int)animate.frame_num;
+				if (registry.has<GreenHouse>(entity)) {
+					auto& greenhouse = registry.get<GreenHouse>(entity);
+					greenhouse.next_grow--;
+					if (greenhouse.next_grow < 0) {
+						greenhouse.next_grow = greenhouse.grow_duration;
+						animate.frame += 1;
+						animate.frame = (int)animate.frame % (int)animate.frame_num;
+					}
+				}
+				else {
+					animate.frame += 1;
+					animate.frame = (int)animate.frame % (int)animate.frame_num;
+				}
 			}
 			fps_ms = 1000 / ANIMATION_FPS;
 		}

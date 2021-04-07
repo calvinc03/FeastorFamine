@@ -7,12 +7,12 @@ entt::entity Exterminator::createExterminator(vec2 pos)
     auto entity = registry.create();
 
     // Create the rendering components
-    std::string key = unit_str.at(HUNTER);
+    std::string key = unit_str.at(EXTERMINATOR);
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("units/hunter.png"), "unit");
+        RenderSystem::createSprite(resource, textures_path("units/hunter_flamethrower.png"), "unit");
     }
     
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)

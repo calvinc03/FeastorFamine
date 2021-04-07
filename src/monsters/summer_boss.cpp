@@ -1,15 +1,13 @@
 // Header
 #include "render.hpp"
 #include "summer_boss.hpp"
-
-const std::string WALK_SPRITE = "moose/moose_walk.png";
-const std::string RUN_SPRITE = "moose/moose_run.png";
-const std::string ATTACK_SPRITE = "moose/moose_eat.png";
-const std::string DEATH_SPRITE = "moose/moose_death.png";
-const int WALK_FRAMES = 10;
-const int RUN_FRAMES = 8;
-const int ATTACK_FRAMES = 11;
-const int DEATH_FRAMES = 11;
+const std::string DIR = "monsters/summer/";
+const std::string WALK_SPRITE = DIR + "moose_walk.png";
+const std::string ATTACK_SPRITE = DIR + "moose_attack.png";
+const std::string DEATH_SPRITE = DIR + "moose_death.png";
+const int WALK_FRAMES = 4;
+const int ATTACK_FRAMES = 4;
+const int DEATH_FRAMES = 1;
 
 entt::entity SummerBoss::createSummerBossEntt() 
 {
@@ -53,8 +51,8 @@ entt::entity SummerBoss::createSummerBossEntt()
     monster.attack_sprite = ATTACK_SPRITE;
     monster.walk_frames = WALK_FRAMES;
     monster.walk_sprite = WALK_SPRITE;
-    monster.run_frames = RUN_FRAMES;
-    monster.run_sprite = RUN_SPRITE;
+    monster.run_frames = WALK_FRAMES;
+    monster.run_sprite = WALK_SPRITE;
     monster.death_frames = DEATH_FRAMES;
     monster.death_sprite = DEATH_SPRITE;
 

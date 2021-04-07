@@ -1,15 +1,13 @@
 // Header
 #include "render.hpp"
 #include "spring_boss.hpp"
-
-const std::string WALK_SPRITE = "eagle/eagle_walk.png";
-const std::string RUN_SPRITE = "NA";
-const std::string ATTACK_SPRITE = "eagle/eagle_attack.png";
-const std::string DEATH_SPRITE = "eagle/eagle_death.png";
+const std::string DIR = "monsters/spring/";
+const std::string WALK_SPRITE = DIR + "bird_walk.png";
+const std::string ATTACK_SPRITE = DIR + "bird_attack.png";
+const std::string DEATH_SPRITE = DIR + "bird_death.png";
 const int WALK_FRAMES = 4;
-const int RUN_FRAMES = 0;
-const int ATTACK_FRAMES = 0;
-const int DEATH_FRAMES = 0;
+const int ATTACK_FRAMES = 4;
+const int DEATH_FRAMES = 1;
 
 entt::entity SpringBoss::createSpringBossEntt()
 {
@@ -56,8 +54,8 @@ entt::entity SpringBoss::createSpringBossEntt()
     monster.attack_sprite = ATTACK_SPRITE;
     monster.walk_frames = WALK_FRAMES;
     monster.walk_sprite = WALK_SPRITE;
-    monster.run_frames = RUN_FRAMES;
-    monster.run_sprite = RUN_SPRITE;
+    monster.run_frames = WALK_FRAMES;
+    monster.run_sprite = WALK_SPRITE;
     monster.death_frames = DEATH_FRAMES;
     monster.death_sprite = DEATH_SPRITE;
 

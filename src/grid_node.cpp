@@ -1,7 +1,7 @@
 #include "grid_node.hpp"
 
 const std::string NODE_SHADER = "node";
-std::string terrain_texture_path(int terrain) { return "map/"+terrain_str.at(terrain)+".png";};
+std::string terrain_texture_path(int terrain) { return "map/" + terrain_str.at(terrain) + ".png"; };
 
 entt::entity GridNode::createGridNode(terrain_type terrain, vec2 coord)
 {
@@ -27,7 +27,9 @@ entt::entity GridNode::createGridNode(terrain_type terrain, vec2 coord)
     motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
     motion.position = coord_to_pixel(coord);
     // Setting initial values, scale is 1
-    motion.scale = (vec2)GRID_CELL_SIZE;
+    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1, 1);
+
+    Animate& animate = registry.emplace<Animate>(entity);
 
     registry.emplace<HighlightBool>(entity); //component that stores whether this gridnode should be highlighted
 
@@ -51,6 +53,15 @@ void GridNode::setTerrain(entt::entity entity, terrain_type new_terrain) {
         resource.texture.load_from_file(textures_path(terrain_texture_path(new_terrain)));
     }
     shaded_mesh_ref.reference_to_cache = &resource;
+
+    auto& animate = registry.get<Animate>(entity);
+    auto& motion = registry.get<Motion>(entity);
+    animate.frame_num = 1;
+
+    if (new_terrain == TERRAIN_FIRE) {
+        animate.frame_num = 2;
+    }
+    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1, animate.frame_num);
 }
 
 void GridNode::setOccupancy(int new_occupancy, entt::entity& entity) {

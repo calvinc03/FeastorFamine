@@ -35,8 +35,7 @@ entt::entity TalkyBoi::createTalkyBoiEntt()
     motion.angle = 180.f;
     motion.velocity = vec2(0.f, 0.f);
     motion.position = vec2(800.f, 200.f);
-    motion.scale = vec2(600.f, -200.f);
-    //motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, -static_cast<vec2>(resource.texture.size).y), 3.f);
+    motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, -static_cast<vec2>(resource.texture.size).y), 3.5, WALK_FRAMES);
     motion.boundingbox = { 200, 200 };
 
     auto& monster = registry.emplace<Monster>(entity);
