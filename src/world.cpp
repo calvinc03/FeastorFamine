@@ -459,68 +459,80 @@ void WorldSystem::step(float elapsed_ms)
 		{
 			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty())
 			{
-				// round cleared text
-				auto closeness_outline = TextFont::load("data/fonts/Closeness/closeness.outline-regular.ttf");
-				auto closeness_regular = TextFont::load("data/fonts/Closeness/closeness.regular.ttf");
-				vec2 text_position = get_center_text_position(WINDOW_SIZE_IN_PX, {WINDOW_SIZE_IN_PX.x/2, WINDOW_SIZE_IN_PX.y/2}, 2.f, "ROUND CLEARED!");
-				DisappearingText::createDisappearingText(closeness_regular, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 245.f / 255.f, 216.f / 255.f, 51.f / 255.f}));
-				DisappearingText::createDisappearingText(closeness_outline, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 0.f, 0.f, 0.f }));
-				// change fastforward texture to not light up
-				UI_button::fastforward_light_off();
-				// hide fastforward button and showi start_button
-				auto view_ui_button = registry.view<Button, ShadedMeshRef>();
-				for (auto [entity, button, shaded_mesh_ref] : view_ui_button.each())
-				{
-					if (button == Button::start_button)
-					{
-						RenderSystem::show_entity(entity);
-					}
-					else if (button == Button::fastforward_button)
-					{
-						RenderSystem::hide_entity(entity);
-					}
-				}
-				// reset speed up factor
-				speed_up_factor = 1.f;
-				// if no greenhouse, shorten the end phase delay
-				if (!greenhouse_food_increased)
-				{
-					if (registry.view<GreenHouse>().size() == 0)
-					{
-						end_of_battle_stage_dealy_ms -= 500;
-						greenhouse_food_increased = true;
-					}
-					else if (end_of_battle_stage_dealy_ms < END_OF_BATTLE_STAGE_DELAY_MS - 500)
-					{
-						// greenhouse triggers at the end of battle phase once with a short delay
-						int total_greenhouse_food = 0;
-						for (auto entity : registry.view<GreenHouse>())
-						{
-							auto greenhouse = registry.get<Unit>(entity);
-							total_greenhouse_food += (int)((float)greenhouse.damage * reward_multiplier);
-						}
-						if (total_greenhouse_food != 0)
-						{
-							add_health(total_greenhouse_food);
-						}
-						greenhouse_food_increased = true;
-					}
-
-				}
-								// count down timer
-				end_of_battle_stage_dealy_ms -= elapsed_ms * current_speed;
-				// end battle phase and set up next round 
-				if (end_of_battle_stage_dealy_ms <= 0.f)
-				{
-					end_battle_phase();
-					greenhouse_food_increased = false;
-					end_of_battle_stage_dealy_ms = END_OF_BATTLE_STAGE_DELAY_MS;
-				}
-				
+				end_battle_phase(elapsed_ms);
 			}
 		}
 	}
 	
+}
+
+void WorldSystem::end_battle_phase(float elapsed_ms)
+{
+	if (end_of_battle_stage_dealy_ms == END_OF_BATTLE_STAGE_DELAY_MS) {
+		// round cleared text
+		auto closeness_outline = TextFont::load("data/fonts/Closeness/closeness.outline-regular.ttf");
+		auto closeness_regular = TextFont::load("data/fonts/Closeness/closeness.regular.ttf");
+		vec2 text_position = get_center_text_position(WINDOW_SIZE_IN_PX, { WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2 }, 2.f, "ROUND CLEARED!");
+		DisappearingText::createDisappearingText(closeness_regular, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 245.f / 255.f, 216.f / 255.f, 51.f / 255.f }));
+		DisappearingText::createDisappearingText(closeness_outline, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 0.f, 0.f, 0.f }));
+		// change fastforward texture to not light up
+		UI_button::fastforward_light_off();
+		// hide fastforward button and showi start_button
+		auto view_ui_button = registry.view<Button, ShadedMeshRef>();
+		for (auto [entity, button, shaded_mesh_ref] : view_ui_button.each())
+		{
+			if (button == Button::start_button)
+			{
+				RenderSystem::show_entity(entity);
+			}
+			else if (button == Button::fastforward_button)
+			{
+				RenderSystem::hide_entity(entity);
+			}
+		}
+		// if no unit is selected, show build tower units
+		if (!unit_selected)
+		{
+			for (auto entity : registry.view<UI_build_unit>())
+			{
+				RenderSystem::show_entity(entity);
+			}
+		}
+		// reset speed up factor
+		speed_up_factor = 1.f;
+		if (registry.view<GreenHouse>().size() == 0)
+		{
+			end_of_battle_stage_dealy_ms -= 500;
+			greenhouse_food_increased = true;
+		}
+	}
+	
+	
+	// if no greenhouse, shorten the end phase delay
+	if (!greenhouse_food_increased && (end_of_battle_stage_dealy_ms < END_OF_BATTLE_STAGE_DELAY_MS - 500))
+	{
+		// greenhouse triggers at the end of battle phase once with a short delay
+		int total_greenhouse_food = 0;
+		for (auto entity : registry.view<GreenHouse>())
+		{
+			auto greenhouse = registry.get<Unit>(entity);
+			total_greenhouse_food += (int)((float)greenhouse.damage * reward_multiplier);
+		}
+		if (total_greenhouse_food != 0)
+		{
+			add_health(total_greenhouse_food);
+		}
+		greenhouse_food_increased = true;
+	}
+	// count down timer
+	end_of_battle_stage_dealy_ms -= elapsed_ms * current_speed;
+	// end battle phase and set up next round 
+	if (end_of_battle_stage_dealy_ms <= 0.f)
+	{
+		end_battle_phase();
+		greenhouse_food_increased = false;
+		end_of_battle_stage_dealy_ms = END_OF_BATTLE_STAGE_DELAY_MS;
+	}
 }
 
 void WorldSystem::title_screen_step(float elapsed_ms)
@@ -852,8 +864,12 @@ void WorldSystem::set_up_step(float elapsed_ms)
 
 void WorldSystem::start_round()
 {
-
 	game_tips = false;
+	// hide towers buttons
+	for (auto entity : registry.view<UI_build_unit>())
+	{
+		RenderSystem::hide_entity(entity);
+	}
 	// hide start_button and shwo fastforward button
 	auto view_ui_button = registry.view<Button, ShadedMeshRef>();
 	for (auto [entity, button, shaded_mesh_ref] : view_ui_button.each())
@@ -1310,11 +1326,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
 
 	// Hot keys for selecting placeable units
-	/*else if (action == GLFW_PRESS && key == GLFW_KEY_1)
-	{
-		placement_unit_selected = WATCHTOWER;
-		create_unit_indicator = WatchTower::createWatchTower;
-	}*/
+
 	else if (action == GLFW_PRESS && key == GLFW_KEY_2)
 	{
 		placement_unit_selected = GREENHOUSE;
@@ -1500,7 +1512,7 @@ void WorldSystem::scroll_callback(double xoffset, double yoffset)
 
 //will move this eventually
 //atm this is repeated code because ui uses a different position/scale than gridnode
-void grid_highlight_system(vec2 mouse_pos, unit_type unit_selected, GridMap current_map)
+void grid_highlight_system(vec2 mouse_pos, GridMap current_map)
 {
 	auto view_ui = registry.view<Motion, HighlightBool>();
 
@@ -1652,7 +1664,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 		bool in_game_area = mouse_in_game_area(mouse_pos);
 		if (in_game_area && placement_unit_selected != NONE && player_state == set_up_stage)
 		{
-			grid_highlight_system(mouse_pos, placement_unit_selected, current_map);
+			grid_highlight_system(mouse_pos, current_map);
 			createEntityRangeIndicator(mouse_pos);
 		}
 		else {
@@ -1844,7 +1856,7 @@ void remove_selected_unit_buttons()
 }
 
 // update the appearance of ui depending on the given flags
-void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selected, bool sell_clicked)
+void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked)
 {
 	// prevent this function gets called twice with one mouse click (press & release)
 	if (action != GLFW_PRESS)
@@ -1919,11 +1931,13 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool unit_selecte
 	{
 		selected_view_change = true;
 		remove_selected_unit_buttons();
-
-		// show build unit buttons
-		for (auto entity : view_ui_build_buttons)
+		if (player_state == PlayerState::set_up_stage)
 		{
-			RenderSystem::show_entity(entity);
+			// show build unit buttons
+			for (auto entity : view_ui_build_buttons)
+			{
+				RenderSystem::show_entity(entity);
+			}
 		}
 	}
 }
@@ -1958,7 +1972,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
         {
 			vec2 selected_flags = on_click_select_unit(xpos, ypos, button, action, mod);
 			in_game_click_handle(xpos, ypos, button, action, mod);
-			update_look_for_selected_buttons(action, selected_flags.x, selected_flags.y);
+			update_look_for_selected_buttons(action, selected_flags.y);
             break;
         }
 		case paused:
@@ -2133,7 +2147,7 @@ vec2 WorldSystem::on_click_select_unit(double mouse_pos_x, double mouse_pos_y, i
 		return { false, false };
 	}
 
-	bool unit_selected = false;
+	unit_selected = false;
 	bool sell_clicked = false;
 
 	if (check_unit_already_selected())
@@ -2343,6 +2357,171 @@ void WorldSystem::create_controls_menu()
 	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 6 / 7, MenuButtonType::back_button, "back");
 }
 
+void WorldSystem::on_click_ui_when_selected(Button ui_button)
+{
+	if (ui_button == Button::sell_button)
+	{
+		auto view_selectable = registry.view<Selectable>();
+		auto view_unit = registry.view<Unit>();
+		for (auto entity : view_selectable)
+		{
+			if (view_selectable.get<Selectable>(entity).selected)
+			{
+				auto& unit = view_unit.get<Unit>(entity);
+				health += unit.sell_price;
+				sell_unit(entity);
+			}
+		}
+	}
+	else if (ui_button == Button::upgrade_path_1_button && health >= hunter_unit.upgrade_path_1_cost)
+	{
+		// upgrade button is hit
+		auto view_selectable = registry.view<Selectable>();
+		auto view_unit = registry.view<Unit>();
+		for (auto entity : view_selectable)
+		{
+			if (view_selectable.get<Selectable>(entity).selected)
+			{
+				upgrade_unit_path_1(entity);
+				auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_1);
+				UIselection.path_num += 1;
+				mouse_hover_ui_button();
+			}
+		}
+	}
+	else if (ui_button == Button::upgrade_path_2_button && health >= hunter_unit.upgrade_path_2_cost)
+	{
+		// upgrade button is hit
+		auto view_selectable = registry.view<Selectable>();
+		auto view_unit = registry.view<Unit>();
+		for (auto entity : view_selectable)
+		{
+			if (view_selectable.get<Selectable>(entity).selected)
+			{
+				upgrade_unit_path_2(entity);
+				auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_2);
+				UIselection.path_num += 1;
+				mouse_hover_ui_button();
+			}
+		}
+	}
+}
+
+void WorldSystem::on_click_ui_general_buttons(Button ui_button)
+{
+	if (ui_button == Button::start_button)
+	{
+		if (player_state == set_up_stage)
+		{
+			start_round();
+		}
+	}
+	else if (ui_button == Button::more_options_button)
+	{
+		pause_game();
+		more_options_menu();
+	}
+	else if (ui_button == Button::tips_button)
+	{
+		game_tips = !game_tips;
+		std::cout << std::boolalpha;
+		std::cout << "Game tips: " << game_tips << std::endl;
+	}
+}
+
+void WorldSystem::on_click_ui(Button ui_button)
+{
+	if (ui_button == Button::green_house_button)
+	{
+		if (game_tips && tip_manager.greenhouse_tip)
+		{
+			game_state = paused;
+			WorldSystem::tip_manager.greenhouse_tip = false;
+			TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, greenhouse_tips);
+		}
+
+		placement_unit_selected = GREENHOUSE;
+		create_unit_indicator = GreenHouse::createGreenHouse;
+	}
+	else if (ui_button == Button::hunter_button)
+	{
+		if (game_tips && tip_manager.hunter_tip)
+		{
+			game_state = paused;
+			WorldSystem::tip_manager.hunter_tip = false;
+			TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, hunter_tips);
+		}
+
+		placement_unit_selected = HUNTER;
+		create_unit_indicator = Hunter::createHunter;
+	}
+	else if (ui_button == Button::exterminator_button)
+	{
+		if (game_tips && tip_manager.exterminator_tip)
+		{
+			game_state = paused;
+			WorldSystem::tip_manager.exterminator_tip = false;
+			TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, exterminator_tips);
+		}
+
+		placement_unit_selected = EXTERMINATOR;
+		create_unit_indicator = Exterminator::createExterminator;
+	}
+	else if (ui_button == Button::robot_button)
+	{
+		if (game_tips && tip_manager.robot_tip)
+		{
+			game_state = paused;
+			WorldSystem::tip_manager.robot_tip = false;
+			TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, robot_tips);
+		}
+
+		placement_unit_selected = ROBOT;
+		create_unit_indicator = Robot::createRobot;
+	}
+	else if (ui_button == Button::priestess_button)
+	{
+		if (game_tips && tip_manager.priestess_tip)
+		{
+			game_state = paused;
+			WorldSystem::tip_manager.priestess_tip = false;
+			TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, priestess_tips);
+		}
+
+		placement_unit_selected = PRIESTESS;
+		create_unit_indicator = Priestess::createPriestess;
+	}
+	else if (ui_button == Button::snowmachine_button)
+	{
+		if (game_tips && tip_manager.snowmachine_tip)
+		{
+			game_state = paused;
+			WorldSystem::tip_manager.snowmachine_tip = false;
+			TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, snowmachine_tips);
+		}
+
+		placement_unit_selected = SNOWMACHINE;
+		create_unit_indicator = SnowMachine::createSnowMachine;
+	}
+	else if (ui_button == Button::wall_button)
+	{
+		if (game_tips && tip_manager.wall_tip)
+		{
+			game_state = paused;
+			WorldSystem::tip_manager.wall_tip = false;
+			TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, wall_tips);
+		}
+		create_unit_indicator = Wall::createWall;
+		placement_unit_selected = WALL;
+	}
+	else
+	{
+		placement_unit_selected = NONE;
+		on_click_ui_general_buttons(ui_button);
+		on_click_ui_when_selected(ui_button);
+	}
+}
+
 void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int action, int mod)
 {
 	Motion camera_motion = registry.get<Motion>(camera);
@@ -2436,168 +2615,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		}
 		else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area)
 		{
-			/*if (ui_button == Button::watchtower_button)
-			{
-				if (game_tips && tip_manager.tower_tip)
-				{
-					game_state = paused;
-					WorldSystem::tip_manager.tower_tip = false;
-					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, tower_tips);
-				}
-				create_unit_indicator = WatchTower::createWatchTower;
-				placement_unit_selected = WATCHTOWER;
-			}
-			else*/ if (ui_button == Button::green_house_button)
-			{
-				if (game_tips && tip_manager.greenhouse_tip)
-				{
-					game_state = paused;
-					WorldSystem::tip_manager.greenhouse_tip = false;
-					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, greenhouse_tips);
-				}
-
-				placement_unit_selected = GREENHOUSE;
-				create_unit_indicator = GreenHouse::createGreenHouse;
-			}
-			else if (ui_button == Button::hunter_button)
-			{
-				if (game_tips && tip_manager.hunter_tip)
-				{
-					game_state = paused;
-					WorldSystem::tip_manager.hunter_tip = false;
-					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, hunter_tips);
-				}
-
-				placement_unit_selected = HUNTER;
-				create_unit_indicator = Hunter::createHunter;
-			}
-			else if (ui_button == Button::exterminator_button)
-			{
-				if (game_tips && tip_manager.exterminator_tip)
-				{
-					game_state = paused;
-					WorldSystem::tip_manager.exterminator_tip = false;
-					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, exterminator_tips);
-				}
-
-				placement_unit_selected = EXTERMINATOR;
-				create_unit_indicator = Exterminator::createExterminator;
-			}
-			else if (ui_button == Button::robot_button)
-			{
-				if (game_tips && tip_manager.robot_tip)
-				{
-					game_state = paused;
-					WorldSystem::tip_manager.robot_tip = false;
-					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, robot_tips);
-				}
-
-				placement_unit_selected = ROBOT;
-				create_unit_indicator = Robot::createRobot;
-			}
-			else if (ui_button == Button::priestess_button)
-			{
-				if (game_tips && tip_manager.priestess_tip)
-				{
-					game_state = paused;
-					WorldSystem::tip_manager.priestess_tip = false;
-					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, priestess_tips);
-				}
-
-				placement_unit_selected = PRIESTESS;
-				create_unit_indicator = Priestess::createPriestess;
-			}
-			else if (ui_button == Button::snowmachine_button)
-			{
-				if (game_tips && tip_manager.snowmachine_tip)
-				{
-					game_state = paused;
-					WorldSystem::tip_manager.snowmachine_tip = false;
-					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, snowmachine_tips);
-				}
-
-				placement_unit_selected = SNOWMACHINE;
-				create_unit_indicator = SnowMachine::createSnowMachine;
-			}
-			else if (ui_button == Button::wall_button)
-			{
-				if (game_tips && tip_manager.wall_tip)
-				{
-					game_state = paused;
-					WorldSystem::tip_manager.wall_tip = false;
-					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, wall_tips);
-				}
-				create_unit_indicator = Wall::createWall;
-				placement_unit_selected = WALL;
-			}
-			else if (ui_button == Button::sell_button)
-			{
-				auto view_selectable = registry.view<Selectable>();
-				auto view_unit = registry.view<Unit>();
-				for (auto entity : view_selectable)
-				{
-					if (view_selectable.get<Selectable>(entity).selected)
-					{
-						auto& unit = view_unit.get<Unit>(entity);
-						health += unit.sell_price;
-						sell_unit(entity);
-					}
-				}
-			}
-			else if (ui_button == Button::upgrade_path_1_button && health >= hunter_unit.upgrade_path_1_cost)
-			{
-				// upgrade button is hit
-				auto view_selectable = registry.view<Selectable>();
-				auto view_unit = registry.view<Unit>();
-				for (auto entity : view_selectable)
-				{
-					if (view_selectable.get<Selectable>(entity).selected)
-					{
-						upgrade_unit_path_1(entity);
-						auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_1);
-						UIselection.path_num += 1;
-						mouse_hover_ui_button();
-					}
-				}
-			}
-			else if (ui_button == Button::upgrade_path_2_button && health >= hunter_unit.upgrade_path_2_cost)
-			{
-				// upgrade button is hit
-				auto view_selectable = registry.view<Selectable>();
-				auto view_unit = registry.view<Unit>();
-				for (auto entity : view_selectable)
-				{
-					if (view_selectable.get<Selectable>(entity).selected)
-					{
-						upgrade_unit_path_2(entity);
-						auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_2);
-						UIselection.path_num += 1;
-						mouse_hover_ui_button();
-					}
-				}
-			}
-			else if (ui_button == Button::start_button)
-			{
-				if (player_state == set_up_stage)
-				{
-					start_round();
-				}
-			}
-			else if (ui_button == Button::more_options_button)
-			{
-				pause_game();
-				more_options_menu();
-			}
-			else if (ui_button == Button::tips_button)
-			{
-				game_tips = !game_tips;
-				std::cout << std::boolalpha;
-				std::cout << "Game tips: " << game_tips << std::endl;
-			}
-			else
-			{
-				placement_unit_selected = NONE;
-			}
+			on_click_ui(ui_button);
 		}
 		Priestess::updateBuffs();
 	}
@@ -2622,6 +2640,10 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		{
 			pause_game();
 			more_options_menu();
+		}
+		else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area)
+		{
+			on_click_ui_when_selected(ui_button);
 		}
 	}
 
@@ -2716,6 +2738,42 @@ void WorldSystem::sell_unit(entt::entity &entity)
 {
     auto& motion = registry.get<Motion>(entity);
     current_map.setGridOccupancy(pixel_to_coord(motion.position), NONE, entity, motion.scale);
+	// destroy the laser beam when removing robot
+	if (registry.has<Robot>(entity))
+	{
+		for (auto e_laser : registry.view<LaserBeam>())
+		{
+			if (registry.get<LaserBeam>(e_laser).unit_pos == registry.get<Motion>(entity).position)
+			{
+				registry.destroy(e_laser);
+			}
+		}
+	}
+	// destroy the flame when removing exterminator 
+	else if (registry.has<Exterminator>(entity))
+	{
+		for (auto e_projectile : registry.view<Flamethrower>())
+		{
+			auto e_unit = registry.get<Flamethrower>(e_projectile).e_unit;
+			if (registry.get<Motion>(e_unit).position == registry.get<Motion>(entity).position)
+			{
+				registry.destroy(e_projectile);
+			}
+		}
+	}
+	// destroy the flame when removing exterminator 
+	else if (registry.has<SnowMachine>(entity))
+	{
+		for (auto e_projectile : registry.view<IceField>())
+		{
+			auto e_unit = registry.get<IceField>(e_projectile).e_unit;
+			if (registry.get<Motion>(e_unit).position == registry.get<Motion>(entity).position)
+			{
+				registry.destroy(e_projectile);
+			}
+		}
+	}
+	// destroy unit
 	registry.destroy(entity);
 }
 
