@@ -52,6 +52,7 @@
 
 const size_t ANIMATION_FPS = 20;
 const size_t SPEAKER_FPS = 10;
+const size_t TEXT_APPEAR_SPEED = 20; // lower is faster
 const int STARTING_HEALTH = 1000;
 
 int WorldSystem::health = 1000;
@@ -218,7 +219,7 @@ void WorldSystem::animate_speaker(float elapsed_ms)
 
 	}
 
-	if ((int) fps_ms % 20 == 0)
+	if ((int) fps_ms % TEXT_APPEAR_SPEED == 0)
 	{
 		for (auto& card : registry.view<StoryCardBase>())
 		{
