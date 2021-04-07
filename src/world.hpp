@@ -67,6 +67,9 @@ public:
 	// Check for collisions
 	void updateProjectileMonsterCollision(entt::entity e_projectile, entt::entity e_monster);
 
+	// animates the portrait for the story card
+	void animate_speaker(float elapsed_ms);
+
 	// Steps the game during monster rounds ahead by ms milliseconds
 	void step(float elapsed_ms);
 

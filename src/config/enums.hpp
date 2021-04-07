@@ -24,6 +24,7 @@ enum monster_type
     FIREBALL_BOSS,
     BURROW_BOSS,
     SPIDER,
+    TALKY_BOI
 };
 
 enum unit_type

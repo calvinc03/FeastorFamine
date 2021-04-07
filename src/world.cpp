@@ -28,6 +28,7 @@
 #include "ui.hpp"
 #include "ai.hpp"
 #include "particle.hpp"
+#include "talky_boi.hpp"
 
 #include "rig.hpp"
 //#include "monsters/test_rig.hpp"
@@ -200,6 +201,22 @@ void WorldSystem::init_audio()
 								 audio_path("salmon_dead.wav") +
 								 audio_path("salmon_eat.wav") +
 								 audio_path("ui_sound_bottle_pop.wav"));
+}
+
+void WorldSystem::animate_speaker(float elapsed_ms)
+{
+	std::cout << "animating helge" << std::endl;
+	fps_ms -= elapsed_ms;
+	if (fps_ms < 0.f)
+	{
+		for (auto entity : registry.view<Animate>())
+		{
+			auto& animate = registry.get<Animate>(entity);
+			animate.frame += 1;
+			animate.frame = (int)animate.frame % (int)animate.frame_num;
+		}
+		fps_ms = 1000 / ANIMATION_FPS;
+	}
 }
 
 // Update our game world
@@ -893,7 +910,6 @@ void WorldSystem::restart()
 	setup_round_from_round_number(0);
 
 	//TestRig::createTest();
-
 }
 
 void WorldSystem::setup_round_from_round_number(int round_number)
@@ -924,6 +940,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	{
 		game_state = story_card;
 		StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number + 1));
+		TalkyBoi::createTalkyBoiEntt();
 	}
 
     current_round_monster_types.clear();
@@ -1883,6 +1900,7 @@ void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y,
 		if (world_round_number == 0) {
 			game_state = story_card;
 			StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[world_round_number], std::to_string(1));
+			TalkyBoi::createTalkyBoiEntt();
 		}
 
 		if (registry.empty<StoryCard>()) {
@@ -1903,13 +1921,15 @@ void WorldSystem::story_card_click_handle(double mouse_pos_x, double mouse_pos_y
 {
 	if (action == GLFW_PRESS)
 	{
-		auto story_card_view = registry.view<StoryCard>();
-		for (auto entity : story_card_view)
+		for (auto entity : registry.view<StoryCard>())
 		{
 			registry.destroy(entity);
 		}
-		auto story_card_text_view = registry.view<StoryCardText>();
-		for (auto entity : story_card_text_view)
+		for (auto& talky_boi : registry.view<TalkyBoi>())
+		{
+			registry.destroy(talky_boi);
+		}
+		for (auto entity : registry.view<StoryCardText>())
 		{
 			registry.destroy(entity);
 		}

@@ -33,7 +33,7 @@ if (IS_OS_MAC)
   link_directories(/usr/local/lib)
 endif()
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES}  "src/main.cpp" )
+add_executable(${PROJECT_NAME} ${SOURCE_FILES}  "src/main.cpp"  "src/talky_boi.cpp" "src/talky_boi.hpp")
 target_include_directories(${PROJECT_NAME} PUBLIC src/)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/nlohmann)
 
