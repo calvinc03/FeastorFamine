@@ -322,6 +322,7 @@ entt::entity IceField::createIceField(entt::entity e_unit, entt::entity e_monste
     animate.state_num = 1.f;*/
 
     auto& field = registry.emplace<IceField>(entity);
+    field.e_unit = e_unit;
 
     return entity;
 }

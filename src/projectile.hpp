@@ -49,4 +49,5 @@ struct IceField
 {
     static entt::entity createIceField(entt::entity e_unit, entt::entity e_monster, int damage);
     float active_timer = 1500;
+    entt::entity e_unit;
 };
