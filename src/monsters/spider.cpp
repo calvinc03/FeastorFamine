@@ -1,6 +1,6 @@
 #include "spider.hpp"
 
-void add_frames_FK(Rig rig);
+
 void add_frames_IK(KeyFrames_IK& kf_ik);
 
 //TODO: refactor to store multiple animations. vector?
@@ -12,7 +12,7 @@ entt::entity  Spider::createSpider() {
     // root entity acts like any other entity.
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = grid_to_pixel_velocity(vec2(1.5f, 0)); //{ 0, 0 };
+    motion.velocity = grid_to_pixel_velocity(vec2(1.5f, 0));
     motion.scale = vec2(20,20);
     motion.position = coord_to_pixel(FOREST_COORD);
     motion.boundingbox = motion.scale*2.0f;
@@ -26,7 +26,7 @@ entt::entity  Spider::createSpider() {
     auto R_upper_leg = Rig::createPart(entity, "arm_simple", vec2(-1.0f, -0.5f), vec2(0, 0.5f), 0);
     auto R_lower_leg = Rig::createPart(entity, "arm_simple", vec2(), vec2(0, -0.5f), 3.14f);
 
-    //auto ext = Rig::createPart(entity, "arm_simple", vec2(), vec2(0, -0.5f),3.14f);
+   // auto ext = Rig::createPart(entity, "arm_simple", vec2(), vec2(0, -0.5f),3.14f);
     
 
     //create a component <Rig> to then point to these entities for later
@@ -36,12 +36,13 @@ entt::entity  Spider::createSpider() {
     rig.chains.push_back(Chain(body,  { R_upper_leg, R_lower_leg }));
 
     //rig.chains.push_back(Chain(R_lower_leg, { ext }));
+
+
     //has a current_time var used to animate fk/ik systems
     auto& timeline = registry.emplace<Timeline>(entity);
     auto& animations = registry.emplace<Animations>(entity);
 
     auto& keyframes_ik = animations.anims[animations.anim_state];
-    //auto& keyframes_ik = registry.emplace<KeyFrames_IK>(entity); //FK lives in each rig part... IK lives here!
     add_frames_IK(keyframes_ik);
 
 
@@ -60,20 +61,7 @@ entt::entity  Spider::createSpider() {
 }
 
 
-//hardcoded test frames
-void add_frames_FK(Rig rig) {
-    auto& kfs0 = registry.get<KeyFrames_FK>(rig.chains[1].chain_vector[0]);
-    kfs0.data.emplace(0.0f, 3.14f);
-    kfs0.data.emplace(1.0f, 0.5f);
-    kfs0.data.emplace(2.0f, 1.0f);
-    kfs0.data.emplace(5.0f, 1.3f);
 
-    auto& kfs1 = registry.get<KeyFrames_FK>(rig.chains[1].chain_vector[1]);
-    kfs1.data.emplace(0.0f, 3.14f);
-    kfs1.data.emplace(1.0f, 0.5f);
-    kfs1.data.emplace(2.0f, 2.0f);
-    kfs1.data.emplace(4.0f, 0.5f);
-}
 
 // walk cycle
 void add_frames_IK(KeyFrames_IK& kf_ik) { //pos defined relative to root_motion
@@ -98,6 +86,11 @@ void add_frames_IK(KeyFrames_IK& kf_ik) { //pos defined relative to root_motion
     R_data.emplace(0.11f, vec2(-x, hi));
     R_data.emplace(0.2f,  vec2(-x, low));
     kf_ik.data.push_back(R_data);
+
+    //std::map<float, vec2> ext_data;
+    //ext_data.emplace(0.0f, vec2(-2,0.5f));
+    //ext_data.emplace(0.2f, vec2(-2, -0.4f));
+    //kf_ik.data.push_back(ext_data);
 }
 
 

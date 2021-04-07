@@ -190,13 +190,6 @@ namespace DebugSystem
 		transform.translate(root_motion.position);
 		transform.rotate(root_motion.angle);
 
-		//visualize ik goals
-		//auto& keyframes = registry.get<Animations>(character);
-		//for (int i = 0; i < keyframes.anims[keyframes.anim_state].data.size(); i++) {
-		//	for (auto k : keyframes.anims[keyframes.anim_state].data) {
-
-		//	}
-		//}
 
 		for (auto chain : rig.chains) {
 			
