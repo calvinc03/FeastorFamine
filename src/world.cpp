@@ -205,7 +205,6 @@ void WorldSystem::init_audio()
 
 void WorldSystem::animate_speaker(float elapsed_ms)
 {
-	std::cout << "animating helge" << std::endl;
 	fps_ms -= elapsed_ms;
 	if (fps_ms < 0.f)
 	{

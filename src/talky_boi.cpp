@@ -14,7 +14,6 @@ const int DEATH_FRAMES = 0;
 
 entt::entity TalkyBoi::createTalkyBoiEntt()
 {
-    std::cout << "created helge" << std::endl;
     // Reserve en entity
     auto entity = registry.create();
 
