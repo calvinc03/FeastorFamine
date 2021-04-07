@@ -20,6 +20,7 @@ static const float ELAPSED_MS = 20;
 
 static const int MAX_PARTICLES = 1000;
 static const float DOT_DELAY = 500; 
+static const float SLOW_DELAY = 750;
 
 const int FIREBALL_DELAY_MS = 2385;
 // rounds text 
