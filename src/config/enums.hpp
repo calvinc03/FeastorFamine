@@ -95,7 +95,8 @@ enum MenuButtonType
     empty_button,
     back_button,
     restart_round_button,
-    menu_save_button
+    menu_save_button,
+    sandbox_button
 };
 //enum directions
 //{

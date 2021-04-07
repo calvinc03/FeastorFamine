@@ -2042,6 +2042,11 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 			// close window
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
 			break;
+		case (MenuButtonType::sandbox_button):
+			remove_menu_buttons();
+			restart();
+			game_state = sandbox;
+			break;
 		}
 	}	
 	// avoid 'unreferenced formal parameter' warning message
