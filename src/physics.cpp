@@ -7,6 +7,7 @@
 #include <projectile.hpp>
 #include "rig.hpp"
 #include <monsters/spider.hpp>
+#include <particle.hpp>
 
 const size_t POTENTIAL_COLLISION_RANGE = 200;
 
@@ -316,6 +317,74 @@ void PhysicsSystem::update_projectiles(float elapsed_ms)
 
 		if (icefield.active_timer < 0)
 			registry.destroy(entity);
+	}
+}
+
+void PhysicsSystem::title_screen_step(float elapsed_ms)
+{
+	float step_seconds = 1.0f * (elapsed_ms / 1000.f);
+	for (auto thisParticle : registry.view<ParticleSystem>()) {
+		auto& p1_motion = registry.get<Motion>(thisParticle);
+		
+		vec2 align_vector = {0,0};
+		int align_total = 0;
+
+		vec2 separation_vector = { 0,0 };
+		int separation_total = 0;
+
+		vec2 cohesion_vector = { 0,0 };
+		int cohesion_total = 0;
+
+		for (auto otherParticle : registry.view<ParticleSystem>()) {
+			auto p2_motion = registry.get<Motion>(otherParticle);
+			float distance = length(p1_motion.position - p2_motion.position);
+
+			if (thisParticle != otherParticle && distance < 40) {
+				align_vector += p2_motion.velocity;
+				align_total += 1;
+			}
+
+			if (thisParticle != otherParticle && distance < 40) {
+				separation_vector += (p2_motion.position - p1_motion.position) / (distance * distance);
+				separation_total += 1;
+			}
+
+			if (thisParticle != otherParticle && distance < 40) {
+				cohesion_vector += p2_motion.position;
+				cohesion_total += 1;
+			}
+		}
+		
+		if (align_total > 0) {
+			align_vector /= align_total;
+			align_vector *= (50 / length(align_vector));
+			align_vector -= p1_motion.velocity;
+			align_vector = normalize(align_vector);
+		}
+
+		if (separation_total > 0) {
+			separation_vector /= separation_total;
+			separation_vector *= (50 / length(separation_vector));
+			separation_vector -= p1_motion.velocity;
+			separation_vector = 3.f * normalize(separation_vector);
+		}
+
+		if (cohesion_total > 0) {
+			cohesion_vector /= cohesion_total;
+			cohesion_vector *= (50 / length(cohesion_vector));
+			cohesion_vector -= p1_motion.velocity;
+			cohesion_vector = normalize(cohesion_vector);
+		}
+
+		p1_motion.acceleration += align_vector;
+		p1_motion.acceleration += separation_vector;
+		p1_motion.acceleration += cohesion_vector;
+		p1_motion.acceleration *= 10;
+
+		p1_motion.position += step_seconds * p1_motion.velocity;
+		p1_motion.velocity += step_seconds * p1_motion.acceleration;
+		p1_motion.velocity *= length(p1_motion.velocity) > 50? (50 / length(p1_motion.velocity)) : 1;
+		p1_motion.acceleration *= 0;
 	}
 }
 

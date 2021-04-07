@@ -232,7 +232,7 @@ void WorldSystem::step(float elapsed_ms)
 			next_boss_spawn = (boss_delay_ms / 2) + uniform_dist(rng) * (boss_delay_ms / 2);
 			entt::entity boss = create_boss();
 			
-			registry.emplace<DOT>(boss);
+			registry.emplace<DamageProperties>(boss);
 			auto& monster = registry.get<Monster>(boss);
 			monster.path_coords = default_monster_paths.at(monster.type);
 
@@ -247,7 +247,7 @@ void WorldSystem::step(float elapsed_ms)
 			next_mob_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
 			entt::entity mob = Mob::createMobEntt();
 
-			registry.emplace<DOT>(mob);
+			registry.emplace<DamageProperties>(mob);
 			auto& monster = registry.get<Monster>(mob);
             monster.path_coords = default_monster_paths.at(monster.type);
 
@@ -262,7 +262,7 @@ void WorldSystem::step(float elapsed_ms)
 			next_fireball_spawn = FIREBALL_DELAY_MS;
 			entt::entity fireball = FireballBoss::createFireballBossEntt();
 
-			registry.emplace<DOT>(fireball);
+			registry.emplace<DamageProperties>(fireball);
 			auto& monster = registry.get<Monster>(fireball);
             monster.path_coords = default_monster_paths.at(monster.type);
 
@@ -272,7 +272,7 @@ void WorldSystem::step(float elapsed_ms)
 		// update velocity for every monster
 		for (auto entity : registry.view<Monster>())
 		{
-			auto& dot = registry.get<DOT>(entity);
+			auto& dot = registry.get<DamageProperties>(entity);
 			for (auto& [key, value] : dot.dot_map) {
 				value -= ELAPSED_MS * WorldSystem::speed_up_factor;
 			}
@@ -442,7 +442,7 @@ void WorldSystem::title_screen_step(float elapsed_ms)
 	{
 		auto& eyes = registry.get<TitleEyes>(entity);
 		auto& shaded_mesh_ref = registry.get<ShadedMeshRef>(entity);
-		
+
 		eyes.blink_delay_ms -= elapsed_ms;
 		// time to blink
 		if (eyes.blink_delay_ms < 0.f)
@@ -459,6 +459,39 @@ void WorldSystem::title_screen_step(float elapsed_ms)
 			eyes.blink_delay_ms = rand() % 4000 + 1000; // 1 ~ 5 sec
 			eyes.blink_time_ms = 200;
 		}
+	}
+
+	auto particle_view = registry.view<ParticleSystem>();
+	if (particle_view.size() < MAX_PARTICLES) {
+		for (auto particle_entity : particle_view) {
+			auto& particle = registry.get<ParticleSystem>(particle_entity);
+			particle.life -= elapsed_ms;
+			if (particle.life <= 0) {
+				registry.destroy(particle_entity);
+			}
+		}
+		ParticleSystem::updateParticle();
+
+		next_particle_spawn -= elapsed_ms;
+
+		if (next_particle_spawn < 0.f)
+		{
+			next_particle_spawn = 200;
+			vec2 velocity = { rand() % 100 - 50, rand() % 100 - 50 };
+			vec2 position = { rand() % WINDOW_SIZE_IN_PX.x + 1 , rand() % 250 + 1};
+			float life = 20150.0f;
+			std::string texture = "snow.png";
+			std::string shader = "textured";
+			ParticleSystem::createParticle(velocity, position, life, texture, shader);
+		}
+	}
+
+	for (auto entity : particle_view) {
+		auto& motion = registry.get<Motion>(entity);
+		if (motion.position.x < 0 || motion.position.x > WINDOW_SIZE_IN_PX.x)
+			registry.destroy(entity);
+		if (motion.position.y < 0 || motion.position.y > 250)
+			motion.velocity.y *= -1;
 	}
 }
 
@@ -1043,7 +1076,7 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 		collision_monster_handle(e_monster, prj.damage);
 	}
 	else if (registry.has<Flamethrower>(e_projectile) || registry.has<LaserBeam>(e_projectile) || registry.has<Explosion>(e_projectile) || registry.has<IceField>(e_projectile)) {
-		auto& dot = registry.get<DOT>(e_monster);
+		auto& dot = registry.get<DamageProperties>(e_monster);
 		if (dot.dot_map.find(e_projectile) == dot.dot_map.end()) {
 			dot.dot_map.insert({ e_projectile, DOT_DELAY });
 			collision_monster_handle(e_monster, prj.damage);
