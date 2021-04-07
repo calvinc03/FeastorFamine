@@ -416,6 +416,8 @@ void WorldSystem::step(float elapsed_ms)
 				vec2 text_position = get_center_text_position(WINDOW_SIZE_IN_PX, {WINDOW_SIZE_IN_PX.x/2, WINDOW_SIZE_IN_PX.y/2}, 2.f, "ROUND CLEARED!");
 				DisappearingText::createDisappearingText(closeness_regular, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 245.f / 255.f, 216.f / 255.f, 51.f / 255.f}));
 				DisappearingText::createDisappearingText(closeness_outline, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 0.f, 0.f, 0.f }));
+				// change fastforward texture to not light up
+				UI_button::fastforward_light_off();
 				// hide fastforward button and showi start_button
 				auto view_ui_button = registry.view<Button, ShadedMeshRef>();
 				for (auto [entity, button, shaded_mesh_ref] : view_ui_button.each())
@@ -566,7 +568,7 @@ void WorldSystem::darken_screen_step(float elapsed_ms)
 		Menu::createLostMenu();
 		/*auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
 		registry.emplace<Text>(registry.create(), Text::Text("Famine", notoRegular, { WINDOW_SIZE_IN_PX.x / 2, 200 }, 2.0f, { 1.f, 0.f, 0.f }));*/
-		MenuButton::create_button(RESTART_ROUND_BUTTON_X, RESTART_ROUND_BUTTON_Y, MenuButtonType::restart_round_button, "Restart round");
+		MenuButton::create_button(RESTART_ROUND_BUTTON_X, RESTART_ROUND_BUTTON_Y, MenuButtonType::restart_round_button, "Restart round", {1.4, 1.2});
 		MenuButton::create_button(EXIT_BUTTON_X, EXIT_BUTTON_Y, MenuButtonType::exit_button, "Exit");
 	}
 	
@@ -2544,7 +2546,6 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		{
 			if (speed_up_factor != 1.f)
 			{
-				// un highlight fastforward button
 				UI_button::fastforward_light_off();
 				// set speed up factor
 				speed_up_factor = 1.f;
