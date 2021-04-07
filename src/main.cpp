@@ -19,6 +19,8 @@
 #include "debug.hpp"
 #include "health_bar.hpp"
 
+const float SPEAKER_ANIMATION_SPEED_FACTOR = .7f;
+
 using Clock = std::chrono::high_resolution_clock;
 // Note, here the window will show a width x height part of the game world, measured in px. 
 // You could also define a window to show 1.5 x 1 part of your game world, where the aspect ratio depends on your window size.
@@ -83,7 +85,7 @@ int main()
 		DebugSystem::clearDebugComponents();
 		HealthSystem::updateHealthComponents(elapsed_ms);
 		if (world.game_state == WorldSystem::story_card) {
-			world.animate_speaker(elapsed_ms * world.speed_up_factor);
+			world.animate_speaker(elapsed_ms * world.speed_up_factor * SPEAKER_ANIMATION_SPEED_FACTOR);
 		}
 		else if (world.game_state == WorldSystem::in_game) {
 			if (world.player_state == WorldSystem::set_up_stage) {
