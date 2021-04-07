@@ -3,10 +3,12 @@
 #include "config/strings.hpp"
 #include "config/game_config.hpp"
 #include "config/ui_config.hpp"
+#include "projectile.hpp"
 // stlib
 #include <string>
 #include <tuple>
 #include <vector>
+#include <queue>
 #include <stdexcept>
 #include <map>
 #include <random>
@@ -49,6 +51,7 @@ struct Motion {
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { GRID_CELL_SIZE, GRID_CELL_SIZE };
 	vec2 boundingbox = { 10, 10 };
+	vec2 acceleration = { 0, 0 };
 	vec2 origin = { 0,0 }; // this is useful for setting the point of rotation for parent/child transforms.
 };
 
@@ -94,8 +97,17 @@ struct EntityDeath {
 	float timer;
 };
 
-struct DOT {
+//auto compare_slow = [](std::pair<entt::entity, float> e1, std::pair<entt::entity, float>e2)
+//{
+//	return registry.get<Projectile>(e1.first).damage > registry.get<Projectile>(e2.first).damage;
+//};
+
+struct DamageProperties {
 	std::map<entt::entity, float> dot_map;
+	/*std::priority_queue<
+		std::pair<entt::entity, float>,
+		std::vector<std::pair<entt::entity, float>>,
+		decltype(compare_slow)> pq;*/
 };
 
 // id for entity

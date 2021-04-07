@@ -11,6 +11,7 @@ class PhysicsSystem
 
 public:
 	void step(float elapsed_ms);
+	void title_screen_step(float elapsed_ms);
 	void notifyObservers(entt::entity entity_i, entt::entity entity_j);
 	void attach(Observer* obs);
 

@@ -238,7 +238,7 @@ void WorldSystem::step(float elapsed_ms)
 			next_boss_spawn = (boss_delay_ms / 2) + uniform_dist(rng) * (boss_delay_ms / 2);
 			entt::entity boss = create_boss();
 			
-			registry.emplace<DOT>(boss);
+			registry.emplace<DamageProperties>(boss);
 			auto& monster = registry.get<Monster>(boss);
 			monster.path_coords = default_monster_paths.at(monster.type);
 
@@ -253,7 +253,7 @@ void WorldSystem::step(float elapsed_ms)
 			next_mob_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
 			entt::entity mob = Mob::createMobEntt();
 
-			registry.emplace<DOT>(mob);
+			registry.emplace<DamageProperties>(mob);
 			auto& monster = registry.get<Monster>(mob);
             monster.path_coords = default_monster_paths.at(monster.type);
 
@@ -268,7 +268,7 @@ void WorldSystem::step(float elapsed_ms)
 			next_fireball_spawn = FIREBALL_DELAY_MS;
 			entt::entity fireball = FireballBoss::createFireballBossEntt();
 
-			registry.emplace<DOT>(fireball);
+			registry.emplace<DamageProperties>(fireball);
 			auto& monster = registry.get<Monster>(fireball);
             monster.path_coords = default_monster_paths.at(monster.type);
 
@@ -278,7 +278,7 @@ void WorldSystem::step(float elapsed_ms)
 		// update velocity for every monster
 		for (auto entity : registry.view<Monster>())
 		{
-			auto& dot = registry.get<DOT>(entity);
+			auto& dot = registry.get<DamageProperties>(entity);
 			for (auto& [key, value] : dot.dot_map) {
 				value -= ELAPSED_MS * WorldSystem::speed_up_factor;
 			}
@@ -448,7 +448,7 @@ void WorldSystem::title_screen_step(float elapsed_ms)
 	{
 		auto& eyes = registry.get<TitleEyes>(entity);
 		auto& shaded_mesh_ref = registry.get<ShadedMeshRef>(entity);
-		
+
 		eyes.blink_delay_ms -= elapsed_ms;
 		// time to blink
 		if (eyes.blink_delay_ms < 0.f)
@@ -465,6 +465,39 @@ void WorldSystem::title_screen_step(float elapsed_ms)
 			eyes.blink_delay_ms = rand() % 4000 + 1000; // 1 ~ 5 sec
 			eyes.blink_time_ms = 200;
 		}
+	}
+
+	auto particle_view = registry.view<ParticleSystem>();
+	if (particle_view.size() < MAX_PARTICLES) {
+		for (auto particle_entity : particle_view) {
+			auto& particle = registry.get<ParticleSystem>(particle_entity);
+			particle.life -= elapsed_ms;
+			if (particle.life <= 0) {
+				registry.destroy(particle_entity);
+			}
+		}
+		ParticleSystem::updateParticle();
+
+		next_particle_spawn -= elapsed_ms;
+
+		if (next_particle_spawn < 0.f)
+		{
+			next_particle_spawn = 200;
+			vec2 velocity = { rand() % 100 - 50, rand() % 100 - 50 };
+			vec2 position = { rand() % WINDOW_SIZE_IN_PX.x + 1 , rand() % 250 + 1};
+			float life = 20150.0f;
+			std::string texture = "snow.png";
+			std::string shader = "textured";
+			ParticleSystem::createParticle(velocity, position, life, texture, shader);
+		}
+	}
+
+	for (auto entity : particle_view) {
+		auto& motion = registry.get<Motion>(entity);
+		if (motion.position.x < 0 || motion.position.x > WINDOW_SIZE_IN_PX.x)
+			registry.destroy(entity);
+		if (motion.position.y < 0 || motion.position.y > 250)
+			motion.velocity.y *= -1;
 	}
 }
 
@@ -806,14 +839,14 @@ void WorldSystem::restart()
 	registry.emplace<ScreenState>(screen_state_entity);
 
 	//create UI	
-	UI_button::createUI_build_unit_button(0, watchtower_button, watchtower_unit.cost);
-	UI_button::createUI_build_unit_button(1, green_house_button, greenhouse_unit.cost);
-	UI_button::createUI_build_unit_button(2, hunter_button, hunter_unit.cost);
-	UI_button::createUI_build_unit_button(3, wall_button, wall_unit.cost );
-	// when unit is selected buttons
-	//UI_selected_unit::createUI_selected_unit_button_1(2, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE, false);
-	//UI_selected_unit::createUI_selected_unit_button_1(3, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE, false);
-	//UI_selected_unit::createUI_selected_unit_button_1(4, sell_button, SELL_BUTTON_TITLE, false);
+	//UI_button::createUI_build_unit_button(0, watchtower_button, watchtower_unit.cost);
+	UI_button::createUI_build_unit_button(0, hunter_button, unit_cost.at(HUNTER));
+	UI_button::createUI_build_unit_button(1, exterminator_button, unit_cost.at(EXTERMINATOR));
+	UI_button::createUI_build_unit_button(2, robot_button, unit_cost.at(ROBOT));
+	UI_button::createUI_build_unit_button(3, priestess_button, unit_cost.at(PRIESTESS));
+	UI_button::createUI_build_unit_button(4, snowmachine_button, unit_cost.at(SNOWMACHINE));
+	UI_button::createUI_build_unit_button(5, green_house_button, unit_cost.at(GREENHOUSE));
+	UI_button::createUI_build_unit_button(6, wall_button, unit_cost.at(WALL));
 	// general buttons
 	//UI_button::createUI_button(7, tips_button, TIPS_BUTTON_TITLE);
 	//UI_button::createUI_button(8, start_button, START_BUTTON_TITLE);
@@ -1052,7 +1085,7 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 		collision_monster_handle(e_monster, prj.damage);
 	}
 	else if (registry.has<Flamethrower>(e_projectile) || registry.has<LaserBeam>(e_projectile) || registry.has<Explosion>(e_projectile) || registry.has<IceField>(e_projectile)) {
-		auto& dot = registry.get<DOT>(e_monster);
+		auto& dot = registry.get<DamageProperties>(e_monster);
 		if (dot.dot_map.find(e_projectile) == dot.dot_map.end()) {
 			dot.dot_map.insert({ e_projectile, DOT_DELAY });
 			collision_monster_handle(e_monster, prj.damage);
@@ -1175,11 +1208,11 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
 
 	// Hot keys for selecting placeable units
-	else if (action == GLFW_PRESS && key == GLFW_KEY_1)
+	/*else if (action == GLFW_PRESS && key == GLFW_KEY_1)
 	{
 		placement_unit_selected = WATCHTOWER;
 		create_unit_indicator = WatchTower::createWatchTower;
-	}
+	}*/
 	else if (action == GLFW_PRESS && key == GLFW_KEY_2)
 	{
 		placement_unit_selected = GREENHOUSE;
@@ -1610,7 +1643,7 @@ void update_selected_button(entt::entity e_button, Unit unit)
 	}
 	selected_components.button_components = std::vector<entt::entity>();
 
-	auto& ui = registry.get<UI_element>(e_button);
+	auto ui = registry.get<UI_element>(e_button);
 
 	int path_num;
 	if (ui.tag == PATH_1_UPGRADE_BUTTON_TITLE) {
@@ -1627,7 +1660,8 @@ void update_selected_button(entt::entity e_button, Unit unit)
 	float line_size = 35; // relative to the text size
 	float left_margin = 3;
 	// unit name text
-	std::string short_description = "Damage";
+	std::string key = ui.tag + "_" + unit_str.at(unit.type) + "_" + std::to_string(path_num);
+	std::string short_description = upgrade_short_descriptions.at(key);
 	auto title_text_scale = 0.4f;
 	auto bubblegum = TextFont::load("data/fonts/MagicalMystery/MAGIMT__.ttf");
 	// center text
@@ -2226,12 +2260,12 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					deduct_health(greenhouse_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
-				else if (placement_unit_selected == WATCHTOWER && health >= watchtower_unit.cost)
+				/*else if (placement_unit_selected == WATCHTOWER && health >= watchtower_unit.cost)
 				{
 					entity = WatchTower::createWatchTower(unit_position);
 					deduct_health(watchtower_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
-				}
+				}*/
 				else if (placement_unit_selected == EXTERMINATOR && health >= exterminator_unit.cost)
 				{
 					entity = Exterminator::createExterminator(unit_position);
@@ -2249,7 +2283,6 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					entity = Priestess::createPriestess(unit_position);
 					deduct_health(priestess_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
-					Priestess::updateBuffs();
 				}
 				else if (placement_unit_selected == SNOWMACHINE && health >= snowmachine_unit.cost)
 				{
@@ -2286,7 +2319,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		}
 		else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area)
 		{
-			if (ui_button == Button::watchtower_button)
+			/*if (ui_button == Button::watchtower_button)
 			{
 				if (game_tips && tip_manager.tower_tip)
 				{
@@ -2297,7 +2330,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				create_unit_indicator = WatchTower::createWatchTower;
 				placement_unit_selected = WATCHTOWER;
 			}
-			else if (ui_button == Button::green_house_button)
+			else*/ if (ui_button == Button::green_house_button)
 			{
 				if (game_tips && tip_manager.greenhouse_tip)
 				{
@@ -2320,6 +2353,54 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 				placement_unit_selected = HUNTER;
 				create_unit_indicator = Hunter::createHunter;
+			}
+			else if (ui_button == Button::exterminator_button)
+			{
+				if (game_tips && tip_manager.exterminator_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.exterminator_tip = false;
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, exterminator_tips);
+				}
+
+				placement_unit_selected = EXTERMINATOR;
+				create_unit_indicator = Exterminator::createExterminator;
+			}
+			else if (ui_button == Button::robot_button)
+			{
+				if (game_tips && tip_manager.robot_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.robot_tip = false;
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, robot_tips);
+				}
+
+				placement_unit_selected = ROBOT;
+				create_unit_indicator = Robot::createRobot;
+			}
+			else if (ui_button == Button::priestess_button)
+			{
+				if (game_tips && tip_manager.priestess_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.priestess_tip = false;
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, priestess_tips);
+				}
+
+				placement_unit_selected = PRIESTESS;
+				create_unit_indicator = Priestess::createPriestess;
+			}
+			else if (ui_button == Button::snowmachine_button)
+			{
+				if (game_tips && tip_manager.snowmachine_tip)
+				{
+					game_state = paused;
+					WorldSystem::tip_manager.snowmachine_tip = false;
+					TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, snowmachine_tips);
+				}
+
+				placement_unit_selected = SNOWMACHINE;
+				create_unit_indicator = SnowMachine::createSnowMachine;
 			}
 			else if (ui_button == Button::wall_button)
 			{
@@ -2396,6 +2477,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				placement_unit_selected = NONE;
 			}
 		}
+		Priestess::updateBuffs();
 	}
 
 	// avoid 'unreferenced formal parameter' warning message
@@ -2574,11 +2656,11 @@ void WorldSystem::load_game()
 		int y = unit["y_coord"];
 		int type = unit["type"];
 		entt::entity entity;
-		if (type == WATCHTOWER)
+		/*if (type == WATCHTOWER)
 		{
 			entity = WatchTower::createWatchTower({x, y});
 		}
-		else if (type == GREENHOUSE)
+		else */if (type == GREENHOUSE)
 		{
 			entity = GreenHouse::createGreenHouse({x, y});
 		}

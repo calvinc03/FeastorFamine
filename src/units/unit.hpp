@@ -48,26 +48,26 @@ const Unit hunter_unit = {
 	1                                       //attack_speed_buff
 };
 
-const Unit watchtower_unit = {
-	WATCHTOWER,                                 //type
-	unit_damage.at(WATCHTOWER),		            //damage
-	unit_attack_interval_ms.at(WATCHTOWER),     //attack_interval_ms
-	0,		                                    //next_projectile_spawn
-	unit_attack_range.at(WATCHTOWER),	        //attack_range
-	0,		                                    //path_1_upgrade
-	0,                                          //path_2_upgrade
-	unit_num_projectiles.at(WATCHTOWER),        //num_projectiles
-	unit_create_projectiles.at(WATCHTOWER),     //create projectile
-	unit_rotate.at(WATCHTOWER),	                //rotate
-	hunter_path_1.at(0)[0],                     //upgrade_path_1_cost
-	hunter_path_2.at(0)[0],                     //upgrade_path_2_cost
-	unit_cost.at(WATCHTOWER),	                //cost
-	unit_sell_price.at(WATCHTOWER),	            //sell_price
-	unit_health.at(WATCHTOWER),	                //health
-	unit_health.at(WATCHTOWER),	                //max_health
-	0,                                          //damage_buff
-	1                                           //attack_speed_buff
-};
+//const Unit watchtower_unit = {
+//	WATCHTOWER,                                 //type
+//	unit_damage.at(WATCHTOWER),		            //damage
+//	unit_attack_interval_ms.at(WATCHTOWER),     //attack_interval_ms
+//	0,		                                    //next_projectile_spawn
+//	unit_attack_range.at(WATCHTOWER),	        //attack_range
+//	0,		                                    //path_1_upgrade
+//	0,                                          //path_2_upgrade
+//	unit_num_projectiles.at(WATCHTOWER),        //num_projectiles
+//	unit_create_projectiles.at(WATCHTOWER),     //create projectile
+//	unit_rotate.at(WATCHTOWER),	                //rotate
+//	hunter_path_1.at(0)[0],                     //upgrade_path_1_cost
+//	hunter_path_2.at(0)[0],                     //upgrade_path_2_cost
+//	unit_cost.at(WATCHTOWER),	                //cost
+//	unit_sell_price.at(WATCHTOWER),	            //sell_price
+//	unit_health.at(WATCHTOWER),	                //health
+//	unit_health.at(WATCHTOWER),	                //max_health
+//	0,                                          //damage_buff
+//	1                                           //attack_speed_buff
+//};
 
 const Unit greenhouse_unit = {
 	GREENHOUSE,                                 //type
@@ -197,7 +197,7 @@ const Unit wall_unit = {
 
 const std::map<unit_type, Unit> unit_configs = {
 	{HUNTER, hunter_unit},
-	{WATCHTOWER, watchtower_unit},
+	//{WATCHTOWER, watchtower_unit},
 	{GREENHOUSE, greenhouse_unit},
 	{WALL, wall_unit},
 	{EXTERMINATOR, exterminator_unit}

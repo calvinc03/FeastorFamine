@@ -121,6 +121,18 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 		else if (button == hunter_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
 		}
+		else if (button == exterminator_button) {
+			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
+		}
+		else if (button == robot_button) {
+			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
+		}
+		else if (button == priestess_button) {
+			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
+		}
+		else if (button == snowmachine_button) {
+			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
+		}
 		else if (button == wall_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("wall_icon.png"), "ui");
 		}
@@ -208,9 +220,9 @@ entt::entity UI_selected_unit_portrait::createUI_selected_unit_portrait(unit_typ
 		case HUNTER:
 			file_name = "hunter_portrait.png";
 			break;
-		case WATCHTOWER:
+		/*case WATCHTOWER:
 			file_name = "watchtower_portrait.png";
-			break;
+			break;*/
 		case GREENHOUSE:
 			file_name = "greehouse_portrait.png";
 			break;
