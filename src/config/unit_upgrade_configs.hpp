@@ -92,8 +92,8 @@ const std::map<int, std::vector<int>> priestess_path_2 = {
 const std::map<int, std::vector<int>> snowmachine_path_1 = {
 	{0, {10}},
 	{1, {10, 10, 20}},
-	{2, {10, 10, 20}},
-	{3, {10, 10, 20}}
+	{2, {10, 10, 30}},
+	{3, {10, 10, 40}}
 };
 
 // range upgrade

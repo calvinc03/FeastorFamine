@@ -252,7 +252,7 @@ private:
 	entt::entity create_help_menu();
 
 	//helper methods for updateProjectileMonsterCollision() method
-	void collision_monster_handle(entt::entity e_monster, int damage);
+	void damage_monster_helper(entt::entity e_monster, int damage, bool slow = false);
 
 	// helper for start menu mouse click and in_game mouse click
 	void start_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);

@@ -315,10 +315,37 @@ void WorldSystem::step(float elapsed_ms)
 		// update velocity for every monster
 		for (auto entity : registry.view<Monster>())
 		{
-			auto& dot = registry.get<DamageProperties>(entity);
-			for (auto& [key, value] : dot.dot_map) {
+			auto& damage = registry.get<DamageProperties>(entity);
+			for (auto& [key, value] : damage.dot_map) {
 				value -= ELAPSED_MS * WorldSystem::speed_up_factor;
 			}
+
+			auto& monster = registry.get<Monster>(entity);
+			float num = -1.f;
+			float max_slow = 0;
+			while (!damage.slow_queue.empty()) {
+				std::pair<float, float> pair = damage.slow_queue.top();
+				if (num == -1.f) {
+					pair.second -= elapsed_ms;
+					num = SLOW_DELAY - pair.second;
+				}
+				else {
+					pair.second -= num;
+				}
+
+				if (pair.second < 0) {
+					damage.slow_queue.pop();
+				}
+				else {
+					damage.slow_queue.pop();
+					damage.slow_queue.push(pair);
+					max_slow = pair.first;
+					break;
+				}
+			}
+			monster.speed_multiplier *= (100 / (100 - damage.current_slow));
+			monster.speed_multiplier *= ((100 - max_slow) / 100);
+			damage.current_slow = max_slow;
 
 			auto state = BTCollision->process(entity);
 			if (health < 0) {
@@ -539,7 +566,7 @@ void WorldSystem::title_screen_step(float elapsed_ms)
 			next_particle_spawn = 200;
 			vec2 velocity = { rand() % 100 - 50, rand() % 100 - 50 };
 			vec2 position = { rand() % WINDOW_SIZE_IN_PX.x + 1 , rand() % 250 + 1};
-			float life = 20150.0f;
+			float life = 20000.0f;
 			std::string texture = "snow.png";
 			std::string shader = "snow";
 			ParticleSystem::createParticle(velocity, position, life, texture, shader);
@@ -1090,16 +1117,28 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	UI_weather_icon::change_weather_icon(weather_icon_entity, weather);
 }
 
-void WorldSystem::collision_monster_handle(entt::entity e_monster, int damage) {
+void WorldSystem::damage_monster_helper(entt::entity e_monster, int damage, bool slow) {
 	
 	auto& monster = registry.get<Monster>(e_monster);
 	Mix_PlayChannel(-1, impact_sound, 0);
 
-	monster.health -= damage;
+	if (slow) {
+		auto& damage_properties = registry.get<DamageProperties>(e_monster);
+		damage_properties.slow_queue.push({ damage, SLOW_DELAY });
+		float max_slow = damage_properties.slow_queue.top().first;
+		monster.speed_multiplier *= (100 / (100 - damage_properties.current_slow));
+		monster.speed_multiplier *= ((100 - max_slow) / 100);
+		damage_properties.current_slow = max_slow;
+		// add hit point text
+		HitPointsText::create_hit_points_text(damage, e_monster, {0.f, 0.f, 1.f});
+	}
+	else {
+		monster.health -= damage;
+		// add hit point text
+		HitPointsText::create_hit_points_text(damage, e_monster, { 1.f, 0.f, 0.f });
+	}
+	
 	monster.collided = true;
-
-	// add hit point text
-	HitPointsText::create_hit_points_text(damage, e_monster);
 
 	auto& hit_reaction = registry.get<HitReaction>(e_monster);
 	hit_reaction.counter_ms = 750; //ms duration used by health bar
@@ -1143,18 +1182,18 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 
 			rock.bezier_points = bezierVelocities(bezierCurve(points, 1000));
 		}
-		collision_monster_handle(e_monster, prj.damage);
+		damage_monster_helper(e_monster, prj.damage, true);
 	}
 	else if (registry.has<Flamethrower>(e_projectile) || registry.has<LaserBeam>(e_projectile) || registry.has<Explosion>(e_projectile) || registry.has<IceField>(e_projectile)) {
 		auto& dot = registry.get<DamageProperties>(e_monster);
 		if (dot.dot_map.find(e_projectile) == dot.dot_map.end()) {
 			dot.dot_map.insert({ e_projectile, DOT_DELAY });
-			collision_monster_handle(e_monster, prj.damage);
+			damage_monster_helper(e_monster, prj.damage, registry.has<IceField>(e_projectile));
 		}
 		else {
 			if (dot.dot_map[e_projectile] <= 0) {
 				dot.dot_map[e_projectile] = DOT_DELAY;
-				collision_monster_handle(e_monster, prj.damage);
+				damage_monster_helper(e_monster, prj.damage, registry.has<IceField>(e_projectile));
 			}
 		}
 	}
@@ -1165,7 +1204,7 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 	}
 
 	else {
-		collision_monster_handle(e_monster, prj.damage);
+		damage_monster_helper(e_monster, prj.damage);
 		registry.destroy(e_projectile);
 	}
 }

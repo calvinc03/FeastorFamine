@@ -1,4 +1,4 @@
-#include <text.hpp>
+﻿#include <text.hpp>
 
 #include <common.hpp>
 #include <render.hpp>
@@ -557,7 +557,7 @@ entt::entity DisappearingText::createDisappearingText(std::shared_ptr<TextFont> 
 
 
 // create hit points when projectile hits monsters
-void HitPointsText::create_hit_points_text(int hit_points, entt::entity e_damaged)
+void HitPointsText::create_hit_points_text(int hit_points, entt::entity e_damaged, vec3 color)
 {
     // used to scale the hit points size
     float max_possible_damage = MAX_POSSIBLE_DAMAGE;
@@ -570,7 +570,7 @@ void HitPointsText::create_hit_points_text(int hit_points, entt::entity e_damage
     float text_scale = (float)hit_points * (max_text_size - min_text_size) / max_possible_damage + min_text_size;
     auto closeness_outline = TextFont::load("data/fonts/Closeness/closeness.outline-regular.ttf");
     auto closeness_regular = TextFont::load("data/fonts/Closeness/closeness.regular.ttf");
-    vec3 text_colour = { 1.f, 0.f, 0.f };
+    vec3 text_colour = color;
     vec3 outline_colour = { 0.f, 0.f, 0.f };
     auto d_text_outline = DisappearingText::createDisappearingText(closeness_outline, std::to_string(hit_points), motion.position, on_screen_time_ms, initial_text_scale, outline_colour);
     auto d_text = DisappearingText::createDisappearingText(closeness_regular, std::to_string(hit_points), motion.position, on_screen_time_ms, initial_text_scale, text_colour);
@@ -579,6 +579,7 @@ void HitPointsText::create_hit_points_text(int hit_points, entt::entity e_damage
     auto& hitpoints_outline = registry.emplace<HitPointsText>(d_text_outline);
     hitpoints_outline.min_scale = text_scale;
 }
+
 
 unsigned GetNumberOfDigits(unsigned i)
 {
