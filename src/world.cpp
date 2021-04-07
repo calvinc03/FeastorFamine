@@ -487,7 +487,7 @@ void WorldSystem::title_screen_step(float elapsed_ms)
 			vec2 position = { rand() % WINDOW_SIZE_IN_PX.x + 1 , rand() % 250 + 1};
 			float life = 20150.0f;
 			std::string texture = "snow.png";
-			std::string shader = "textured";
+			std::string shader = "snow";
 			ParticleSystem::createParticle(velocity, position, life, texture, shader);
 		}
 	}
