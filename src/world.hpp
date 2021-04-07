@@ -10,6 +10,7 @@
 #include "units/unit.hpp"
 #include "ui_description.hpp"
 #include "tip_manager.hpp"
+#include "story_card.hpp"
 
 // stlib
 #include <vector>

@@ -28,10 +28,20 @@ static const std::string STORY_TEXT_PER_LEVEL[] = {
 
 struct StoryCard
 {
-	static entt::entity createStoryCard(std::string story_card_text, std::string level_number);
+public:
+	StoryCard(std::string story_card_text = "", std::string level_number = 0);
 };
 
-//inline std::string menu_texture_path(const std::string& name) { return data_path() + "/textures/menu/" + name; };
+struct StoryCardBase
+{
+	int line_offset = 0;
+	int char_offset = 0;
+	int x_offset = 0;
+	std::string card_text = "";
+	std::shared_ptr<TextFont> font;
+	float story_text_scale = 0.f;
+	void write_character();
+};
 
 struct StoryCardText
 {

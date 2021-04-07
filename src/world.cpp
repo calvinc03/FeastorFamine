@@ -51,7 +51,7 @@
 #include <units/rangecircle.hpp>
 
 const size_t ANIMATION_FPS = 20;
-const size_t SPEAKER_FPS = 3;
+const size_t SPEAKER_FPS = 10;
 const int STARTING_HEALTH = 1000;
 
 int WorldSystem::health = 1000;
@@ -215,6 +215,16 @@ void WorldSystem::animate_speaker(float elapsed_ms)
 			animate.frame = (int)animate.frame % (int)animate.frame_num;
 		}
 		fps_ms = 1000 / SPEAKER_FPS;
+
+	}
+
+	if ((int) fps_ms % 20 == 0)
+	{
+		for (auto& card : registry.view<StoryCardBase>())
+		{
+			auto& base = registry.get<StoryCardBase>(card);
+			base.write_character();
+		}
 	}
 }
 
@@ -960,7 +970,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	world_season_str = round_json["season"];
 	int prev_weather = weather;
 
-	for (auto& story_card : registry.view<StoryCard>())
+	for (auto& story_card : registry.view<StoryCardBase>())
 	{
 		registry.destroy(story_card);
 	}
@@ -973,7 +983,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	if (game_state != help_menu)
 	{
 		game_state = story_card;
-		StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number + 1));
+		StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number + 1));
 		TalkyBoi::createTalkyBoiEntt();
 	}
 
@@ -1946,11 +1956,11 @@ void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y,
 		
 		if (world_round_number == 0) {
 			game_state = story_card;
-			StoryCard::createStoryCard(STORY_TEXT_PER_LEVEL[world_round_number], std::to_string(1));
+			StoryCard story_card(STORY_TEXT_PER_LEVEL[world_round_number], std::to_string(1));
 			TalkyBoi::createTalkyBoiEntt();
 		}
 
-		if (registry.empty<StoryCard>()) {
+		if (registry.empty<StoryCardBase>()) {
 			game_state = in_game;
 		}
 		else {
@@ -1968,7 +1978,7 @@ void WorldSystem::story_card_click_handle(double mouse_pos_x, double mouse_pos_y
 {
 	if (action == GLFW_PRESS)
 	{
-		for (auto entity : registry.view<StoryCard>())
+		for (auto entity : registry.view<StoryCardBase>())
 		{
 			registry.destroy(entity);
 		}

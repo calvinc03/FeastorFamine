@@ -2,7 +2,13 @@
 #include "render.hpp"
 #include <iostream>
 
-entt::entity StoryCard::createStoryCard(std::string story_card_text, std::string level_number)
+const int KERNING = 17;
+const std::string DELIMITER = "@";
+const int LINE_SPACING = 40;
+const int STORY_TEXT_X_OFFSET = -400;
+const int STORY_TEXT_Y_OFFSET = 100;
+
+StoryCard::StoryCard(std::string story_card_text, std::string level_number)
 {
 	ivec2 pos = ivec2(MAP_SIZE_IN_PX.x - 530, MAP_SIZE_IN_PX.y + UI_TOP_BAR_HEIGHT - 300);
 	auto entity = registry.create();
@@ -23,8 +29,6 @@ entt::entity StoryCard::createStoryCard(std::string story_card_text, std::string
 	motion.scale = vec2(1.f, 1.f) * static_cast<vec2>(resource.texture.size);
 	motion.position = pos;
 
-	registry.emplace<StoryCard>(entity);
-
 	// text
 	auto font = TextFont::load("data/fonts/cascadia-code/Cascadia.ttf");
 	// Level number
@@ -37,29 +41,53 @@ entt::entity StoryCard::createStoryCard(std::string story_card_text, std::string
 	t_level.colour = { 1.0f, 1.0f, 1.0f };
 	registry.emplace<StoryCardText>(level_text_entity);
 
-	// story text, break up lines based on delimiter '@'
-	auto story_text_scale = .6f;
-	auto story_text_x_offset = -400;
-	auto story_text_y_offset = 100 - UI_TOP_BAR_HEIGHT;
-
-	std::string delimiter = "@";
+	StoryCardBase& base = registry.emplace<StoryCardBase>(entity);
+	base.story_text_scale = .6f;
+	base.line_offset = pos.y + 100 - UI_TOP_BAR_HEIGHT;
+	base.x_offset = pos.x + STORY_TEXT_X_OFFSET;
+	base.font = font;
+	base.card_text = story_card_text;
+	
+	/*
 	while (story_card_text.length() > 0) {
-		auto story_text_entity = registry.create();
 
-		int delimiter_pos = (int)story_card_text.find(delimiter);
+		int delimiter_pos = (int)story_card_text.find(DELIMITER);
 		if (delimiter_pos == std::string::npos) {
 			delimiter_pos = (int)story_card_text.length();
 		}
 
 		std::string line_string = story_card_text.substr(0, delimiter_pos);
-		auto& t_story = registry.emplace<Text>(story_text_entity, Text(line_string, font, vec2(pos.x + story_text_x_offset, pos.y + story_text_y_offset)));
+		for (int i = 0; i < line_string.length(); i++) {
+			auto story_text_entity = registry.create();
+			auto& t_story = registry.emplace<Text>(story_text_entity, Text(std::string(1, line_string.at(i)), font, vec2(x_offset + i * KERNING, line_offset)));
+			t_story.scale = story_text_scale;
+			t_story.colour = { 1.0f, 1.0f, 1.0f };
+			registry.emplace<StoryCardText>(story_text_entity);
+		}
+		line_offset -= LINE_SPACING;
+
+		story_card_text.erase(0, delimiter_pos + DELIMITER.length());
+	}*/
+}
+
+void StoryCardBase::write_character()
+{
+	if (card_text.length() == 0) {
+		return;
+	}
+	if (card_text.at(0) == '@') {
+		line_offset -= LINE_SPACING;
+		char_offset = 0;
+	}
+	else {
+		auto story_text_entity = registry.create();
+		auto& t_story = registry.emplace<Text>(story_text_entity, Text(std::string(1, card_text.at(0)), font, vec2(x_offset + char_offset, line_offset)));
 		t_story.scale = story_text_scale;
 		t_story.colour = { 1.0f, 1.0f, 1.0f };
 		registry.emplace<StoryCardText>(story_text_entity);
-		story_text_y_offset -= 40; // line spacing todo don't hardcode maybe
 
-		story_card_text.erase(0, delimiter_pos + delimiter.length());
+		char_offset += KERNING;
 	}
 
-	return entity;
+	card_text.erase(0, 1);
 }
