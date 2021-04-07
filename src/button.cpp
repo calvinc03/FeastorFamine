@@ -1,11 +1,9 @@
 #include "button.hpp"
 #include "render.hpp"
 
-entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_type, std::string button_text, float angle)
+entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_type, std::string button_text, vec2 scale, float angle)
 {
 	auto entity = registry.create();
-	UI_element& ui_element = registry.emplace<UI_element>(entity);
-	vec2 ui_scale = { 1.2f, 1.2f };
 	// Create rendering primitives
 	std::string key = "menu_button" + std::to_string(button_type);
 	ShadedMesh& resource = cache_resource(key);
@@ -27,11 +25,9 @@ entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_t
 				texture_file_name = "load_game_button.png";
 				break;			
 			case exit_button:
-				ui_scale = { 1.2f, 1.0f };
 				texture_file_name = "empty_button.png";
 				break;
 			case help_button:
-				ui_scale = { 1.2f, 1.0f };
 				texture_file_name = "empty_button.png";
 				break;
 			case back_button:
@@ -41,7 +37,6 @@ entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_t
 				texture_file_name = "empty_button.png";
 				break;
 			case restart_round_button:
-				ui_scale = { 1.4f, 1.0f };
 				texture_file_name = "empty_button.png";
 				break;
 			default:
@@ -53,10 +48,10 @@ entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_t
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
 	shaded_mesh_ref.layer = 98;
 
-	
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = menu_button_ui_tag.at(button_type);
 	ui_element.angle = angle;
-	ui_element.scale = ui_scale * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.scale = scale * static_cast<vec2>(resource.texture.size) / 2.0f;
 	ui_element.position = vec2(x, y);
 
 	auto& menu_button = registry.emplace<MenuButton>(entity);

@@ -30,3 +30,5 @@ static const int MAX_POSSIBLE_DAMAGE = 100;
 static const int ROUND_PER_SEASON = 2;
 
 static const float END_OF_BATTLE_STAGE_DELAY_MS = 1500.f;
+// fastforward factor 
+static const float FAST_SPEED = 2.f;

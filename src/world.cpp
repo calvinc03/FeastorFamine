@@ -416,6 +416,21 @@ void WorldSystem::step(float elapsed_ms)
 				vec2 text_position = get_center_text_position(WINDOW_SIZE_IN_PX, {WINDOW_SIZE_IN_PX.x/2, WINDOW_SIZE_IN_PX.y/2}, 2.f, "ROUND CLEARED!");
 				DisappearingText::createDisappearingText(closeness_regular, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 245.f / 255.f, 216.f / 255.f, 51.f / 255.f}));
 				DisappearingText::createDisappearingText(closeness_outline, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 0.f, 0.f, 0.f }));
+				// hide fastforward button and showi start_button
+				auto view_ui_button = registry.view<Button, ShadedMeshRef>();
+				for (auto [entity, button, shaded_mesh_ref] : view_ui_button.each())
+				{
+					if (button == Button::start_button)
+					{
+						RenderSystem::show_entity(entity);
+					}
+					else if (button == Button::fastforward_button)
+					{
+						RenderSystem::hide_entity(entity);
+					}
+				}
+				// reset speed up factor
+				speed_up_factor = 1.f;
 				// if no greenhouse, shorten the end phase delay
 				if (!greenhouse_food_increased)
 				{
@@ -788,15 +803,17 @@ void WorldSystem::start_round()
 {
 
 	game_tips = false;
-	// hide start_button
-	auto view_ui_button = registry.view<UI_element, ShadedMeshRef>();
-	for (auto button_entt : view_ui_button)
+	// hide start_button and shwo fastforward button
+	auto view_ui_button = registry.view<Button, ShadedMeshRef>();
+	for (auto [entity, button, shaded_mesh_ref] : view_ui_button.each())
 	{
-		auto ui_button = view_ui_button.get<UI_element>(button_entt);
-
-		if (ui_button.tag == START_BUTTON_TITLE || ui_button.tag == TIPS_BUTTON_TITLE)
+		if (button == Button::start_button)
 		{
-			RenderSystem::hide_entity(button_entt);
+			RenderSystem::hide_entity(entity);
+		}
+		else if(button == Button::fastforward_button)
+		{
+			RenderSystem::show_entity(entity);
 		}
 	}
 	player_state = battle_stage;
@@ -864,7 +881,12 @@ void WorldSystem::restart()
 	UI_button::createUI_build_unit_button(5, green_house_button, unit_cost.at(GREENHOUSE));
 	UI_button::createUI_build_unit_button(6, wall_button, unit_cost.at(WALL));
 	// general buttons
-	//UI_button::createUI_button(7, tips_button, TIPS_BUTTON_TITLE);
+	//MenuButton::create_button(TIPS_GAME_BUTTON_X, TIPS_GAME_BUTTON_Y, MenuButtonType::menu_tips_button);
+	UI_button::createTips_button(TIPS_GAME_BUTTON_POS);
+	UI_button::createStart_button(START_BATTLE_BUTTON_POS);
+	//UI_button::createPause_button(PAUSE_BUTTON_POS);
+	UI_button::createMore_button(MORE_OPTIONS_BUTTON_POS);
+	UI_button::createFastforward_button(FASTFORWARD_BUTTON_POS);
 	//UI_button::createUI_button(8, start_button, START_BUTTON_TITLE);
 	//UI_button::createUI_button(9, save_button, SAVE_BUTTON_TITLE);
 	// ui background
@@ -1142,7 +1164,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
 	if (key == GLFW_KEY_Y) // for testing rigs
 	{
-		speed_up_factor = 2.f;
+		speed_up_factor = FAST_SPEED;
 	}
 	if (key == GLFW_KEY_N) // for testing rigs
 	{
@@ -1182,6 +1204,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P && game_state == in_game) {
 		pause_game();
+		more_options_menu();
 	}
 	else if (action == GLFW_RELEASE && key == GLFW_KEY_P && game_state == paused) {
 		resume_game();
@@ -1298,14 +1321,26 @@ void WorldSystem::pause_game()
 {
 	std::cout << "Paused" << std::endl;
 	game_state = paused;
+	//// pause menu
+	//registry.get<ShadedMeshRef>(pause_menu_entity).show = true;
+	//auto menu_ui = registry.get<UI_element>(pause_menu_entity);
+	//
+	//float top_button_y_offset = menu_ui.position.y - menu_ui.scale.y / 2.f - 10;
+	//MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 1.f / 3.5f, MenuButtonType::restart_round_button, "Restart round", { 1.4f, 1.0f });
+	//MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 2.f / 3.5f, MenuButtonType::help_button, "Help", { 1.2f, 1.0f });
+	//MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 3.f / 3.5f, MenuButtonType::exit_button, "Exit", { 1.2f, 1.0f });
+}
+
+void WorldSystem::more_options_menu()
+{
 	// pause menu
 	registry.get<ShadedMeshRef>(pause_menu_entity).show = true;
 	auto menu_ui = registry.get<UI_element>(pause_menu_entity);
-	
+
 	float top_button_y_offset = menu_ui.position.y - menu_ui.scale.y / 2.f - 10;
-	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 1.f / 3.5f, MenuButtonType::restart_round_button, "Restart round");
-	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 2.f / 3.5f, MenuButtonType::help_button, "Help");
-	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 3.f / 3.5f, MenuButtonType::exit_button, "Exit");
+	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 1.f / 3.5f, MenuButtonType::restart_round_button, "Restart round", { 1.4f, 1.0f });
+	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 2.f / 3.5f, MenuButtonType::help_button, "Help", { 1.2f, 1.0f });
+	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 3.f / 3.5f, MenuButtonType::exit_button, "Exit", { 1.2f, 1.0f });
 }
 
 void WorldSystem::resume_game()
@@ -2164,10 +2199,10 @@ void WorldSystem::create_start_menu()
 	Menu::createMenu(300, 150, "title_screen_title2", Menu_texture::title_screen_title2, 86, { 1.1, 1.1 });
 	Menu::createMenu(470, 120, "title_screen_title_or", Menu_texture::title_screen_title2_or, 86, { 0.7, 0.7 });
 	//buttons
-	MenuButton::create_button(NEW_GAME_BUTTON_X, NEW_GAME_BUTTON_Y, MenuButtonType::new_game_button, "", NEW_GAME_BUTTON_ANGLE);
-	MenuButton::create_button(LOAD_GAME_BUTTON_X, LOAD_GAME_BUTTON_Y, MenuButtonType::load_game_button);
-	MenuButton::create_button(TITLE_HELP_BUTTON_X, TITLE_HELP_BUTTON_Y, MenuButtonType::title_help_button, "", TITLE_HELP_BUTTON_ANGLE);
-	MenuButton::create_button(TITLE_EXIT_BUTTON_X, TITLE_EXIT_BUTTON_Y, MenuButtonType::title_exit_button);
+	MenuButton::create_button(NEW_GAME_BUTTON_X, NEW_GAME_BUTTON_Y, MenuButtonType::new_game_button, "", { 1.2f, 1.2f }, NEW_GAME_BUTTON_ANGLE);
+	MenuButton::create_button(LOAD_GAME_BUTTON_X, LOAD_GAME_BUTTON_Y, MenuButtonType::load_game_button, "", { 1.2f, 1.2f });
+	MenuButton::create_button(TITLE_HELP_BUTTON_X, TITLE_HELP_BUTTON_Y, MenuButtonType::title_help_button, "", { 1.2f, 1.2f }, TITLE_HELP_BUTTON_ANGLE);
+	MenuButton::create_button(TITLE_EXIT_BUTTON_X, TITLE_EXIT_BUTTON_Y, MenuButtonType::title_exit_button, "", { 1.2f, 1.2f });
 	title_button_highlight_entity = MenuButton::create_button_arrow();
 	// blinking eyes
 	std::vector<vec2> locations = { vec2({984, 442}), vec2({891, 429}), vec2({851, 427}), vec2({764, 434}), vec2({719, 435}),
@@ -2485,6 +2520,11 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					start_round();
 				}
 			}
+			else if (ui_button == Button::more_options_button)
+			{
+				pause_game();
+				more_options_menu();
+			}
 			else if (ui_button == Button::tips_button)
 			{
 				game_tips = !game_tips;
@@ -2497,6 +2537,30 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			}
 		}
 		Priestess::updateBuffs();
+	}
+	else if (player_state == battle_stage)
+	{
+		if (ui_button == Button::fastforward_button)
+		{
+			if (speed_up_factor != 1.f)
+			{
+				// un highlight fastforward button
+				UI_button::fastforward_light_off();
+				// set speed up factor
+				speed_up_factor = 1.f;
+			}
+			else
+			{
+				UI_button::fastforward_light_up();
+				// set speed up factor
+				speed_up_factor = FAST_SPEED;
+			}				
+		}
+		else if (ui_button == Button::more_options_button)
+		{
+			pause_game();
+			more_options_menu();
+		}
 	}
 
 	// avoid 'unreferenced formal parameter' warning message
@@ -2675,11 +2739,7 @@ void WorldSystem::load_game()
 		int y = unit["y_coord"];
 		int type = unit["type"];
 		entt::entity entity;
-		/*if (type == WATCHTOWER)
-		{
-			entity = WatchTower::createWatchTower({x, y});
-		}
-		else */if (type == GREENHOUSE)
+		if (type == GREENHOUSE)
 		{
 			entity = GreenHouse::createGreenHouse({x, y});
 		}
@@ -2691,6 +2751,23 @@ void WorldSystem::load_game()
 		{
 			entity = Hunter::createHunter({x, y});
 		}
+		else if (type == EXTERMINATOR)
+		{
+			entity = Exterminator::createExterminator({ x, y });
+		}
+		else if (type == PRIESTESS)
+		{
+			entity = Priestess::createPriestess({ x, y });
+		}
+		else if (type == SNOWMACHINE)
+		{
+			entity = SnowMachine::createSnowMachine({ x, y });
+		}
+		else if (type == ROBOT)
+		{
+			entity = Robot::createRobot({ x, y });
+		}
+		
 		auto& motion = registry.get<Motion>(entity);
         current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), type, entity, motion.scale);
 		auto view_unit = registry.view<Unit>();

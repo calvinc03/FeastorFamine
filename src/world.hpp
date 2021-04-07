@@ -49,6 +49,8 @@ public:
 
 	void pause_game();
 
+	void more_options_menu();
+
 	void resume_game();
 
 	// helper to save game to disk

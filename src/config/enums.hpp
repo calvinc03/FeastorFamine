@@ -84,7 +84,10 @@ enum Button
     save_button,
     sell_button,
     start_button,
-    tips_button
+    tips_button,
+    pause_button,
+    more_options_button, 
+    fastforward_button
 };
 
 // Menu button

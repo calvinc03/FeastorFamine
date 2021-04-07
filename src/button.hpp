@@ -4,7 +4,7 @@
 #include "ui.hpp"
 
 struct MenuButton {
-	static entt::entity create_button(float x, float y, MenuButtonType button_type, std::string button_text = "", float angle = 0.f);
+	static entt::entity create_button(float x, float y, MenuButtonType button_type, std::string button_text = "", vec2 scale = { 1.f, 1.f }, float angle = 0.f);
 	MenuButtonType button_type;
 	static entt::entity create_button_arrow();
 };

@@ -159,9 +159,6 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 	shaded_mesh.layer = 91;
 	shaded_mesh.show = show;
 	
-	RenderProperty& render_property = registry.emplace<RenderProperty>(entity);
-	render_property.show = show;
-	
 	// Setting initial ui_element values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = tag;
@@ -170,6 +167,202 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);
+	registry.emplace<UI_button>(entity);
+
+	return entity;
+}
+
+entt::entity UI_button::createTips_button(vec2 position)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "Tips_button";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("tips_button.png"), "ui");
+	}
+
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 91;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = key;
+	ui_element.scale = vec2({ 1.5f, 1.5f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.position = position;
+
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, Button::tips_button);
+	registry.emplace<UI_button>(entity);
+
+
+	return entity;
+}
+
+entt::entity UI_button::createStart_button(vec2 position)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "Start_button";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("start_button.png"), "ui");
+	}
+
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 91;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = key;
+	ui_element.scale = vec2({ 1.7f, 1.7f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.position = position;
+
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, Button::start_button);
+	registry.emplace<UI_button>(entity);
+
+
+	return entity;
+}
+
+entt::entity UI_button::createPause_button(vec2 position)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "Pause_button";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("pause_button.png"), "ui");
+	}
+
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 91;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = key;
+	ui_element.scale = vec2({ 1.7f, 1.7f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.position = position;
+
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, Button::pause_button);
+	registry.emplace<UI_button>(entity);
+
+
+	return entity;
+}
+
+entt::entity UI_button::createMore_button(vec2 position)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "More_button";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("more_options.png"), "ui");
+	}
+
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 91;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = key;
+	ui_element.scale = vec2({ 1.7f, 1.7f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.position = position;
+
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, Button::more_options_button);
+	registry.emplace<UI_button>(entity);
+
+
+	return entity;
+}
+
+void UI_button::fastforward_light_up()
+{
+	auto view = registry.view<Button>();
+	for (auto entity: view)
+	{
+		if (registry.get<Button>(entity) == Button::fastforward_button)
+		{
+			registry.remove<ShadedMeshRef>(entity);
+			std::string key = "Fastforward_button_light";
+			ShadedMesh& resource = cache_resource(key);
+			if (resource.effect.program.resource == 0) {
+				resource = ShadedMesh();
+				RenderSystem::createSprite(resource, ui_texture_path("fastforward_button_light.png"), "textured");
+			}
+			ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+			shaded_mesh.layer = 91;
+		}
+	}	
+}
+
+void UI_button::fastforward_light_off()
+{
+	auto view = registry.view<Button>();
+	for (auto entity : view)
+	{
+		if (registry.get<Button>(entity) == Button::fastforward_button)
+		{
+			registry.remove<ShadedMeshRef>(entity);
+			std::string key = "Fastforward_button";
+			ShadedMesh& resource = cache_resource(key);
+			if (resource.effect.program.resource == 0) {
+				resource = ShadedMesh();
+				RenderSystem::createSprite(resource, ui_texture_path("fastforward_button.png"), "ui");
+			}
+			ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+			shaded_mesh.layer = 91;
+		}
+	}
+	
+}
+
+entt::entity UI_button::createFastforward_button(vec2 position)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "Fastforward_button";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("fastforward_button.png"), "ui");
+	}
+
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 91;
+	shaded_mesh.show = false;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = key;
+	ui_element.scale = vec2({ 1.7f, 1.7f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.position = position;
+
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, Button::fastforward_button);
 	registry.emplace<UI_button>(entity);
 
 
