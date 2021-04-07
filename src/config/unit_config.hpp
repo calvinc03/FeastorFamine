@@ -10,7 +10,7 @@ const std::map<unit_type, int> unit_damage = {
 	{EXTERMINATOR, 10},
 	{ROBOT, 1},
 	{PRIESTESS, 5},
-	{SNOWMACHINE, 10},
+	{SNOWMACHINE, 50},
 	{WALL, 0}
 };
 

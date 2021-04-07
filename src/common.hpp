@@ -97,17 +97,22 @@ struct EntityDeath {
 	float timer;
 };
 
-//auto compare_slow = [](std::pair<entt::entity, float> e1, std::pair<entt::entity, float>e2)
-//{
-//	return registry.get<Projectile>(e1.first).damage > registry.get<Projectile>(e2.first).damage;
-//};
+struct compare_slow
+{
+	bool operator()(std::pair<float, float> e1, std::pair<float, float> e2)
+	{
+		return e1.first > e2.first;
+	}
+};
 
 struct DamageProperties {
 	std::map<entt::entity, float> dot_map;
-	/*std::priority_queue<
-		std::pair<entt::entity, float>,
-		std::vector<std::pair<entt::entity, float>>,
-		decltype(compare_slow)> pq;*/
+	std::priority_queue<
+		std::pair<float, float>,
+		std::vector<std::pair<float, float>>,
+		compare_slow> slow_queue;
+	bool slowed = false;
+	float current_slow = 0.f;
 };
 
 // id for entity
