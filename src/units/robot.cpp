@@ -7,7 +7,7 @@ entt::entity Robot::createRobot(vec2 pos)
     auto entity = registry.create();
 
     // Create the rendering components
-    std::string key = unit_str.at(HUNTER);
+    std::string key = unit_str.at(ROBOT);
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {
