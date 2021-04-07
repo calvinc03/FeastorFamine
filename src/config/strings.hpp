@@ -19,7 +19,7 @@ const std::map<int, std::string> terrain_str = {
 };
 
 const std::map<int, std::string> unit_str = {
-        {WATCHTOWER, "watchtower"},
+        //{WATCHTOWER, "watchtower"},
         {ROBOT,      "robot"},
         {GREENHOUSE, "greenhouse"},
         {EXTERMINATOR, "exterminator"},

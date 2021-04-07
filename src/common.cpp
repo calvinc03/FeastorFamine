@@ -1,6 +1,7 @@
 #include "common.hpp"
 #include "text.hpp"
 #include <iostream>
+#include <world.hpp>
 
 // Note, we could also use the functions from GLM but we write the transformations here to show the uderlying math
 void Transform::scale(vec2 scale)
@@ -84,7 +85,7 @@ std::vector<vec2> bezierVelocities(std::vector<vec2> points) {
 // total time in milliseconds
 std::vector<vec2> bezierCurve(std::vector<vec2> points, float total_time) {
 	size_t num_points = points.size();
-	float num_frames = round(total_time / ELAPSED_MS); 
+	float num_frames = round(total_time / (ELAPSED_MS * WorldSystem::speed_up_factor)); 
 	float step = 1 / num_frames;
 	std::vector<float> coefficients = pascalNRow((int)num_points);
 	

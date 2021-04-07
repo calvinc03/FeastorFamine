@@ -77,7 +77,7 @@ entt::entity UI_selected_description_card::createUI_selected_description_card(en
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
 	shaded_mesh.layer = 98;
 
-	auto& button_ui_element = registry.get<UI_element>(button_entity);
+	auto button_ui_element = registry.get<UI_element>(button_entity);
 	int ui_bar_gap = 10;
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = button_ui_element.tag + "_description_card";

@@ -34,9 +34,9 @@ vec2 AISystem::calculate_position(entt::entity animal, float time)
 {
     auto& motion = registry.get<Motion>(animal);
     auto& monster = registry.get<Monster>(animal);
-    float num_frames = round(time / ELAPSED_MS);
+    float num_frames = round(time / (ELAPSED_MS * WorldSystem::speed_up_factor));
 
-    vec2 speed = motion.velocity * ELAPSED_MS / 1000.f; 
+    vec2 speed = motion.velocity * (ELAPSED_MS * WorldSystem::speed_up_factor * monster.speed_multiplier) / 1000.f;
     
     int current_index = monster.current_path_index;
     vec2 current_pos = motion.position;

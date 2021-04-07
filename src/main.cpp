@@ -104,6 +104,7 @@ int main()
 		else if (world.game_state == WorldSystem::GameState::start_menu)
 		{
 			world.title_screen_step(elapsed_ms);
+			physics.title_screen_step(elapsed_ms);
 		}
         
 		renderer.draw(billboard_vertex_buffer, particles_position_buffer);
