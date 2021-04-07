@@ -292,12 +292,14 @@ void PhysicsSystem::update_projectiles(float elapsed_ms)
 	for (auto entity : registry.view<LaserBeam>()) {
 		auto& laserBeam = registry.get<LaserBeam>(entity);
 		laserBeam.active_timer -= elapsed_ms;
-		auto& motion_p = registry.get<Motion>(entity);
-		auto& motion_m = registry.get<Motion>(laserBeam.e_unit);
-		vec2 direction = normalize(motion_m.position - laserBeam.unit_pos);
+		if (registry.valid(laserBeam.e_unit)) {
+			auto& motion_p = registry.get<Motion>(entity);
+			auto& motion_m = registry.get<Motion>(laserBeam.e_unit);
+			vec2 direction = normalize(motion_m.position - laserBeam.unit_pos);
 
-		motion_p.angle = atan2(direction.y, direction.x);
-		motion_p.position = laserBeam.unit_pos + direction * abs(motion_p.scale.x) / 2.f;
+			motion_p.angle = atan2(direction.y, direction.x);
+			motion_p.position = laserBeam.unit_pos + direction * abs(motion_p.scale.x) / 2.f;
+		}
 
 		if (laserBeam.active_timer < 0)
 			registry.destroy(entity);
