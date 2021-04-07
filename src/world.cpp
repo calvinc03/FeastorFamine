@@ -152,7 +152,6 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
         default_monster_paths.insert(std::pair<int, std::vector<ivec2>>(monster_type, {}));
     }
 	speed_up_factor = 1.f;
-	tip_manager = TipManager::TipManager();
 }
 
 WorldSystem::~WorldSystem()

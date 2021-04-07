@@ -777,7 +777,7 @@ entt::entity UI_weather_icon::createUI_weather_icon() {
 	ShadedMesh& resource = cache_resource(key);
 	if (resource.effect.program.resource == 0) {
 		resource = ShadedMesh();
-		RenderSystem::createSprite(resource, ui_texture_path("weather_clear.png "), "textured");
+		RenderSystem::createSprite(resource, ui_texture_path("weather_clear.png"), "textured");
 	}
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
 	shaded_mesh.layer = 98;
