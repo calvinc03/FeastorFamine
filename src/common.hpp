@@ -53,6 +53,7 @@ struct Motion {
 	vec2 boundingbox = { 10, 10 };
 	vec2 acceleration = { 0, 0 };
 	vec2 origin = { 0,0 }; // this is useful for setting the point of rotation for parent/child transforms.
+	bool standing = false; // if true we don't rotate
 };
 
 struct Monster {

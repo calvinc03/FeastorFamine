@@ -125,7 +125,7 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 			RenderSystem::createSprite(resource, units_texture_path("hunter_flamethrower.png"), "ui");
 		}
 		else if (button == robot_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
+			RenderSystem::createSprite(resource, units_texture_path("robot.png"), "ui");
 		}
 		else if (button == priestess_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
