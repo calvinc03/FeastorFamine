@@ -800,19 +800,19 @@ void UI_weather_icon::change_weather_icon(entt::entity entity, int weather) {
 		switch (weather)
 		{
 		case weather_type::CLEAR:
-			RenderSystem::createSprite(resource, ui_texture_path("weather_clear.png "), "textured");
+			RenderSystem::createSprite(resource, ui_texture_path("weather_clear.png"), "textured");
 			break;
 		case weather_type::RAIN:
-			RenderSystem::createSprite(resource, ui_texture_path("weather_rain.png "), "textured");
+			RenderSystem::createSprite(resource, ui_texture_path("weather_rain.png"), "textured");
 			break;
 		case weather_type::DROUGHT:
-			RenderSystem::createSprite(resource, ui_texture_path("weather_drought.png "), "textured");
+			RenderSystem::createSprite(resource, ui_texture_path("weather_drought.png"), "textured");
 			break;
 		case weather_type::FOG:
-			RenderSystem::createSprite(resource, ui_texture_path("weather_fog.png "), "textured");
+			RenderSystem::createSprite(resource, ui_texture_path("weather_fog.png"), "textured");
 			break;
 		case weather_type::SNOW:
-			RenderSystem::createSprite(resource, ui_texture_path("weather_snow.png "), "textured");
+			RenderSystem::createSprite(resource, ui_texture_path("weather_snow.png"), "textured");
 			break;
 		}
 		

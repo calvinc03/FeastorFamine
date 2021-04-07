@@ -30,18 +30,18 @@ const std::map<int, std::string> unit_str = {
 };
 
 const std::map<int, std::string> season_str = {
-        {SPRING,    "Spring"},
-        {SUMMER,    "Summer"},
-        {FALL,      "Fall"},
-        {WINTER,    "Winter"},
+        {SPRING,    "spring"},
+        {SUMMER,    "summer"},
+        {FALL,      "fall"},
+        {WINTER,    "winter"},
 };
 
 const std::map<int, std::string> weather_str = {
-        {CLEAR, "Clear"},
-        {RAIN, "Rain"},
-        {DROUGHT, "Drought"},
-        {FOG, "Fog"},
-        {SNOW, "Snow"}
+        {CLEAR, "clear"},
+        {RAIN, "rain"},
+        {DROUGHT, "drought"},
+        {FOG, "fog"},
+        {SNOW, "snow"}
 };
 
 const std::map<MenuButtonType, std::string> menu_button_ui_tag = {
