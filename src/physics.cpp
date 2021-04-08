@@ -346,46 +346,51 @@ void PhysicsSystem::title_screen_step(float elapsed_ms)
 				align_total += 1;
 			}
 
-			if (thisParticle != otherParticle && distance < 40) {
+			if (thisParticle != otherParticle && distance < 30) {
 				separation_vector += (p2_motion.position - p1_motion.position) / (distance * distance);
 				separation_total += 1;
 			}
 
-			if (thisParticle != otherParticle && distance < 40) {
+			if (thisParticle != otherParticle && distance < 120) {
 				cohesion_vector += p2_motion.position;
 				cohesion_total += 1;
 			}
 		}
+		// This will generate a number from 0.0 to 1.0, inclusive.
+		float r1 = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		float r2 = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 		
+		float limit = 200.f;
 		if (align_total > 0) {
 			align_vector /= align_total;
-			align_vector *= (50 / length(align_vector));
+			align_vector *= (limit / length(align_vector));
+			//align_vector -= vec2(p1_motion.velocity.x * r1, p1_motion.velocity.y * r2);
 			align_vector -= p1_motion.velocity;
-			align_vector = normalize(align_vector);
+			align_vector = 4.f * normalize(align_vector);
 		}
 
 		if (separation_total > 0) {
 			separation_vector /= separation_total;
-			separation_vector *= (50 / length(separation_vector));
+			separation_vector *= (limit / length(separation_vector));
 			separation_vector -= p1_motion.velocity;
-			separation_vector = 3.f * normalize(separation_vector);
+			separation_vector = 20.f * normalize(separation_vector);
 		}
 
 		if (cohesion_total > 0) {
 			cohesion_vector /= cohesion_total;
-			cohesion_vector *= (50 / length(cohesion_vector));
+			cohesion_vector *= (limit / length(cohesion_vector));
 			cohesion_vector -= p1_motion.velocity;
-			cohesion_vector = normalize(cohesion_vector);
+			cohesion_vector = 0.4f * normalize(cohesion_vector);
 		}
 
 		p1_motion.acceleration += align_vector;
 		p1_motion.acceleration += separation_vector;
 		p1_motion.acceleration += cohesion_vector;
-		p1_motion.acceleration *= 10;
+		p1_motion.acceleration *= rand() % 10 + 1;
 
 		p1_motion.position += step_seconds * p1_motion.velocity;
 		p1_motion.velocity += step_seconds * p1_motion.acceleration;
-		p1_motion.velocity *= length(p1_motion.velocity) > 50? (50 / length(p1_motion.velocity)) : 1;
+		//p1_motion.velocity *= length(p1_motion.velocity) > 50? (50 / length(p1_motion.velocity)) : 1;
 		p1_motion.acceleration *= 0;
 	}
 }

@@ -85,3 +85,6 @@ static const vec2 PAUSE_BUTTON_POS = { 90,  WINDOW_SIZE_IN_PX.y - 40 };
 static const vec2 MORE_OPTIONS_BUTTON_POS = { 90,  WINDOW_SIZE_IN_PX.y - 40 };
 // fastforward button
 static const vec2 FASTFORWARD_BUTTON_POS = { 40,  WINDOW_SIZE_IN_PX.y - 40 };
+
+// portrait of units
+static const vec2 PORTRAIT_POS = { 170, WINDOW_SIZE_IN_PX.y - (UI_TAB_HEIGHT / 2) };

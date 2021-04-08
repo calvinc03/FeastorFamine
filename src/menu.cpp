@@ -38,6 +38,12 @@ entt::entity Menu::createMenu(float x, float y, std::string menu_name, Menu_text
 			case title_screen_title2_or:
 				texture_file_name = "title_screen_title2_or.png";
 				break;
+			case foreground_trees:
+				texture_file_name = "foreground_trees.png";
+				break;
+			case sign_post:
+				texture_file_name = "sign_post.png";
+				break;
 			default:
 				texture_file_name = "title_screen.png";
 				break;
