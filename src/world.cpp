@@ -1413,7 +1413,7 @@ void WorldSystem::more_options_menu()
 	auto menu_ui = registry.get<UI_element>(pause_menu_entity);
 
 	float top_button_y_offset = menu_ui.position.y - menu_ui.scale.y / 2.f - 10;
-	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 1.f / 3.5f, MenuButtonType::restart_round_button, "Restart round", { 1.4f, 1.0f });
+	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 1.f / 3.5f, MenuButtonType::restart_round_button, "Restart round", { 1.4f, 1.2f });
 	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 2.f / 3.5f, MenuButtonType::help_button, "Help", { 1.2f, 1.0f });
 	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 3.f / 3.5f, MenuButtonType::exit_button, "Exit", { 1.2f, 1.0f });
 }
@@ -1707,7 +1707,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 // update unit stats
 void update_unit_stats(Unit unit)
 {
-	int x_position = 200;
+	int x_position = 220;
 	int y_position = 65;
 	int y_line_offset = 15;
 	entt::entity damage_stats;

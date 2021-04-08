@@ -163,7 +163,8 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = tag;
 	ui_element.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
-	ui_element.position = vec2(175 + pos * ui_element.scale.x, WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
+	float button_gap = 13.f;
+	ui_element.position = vec2(250 + pos * (ui_element.scale.x + button_gap), WINDOW_SIZE_IN_PX.y - UI_TAB_HEIGHT + ui_element.scale.y / 2.0f);
 
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);
@@ -392,7 +393,8 @@ entt::entity UI_button::createUI_build_unit_button(int pos, Button button, size_
 
 	if (cost != 0) {
 		auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
-		auto& t = registry.emplace<Text>(entity, Text(std::to_string(cost), notoRegular, vec2(ui_element.position.x, WINDOW_SIZE_IN_PX.y - ui_element.position.y - 40)));
+		auto center_pos = get_center_text_position(ui_element.scale, ui_element.position, 0.3f, std::to_string(cost));
+		auto& t = registry.emplace<Text>(entity, Text(std::to_string(cost), notoRegular, vec2(center_pos.x, center_pos.y - ui_element.scale.y / 1.5f)));
 		t.scale = 0.3f;
 		t.colour = { 1.0f,1.0f,1.0f };
 	}
@@ -435,7 +437,7 @@ entt::entity UI_selected_unit_portrait::createUI_selected_unit_portrait(unit_typ
 			file_name = "greehouse_portrait.png";
 			break;
 		}
-		RenderSystem::createSprite(resource, ui_texture_path(file_name), "textured");
+		RenderSystem::createSprite(resource, ui_portrait_texture_path(file_name), "textured");
 	}
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
 	shaded_mesh.show = true;
@@ -445,7 +447,7 @@ entt::entity UI_selected_unit_portrait::createUI_selected_unit_portrait(unit_typ
 	ui_element.tag = "portraits";
 	ui_element.scale = vec2({ 1.2f, 1.2f }) * static_cast<vec2>(resource.texture.size);
 	int x_offset = 100;
-	ui_element.position = vec2(x_offset + ui_element.scale.x / 2, WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
+	ui_element.position = PORTRAIT_POS;
 
 	registry.emplace<UI_selected_unit>(entity);
 	registry.emplace<UI_selected_unit_portrait>(entity);
@@ -628,7 +630,7 @@ entt::entity UI_sell_button::createUI_sell_button(int pos, Button button, std::s
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = tag;
 	ui_element.scale = static_cast<vec2>(resource.texture.size);
-	ui_element.position = vec2(175 + pos * (ui_element.scale.x + 10), WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
+	ui_element.position = vec2(155 + pos * (ui_element.scale.x + 10), WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
 
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);

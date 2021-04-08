@@ -58,6 +58,7 @@ struct UI_selected_unit_portrait
 
 inline std::string ui_texture_path(const std::string& name) { return data_path() + "/textures/ui/" + name; };
 inline std::string units_texture_path(const std::string& name) { return data_path() + "/textures/units/" + name; };
+inline std::string ui_portrait_texture_path(const std::string& name) { return data_path() + "/textures/ui/portraits/" + name; };
 
 void change_button_text(entt::entity button_entity, std::string button_text);
 
