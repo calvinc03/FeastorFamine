@@ -21,7 +21,7 @@ entt::entity Projectile::createProjectile(entt::entity e_unit, entt::entity e_mo
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("projectile.png"), "textured");
+        RenderSystem::createSprite(resource, projectiles_texture_path("projectile.png"), "textured");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -60,7 +60,7 @@ entt::entity Snowball::createSnowball(entt::entity e_unit, entt::entity e_monste
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("rock.png"), "textured");
+        RenderSystem::createSprite(resource, projectiles_texture_path("rock.png"), "textured");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -117,7 +117,7 @@ entt::entity Flamethrower::createFlamethrower(entt::entity e_unit, entt::entity 
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("flamethrower.png"), "textured");
+        RenderSystem::createSprite(resource, projectiles_texture_path("flamethrower.png"), "textured");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -164,7 +164,7 @@ entt::entity LaserBeam::createLaserBeam(entt::entity e_unit, entt::entity e_mons
     if (resource.effect.program.resource == 0) {
 
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("laserbeam.png"), "textured");
+        RenderSystem::createSprite(resource, projectiles_texture_path("laserbeam.png"), "textured");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -207,7 +207,7 @@ entt::entity Missile::createMissile(entt::entity e_unit, entt::entity e_monster,
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("missile.png"), "textured");
+        RenderSystem::createSprite(resource, projectiles_texture_path("missile.png"), "textured");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -248,7 +248,7 @@ entt::entity Explosion::createExplosion(entt::entity e_projectile, int damage)
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("explosion_animate.png"), "textured");
+        RenderSystem::createSprite(resource, projectiles_texture_path("explosion_animate.png"), "textured");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -291,7 +291,7 @@ entt::entity IceField::createIceField(entt::entity e_unit, entt::entity e_monste
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("ice_field.png"), "textured");
+        RenderSystem::createSprite(resource, projectiles_texture_path("ice_field.png"), "textured");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)

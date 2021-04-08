@@ -3,6 +3,9 @@
 #include "common.hpp"
 #include "entt.hpp"
 
+
+inline std::string projectiles_texture_path(const std::string& name) { return data_path() + "/textures/projectiles/" + name; };
+
 // Projectile from
 struct Projectile
 {
