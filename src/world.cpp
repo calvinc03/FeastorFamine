@@ -562,36 +562,57 @@ void WorldSystem::title_screen_step(float elapsed_ms)
 	}
 
 	auto particle_view = registry.view<ParticleSystem>();
-	if (particle_view.size() < MAX_PARTICLES) {
-		for (auto particle_entity : particle_view) {
-			auto& particle = registry.get<ParticleSystem>(particle_entity);
-			particle.life -= elapsed_ms;
-			if (particle.life <= 0) {
-				registry.destroy(particle_entity);
-			}
-		}
+	if (particle_view.size() < 200) {
+		
 		ParticleSystem::updateParticle();
 
 		next_particle_spawn -= elapsed_ms;
-
+		
 		if (next_particle_spawn < 0.f)
 		{
-			next_particle_spawn = 200;
+			//std::cout << "Size : " << particle_view.size() << "\n";
+			next_particle_spawn = 1;
 			vec2 velocity = { rand() % 100 - 50, rand() % 100 - 50 };
-			vec2 position = { rand() % WINDOW_SIZE_IN_PX.x + 1 , rand() % 250 + 1};
-			float life = 20000.0f;
-			std::string texture = "snow.png";
+			vec2 position = { rand() % WINDOW_SIZE_IN_PX.x / 2 + WINDOW_SIZE_IN_PX.x + 1 , rand() % 250 + 171};
+			float life = 200000.0f; // 200 sec
+			std::string texture = "swarm.png";
 			std::string shader = "snow";
 			ParticleSystem::createParticle(velocity, position, life, texture, shader);
+		}
+	}
+	
+	ParticleSystem::updateParticle();
+
+	for (auto particle_entity : particle_view) {
+		auto& particle = registry.get<ParticleSystem>(particle_entity);
+		particle.life -= elapsed_ms;
+		if (particle.life <= 0) {
+			registry.destroy(particle_entity);
 		}
 	}
 
 	for (auto entity : particle_view) {
 		auto& motion = registry.get<Motion>(entity);
-		if (motion.position.x < 0 || motion.position.x > WINDOW_SIZE_IN_PX.x)
-			registry.destroy(entity);
-		if (motion.position.y < 0 || motion.position.y > 250)
-			motion.velocity.y *= -1;
+		if (motion.position.x < - 100)
+		{
+			if (motion.velocity.x < 0)
+				motion.velocity.x *= -1;
+		}
+		else if (motion.position.x > WINDOW_SIZE_IN_PX.x + 100)
+		{
+			if (motion.velocity.x > 0)
+				motion.velocity.x *= -1;
+		}
+		if (motion.position.y < 170)
+		{
+			if (motion.velocity.y < 0)
+				motion.velocity.y *= -1;
+		}
+		else if (motion.position.y > 250)
+		{
+			if (motion.velocity.y > 0)
+				motion.velocity.y *= -1;
+		}
 	}
 }
 
@@ -2270,11 +2291,16 @@ void WorldSystem::game_setup()
 void WorldSystem::create_start_menu()
 {
 	std::cout << "In Start Menu\n";
-	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "start_menu", Menu_texture::title_screen, 85, {1.0, 0.9});
+	// background
+	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "start_menu", Menu_texture::title_screen, 65, {1.0, 0.9});
+	// foreground trees
+	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "foreground_trees", Menu_texture::foreground_trees, 71, { 1.0, 0.9 });
+	// sign post
+	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "sign_post", Menu_texture::sign_post, 72, { 1.0, 0.9 });
 	//Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, 100, "title_screen_title", Menu_texture::title_screen_title, 86, { 0.9, 0.9 });
 	// title: Feast or Famine
-	Menu::createMenu(300, 150, "title_screen_title2", Menu_texture::title_screen_title2, 86, { 1.1, 1.1 });
-	Menu::createMenu(470, 120, "title_screen_title_or", Menu_texture::title_screen_title2_or, 86, { 0.7, 0.7 });
+	Menu::createMenu(300, 150, "title_screen_title2", Menu_texture::title_screen_title2, 87, { 1.1, 1.1 });
+	Menu::createMenu(470, 120, "title_screen_title_or", Menu_texture::title_screen_title2_or, 87, { 0.7, 0.7 });
 	//buttons
 	MenuButton::create_button(NEW_GAME_BUTTON_X, NEW_GAME_BUTTON_Y, MenuButtonType::new_game_button, "", { 1.2f, 1.2f }, NEW_GAME_BUTTON_ANGLE);
 	MenuButton::create_button(LOAD_GAME_BUTTON_X, LOAD_GAME_BUTTON_Y, MenuButtonType::load_game_button, "", { 1.2f, 1.2f });
