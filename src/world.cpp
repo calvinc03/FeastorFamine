@@ -684,12 +684,12 @@ void WorldSystem::handle_game_tips()
 		tip_manager.tip_index++;
 		break;
 	case 2:
-		TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_BOTTOM_Y, start_tips_2);
+		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_BOTTOM_Y, start_tips_2);
 		game_state = paused;
 		tip_manager.tip_index++;
 		break;
 	case 3:
-		TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_BOTTOM_Y, start_tips_3);
+		TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_BOTTOM_Y, start_tips_3);
 		game_state = paused;
 		tip_manager.tip_index++;
 		break;
@@ -724,7 +724,7 @@ void WorldSystem::handle_game_tips()
 		tip_manager.tip_index++;
 		break;
 	case 10:
-		TipCard::createTipCard(TIP_CARD_RIGHT_X, TIP_CARD_BOTTOM_Y, start_tips_10);
+		TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_BOTTOM_Y, start_tips_10);
 		game_state = paused;
 		tip_manager.tip_index++;
 		break;
@@ -2431,13 +2431,14 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 
 void WorldSystem::on_click_ui(Button ui_button)
 {
+	int ui_tip_offset = GRID_CELL_SIZE + BUTTON_GAP;
 	if (ui_button == Button::green_house_button)
 	{
 		if (game_tips && tip_manager.greenhouse_tip)
 		{
 			game_state = paused;
 			WorldSystem::tip_manager.greenhouse_tip = false;
-			TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, greenhouse_tips);
+			TipCard::createTipCard(TIP_CARD_LEFT_X + 5 * ui_tip_offset - 5, TIP_CARD_CENBOT_Y, greenhouse_tips);
 		}
 
 		placement_unit_selected = GREENHOUSE;
@@ -2449,7 +2450,7 @@ void WorldSystem::on_click_ui(Button ui_button)
 		{
 			game_state = paused;
 			WorldSystem::tip_manager.hunter_tip = false;
-			TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, hunter_tips);
+			TipCard::createTipCard(TIP_CARD_LEFT_X + 0 * ui_tip_offset - 5, TIP_CARD_CENBOT_Y, hunter_tips);
 		}
 
 		placement_unit_selected = HUNTER;
@@ -2461,7 +2462,7 @@ void WorldSystem::on_click_ui(Button ui_button)
 		{
 			game_state = paused;
 			WorldSystem::tip_manager.exterminator_tip = false;
-			TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, exterminator_tips);
+			TipCard::createTipCard(TIP_CARD_LEFT_X + 1 * ui_tip_offset - 5, TIP_CARD_CENBOT_Y, exterminator_tips);
 		}
 
 		placement_unit_selected = EXTERMINATOR;
@@ -2473,7 +2474,7 @@ void WorldSystem::on_click_ui(Button ui_button)
 		{
 			game_state = paused;
 			WorldSystem::tip_manager.robot_tip = false;
-			TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, robot_tips);
+			TipCard::createTipCard(TIP_CARD_LEFT_X + 2 * ui_tip_offset - 5, TIP_CARD_CENBOT_Y, robot_tips);
 		}
 
 		placement_unit_selected = ROBOT;
@@ -2485,7 +2486,7 @@ void WorldSystem::on_click_ui(Button ui_button)
 		{
 			game_state = paused;
 			WorldSystem::tip_manager.priestess_tip = false;
-			TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, priestess_tips);
+			TipCard::createTipCard(TIP_CARD_LEFT_X + 3 * ui_tip_offset - 5, TIP_CARD_CENBOT_Y, priestess_tips);
 		}
 
 		placement_unit_selected = PRIESTESS;
@@ -2497,7 +2498,7 @@ void WorldSystem::on_click_ui(Button ui_button)
 		{
 			game_state = paused;
 			WorldSystem::tip_manager.snowmachine_tip = false;
-			TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, snowmachine_tips);
+			TipCard::createTipCard(TIP_CARD_LEFT_X + 4 * ui_tip_offset - 5, TIP_CARD_CENBOT_Y, snowmachine_tips);
 		}
 
 		placement_unit_selected = SNOWMACHINE;
@@ -2509,7 +2510,7 @@ void WorldSystem::on_click_ui(Button ui_button)
 		{
 			game_state = paused;
 			WorldSystem::tip_manager.wall_tip = false;
-			TipCard::createTipCard(TIP_CARD_LEFT_X, TIP_CARD_CENBOT_Y, wall_tips);
+			TipCard::createTipCard(TIP_CARD_LEFT_X + 6 * ui_tip_offset - BUTTON_GAP, TIP_CARD_CENBOT_Y, wall_tips);
 		}
 		create_unit_indicator = Wall::createWall;
 		placement_unit_selected = WALL;

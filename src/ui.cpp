@@ -163,8 +163,7 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = tag;
 	ui_element.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
-	float button_gap = 13.f;
-	ui_element.position = vec2(250 + pos * (ui_element.scale.x + button_gap), WINDOW_SIZE_IN_PX.y - UI_TAB_HEIGHT + ui_element.scale.y / 2.0f);
+	ui_element.position = vec2(250 + pos * (ui_element.scale.x + BUTTON_GAP), WINDOW_SIZE_IN_PX.y - UI_TAB_HEIGHT + ui_element.scale.y / 2.0f);
 
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);
