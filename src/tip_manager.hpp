@@ -37,8 +37,8 @@ const std::vector<std::string> start_tips_0 = {
 	"Welcome to Feast or Famine!",
 	"",
 	"To start the game by playing the tutorial,",
-	"click the \'Game Tips\' button in the ",
-	"bottom right hand corner of the screen."
+	"click the \'?\' button in the right hand",
+	"side of the lower UI bar."
 };
 
 const std::vector<std::string> start_tips_1 = {
@@ -51,9 +51,9 @@ const std::vector<std::string> start_tips_1 = {
 
 const std::vector<std::string> start_tips_2 = {
 	"Units are selected and placed on the map by",
-	"clicking on the unit icons in the bottom left.",
-	"After clicking on the icon, click on the map",
-	"where you want to place the unit."
+	"clicking on the unit icons in the bottom ui",
+	"bar. After clicking on the icon, click on the",
+	"map where you want to place the unit."
 };
 
 const std::vector<std::string> start_tips_3 = {
@@ -67,9 +67,9 @@ const std::vector<std::string> start_tips_3 = {
 const std::vector<std::string> start_tips_4 = {
 	"Enemies spawn in the forest in the top left",
 	"and will attack your village in the bottom",
-	"right. They will try to take the shortest path,",
-	"so place your units wisely. Note that they",
-	"will not always take the grey stone road!"
+	"right. They will try to take the shortest",
+	"path, so place your units wisely. Note that",
+	"they will not always take the grey stone road!"
 };
 
 const std::vector<std::string> start_tips_5 = {
@@ -112,9 +112,9 @@ const std::vector<std::string> start_tips_9 = {
 
 const std::vector<std::string> start_tips_10 = {
 	"When you want to start the game, press the",
-	"play button in the bottom right. For more",
-	"information on each unit, click the unit",
-	"icons in the bottom left."
+	"play button in the bottom left. For more",
+	"information on each unit, click each of",
+	"the unit ficons in the bottom ui bar."
 };
 
 const std::vector<std::string> hunter_tips = {
@@ -148,33 +148,32 @@ const std::vector<std::string> wall_tips = {
 };
 
 const std::vector<std::string> exterminator_tips = {
-	"These units are slow and deal ranged damage.",
-	"Place them at the front of your forces",
-	"to make up for their limited range.",
-	"Upgrading them will increase their damage,",
-	"accuracy, and projectile speed."
+	"Exterminators deal small damage compared to",
+	"hunters, but every shot they fire does",
+	"continuous damage to enemies that pass",
+	"through. Upgrade the range to turn the",
+	"flamethrower into a rocket launcher!"
 };
 
 const std::vector<std::string> robot_tips = {
-	"These units are slow and deal ranged damage.",
-	"Place them at the front of your forces",
-	"to make up for their limited range.",
-	"Upgrading them will increase their damage,",
-	"accuracy, and projectile speed."
+	"The robot fires a laser that hits every",
+	"unit in its path. Try to place this unit",
+	"parallel to the path the monsters travel",
+	"so it hits as many as possible."
 };
 
 const std::vector<std::string> priestess_tips = {
-	"These units are slow and deal ranged damage.",
-	"Place them at the front of your forces",
-	"to make up for their limited range.",
-	"Upgrading them will increase their damage,",
-	"accuracy, and projectile speed."
+	"The priestess increases the range and damage",
+	"of units in her range. Place a priestess near",
+	"your other units to get this boost!",
+	"Note: the damage and range boost of",
+	"multiple priestesses do not stack."
 };
 
 const std::vector<std::string> snowmachine_tips = {
-	"These units are slow and deal ranged damage.",
-	"Place them at the front of your forces",
-	"to make up for their limited range.",
-	"Upgrading them will increase their damage,",
-	"accuracy, and projectile speed."
+	"These units fire snowballs at enemies.",
+	"Not only will they damage enemies, but",
+	"they will also slow them down.",
+	"This effect does not stack, so spread",
+	"these units out for maximum effect."
 };

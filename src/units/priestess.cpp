@@ -13,7 +13,7 @@ entt::entity Priestess::createPriestess(vec2 pos)
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("units/hunter.png"), "unit");
+        RenderSystem::createSprite(resource, textures_path("units/priestess.png"), "unit");
     }
     
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -24,7 +24,7 @@ entt::entity Priestess::createPriestess(vec2 pos)
     auto& motion = registry.emplace<Motion>(entity);
     motion.position = pos;
     // Then we scale it to whatever size is needed
-    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
+    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1.5);
 
     auto& unit = registry.emplace<Unit>(entity);
     unit = priestess_unit;

@@ -92,6 +92,8 @@ struct Animate {
 	int frame = 0;
 	int state_num = 1;
 	int frame_num = 1;
+	int update_interval = 1;
+	int next_update = 1;
 };
 
 struct EntityDeath {

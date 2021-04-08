@@ -10,6 +10,7 @@
 #include "units/unit.hpp"
 #include "ui_description.hpp"
 #include "tip_manager.hpp"
+#include "story_card.hpp"
 
 // stlib
 #include <vector>
@@ -229,6 +230,8 @@ private:
 	entt::entity upgrade_button_1;
 	entt::entity upgrade_button_2;
 	entt::entity button_sell;
+	// true if a unit is selected on the field
+	bool unit_selected = false;
 
 	//UI
 	entt::entity round_text_entity;
@@ -266,12 +269,17 @@ private:
 	bool click_on_unit(double mouse_pos_x, double mouse_pos_y);
 	void help_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void story_card_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
-	void update_look_for_selected_buttons(int action, bool unit_selected, bool sell_clicked);
+	void update_look_for_selected_buttons(int action, bool sell_clicked);
 	void lost_game_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void createEntityRangeIndicator(vec2 mouse_pos);
-
+	void on_click_ui(Button ui_button);
+	void on_click_ui_when_selected(Button ui_button);
+	void on_click_ui_general_buttons(Button ui_button);
 	// lost game
 	void start_lost_game_screen();
+	// end of battle phase
+	void end_battle_phase(float elapsed_ms);
+
 
 	// music references
 	Mix_Music* background_music;

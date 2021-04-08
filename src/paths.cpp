@@ -7,7 +7,7 @@
 #include <iostream>
 #include <ui.hpp>
 
-void Path::createPathLine(vec2 position1, vec2 position2, vec3 color, int monster_type) {
+void Path::createPathLine(vec2 position1, vec2 position2, vec3 color, int monster_type, int num) {
 	auto entity = registry.create();
 
 	std::string key = "path" + std::to_string(monster_type);
@@ -64,11 +64,11 @@ void Path::createPathLine(vec2 position1, vec2 position2, vec3 color, int monste
 	path.monster_type = monster_type;
 }
 
-void Path::createPath(std::vector<ivec2> path_coords, int monster_type) {
+void Path::createPath(std::vector<ivec2> path_coords, int monster_type, int size, int num) {
 	vec3 color = getPathColor(monster_type);
 	for (int i = 1; i < path_coords.size(); i++)
 	{
-		createPathLine(coord_to_pixel(path_coords[i - 1]), coord_to_pixel(path_coords[i]), color, monster_type);
+		createPathLine(coord_to_pixel(path_coords[i - 1]), coord_to_pixel(path_coords[i]), color, monster_type, (num + i) % size);
 	}
 }
 

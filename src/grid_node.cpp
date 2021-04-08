@@ -30,7 +30,7 @@ entt::entity GridNode::createGridNode(terrain_type terrain, vec2 coord)
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1, 1);
 
     Animate& animate = registry.emplace<Animate>(entity);
-
+    animate.update_interval = 2;
     registry.emplace<HighlightBool>(entity); //component that stores whether this gridnode should be highlighted
 
     return entity;

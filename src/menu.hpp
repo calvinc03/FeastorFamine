@@ -5,7 +5,7 @@
 #include "common.hpp"
 #include "ui.hpp"
 
-enum Menu_texture { title_screen, controls, default_menu, help_menu, pause_menu, lost_game, title_screen_title, title_screen_title2, title_screen_title2_or};
+enum Menu_texture { title_screen, controls, default_menu, help_menu, pause_menu, lost_game, title_screen_title, title_screen_title2, title_screen_title2_or, foreground_trees, sign_post};
 
 struct Menu
 {
