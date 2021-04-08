@@ -498,7 +498,6 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 			drawText(text, frame_buffer_size);
 		}	
 	}
-    
 
 
 	drawToScreen();

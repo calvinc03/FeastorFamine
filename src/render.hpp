@@ -27,10 +27,12 @@ public:
 	// Expose the creating of visual representations to other systems
 	static void createSprite(ShadedMesh& mesh_container, std::string texture_path, std::string shader_name);
 	static void createColoredMesh(ShadedMesh& mesh_container, std::string shader_name);
-	
 	// show/ hide entity
 	static void hide_entity(entt::entity entity);
 	static void show_entity(entt::entity entity);
+
+	ShadedMesh screen_sprite;
+
 
 private:
 	// Initialize the screeen texture used as intermediate render target
@@ -51,7 +53,6 @@ private:
 
 	// Screen texture handles
 	GLuint frame_buffer;
-	ShadedMesh screen_sprite;
 	GLResource<RENDER_BUFFER> depth_render_buffer_id;
 	//entt::entity screen_state_entity;
 };

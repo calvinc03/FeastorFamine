@@ -37,6 +37,8 @@ int main()
 	AISystem ai(&physics);
 	WorldSystem world(WINDOW_SIZE_IN_PX, &physics);
 	RenderSystem renderer(*world.window);
+
+	world.screen_sprite = &renderer.screen_sprite;
 	
 	world.game_setup();
 	world.create_start_menu();
@@ -113,5 +115,6 @@ int main()
 		renderer.draw(billboard_vertex_buffer, particles_position_buffer);
 	}
 	//
+
 	return EXIT_SUCCESS;
 }

@@ -26,6 +26,7 @@
 #include "story_card.hpp"
 #include "ui.hpp"
 #include "ai.hpp"
+#include "render.hpp"
 #include "particle.hpp"
 #include "talky_boi.hpp"
 
@@ -396,13 +397,14 @@ void WorldSystem::step(float elapsed_ms)
 				next_particle_spawn = 60;
 				vec2 velocity = { 0.f, 450.0f };
 				vec2 position = { rand() % WINDOW_SIZE_IN_PX.x + 1 , 0 };
-				float life = 1150.0f;
+				float life = 1500.0f;
 				std::string texture = "raindrop.png";
 				std::string shader = "rain";
 				ParticleSystem::createParticle(velocity, position, life, texture, shader);
 			}
 			else if (weather == DROUGHT) {
-				// TODO
+				// change screen_sprite water fs and vs to heat fs and vs
+				screen_sprite->effect.load_from_file(shader_path("heat") + ".vs.glsl", shader_path("heat") + ".fs.glsl");
 			}
 			else if (weather == FOG && next_particle_spawn < 0.f) {
 				next_particle_spawn = 3000;
@@ -814,14 +816,15 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		next_particle_spawn = 60;
 		vec2 velocity = { 0.f, 450.0f };
 		vec2 position = { rand() % WINDOW_SIZE_IN_PX.x + 1 , UI_TOP_BAR_HEIGHT };
-		float life = 1150.0f;
+		float life = 1500.0f;
 		std::string texture = "raindrop.png";
 		std::string shader = "rain";
 		ParticleSystem::createParticle(velocity, position, life, texture, shader);
 	}
 	else if (weather == DROUGHT) {
-		// TODO
+		screen_sprite->effect.load_from_file(shader_path("heat") + ".vs.glsl", shader_path("heat") + ".fs.glsl");
 	}
+
 	else if (weather == FOG && next_particle_spawn < 0.f) {
 		next_particle_spawn = 3000;
 		vec2 velocity = { -100.f, 0.f };
