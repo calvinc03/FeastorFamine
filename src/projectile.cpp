@@ -126,14 +126,14 @@ entt::entity Flamethrower::createFlamethrower(entt::entity e_unit, entt::entity 
 
     auto& motion_h = registry.get<Motion>(e_unit);
     auto& motion_m = registry.get<Motion>(e_monster);
-    vec2 direction = normalize(motion_m.position - motion_h.position) * 60.f;
+    vec2 direction = normalize(motion_m.position - motion_h.position) * 100.f;
 
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
     motion.position = motion_h.position + direction;
     motion.angle = atan2(-direction.y, -direction.x);
     // Setting initial values, scale is negative to make it face the opposite way
-    motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y * 1.5), 1);
+    motion.scale = { static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y };
     motion.boundingbox = vec2({ motion.scale.x * 0.22f , motion.scale.y });
 
     Animate& animate = registry.emplace<Animate>(entity);

@@ -98,13 +98,11 @@ void AISystem::step(float elapsed_ms)
             }
         }
         
-        if (!priority_queue.empty()) {
+        if (!priority_queue.empty() && !motion_h.standing) {
             auto monster = priority_queue.top();
             auto& motion_monster = registry.get<Motion>(monster);
             vec2 direction = motion_monster.position - motion_h.position;
-            if (!motion_h.standing) {
-                motion_h.angle = atan2(direction.y, direction.x);
-            }
+            motion_h.angle = atan2(direction.y, direction.x);
         }
 
         if (placeable_unit.next_projectile_spawn <= 0.f && placeable_unit.health > 0) {

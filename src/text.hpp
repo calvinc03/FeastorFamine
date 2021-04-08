@@ -71,6 +71,9 @@ struct Text {
 
     // The text's colour. Default value of {0.0f, 0.0f, 0.0f} (black)
     glm::vec3 colour;
+
+    // flag to display the Text
+    bool show = true;
 };
 
 // Forward declaration, only for internal use.

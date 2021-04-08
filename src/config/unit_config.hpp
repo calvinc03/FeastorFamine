@@ -29,8 +29,8 @@ const std::map<unit_type, int> unit_attack_range = {
 	{HUNTER, 300},
 	//{WATCHTOWER, 400},
 	{GREENHOUSE, 0},
-	{EXTERMINATOR, 200},
-	{ROBOT, 300},
+	{EXTERMINATOR, 125},
+	{ROBOT, 250},
 	{PRIESTESS, 300},
 	{SNOWMACHINE, 300},
 	{WALL, 0}

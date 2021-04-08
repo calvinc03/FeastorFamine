@@ -482,7 +482,9 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 				}
 				if (registry.has<Text>(entity)) {
 
-					drawText(registry.get<Text>(entity), frame_buffer_size);
+					auto text = registry.get<Text>(entity);
+					if (text.show)
+						drawText(text, frame_buffer_size);
 				}
 				gl_has_errors();
 			}
@@ -495,7 +497,8 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 	for (auto [entity, text] : view_text.each()) 	{
 		if (!registry.has<ShadedMeshRef>(entity))
 		{
-			drawText(text, frame_buffer_size);
+			if (text.show)
+				drawText(text, frame_buffer_size);
 		}	
 	}
     
@@ -545,13 +548,23 @@ void gl_has_errors()
 void RenderSystem::show_entity(entt::entity entity)
 {
 	// hide start_button
-	ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity);
-	shaded_mesh_ref.show = true;
+	if (registry.has<ShadedMeshRef>(entity)) {
+		ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity);
+		shaded_mesh_ref.show = true;
+	}
+	else if (registry.has<Text>(entity)) {
+		registry.get<Text>(entity).show = true;
+	}
 }
 
 void RenderSystem::hide_entity(entt::entity entity)
 {
 	// hide start_button
-	ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity);
-	shaded_mesh_ref.show = false;
+	if (registry.has<ShadedMeshRef>(entity)) {
+		ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity);
+		shaded_mesh_ref.show = false;
+	}
+	else if (registry.has<Text>(entity)) {
+		registry.get<Text>(entity).show = false;
+	}
 }
