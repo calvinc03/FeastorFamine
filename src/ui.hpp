@@ -10,6 +10,8 @@
 #include <string>
 #include <json.hpp>
 
+const float BUTTON_GAP = 13.f;
+
 std::string button_to_string(int button); // breaks if enums change
 Button UI_click_system();
 void UI_highlight_system(vec2 mouse_pos);
