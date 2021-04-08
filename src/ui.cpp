@@ -1,10 +1,10 @@
- #include "ui.hpp"
+#include "ui.hpp"
 #include "world.hpp"
 
 void UI_highlight_system(vec2 mouse_pos) {
 	auto view_ui = registry.view<UI_element, HighlightBool>(); //may make separate registry for UI elements. Could have position+scale instead of motion component
 	for (auto [entity, ui_element, highlight] : view_ui.each()) {
-		if (sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f  ) < 0.0f) {
+		if (sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f) < 0.0f) {
 			highlight.highlight = true;
 		}
 		else {
@@ -38,7 +38,7 @@ std::string button_to_string(int button) {
 	case tips_button:
 		return "tips_button";
 	}
-		
+
 	return "no button / invalid button / or this method is broken!";
 }
 
@@ -62,7 +62,7 @@ entt::entity UI_background::createUI_background()
 		resource = ShadedMesh();
 		RenderSystem::createSprite(resource, ui_texture_path("UI-texture-15.png"), "textured");
 	}
-	
+
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
 	shaded_mesh.layer = 90;
@@ -70,7 +70,7 @@ entt::entity UI_background::createUI_background()
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "in_game_ui_background";
 	ui_element.scale = vec2(WINDOW_SIZE_IN_PX.x, UI_TAB_HEIGHT);
-	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x/2,WINDOW_SIZE_IN_PX.y - ui_element.scale.y/2.0f);
+	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
 
 	registry.emplace<UI_background>(entity);
 
@@ -128,13 +128,13 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 			RenderSystem::createSprite(resource, units_texture_path("robot.png"), "ui");
 		}
 		else if (button == priestess_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
+			RenderSystem::createSprite(resource, units_texture_path("priestess.png"), "ui");
 		}
 		else if (button == snowmachine_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
+			RenderSystem::createSprite(resource, units_texture_path("snowmachine.png"), "ui");
 		}
 		else if (button == wall_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("wall_icon.png"), "ui");
+			RenderSystem::createSprite(resource, units_texture_path("wall.png"), "ui");
 		}
 		else if (button == upgrade_path_1_button || button == upgrade_path_2_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("upgrade_icon.png"), "ui");
@@ -158,13 +158,16 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
 	shaded_mesh.layer = 91;
 	shaded_mesh.show = show;
-	
+
 	// Setting initial ui_element values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = tag;
 	ui_element.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
-	float button_gap = 13.f;
-	ui_element.position = vec2(250 + pos * (ui_element.scale.x + button_gap), WINDOW_SIZE_IN_PX.y - UI_TAB_HEIGHT + ui_element.scale.y / 2.0f);
+	if (button == wall_button) {
+		ui_element.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 0.7);
+	}
+	ui_element.position = vec2(2.5 * GRID_CELL_SIZE + (float)(pos * GRID_CELL_SIZE) + (GRID_CELL_SIZE / 2 - ui_element.scale.x / 2),
+		WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f - (float)GRID_CELL_SIZE / 6.f);
 
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);
@@ -300,7 +303,7 @@ entt::entity UI_button::createMore_button(vec2 position)
 void UI_button::fastforward_light_up()
 {
 	auto view = registry.view<Button>();
-	for (auto entity: view)
+	for (auto entity : view)
 	{
 		if (registry.get<Button>(entity) == Button::fastforward_button)
 		{
@@ -314,7 +317,7 @@ void UI_button::fastforward_light_up()
 			ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
 			shaded_mesh.layer = 91;
 		}
-	}	
+	}
 }
 
 void UI_button::fastforward_light_off()
@@ -335,7 +338,7 @@ void UI_button::fastforward_light_off()
 			shaded_mesh.layer = 91;
 		}
 	}
-	
+
 }
 
 entt::entity UI_button::createFastforward_button(vec2 position)
@@ -376,11 +379,11 @@ void UI_build_unit::fill_UI_build_unit_component(UI_build_unit& ui_build_unit, B
 	{
 		ui_build_unit.unit_name = unit_name_str.at(button);
 		ui_build_unit.descriptions = unit_description_str.at(button);
-		
-	} 
+
+	}
 	catch (const std::out_of_range& oor)
 	{
-		std::cout << "[Warning]: UI button (enum: " << button <<") has no name or description specified in the config.\n" << oor.what();
+		std::cout << "[Warning]: UI button (enum: " << button << ") has no name or description specified in the config.\n" << oor.what();
 	}
 }
 
@@ -393,8 +396,7 @@ entt::entity UI_button::createUI_build_unit_button(int pos, Button button, size_
 
 	if (cost != 0) {
 		auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
-		auto center_pos = get_center_text_position(ui_element.scale, ui_element.position, 0.3f, std::to_string(cost));
-		auto& t = registry.emplace<Text>(entity, Text(std::to_string(cost), notoRegular, vec2(center_pos.x, center_pos.y - ui_element.scale.y / 1.5f)));
+		auto& t = registry.emplace<Text>(entity, Text(std::to_string(cost), notoRegular, vec2(ui_element.position.x, WINDOW_SIZE_IN_PX.y - ui_element.position.y - 40)));
 		t.scale = 0.3f;
 		t.colour = { 1.0f,1.0f,1.0f };
 	}
@@ -415,9 +417,9 @@ entt::entity UI_selected_unit_portrait::createUI_selected_unit_portrait(unit_typ
 		case HUNTER:
 			file_name = "hunter_portrait.png";
 			break;
-		/*case WATCHTOWER:
-			file_name = "watchtower_portrait.png";
-			break;*/
+			/*case WATCHTOWER:
+				file_name = "watchtower_portrait.png";
+				break;*/
 		case GREENHOUSE:
 			file_name = "greehouse_portrait.png";
 			break;
@@ -437,7 +439,7 @@ entt::entity UI_selected_unit_portrait::createUI_selected_unit_portrait(unit_typ
 			file_name = "greehouse_portrait.png";
 			break;
 		}
-		RenderSystem::createSprite(resource, ui_portrait_texture_path(file_name), "textured");
+		RenderSystem::createSprite(resource, ui_texture_path(file_name), "textured");
 	}
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
 	shaded_mesh.show = true;
@@ -447,7 +449,7 @@ entt::entity UI_selected_unit_portrait::createUI_selected_unit_portrait(unit_typ
 	ui_element.tag = "portraits";
 	ui_element.scale = vec2({ 1.2f, 1.2f }) * static_cast<vec2>(resource.texture.size);
 	int x_offset = 100;
-	ui_element.position = PORTRAIT_POS;
+	ui_element.position = vec2(x_offset + ui_element.scale.x / 2, WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
 
 	registry.emplace<UI_selected_unit>(entity);
 	registry.emplace<UI_selected_unit_portrait>(entity);
@@ -494,7 +496,7 @@ entt::entity UI_selected_unit::createUI_selected_unit_upgrade_button(int pos, Bu
 	ShadedMesh& resource = cache_resource(key);
 	if (resource.effect.program.resource == 0) {
 		resource = ShadedMesh();
-		
+
 		RenderSystem::createSprite(resource, ui_texture_path("unit_selected_button_background.png"), "ui");
 	}
 
@@ -518,7 +520,7 @@ entt::entity UI_selected_unit::createUI_selected_unit_upgrade_button(int pos, Bu
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);
 	registry.emplace<UI_button>(entity);
-	
+
 	return entity;
 }
 
@@ -630,7 +632,7 @@ entt::entity UI_sell_button::createUI_sell_button(int pos, Button button, std::s
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = tag;
 	ui_element.scale = static_cast<vec2>(resource.texture.size);
-	ui_element.position = vec2(155 + pos * (ui_element.scale.x + 10), WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
+	ui_element.position = vec2(175 + pos * (ui_element.scale.x + 10), WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
 
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);
@@ -648,7 +650,7 @@ entt::entity UI_sell_button::createUI_sell_button(int pos, Button button, std::s
 	// place title text at the top
 	float top_margin = 25;
 	auto y_title_offset = ui_element.scale.y / 2 - title_text_scale * line_size - top_margin;
-	vec2 title_text_position = get_center_text_position(vec2(2* ui_element.scale.x / 3, ui_element.scale.y), vec2(ui_element.position.x + ui_element.scale.x / 6, ui_element.position.y), title_text_scale, short_description);
+	vec2 title_text_position = get_center_text_position(vec2(2 * ui_element.scale.x / 3, ui_element.scale.y), vec2(ui_element.position.x + ui_element.scale.x / 6, ui_element.position.y), title_text_scale, short_description);
 	auto& title = registry.emplace<Text>(entity, Text(short_description, magicalMystery, vec2(title_text_position.x, title_text_position.y + y_title_offset)));
 	title.scale = title_text_scale;
 	title.colour = { 0.f, 0.f, 0.f };
@@ -724,7 +726,7 @@ entt::entity UI_season_wheel::createUI_season_wheel() {
 		RenderSystem::createSprite(resource, ui_texture_path("season_wheel.png"), "textured");
 	}
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 98 ;
+	shaded_mesh.layer = 98;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "UI_season_wheel";
@@ -747,7 +749,7 @@ void UI_season_wheel::get_season_sequence() {
 		}
 		// TODO
 	}
-	
+
 }
 
 entt::entity UI_season_wheel::createUI_season_wheel_arrow() {
@@ -817,7 +819,7 @@ void UI_weather_icon::change_weather_icon(entt::entity entity, int weather) {
 			RenderSystem::createSprite(resource, ui_texture_path("weather_snow.png"), "textured");
 			break;
 		}
-		
+
 	}
 	ShadedMeshRef& shaded_mesh = registry.replace<ShadedMeshRef>(entity, resource);
 	shaded_mesh.layer = 98;
