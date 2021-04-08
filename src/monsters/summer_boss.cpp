@@ -33,7 +33,7 @@ entt::entity SummerBoss::createSummerBossEntt()
     motion.angle = 0.f;
     motion.velocity = grid_to_pixel_velocity(vec2(2.f, 0));
     motion.position = coord_to_pixel(FOREST_COORD);
-    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1, WALK_FRAMES);
+    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1.2, WALK_FRAMES);
    // motion.boundingbox = vec2({ motion.scale.x * (1 / WALK_FRAMES), motion.scale.y });
     motion.boundingbox = vec2({ motion.scale.x * 0.85f / WALK_FRAMES, motion.scale.y });
     auto& monster = registry.emplace<Monster>(entity);

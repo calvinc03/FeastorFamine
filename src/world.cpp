@@ -251,16 +251,9 @@ void WorldSystem::step(float elapsed_ms)
 			for (auto entity : registry.view<Animate>())
 			{
 				auto& animate = registry.get<Animate>(entity);
-				if (registry.has<GreenHouse>(entity)) {
-					auto& greenhouse = registry.get<GreenHouse>(entity);
-					greenhouse.next_grow--;
-					if (greenhouse.next_grow < 0) {
-						greenhouse.next_grow = greenhouse.grow_duration;
-						animate.frame += 1;
-						animate.frame = (int)animate.frame % (int)animate.frame_num;
-					}
-				}
-				else {
+				animate.update_interval--;
+				if(animate.update_interval <= 0) {
+					animate.update_interval = animate.update_interval;
 					animate.frame += 1;
 					animate.frame = (int)animate.frame % (int)animate.frame_num;
 				}
