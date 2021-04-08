@@ -119,10 +119,10 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 			RenderSystem::createSprite(resource, units_texture_path("greenhouse.png"), "ui");
 		}
 		else if (button == hunter_button) {
-			RenderSystem::createSprite(resource, units_texture_path("hunter_slingshot.png"), "ui");
+			RenderSystem::createSprite(resource, units_texture_path("hunter_pistol.png"), "ui");
 		}
 		else if (button == exterminator_button) {
-			RenderSystem::createSprite(resource, units_texture_path("hunter_flamethrower.png"), "ui");
+			RenderSystem::createSprite(resource, units_texture_path("exterminator.png"), "ui");
 		}
 		else if (button == robot_button) {
 			RenderSystem::createSprite(resource, units_texture_path("robot.png"), "ui");
