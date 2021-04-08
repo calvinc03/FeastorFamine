@@ -12,7 +12,7 @@ entt::entity SnowMachine::createSnowMachine(vec2 pos)
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("units/snowmachine.png"), "unit");
+        RenderSystem::createSprite(resource, textures_path("units/hunter.png"), "unit");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)

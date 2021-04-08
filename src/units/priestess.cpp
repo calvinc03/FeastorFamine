@@ -13,7 +13,7 @@ entt::entity Priestess::createPriestess(vec2 pos)
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("units/priestess.png"), "unit");
+        RenderSystem::createSprite(resource, textures_path("units/hunter.png"), "unit");
     }
     
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
