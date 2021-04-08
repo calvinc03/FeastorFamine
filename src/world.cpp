@@ -2620,7 +2620,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				}
 				if (can_place_unit) {
 				    auto& motion = registry.get<Motion>(entity);
-                    current_map.setGridOccupancy(node.coord, placement_unit_selected, entity, motion.scale);
+                    current_map.setGridOccupancy(node.coord, placement_unit_selected, entity);
 				}
 				placement_unit_selected = NONE;
 
@@ -2757,7 +2757,7 @@ void WorldSystem::paused_click_handle(double xpos, double ypos, int button, int 
 void WorldSystem::sell_unit(entt::entity &entity)
 {
     auto& motion = registry.get<Motion>(entity);
-    current_map.setGridOccupancy(pixel_to_coord(motion.position), NONE, entity, motion.scale);
+    current_map.setGridOccupancy(pixel_to_coord(motion.position), NONE, entity);
 	// destroy the laser beam when removing robot
 	if (registry.has<Robot>(entity))
 	{
@@ -2909,7 +2909,7 @@ void WorldSystem::load_game()
 		}
 		
 		auto& motion = registry.get<Motion>(entity);
-        current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), type, entity, motion.scale);
+        current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), type, entity);
 		auto view_unit = registry.view<Unit>();
 		auto &curr_unit = view_unit.get<Unit>(entity);
 		

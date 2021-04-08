@@ -57,11 +57,14 @@ void GridMap::setGridTerrain(ivec2 grid_coord, terrain_type terrain) {
     node.setTerrain(entity, terrain);
 }
 
-void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy, entt::entity& occupying_entity, vec2 scale) {
+void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy, entt::entity& occupying_entity) {
     if (!is_inbounds(grid_coord)) {
         std::cout<<"Debug: out of bounds"<< std::endl;
         return;
     }
+    auto& motion = registry.get<Motion>(occupying_entity);
+    auto& animate = registry.get<Animate>(occupying_entity);
+    vec2 scale = motion.scale / vec2(animate.frame_num, 1);
     ivec2 over_hang = ((ivec2)scale - (ivec2)GRID_CELL_SIZE) / (ivec2)GRID_CELL_SIZE / 2;
     over_hang = ivec2((int)ceil(over_hang.x), (int)ceil(over_hang.y));
     for (int i = grid_coord.x - over_hang.x; i <= grid_coord.x + over_hang.x; i++) {
