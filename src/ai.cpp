@@ -34,9 +34,9 @@ vec2 AISystem::calculate_position(entt::entity animal, float time)
 {
     auto& motion = registry.get<Motion>(animal);
     auto& monster = registry.get<Monster>(animal);
-    float num_frames = round(time / ELAPSED_MS);
+    float num_frames = round(time / (ELAPSED_MS * WorldSystem::speed_up_factor));
 
-    vec2 speed = motion.velocity * ELAPSED_MS / 1000.f; 
+    vec2 speed = motion.velocity * (ELAPSED_MS * WorldSystem::speed_up_factor * monster.speed_multiplier) / 1000.f;
     
     int current_index = monster.current_path_index;
     vec2 current_pos = motion.position;
@@ -102,7 +102,9 @@ void AISystem::step(float elapsed_ms)
             auto monster = priority_queue.top();
             auto& motion_monster = registry.get<Motion>(monster);
             vec2 direction = motion_monster.position - motion_h.position;
-            motion_h.angle = atan2(direction.y, direction.x);
+            if (!motion_h.standing) {
+                motion_h.angle = atan2(direction.y, direction.x);
+            }
         }
 
         if (placeable_unit.next_projectile_spawn <= 0.f && placeable_unit.health > 0) {
@@ -115,7 +117,9 @@ void AISystem::step(float elapsed_ms)
                 auto& motion_monster = registry.get<Motion>(monster);
 
                 vec2 direction = motion_monster.position - motion_h.position;
-                motion_h.angle = atan2(direction.y, direction.x);
+                if (!motion_h.standing) {
+                    motion_h.angle = atan2(direction.y, direction.x);
+                }
                 placeable_unit.create_projectile(hunter, monster, placeable_unit.damage + placeable_unit.damage_buff);
                 num_spawned_prj += 1;
                 

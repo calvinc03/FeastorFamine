@@ -7,12 +7,12 @@ entt::entity Robot::createRobot(vec2 pos)
     auto entity = registry.create();
 
     // Create the rendering components
-    std::string key = unit_str.at(HUNTER);
+    std::string key = unit_str.at(ROBOT);
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("units/hunter.png"), "unit");
+        RenderSystem::createSprite(resource, textures_path("units/robot.png"), "unit");
     }
     
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -24,6 +24,7 @@ entt::entity Robot::createRobot(vec2 pos)
     motion.position = pos;
     // Then we scale it to whatever size is needed
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
+    motion.standing = true;
 
     auto& unit = registry.emplace<Unit>(entity);
     unit = robot_unit;

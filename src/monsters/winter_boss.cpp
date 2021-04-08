@@ -1,15 +1,15 @@
 // Header
 #include "render.hpp"
 #include "winter_boss.hpp"
-
-const std::string WALK_SPRITE = "winter/winter_walk.png";
-const std::string RUN_SPRITE = "winter/winter_run.png";
-const std::string ATTACK_SPRITE = "winter/winter_attack.png";
-const std::string DEATH_SPRITE = "winter/winter_death.png";
+const std::string DIR = "monsters/winter/";
+const std::string WALK_SPRITE = DIR + "penguin_walk.png";
+const std::string ATTACK_SPRITE = DIR + "penguin_attack.png";
+const std::string DEATH_SPRITE = DIR + "penguin_death.png";
+const std::string RUN_SPRITE = DIR + "penguin_run.png";
 const int WALK_FRAMES = 4;
-const int RUN_FRAMES = 0;
-const int ATTACK_FRAMES = 0;
-const int DEATH_FRAMES = 0;
+const int ATTACK_FRAMES = 4;
+const int DEATH_FRAMES = 1;
+const int RUN_FRAMES = 1;
 
 entt::entity WinterBoss::createWinterBossEntt()
 {

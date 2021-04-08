@@ -16,21 +16,26 @@ entt::entity GreenHouse::createGreenHouse(vec2 pos)
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("units/greenhouse.png"), "textured");
+        RenderSystem::createSprite(resource, textures_path("units/greenhouse_animate.png"), "textured");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
     shaded_mesh.layer = 50;
 
+    Animate& animate = registry.emplace<Animate>(entity);
+    animate.frame_num = 3.f;
+
     // Initialize the position component
     auto& motion = registry.emplace<Motion>(entity);
     motion.position = pos;
     // Then we scale it to whatever size is needed
-    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
+    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1, animate.frame_num);
 
     auto& unit = registry.emplace<Unit>(entity);
     unit = greenhouse_unit;
+
+
 
     registry.emplace<GreenHouse>(entity);
     registry.emplace<Selectable>(entity);

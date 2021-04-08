@@ -32,6 +32,14 @@ const std::map<int, std::vector<int>> greenhouse_path_1 = {
 	{3, {60, 10, 150}}
 };
 
+// I have no idea if this is going to be used
+const std::map<int, std::vector<int>> greenhouse_path_2 = {
+	{0, {60}},
+	{1, {60, 10, 90}},
+	{2, {60, 10, 120}},
+	{3, {60, 10, 150}}
+};
+
 // damage upgrade 
 const std::map<int, std::vector<int>> exterminator_path_1 = {
 	{0, {30}},
@@ -84,12 +92,28 @@ const std::map<int, std::vector<int>> priestess_path_2 = {
 const std::map<int, std::vector<int>> snowmachine_path_1 = {
 	{0, {10}},
 	{1, {10, 10, 20}},
-	{2, {10, 10, 20}},
-	{3, {10, 10, 20}}
+	{2, {10, 10, 30}},
+	{3, {10, 10, 40}}
 };
 
 // range upgrade
 const std::map<int, std::vector<int>> snowmachine_path_2 = {
+	{0, {10}},
+	{1, {10, 10, 20}},
+	{2, {10, 10, 20}},
+	{3, {10, 10, 20}}
+};
+
+// damage upgrade  
+const std::map<int, std::vector<int>> wall_path_1 = {
+	{0, {10}},
+	{1, {10, 10, 20}},
+	{2, {10, 10, 20}},
+	{3, {10, 10, 20}}
+};
+
+// health upgrade
+const std::map<int, std::vector<int>> wall_path_2 = {
 	{0, {10}},
 	{1, {10, 10, 20}},
 	{2, {10, 10, 20}},

@@ -3,10 +3,12 @@
 #include "config/strings.hpp"
 #include "config/game_config.hpp"
 #include "config/ui_config.hpp"
+#include "projectile.hpp"
 // stlib
 #include <string>
 #include <tuple>
 #include <vector>
+#include <queue>
 #include <stdexcept>
 #include <map>
 #include <random>
@@ -49,7 +51,9 @@ struct Motion {
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { GRID_CELL_SIZE, GRID_CELL_SIZE };
 	vec2 boundingbox = { 10, 10 };
+	vec2 acceleration = { 0, 0 };
 	vec2 origin = { 0,0 }; // this is useful for setting the point of rotation for parent/child transforms.
+	bool standing = false; // if true we don't rotate
 };
 
 struct Monster {
@@ -94,8 +98,22 @@ struct EntityDeath {
 	float timer;
 };
 
-struct DOT {
+struct compare_slow
+{
+	bool operator()(std::pair<float, float> e1, std::pair<float, float> e2)
+	{
+		return e1.first > e2.first;
+	}
+};
+
+struct DamageProperties {
 	std::map<entt::entity, float> dot_map;
+	std::priority_queue<
+		std::pair<float, float>,
+		std::vector<std::pair<float, float>>,
+		compare_slow> slow_queue;
+	bool slowed = false;
+	float current_slow = 0.f;
 };
 
 // id for entity

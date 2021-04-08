@@ -2,7 +2,13 @@
 #include "mob.hpp"
 #include "render.hpp"
 
-const size_t WALK_FRAMES = 6.f;
+const size_t WALK_FRAMES = 4.f;
+const size_t ATTACK_FRAMES = 4.f;
+const size_t DEATH_FRAMES = 1.f;
+const std::string DIR = "monsters/mob/";
+const std::string WALK_SPRITE = DIR + "rabbit_walk.png";
+const std::string ATTACK_SPRITE = DIR + "rabbit_attack.png";
+const std::string DEATH_SPRITE = DIR + "rabbit_death.png";
 
 entt::entity Mob::createMobEntt()
 {
@@ -15,7 +21,7 @@ entt::entity Mob::createMobEntt()
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path("rabbit_animate.png"), "monster");
+        RenderSystem::createSprite(resource, textures_path(WALK_SPRITE), "monster");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -36,8 +42,17 @@ entt::entity Mob::createMobEntt()
     monster.health = monster.max_health;
     monster.damage = 10;
     monster.reward = 10;
-
     monster.type = MOB;
+    monster.sprite = WALK_SPRITE;
+    monster.frames = WALK_FRAMES;
+    monster.attack_frames = ATTACK_FRAMES;
+    monster.attack_sprite = ATTACK_SPRITE;
+    monster.walk_frames = WALK_FRAMES;
+    monster.walk_sprite = WALK_SPRITE;
+    monster.run_frames = WALK_FRAMES;
+    monster.run_sprite = WALK_SPRITE;
+    monster.death_frames = DEATH_FRAMES;
+    monster.death_sprite = DEATH_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0;

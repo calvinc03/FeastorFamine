@@ -33,6 +33,13 @@ struct UI_background
 
 struct UI_button
 {
+	static void fastforward_light_up();
+	static void fastforward_light_off();
+	static entt::entity createTips_button(vec2 pos);
+	static entt::entity createStart_button(vec2 pos);
+	static entt::entity createPause_button(vec2 pos);
+	static entt::entity createMore_button(vec2 pos);
+	static entt::entity createFastforward_button(vec2 pos);
 	static entt::entity createUI_build_unit_button(int pos, Button button, size_t cost = 0, std::string tag = "default_ui_button_tag", bool show = true);
 	static entt::entity createUI_button(int pos, Button button, std::string tag = "default_ui_button_tag", bool show = true);
 	// wrapper for buttons that shows up when a unit is selected
@@ -50,6 +57,8 @@ struct UI_selected_unit_portrait
 };
 
 inline std::string ui_texture_path(const std::string& name) { return data_path() + "/textures/ui/" + name; };
+inline std::string units_texture_path(const std::string& name) { return data_path() + "/textures/units/" + name; };
+inline std::string ui_portrait_texture_path(const std::string& name) { return data_path() + "/textures/ui/portraits/" + name; };
 
 void change_button_text(entt::entity button_entity, std::string button_text);
 

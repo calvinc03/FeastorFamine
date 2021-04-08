@@ -24,6 +24,7 @@ enum monster_type
     FIREBALL_BOSS,
     BURROW_BOSS,
     SPIDER,
+    TALKY_BOI
 };
 
 enum unit_type
@@ -31,7 +32,7 @@ enum unit_type
     NONE,
     FOREST,
     VILLAGE,
-    WATCHTOWER,
+    //WATCHTOWER,
     GREENHOUSE,
     EXTERMINATOR,
     PRIESTESS,
@@ -72,6 +73,10 @@ enum Button
     no_button_pressed,
     watchtower_button,
     green_house_button,
+    exterminator_button,
+    robot_button,
+    priestess_button,
+    snowmachine_button,
     hunter_button,
     wall_button,
     upgrade_path_1_button,
@@ -79,7 +84,10 @@ enum Button
     save_button,
     sell_button,
     start_button,
-    tips_button
+    tips_button,
+    pause_button,
+    more_options_button, 
+    fastforward_button
 };
 
 // Menu button
@@ -89,12 +97,14 @@ enum MenuButtonType
     new_game_button,
     load_game_button,
     help_button,
-    settings_button,
+    title_help_button,
     exit_button,
+    title_exit_button,
     empty_button,
     back_button,
     restart_round_button,
-    menu_save_button
+    menu_save_button,
+    sandbox_button
 };
 //enum directions
 //{

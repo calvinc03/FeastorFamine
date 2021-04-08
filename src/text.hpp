@@ -169,6 +169,6 @@ struct HealthChangeText
 struct HitPointsText
 {
     // create hit points when projectile hits monsters
-    static void create_hit_points_text(int hit_points, entt::entity e_damaged);
+    static void create_hit_points_text(int hit_points, entt::entity e_damaged, vec3 color);
     float min_scale;
 };

@@ -10,7 +10,8 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     auto entity = registry.create();
 
     // Create the rendering components
-    std::string key = unit_str.at(WATCHTOWER);
+    //std::string key = unit_str.at(WATCHTOWER);
+    std::string key = "xd";
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {
@@ -29,7 +30,7 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
 
     auto& unit = registry.emplace<Unit>(entity);
-    unit = watchtower_unit;
+    //unit = watchtower_unit;
 
     registry.emplace<WatchTower>(entity);
     registry.emplace<Selectable>(entity);

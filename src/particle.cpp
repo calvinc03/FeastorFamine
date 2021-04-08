@@ -28,7 +28,10 @@ entt::entity ParticleSystem::createParticle(vec2 velocity, vec2 position, float 
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 70;
+    if (texture == "snow.png")
+        shaded_mesh.layer = 86;
+    else
+        shaded_mesh.layer = 70;
 
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);

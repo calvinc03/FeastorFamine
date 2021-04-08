@@ -62,3 +62,29 @@ static const float RESTART_ROUND_BUTTON_X = WINDOW_SIZE_IN_PX.x / 2;
 static const float RESTART_ROUND_BUTTON_Y = WINDOW_SIZE_IN_PX.y * 6 / 8;
 static const float EXIT_BUTTON_X = WINDOW_SIZE_IN_PX.x / 2;
 static const float EXIT_BUTTON_Y = WINDOW_SIZE_IN_PX.y * 7 / 8;
+
+// Title Screen Buttons
+static const float NEW_GAME_BUTTON_X = 194;
+static const float NEW_GAME_BUTTON_Y = 347;
+static const float NEW_GAME_BUTTON_ANGLE = -3.1415926 / 16;
+static const float LOAD_GAME_BUTTON_X = 208;
+static const float LOAD_GAME_BUTTON_Y = 437;
+static const float TITLE_HELP_BUTTON_X = 213;
+static const float TITLE_HELP_BUTTON_Y = 521;
+static const float TITLE_HELP_BUTTON_ANGLE = -3.1415926 / 32;
+static const float TITLE_EXIT_BUTTON_X = 221;
+static const float TITLE_EXIT_BUTTON_Y = 613;
+
+// tips button
+static const vec2 TIPS_GAME_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 25, WINDOW_SIZE_IN_PX.y - 40 };
+// start battle button
+static const vec2 START_BATTLE_BUTTON_POS = { 40,  WINDOW_SIZE_IN_PX.y - 40 };
+// puase game button
+static const vec2 PAUSE_BUTTON_POS = { 90,  WINDOW_SIZE_IN_PX.y - 40 };
+// more options button
+static const vec2 MORE_OPTIONS_BUTTON_POS = { 90,  WINDOW_SIZE_IN_PX.y - 40 };
+// fastforward button
+static const vec2 FASTFORWARD_BUTTON_POS = { 40,  WINDOW_SIZE_IN_PX.y - 40 };
+
+// portrait of units
+static const vec2 PORTRAIT_POS = { 170, WINDOW_SIZE_IN_PX.y - (UI_TAB_HEIGHT / 2) };

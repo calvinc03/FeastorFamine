@@ -8,6 +8,7 @@
 #include <units/robot.hpp>
 #include <units/priestess.hpp>
 #include <units/snowmachine.hpp>
+#include <units/wall.hpp>
 
 
 void upgrade_unit_path_1(entt::entity e_unit)
@@ -43,17 +44,26 @@ void upgrade_unit_path_1(entt::entity e_unit)
 		unit.sell_price += upgrades[1];
 		unit.damage = upgrades[2];
 	}
+
 	else if (registry.has<Priestess>(e_unit)) {
 		std::vector<int> upgrades = priestess_path_1.at(unit.path_1_upgrade);
 		unit.upgrade_path_1_cost = upgrades[0];
 		unit.sell_price += upgrades[1];
 		unit.damage = upgrades[2];
 	}
+
 	else if (registry.has<SnowMachine>(e_unit)) {
 		std::vector<int> upgrades = snowmachine_path_1.at(unit.path_1_upgrade);
 		unit.upgrade_path_1_cost = upgrades[0];
 		unit.sell_price += upgrades[1];
 		unit.num_projectiles = upgrades[2];
+	}
+
+	else if (registry.has<Wall>(e_unit)) {
+		std::vector<int> upgrades = wall_path_1.at(unit.path_1_upgrade);
+		unit.upgrade_path_1_cost = upgrades[0];
+		unit.sell_price += upgrades[1];
+		unit.damage = upgrades[2];
 	}
 }
 
@@ -79,6 +89,13 @@ void upgrade_unit_path_2(entt::entity e_unit)
 		unit.attack_range = 400;
 	}
 
+	else if (registry.has<GreenHouse>(e_unit)) {
+		std::vector<int> upgrades = greenhouse_path_2.at(unit.path_1_upgrade);
+		unit.upgrade_path_1_cost = upgrades[0];
+		unit.sell_price += upgrades[1];
+		unit.damage = upgrades[2];
+	}
+
 	else if (registry.has<Robot>(e_unit)) {
 		std::vector<int> upgrades = robot_path_2.at(unit.path_2_upgrade);
 		unit.upgrade_path_2_cost = upgrades[0];
@@ -99,5 +116,13 @@ void upgrade_unit_path_2(entt::entity e_unit)
 
 		unit.create_projectile = IceField::createIceField;
 		unit.attack_range = 150;
+	}
+
+	else if (registry.has<Wall>(e_unit)) {
+		std::vector<int> upgrades = wall_path_2.at(unit.path_1_upgrade);
+		unit.upgrade_path_1_cost = upgrades[0];
+		unit.sell_price += upgrades[1];
+		unit.max_health += upgrades[2];
+		unit.health += upgrades[2];
 	}
 }

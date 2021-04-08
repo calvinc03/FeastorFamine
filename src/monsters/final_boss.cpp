@@ -3,11 +3,9 @@
 #include "final_boss.hpp"
 
 const std::string WALK_SPRITE = "NA";
-const std::string RUN_SPRITE = "NA";
-const std::string ATTACK_SPRITE = "final/final_boss2.png";
+const std::string ATTACK_SPRITE = "monsters/final/final_boss2.png";
 const std::string DEATH_SPRITE = "NA";
 const int WALK_FRAMES = 0;
-const int RUN_FRAMES = 0;
 const int ATTACK_FRAMES = 39;
 const int DEATH_FRAMES = 0;
 
@@ -52,8 +50,8 @@ entt::entity FinalBoss::createFinalBossEntt()
     monster.attack_sprite = ATTACK_SPRITE;
     monster.walk_frames = WALK_FRAMES;
     monster.walk_sprite = WALK_SPRITE;
-    monster.run_frames = RUN_FRAMES;
-    monster.run_sprite = RUN_SPRITE;
+    monster.run_frames = WALK_FRAMES;
+    monster.run_sprite = WALK_SPRITE;
     monster.death_frames = DEATH_FRAMES;
     monster.death_sprite = DEATH_SPRITE;
 
