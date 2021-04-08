@@ -63,8 +63,12 @@ void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy, entt::entity& oc
         return;
     }
     auto& motion = registry.get<Motion>(occupying_entity);
-    auto& animate = registry.get<Animate>(occupying_entity);
-    vec2 scale = motion.scale / vec2(animate.frame_num, 1);
+    vec2 scale = motion.scale;
+    if (registry.has<Animate>(occupying_entity)) {
+        auto& animate = registry.get<Animate>(occupying_entity);
+        scale /= vec2(animate.frame_num, 1);
+    }
+
     ivec2 over_hang = ((ivec2)scale - (ivec2)GRID_CELL_SIZE) / (ivec2)GRID_CELL_SIZE / 2;
     over_hang = ivec2((int)ceil(over_hang.x), (int)ceil(over_hang.y));
     for (int i = grid_coord.x - over_hang.x; i <= grid_coord.x + over_hang.x; i++) {
