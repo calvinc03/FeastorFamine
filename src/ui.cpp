@@ -128,13 +128,13 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 			RenderSystem::createSprite(resource, units_texture_path("robot.png"), "ui");
 		}
 		else if (button == priestess_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
+			RenderSystem::createSprite(resource, units_texture_path("priestess.png"), "ui");
 		}
 		else if (button == snowmachine_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("stickfigure.png"), "ui");
+			RenderSystem::createSprite(resource, units_texture_path("snowmachine.png"), "ui");
 		}
 		else if (button == wall_button) {
-			RenderSystem::createSprite(resource, ui_texture_path("wall_icon.png"), "ui");
+			RenderSystem::createSprite(resource, units_texture_path("wall.png"), "ui");
 		}
 		else if (button == upgrade_path_1_button || button == upgrade_path_2_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("upgrade_icon.png"), "ui");
@@ -163,7 +163,11 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = tag;
 	ui_element.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
-	ui_element.position = vec2(175 + pos * ui_element.scale.x, WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
+	if (button == wall_button) {
+		ui_element.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 0.7);
+	}
+	ui_element.position = vec2(2.5 * GRID_CELL_SIZE + (float)(pos*GRID_CELL_SIZE) + (GRID_CELL_SIZE/2 - ui_element.scale.x/2), 
+		WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f - (float)GRID_CELL_SIZE/6.f);
 
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);

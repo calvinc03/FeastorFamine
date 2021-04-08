@@ -1029,9 +1029,10 @@ void WorldSystem::setup_round_from_round_number(int round_number)
         } else {
             weather = CLEAR;
         }
-        //create_boss = SummerBoss::createSummerBossEntt;
-		create_boss =  Spider::createSpider;
-        current_round_monster_types.emplace_back(SPIDER);
+        create_boss = SummerBoss::createSummerBossEntt;
+		current_round_monster_types.emplace_back(SUMMER_BOSS);
+//		create_boss =  Spider::createSpider;
+//      current_round_monster_types.emplace_back(SPIDER);
     }
     else if (world_season_str == FALL_TITLE)
     {
