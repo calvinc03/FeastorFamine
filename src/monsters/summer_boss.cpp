@@ -1,6 +1,8 @@
 // Header
 #include "render.hpp"
 #include "summer_boss.hpp"
+#include "config/monster_config.hpp"
+
 const std::string DIR = "monsters/summer/";
 const std::string WALK_SPRITE = DIR + "moose_walk.png";
 const std::string ATTACK_SPRITE = DIR + "moose_attack.png";
@@ -31,16 +33,16 @@ entt::entity SummerBoss::createSummerBossEntt()
     //auto& motion = ECS::registry<Motion>.emplace(entity);
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = grid_to_pixel_velocity(vec2(2.f, 0));
+    motion.velocity = grid_to_pixel_velocity(monster_velocities.at(SUMMER_BOSS));
     motion.position = coord_to_pixel(FOREST_COORD);
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1.2, WALK_FRAMES);
    // motion.boundingbox = vec2({ motion.scale.x * (1 / WALK_FRAMES), motion.scale.y });
     motion.boundingbox = vec2({ motion.scale.x * 0.85f / WALK_FRAMES, motion.scale.y });
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = 80;
+    monster.max_health = monster_health.at(SUMMER_BOSS);
     monster.health = monster.max_health;
-    monster.damage = 30;
-    monster.reward = 40;
+    monster.damage = monster_damage.at(SUMMER_BOSS);
+    monster.reward = monster_reward.at(SUMMER_BOSS);
 
     monster.hit = false;
     monster.type = SUMMER_BOSS;

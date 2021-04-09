@@ -1,6 +1,7 @@
 // Header
 #include "render.hpp"
 #include "final_boss.hpp"
+#include "config/monster_config.hpp"
 
 const std::string WALK_SPRITE = "NA";
 const std::string ATTACK_SPRITE = "monsters/final/final_boss2.png";
@@ -30,16 +31,16 @@ entt::entity FinalBoss::createFinalBossEntt()
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = vec2(1, 0);
+    motion.velocity = monster_velocities.at(FINAL_BOSS);
     motion.position = coord_to_pixel(DRAGON_COORD);
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 7, ATTACK_FRAMES);
     motion.boundingbox = vec2({ motion.scale.x *.8f / ATTACK_FRAMES, motion.scale.y });
 
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = 5000;
+    monster.max_health = monster_health.at(FINAL_BOSS);
     monster.health = monster.max_health;
-    monster.damage = 0;
-    monster.reward = 10000;
+    monster.damage = monster_damage.at(FINAL_BOSS);
+    monster.reward = monster_reward.at(FINAL_BOSS);
 
     monster.hit = false;
     monster.type = FINAL_BOSS;

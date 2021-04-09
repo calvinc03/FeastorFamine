@@ -1,4 +1,5 @@
 #include "spider.hpp"
+#include "config/monster_config.hpp"
 
 
 void add_frames_IK(KeyFrames_IK& kf_ik);
@@ -12,7 +13,7 @@ entt::entity  Spider::createSpider() {
     // root entity acts like any other entity.
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = grid_to_pixel_velocity(vec2(1.5f, 0));
+    motion.velocity = grid_to_pixel_velocity(monster_velocities.at(SPIDER));
     motion.scale = vec2(20,20);
     motion.position = coord_to_pixel(FOREST_COORD);
     motion.boundingbox = motion.scale*2.0f;
@@ -48,10 +49,10 @@ entt::entity  Spider::createSpider() {
 
     auto& monster = registry.emplace<Monster>(entity);
     monster.type = SPIDER;
-    monster.max_health = 80;
+    monster.max_health = monster_health.at(SPIDER);
     monster.health = monster.max_health;
-    monster.damage = 80;
-    monster.reward = 30;
+    monster.damage = monster_damage.at(SPIDER);
+    monster.reward = monster_reward.at(SPIDER);
     registry.emplace<HitReaction>(entity);
 
     auto& transform = registry.emplace<Transform>(entity);

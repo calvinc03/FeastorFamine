@@ -1,6 +1,7 @@
 // Header
 #include "render.hpp"
 #include "burrow_boss.hpp"
+#include "config/monster_config.hpp"
 
 const std::string WALK_SPRITE = "burrow/burrow_walk.png";
 const std::string RUN_SPRITE = "burrow/burrow_run.png";
@@ -32,17 +33,17 @@ entt::entity BurrowBoss::createBurrowBossEntt()
     //auto& motion = ECS::registry<Motion>.emplace(entity);
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = grid_to_pixel_velocity(vec2(3, 0));
+    motion.velocity = grid_to_pixel_velocity(monster_velocities.at(BURROW_BOSS));
     motion.position = coord_to_pixel(FOREST_COORD);
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1, WALK_FRAMES);
     // scale down bounding box from .png file based on number of frames
     motion.boundingbox = vec2({ motion.scale.x * (1.0f / WALK_FRAMES), motion.scale.y });
 
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = 20;
+    monster.max_health = monster_health.at(BURROW_BOSS);
     monster.health = monster.max_health;
-    monster.damage = 10;
-    monster.reward = 10;
+    monster.damage = monster_damage.at(BURROW_BOSS);
+    monster.reward = monster_reward.at(BURROW_BOSS);
 
     monster.type = BURROW_BOSS;
     monster.hit = false;

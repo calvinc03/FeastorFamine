@@ -576,7 +576,7 @@ void SlowHitText::create_slow_hit_text(int slow_number, entt::entity e_damaged, 
 }
 
 // create hit points when projectile hits monsters
-void HitPointsText::create_hit_points_text(int hit_points, entt::entity e_damaged, vec3 color)
+void HitPointsText::create_hit_points_text(int damage, entt::entity e_damaged, vec3 color)
 {
     // used to scale the hit points size
     float max_possible_damage = MAX_POSSIBLE_DAMAGE;
@@ -585,14 +585,14 @@ void HitPointsText::create_hit_points_text(int hit_points, entt::entity e_damage
 
     auto motion = registry.get<Motion>(e_damaged);
     float on_screen_time_ms = 300;
-    float initial_text_scale = ((float)hit_points * (max_text_size - min_text_size) / max_possible_damage + min_text_size) * 2.f;
-    float text_scale = (float)hit_points * (max_text_size - min_text_size) / max_possible_damage + min_text_size;
+    float initial_text_scale = ((float)damage * (max_text_size - min_text_size) / max_possible_damage + min_text_size) * 2.f;
+    float text_scale = (float)damage * (max_text_size - min_text_size) / max_possible_damage + min_text_size;
     auto closeness_outline = TextFont::load("data/fonts/Closeness/closeness.outline-regular.ttf");
     auto closeness_regular = TextFont::load("data/fonts/Closeness/closeness.regular.ttf");
     vec3 text_colour = color;
     vec3 outline_colour = { 0.f, 0.f, 0.f };
-    auto d_text_outline = DisappearingText::createDisappearingText(closeness_outline, std::to_string(hit_points), motion.position, on_screen_time_ms, initial_text_scale, outline_colour);
-    auto d_text = DisappearingText::createDisappearingText(closeness_regular, std::to_string(hit_points), motion.position, on_screen_time_ms, initial_text_scale, text_colour);
+    auto d_text_outline = DisappearingText::createDisappearingText(closeness_outline, std::to_string(damage), motion.position, on_screen_time_ms, initial_text_scale, outline_colour);
+    auto d_text = DisappearingText::createDisappearingText(closeness_regular, std::to_string(damage), motion.position, on_screen_time_ms, initial_text_scale, text_colour);
     auto& hitpoints = registry.emplace<HitPointsText>(d_text);
     hitpoints.min_scale = text_scale;
     auto& hitpoints_outline = registry.emplace<HitPointsText>(d_text_outline);

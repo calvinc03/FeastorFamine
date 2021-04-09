@@ -1,6 +1,8 @@
 // Header
 #include "render.hpp"
 #include "winter_boss.hpp"
+#include "config/monster_config.hpp"
+
 const std::string DIR = "monsters/winter/";
 const std::string WALK_SPRITE = DIR + "penguin_walk.png";
 const std::string ATTACK_SPRITE = DIR + "penguin_attack.png";
@@ -33,7 +35,7 @@ entt::entity WinterBoss::createWinterBossEntt()
     //auto& motion = ECS::registry<Motion>.emplace(entity);
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = grid_to_pixel_velocity(vec2(1, 0));
+    motion.velocity = grid_to_pixel_velocity(monster_velocities.at(WINTER_BOSS));
     motion.position = coord_to_pixel(FOREST_COORD);
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1, WALK_FRAMES);
     // scale down bounding box from .png file based on number of frames
@@ -41,10 +43,10 @@ entt::entity WinterBoss::createWinterBossEntt()
     motion.boundingbox = vec2({ motion.scale.x * 0.85f / WALK_FRAMES, motion.scale.y });
     auto& monster = registry.emplace<Monster>(entity);
 
-    monster.max_health = 200;
+    monster.max_health = monster_health.at(WINTER_BOSS);
     monster.health = monster.max_health;
-    monster.damage = 40;
-    monster.reward = 40;
+    monster.damage = monster_damage.at(WINTER_BOSS);
+    monster.reward = monster_reward.at(WINTER_BOSS);
 
     monster.hit = false;
     monster.type = WINTER_BOSS;
