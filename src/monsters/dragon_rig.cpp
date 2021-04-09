@@ -20,7 +20,7 @@ entt::entity  DragonRig::createDragon() {
     motion.angle = 0.f;
     motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
     motion.scale = vec2(150, 150);
-    motion.position = coord_to_pixel(DRAGON_COORD) + vec2(200, 0); ;// vec2(100, 500);// coord_to_pixel(FOREST_COORD);
+    motion.position = coord_to_pixel(DRAGON_COORD) + vec2(200, 0); // vec2(100, 500);// coord_to_pixel(FOREST_COORD);
     motion.boundingbox = motion.scale * 2.0f;
 
     //create entities/parts to be part of the kinematic chains -- requires setting position offset, pivot/origin of rotation, and intial angle
@@ -60,13 +60,14 @@ entt::entity  DragonRig::createDragon() {
     auto body_texture = Rig::createPartTextured(body, DRAGON_BODY, vec2(0, 0), 0.0f, 2.0f * vec2(1, 1), 20);
     auto wing_texture = Rig::createPartTextured(wing, DRAGON_OUTERWING, vec2(0, 0.5f), 3.10f,2.0f* vec2(1, 1), 22);
     auto arm_texture = Rig::createPartTextured(arm, DRAGON_OUTERPAW, vec2(0, 0), 1.0f, vec2(1, 1), 24);
-    
-    //auto& monster = registry.emplace<Monster>(entity);
-    //monster.type = SPIDER;
-    //monster.max_health = 80;
-    //monster.health = monster.max_health;
-    //monster.damage = 80;
-    //monster.reward = 30;
+
+
+    auto& monster = registry.emplace<Monster>(entity);
+    monster.max_health = 5000;
+    monster.health = monster.max_health;
+    monster.damage = 0;
+    monster.reward = 10000;
+
     registry.emplace<DragonRig>(entity);
     registry.emplace<HitReaction>(entity);
 
