@@ -1083,6 +1083,9 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		max_boss = 9999;
 		boss_delay_ms = 100;
 		world_season_str = "spring";
+
+		auto& stage_text = registry.get<Text>(stage_text_entity);
+		stage_text.content = "SANDBOX";
 	}
 	else {
 		nlohmann::json round_json = get_json(INPUT_PATH + std::to_string(round_number) + JSON_EXTENSION);
@@ -2256,8 +2259,9 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 		button_tag = on_click_button({mouse_pos_x, mouse_pos_y});
 		switch (button_tag)
 		{
+		case (MenuButtonType::sandbox_button):
+			sandbox = true;
 		case (MenuButtonType::new_game_button):
-			sandbox = false;
 			remove_menu_buttons();
 			game_state = help_menu;
 			restart_with_save();
@@ -2265,7 +2269,6 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 			RenderSystem::show_entity(help_menu_entity);
 			break;
 		case (MenuButtonType::load_game_button):
-			sandbox = false;
 			remove_menu_buttons();
 			restart();
 			load_game();
@@ -2280,15 +2283,6 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 		case (MenuButtonType::title_exit_button):
 			// close window
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
-			break;
-		case (MenuButtonType::sandbox_button):
-			sandbox = true;
-			remove_menu_buttons();
-			restart();
-			auto& stage_text = registry.get<Text>(stage_text_entity);
-			stage_text.content = "Sandbox";
-			player_state = set_up_stage;
-			std::cout << "here" << std::endl;
 			break;
 		}
 	}	

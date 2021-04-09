@@ -74,8 +74,8 @@ static const float TITLE_HELP_BUTTON_Y = 521;
 static const float TITLE_HELP_BUTTON_ANGLE = -3.1415926 / 32;
 static const float TITLE_EXIT_BUTTON_X = 221;
 static const float TITLE_EXIT_BUTTON_Y = 613;
-static const float SANDBOX_BUTTON_X = 800;
-static const float SANDBOX_BUTTON_Y = 300;
+static const float SANDBOX_BUTTON_X = 850;
+static const float SANDBOX_BUTTON_Y = 550;
 
 // tips button
 static const vec2 TIPS_GAME_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 25, WINDOW_SIZE_IN_PX.y - 40 };
