@@ -2,10 +2,14 @@
 const std::string link= "monsters/dragon_rig/chain_link.png";
 
 entt::entity RopeRig::createRope(vec2 start, int length) {
-
+    auto entity = registry.create();
+    
     for (int i = 0; i < length; i++) {
         createRopePart(start + vec2(i,i));
     }
+
+    registry.emplace<RopeRig>(entity);
+    return entity;
 }
 
 entt::entity RopeRig::createRopePart(vec2 pos) {
@@ -27,7 +31,7 @@ entt::entity RopeRig::createRopePart(vec2 pos) {
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.0f;
     motion.velocity = { 0, 0 };
-    motion.scale = vec2(10,10); 
+    motion.scale = vec2(50,50); 
     motion.position = pos;
     //motion.scale.y *= -1;
     motion.boundingbox = motion.scale;
