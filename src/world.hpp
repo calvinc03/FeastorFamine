@@ -33,6 +33,8 @@ public:
 	// Releases all associated resources
 	~WorldSystem();
 
+	ShadedMesh* screen_sprite;
+
 	// menu
 	void game_setup();
 	void create_start_menu();
