@@ -355,7 +355,7 @@ void increment_monster_step(entt::entity entity) {
 
 	// change direction if reached the middle of the this node
 	if (!monster.current_node_visited) {
-		if (length(coord_to_pixel(current_path_coord) - motion.position) <= length(motion.velocity * time_step)) {
+		if (length(coord_to_pixel(current_path_coord) - motion.position) <= length(motion.velocity * time_step * monster.speed_multiplier)) {
 			vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
 			motion.position = coord_to_pixel(current_path_coord);
 			motion.velocity = length(motion.velocity) * move_direction;

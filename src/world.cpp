@@ -52,6 +52,7 @@
 #include <wantedboard.hpp>
 
 const size_t ANIMATION_FPS = 20;
+const size_t MENU_ANIMATION_FPS = 16;
 const size_t SPEAKER_FPS = 10;
 const size_t TEXT_APPEAR_SPEED = 20; // lower is faster
 const int STARTING_HEALTH = 1000;
@@ -454,14 +455,14 @@ void WorldSystem::step(float elapsed_ms)
 		{
 			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty())
 			{
-				end_battle_phase(elapsed_ms);
+				end_battle_phase_step(elapsed_ms);
 			}
 		}
 	}
 	
 }
 
-void WorldSystem::end_battle_phase(float elapsed_ms)
+void WorldSystem::end_battle_phase_step(float elapsed_ms)
 {
 	if (end_of_battle_stage_dealy_ms == END_OF_BATTLE_STAGE_DELAY_MS) {
 		// round cleared text
@@ -495,6 +496,7 @@ void WorldSystem::end_battle_phase(float elapsed_ms)
 		}
 		// reset speed up factor
 		speed_up_factor = 1.f;
+		// if no greenhouse, shorten the end phase delay
 		if (registry.view<GreenHouse>().size() == 0)
 		{
 			end_of_battle_stage_dealy_ms -= 500;
@@ -503,7 +505,7 @@ void WorldSystem::end_battle_phase(float elapsed_ms)
 	}
 	
 	
-	// if no greenhouse, shorten the end phase delay
+	
 	if (!greenhouse_food_increased && (end_of_battle_stage_dealy_ms < END_OF_BATTLE_STAGE_DELAY_MS - 500))
 	{
 		// greenhouse triggers at the end of battle phase once with a short delay
@@ -611,7 +613,7 @@ void WorldSystem::title_screen_step(float elapsed_ms)
 	}
 }
 
-void WorldSystem::lost_game_screen_step(float elapsed_ms)
+void WorldSystem::animation_step(float elapsed_ms)
 {
 	// animation
 	fps_ms -= elapsed_ms;
@@ -623,7 +625,7 @@ void WorldSystem::lost_game_screen_step(float elapsed_ms)
 			animate.frame += 1;
 			animate.frame = (int)animate.frame % (int)animate.frame_num;
 		}
-		fps_ms = 1000 / ANIMATION_FPS;
+		fps_ms = 1000 / MENU_ANIMATION_FPS;
 	}
 }
 
@@ -636,17 +638,34 @@ void WorldSystem::darken_screen_step(float elapsed_ms)
 	}
 	else
 	{
-		game_state = GameState::lost_game_screen;
-		screen_state.darken_screen_factor = 0.f;
 		registry.clear();
 		screen_state_entity = registry.create();
 		registry.emplace<ScreenState>(screen_state_entity);
 		camera = Camera::createCamera();
-		Menu::createLostMenu();
-		/*auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
-		registry.emplace<Text>(registry.create(), Text::Text("Famine", notoRegular, { WINDOW_SIZE_IN_PX.x / 2, 200 }, 2.0f, { 1.f, 0.f, 0.f }));*/
-		MenuButton::create_button(RESTART_ROUND_BUTTON_X, RESTART_ROUND_BUTTON_Y, MenuButtonType::restart_round_button, "Restart round", {1.4, 1.2});
-		MenuButton::create_button(EXIT_BUTTON_X, EXIT_BUTTON_Y, MenuButtonType::exit_button, "Exit");
+		// un-darken screen
+		screen_state.darken_screen_factor = 0.f;
+
+		// if victorious 
+		if (victory)
+		{
+			game_state = GameState::victory_screen;
+			Menu::createVictoryScreen();
+			MenuButton::create_button(EXIT_BUTTON_X, EXIT_BUTTON_Y, MenuButtonType::exit_button, "Exit");
+		}
+		// lost game
+		else
+		{
+			game_state = GameState::lost_game_screen;
+			// lost background
+			Menu::createLostMenu();
+			// restart button
+			MenuButton::create_button(RESTART_ROUND_BUTTON_X, RESTART_ROUND_BUTTON_Y, MenuButtonType::restart_round_button, "Restart round", { 1.4, 1.2 });
+			// exit button
+			MenuButton::create_button(EXIT_BUTTON_X, EXIT_BUTTON_Y, MenuButtonType::exit_button, "Exit");
+		}
+		
+		
+		
 	}
 	
 }
@@ -654,11 +673,20 @@ void WorldSystem::darken_screen_step(float elapsed_ms)
 // lost game
 void WorldSystem::start_lost_game_screen()
 {
+	victory = false;
 	auto& screen_state = registry.get<ScreenState>(screen_state_entity);
 	screen_state.darken_screen_factor = 0.3;
 	screen_state.all_dark = false;
 	game_state = GameState::darken_screen;
-	
+}
+
+void WorldSystem::start_victory_screen()
+{
+	victory = true;
+	auto& screen_state = registry.get<ScreenState>(screen_state_entity);
+	screen_state.darken_screen_factor = 0.3;
+	screen_state.all_dark = false;
+	game_state = GameState::darken_screen;
 }
 
 // called at the end of battle pahse to set up next round
@@ -668,20 +696,20 @@ void WorldSystem::end_battle_phase()
 
 	if (world_round_number == MAX_ROUND_NUMBER)
 	{
-		restart_with_save();
+		start_victory_screen();
 	}
-
-	setup_round_from_round_number(world_round_number);
-	// re-roll some fraction of map for weather terrains
-	int max_rerolls = (int)ceil(0.3 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
-	AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
-	player_state = set_up_stage;
-	num_bosses_spawned = 0;
-	num_mobs_spawned = 0;
-	prepare_setup_stage();
-
-	
-	save_game();
+	else
+	{
+		setup_round_from_round_number(world_round_number);
+		// re-roll some fraction of map for weather terrains
+		int max_rerolls = (int)ceil(0.3 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
+		AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
+		player_state = set_up_stage;
+		num_bosses_spawned = 0;
+		num_mobs_spawned = 0;
+		prepare_setup_stage();
+		save_game();
+	}
 }
 
 void WorldSystem::handle_game_tips()
@@ -2020,6 +2048,12 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
 			lost_game_click_handle(xpos, ypos, button, action, mod);
 			break;
 		}
+		case victory_screen:
+		{
+			victory_screen_click_handle(xpos, ypos, button, action, mod);
+			break;
+		}
+			
 	}
 }
 
@@ -2687,14 +2721,12 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 	(void)mod;
 }
 
-void WorldSystem::lost_game_click_handle(double xpos, double ypos, int button, int action, int mod)
+void WorldSystem::victory_screen_click_handle(double xpos, double ypos, int button, int action, int mod)
 {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
 		vec2 mouse_pos = { (float)xpos, (float)ypos };
 		MenuButtonType button_clicked = on_click_button(mouse_pos);
-		// world_round_number get reset to 0 in restart();
-		int temp_world_round_number = world_round_number;
 		switch (button_clicked)
 		{
 		case MenuButtonType::restart_round_button:
@@ -2711,7 +2743,34 @@ void WorldSystem::lost_game_click_handle(double xpos, double ypos, int button, i
 			break;
 		}
 	}
-	
+	// avoid 'unreferenced formal parameter' warning message
+	(void)mod;
+}
+
+void WorldSystem::lost_game_click_handle(double xpos, double ypos, int button, int action, int mod)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+		vec2 mouse_pos = { (float)xpos, (float)ypos };
+		MenuButtonType button_clicked = on_click_button(mouse_pos);
+		switch (button_clicked)
+		{
+		case MenuButtonType::restart_round_button:
+			remove_menu_buttons();
+			restart();
+			load_game();
+			game_state = story_card;
+			break;
+		case MenuButtonType::exit_button:
+			game_setup();
+			create_start_menu();
+			player_state = set_up_stage;
+			game_state = start_menu;
+			break;
+		}
+	}
+	// avoid 'unreferenced formal parameter' warning message
+	(void)mod;
 }
 
 // unpause if paused

@@ -86,7 +86,7 @@ public:
 
 	// lost game 
 	void darken_screen_step(float elapsed_ms);
-	void lost_game_screen_step(float elapsed_ms);
+	void animation_step(float elapsed_ms);
 
 	// End of battle phase
 	void end_battle_phase();
@@ -121,7 +121,8 @@ public:
 		sandbox,
 		paused,
 		darken_screen,
-		lost_game_screen
+		lost_game_screen,
+		victory_screen,
 	};
 
 	// state for set_up and monster_rounds
@@ -145,6 +146,9 @@ public:
 
 	// speed up factor for fastforwarding time
 	static float speed_up_factor;
+
+	// is victorious
+	bool victory = false;
 
 private:
 	// PhysicsSystem handle
@@ -273,14 +277,17 @@ private:
 	void story_card_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void update_look_for_selected_buttons(int action, bool sell_clicked);
 	void lost_game_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
+	void victory_screen_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
 	void createEntityRangeIndicator(vec2 mouse_pos);
 	void on_click_ui(Button ui_button);
 	void on_click_ui_when_selected(Button ui_button);
 	void on_click_ui_general_buttons(Button ui_button);
 	// lost game
 	void start_lost_game_screen();
+	// victory
+	void start_victory_screen();
 	// end of battle phase
-	void end_battle_phase(float elapsed_ms);
+	void end_battle_phase_step(float elapsed_ms);
 
 
 	// music references

@@ -104,7 +104,11 @@ int main()
 		}
 		else if (world.game_state == WorldSystem::lost_game_screen)
 		{
-			world.lost_game_screen_step(elapsed_ms);
+			world.animation_step(elapsed_ms);
+		}
+		else if (world.game_state == WorldSystem::victory_screen)
+		{
+			world.animation_step(elapsed_ms);
 		}
 		else if (world.game_state == WorldSystem::GameState::start_menu)
 		{

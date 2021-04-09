@@ -5,13 +5,15 @@
 #include "common.hpp"
 #include "ui.hpp"
 
-enum Menu_texture { title_screen, controls, default_menu, help_menu, pause_menu, lost_game, title_screen_title, title_screen_title2, title_screen_title2_or, foreground_trees, sign_post};
+enum Menu_texture { title_screen, controls, default_menu, help_menu, pause_menu, lost_game,
+	title_screen_title, title_screen_title2, title_screen_title2_or, foreground_trees, sign_post, victory_background};
 
 struct Menu
 {
 	std::vector<entt::entity> buttons = {};
 	static entt::entity createMenu(float x, float y, std::string menu_name, Menu_texture texture, int layer = 0, vec2 scale = { 1.f, 1.f });
 	static entt::entity createLostMenu();
+	static entt::entity createVictoryScreen();
 };
 
 inline std::string menu_texture_path(const std::string& name) { return data_path() + "/textures/menu/" + name; };
