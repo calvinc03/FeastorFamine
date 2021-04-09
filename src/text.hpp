@@ -175,3 +175,9 @@ struct HitPointsText
     static void create_hit_points_text(int hit_points, entt::entity e_damaged, vec3 color);
     float min_scale;
 };
+
+struct SlowHitText
+{
+    static void create_slow_hit_text(int slow_number, entt::entity e_hit, vec3 color);
+    float y_distance;
+};
