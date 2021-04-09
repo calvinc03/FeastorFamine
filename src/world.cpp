@@ -692,35 +692,28 @@ void WorldSystem::start_victory_screen()
 // called at the end of battle pahse to set up next round
 void WorldSystem::end_battle_phase()
 {
-	if (world_round_number < 0) {
-		prepare_setup_stage();
-		return;
-	}
-
-	world_round_number++;
+	world_round_number = sandbox ? -1 : world_round_number + 1;
 	
 	if (world_round_number == MAX_ROUND_NUMBER)
 	{
 		start_victory_screen();
 	}
-	else
-	{
-		setup_round_from_round_number(world_round_number);
-		// re-roll some fraction of map for weather terrains
-		int max_rerolls = (int)ceil(0.3 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
-		screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
-		
-		for (auto particle : registry.view<ParticleSystem>()) {
-			registry.destroy(particle);
-		}
 
-		AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
-		player_state = set_up_stage;
-		num_bosses_spawned = 0;
-		num_mobs_spawned = 0;
-		prepare_setup_stage();
-		save_game();
+	setup_round_from_round_number(world_round_number);
+	// re-roll some fraction of map for weather terrains
+	int max_rerolls = (int)ceil(0.3 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
+	screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
+		
+	for (auto particle : registry.view<ParticleSystem>()) {
+		registry.destroy(particle);
 	}
+
+	AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
+	player_state = set_up_stage;
+	num_bosses_spawned = 0;
+	num_mobs_spawned = 0;
+	prepare_setup_stage();
+	save_game();
 }
 
 void WorldSystem::handle_game_tips()
@@ -840,7 +833,7 @@ void WorldSystem::prepare_setup_stage()
 void WorldSystem::set_up_step(float elapsed_ms)
 {
 	// Restart/End game after max rounds
-	if (world_round_number == 0 && game_tips) {
+	if (world_round_number <= 0 && game_tips) {
 		handle_game_tips();
 	}
 
@@ -996,7 +989,7 @@ void WorldSystem::restart()
 	current_speed = 1.f;
 	health = STARTING_HEALTH;				  //reset health
 	placement_unit_selected = NONE; // no initial selection
-	world_round_number = game_state == sandbox ? -1 : 0;
+	world_round_number = sandbox ? -1 : 0;
 	reward_multiplier = 1;
 	num_bosses_spawned = 0;
 	num_mobs_spawned = 0;
@@ -1082,7 +1075,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 
 	remove_game_tip_and_story_card();
 
-	if (game_state == sandbox) {
+	if (sandbox) {
 		max_mobs = 9999;
 		mob_delay_ms = 100;
 		max_boss = 9999;
@@ -1096,13 +1089,13 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		max_boss = round_json["max_bosses"];
 		boss_delay_ms = round_json["boss_delay_ms"];
 		world_season_str = round_json["season"];
+	}
 
-		if (game_state != help_menu)
-		{
-			game_state = story_card;
-			StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number + 1));
-			TalkyBoi::createTalkyBoiEntt();
-		}
+	if (game_state != help_menu)
+	{
+		game_state = story_card;
+		StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number + 1], std::to_string(round_number + 1));
+		TalkyBoi::createTalkyBoiEntt();
 	}
 
 	int prev_weather = weather;
@@ -1190,9 +1183,6 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 
 	//update wanted board
 	WantedBoard::updateWantedEntries(wanted_board_entity, current_round_monster_types);
-
-	std::cout << std::to_string(round_number) << std::endl;
-	std::cout << std::to_string(world_round_number) << std::endl;
 
 	// update text
 	auto& round_text = registry.get<Text>(round_text_entity);
@@ -2265,6 +2255,7 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 		switch (button_tag)
 		{
 		case (MenuButtonType::new_game_button):
+			sandbox = false;
 			remove_menu_buttons();
 			game_state = help_menu;
 			restart_with_save();
@@ -2272,6 +2263,7 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 			RenderSystem::show_entity(help_menu_entity);
 			break;
 		case (MenuButtonType::load_game_button):
+			sandbox = false;
 			remove_menu_buttons();
 			restart();
 			load_game();
@@ -2288,14 +2280,12 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
 			break;
 		case (MenuButtonType::sandbox_button):
-			game_state = sandbox;
+			sandbox = true;
 			remove_menu_buttons();
-			world_round_number = -1;
 			restart();
 			auto& stage_text = registry.get<Text>(stage_text_entity);
 			stage_text.content = "Sandbox";
 			player_state = set_up_stage;
-			world_round_number = -1;
 			std::cout << "here" << std::endl;
 			break;
 		}
@@ -2645,13 +2635,13 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				if (placement_unit_selected == HUNTER && health >= hunter_unit.cost)
 				{
                     entity = Hunter::createHunter(unit_position);
-					deduct_health(hunter_unit.cost);
+					if (!sandbox) deduct_health(hunter_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == GREENHOUSE && health >= greenhouse_unit.cost)
 				{
 					entity = GreenHouse::createGreenHouse(unit_position);
-					deduct_health(greenhouse_unit.cost);
+					if (!sandbox) deduct_health(greenhouse_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				/*else if (placement_unit_selected == WATCHTOWER && health >= watchtower_unit.cost)
@@ -2663,31 +2653,31 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				else if (placement_unit_selected == EXTERMINATOR && health >= exterminator_unit.cost)
 				{
 					entity = Exterminator::createExterminator(unit_position);
-					deduct_health(exterminator_unit.cost);
+					if (!sandbox) deduct_health(exterminator_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == ROBOT && health >= robot_unit.cost)
 				{
 					entity = Robot::createRobot(unit_position);
-					deduct_health(robot_unit.cost);
+					if (!sandbox) deduct_health(robot_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == PRIESTESS && health >= priestess_unit.cost)
 				{
 					entity = Priestess::createPriestess(unit_position);
-					deduct_health(priestess_unit.cost);
+					if (!sandbox) deduct_health(priestess_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == SNOWMACHINE && health >= snowmachine_unit.cost)
 				{
 					entity = SnowMachine::createSnowMachine(unit_position);
-					deduct_health(snowmachine_unit.cost);
+					if (!sandbox) deduct_health(snowmachine_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == WALL && health >= wall_unit.cost)
 				{
 					entity = Wall::createWall(unit_position/*, false*/);
-					health -= wall_unit.cost;
+					if (!sandbox) health -= wall_unit.cost;
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else

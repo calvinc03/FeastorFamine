@@ -7,6 +7,7 @@
 //enum Story { title_screen, settings, default_menu, help_menu };
 
 static const std::string STORY_TEXT_PER_LEVEL[] = {
+	"Hi there, buddah! Welcome to the@sandbox version of Feast or Famine!@There's lots to do, and lots to learn aboot!@All units are free, you can change the tiles,@and you can spawn units at will. Have fun!",
 	"Mayor, please help us! There are some@horrible monsters approaching! Lay your@defenses so that they don't reach our village!",
 	"Whew, thank you! That was too close.@I feat that's not the last of them, though.@Legend tells of an evil lurking in the forest.@...@What's that in the sky?",
 	"Eagles?!? What will they think of next?@That's all of them for now, but there are@more smaller monsters approaching.@Spring is over, get ready for the heat!",
