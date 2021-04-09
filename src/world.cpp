@@ -58,6 +58,7 @@ const size_t TEXT_APPEAR_SPEED = 20; // lower is faster
 const int STARTING_HEALTH = 1000;
 
 int WorldSystem::health = 1000;
+bool WorldSystem::sandbox = false;
 float WorldSystem::speed_up_factor = 1.f;
 float WorldSystem::reward_multiplier = 1.f;
 GridMap WorldSystem::current_map;
@@ -780,14 +781,15 @@ void WorldSystem::handle_game_tips()
 }
 
 void WorldSystem::deduct_health(int num) {
-	WorldSystem::health -= num;
-	HealthChangeText::create_haelth_deduct_text(num, health);
+	int total_deduction = num * !WorldSystem::sandbox;
+	WorldSystem::health -= total_deduction;
+	HealthChangeText::create_health_deduct_text(total_deduction, health);
 }
 
 
 void WorldSystem::add_health(int num) {
 	WorldSystem::health += num;
-	HealthChangeText::create_haelth_gain_text(num, health);
+	HealthChangeText::create_health_gain_text(num, health);
 }
 
 void un_highlight()
@@ -2635,49 +2637,43 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				if (placement_unit_selected == HUNTER && health >= hunter_unit.cost)
 				{
                     entity = Hunter::createHunter(unit_position);
-					if (!sandbox) deduct_health(hunter_unit.cost);
+					deduct_health(hunter_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == GREENHOUSE && health >= greenhouse_unit.cost)
 				{
 					entity = GreenHouse::createGreenHouse(unit_position);
-					if (!sandbox) deduct_health(greenhouse_unit.cost);
+					deduct_health(greenhouse_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
-				/*else if (placement_unit_selected == WATCHTOWER && health >= watchtower_unit.cost)
-				{
-					entity = WatchTower::createWatchTower(unit_position);
-					deduct_health(watchtower_unit.cost);
-					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
-				}*/
 				else if (placement_unit_selected == EXTERMINATOR && health >= exterminator_unit.cost)
 				{
 					entity = Exterminator::createExterminator(unit_position);
-					if (!sandbox) deduct_health(exterminator_unit.cost);
+					deduct_health(exterminator_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == ROBOT && health >= robot_unit.cost)
 				{
 					entity = Robot::createRobot(unit_position);
-					if (!sandbox) deduct_health(robot_unit.cost);
+					deduct_health(robot_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == PRIESTESS && health >= priestess_unit.cost)
 				{
 					entity = Priestess::createPriestess(unit_position);
-					if (!sandbox) deduct_health(priestess_unit.cost);
+					deduct_health(priestess_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == SNOWMACHINE && health >= snowmachine_unit.cost)
 				{
 					entity = SnowMachine::createSnowMachine(unit_position);
-					if (!sandbox) deduct_health(snowmachine_unit.cost);
+					deduct_health(snowmachine_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == WALL && health >= wall_unit.cost)
 				{
 					entity = Wall::createWall(unit_position/*, false*/);
-					if (!sandbox) health -= wall_unit.cost;
+					deduct_health(wall_unit.cost);
 					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else

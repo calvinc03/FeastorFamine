@@ -105,7 +105,7 @@ public:
 	// game state
 	int game_state;
 	bool game_tips;
-	bool sandbox;
+	static bool sandbox;
 
 	// Particle System
 //    GLuint billboard_vertex_buffer;

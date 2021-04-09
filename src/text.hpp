@@ -165,8 +165,8 @@ struct DisappearingText
 
 struct HealthChangeText
 {
-    static void create_haelth_gain_text(int num, int health);
-    static void create_haelth_deduct_text(int num, int health);
+    static void create_health_gain_text(int num, int health);
+    static void create_health_deduct_text(int num, int health);
 };
 
 struct HitPointsText
