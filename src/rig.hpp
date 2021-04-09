@@ -5,6 +5,9 @@
 #include "entt.hpp"
 #include <vector>
 
+vec2 point_in_world_space(vec2 pos, Transform transform_part, Transform root_transform);
+
+
 struct Chain {
 	entt::entity root;
 	std::vector<entt::entity> chain_vector;
@@ -15,7 +18,7 @@ public:
 	}
 };
 struct Rig { 
-	static entt::entity createPartTextured(std::string name, vec2 offset = { 0,0 }, float angle = 0, vec2 scale = { 1,1 });
+	static entt::entity createPartTextured(entt::entity rigPart, std::string name, vec2 offset = { 0,0 }, float angle = 0, vec2 scale = { 1,1 }, int layer = 22);
 	std::vector< Chain> chains;
 	static entt::entity createPart(entt::entity root_entity, std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0, vec2 scale = {1,1});
 	static void delete_rig(entt::entity character);
@@ -63,6 +66,6 @@ struct Timeline { // per rig time
 };
 
 //temp
-struct Rig_textures {
-	
+struct RigTexture {
+	entt::entity rigPart;
 };
