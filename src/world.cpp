@@ -48,6 +48,8 @@
 #include <units/priestess.hpp>
 #include <units/snowmachine.hpp>
 #include <units/rangecircle.hpp>
+#include <paths.hpp>
+#include <wantedboard.hpp>
 
 const size_t ANIMATION_FPS = 20;
 const size_t SPEAKER_FPS = 10;
@@ -770,10 +772,7 @@ void un_highlight()
 void remove_descriptions()
 {
 	//std::cout << "Hover: " << build_ui.unit_name << "\n";
-	for (auto entity : registry.view<UI_unit_description_card>())
-		registry.destroy(entity);
-
-	for (auto entity : registry.view<UI_selected_description_card>())
+	for (auto entity : registry.view<UI_description_card>())
 		registry.destroy(entity);
 }
 
@@ -858,6 +857,21 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		ParticleSystem::createParticle(velocity, position, life, texture, shader);
 	}
 
+	// set default paths for monster AI for this round
+	if (!set_AI_paths) {
+		for (auto entity : registry.view<Path>())
+			registry.destroy(entity);
+
+		int size = current_round_monster_types.size();
+		int num = 0;
+		for (int monster_type : current_round_monster_types) {
+			default_monster_paths.at(monster_type) = AISystem::MapAI::findPathAStar(current_map, monster_type);
+			Path::createPath(default_monster_paths.at(monster_type), monster_type, size, num);
+			num += 1;
+		}
+		set_AI_paths = true;
+	}
+
 	// remove disapperaing text when time's up 
 	auto view_disappearing_text = registry.view<DisappearingText>();
 	for (auto entity : view_disappearing_text)
@@ -907,10 +921,10 @@ void WorldSystem::start_round()
 	stage_text.content = "BATTLE";
 	stage_text.colour = { 1.0f, 0.1f, 0.1f };
 
-	// set default paths for monster AI for this round
-	for (int monster_type : current_round_monster_types) {
-		default_monster_paths.at(monster_type) = AISystem::MapAI::findPathAStar(current_map, monster_type);
-	}
+	for (auto entity : registry.view<Path>())
+		registry.destroy(entity);
+	set_AI_paths = false;
+
 	std::cout << world_season_str << " season! \n";
 	std::cout << "weather " << weather << " \n";
 }
@@ -997,6 +1011,9 @@ void WorldSystem::restart()
 	// help menu
 	help_menu_entity = Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "help_menu", Menu_texture::help_menu, 98, { 0.5, 0.5 });
 	RenderSystem::hide_entity(help_menu_entity);
+	// wanted board entity
+	wanted_board_entity = WantedBoard::createWantedBoard();
+
 	// create grid map
 	current_map = registry.get<GridMap>(GridMap::createGridMap());
 	village = Village::createVillage(current_map);
@@ -1059,7 +1076,8 @@ void WorldSystem::setup_round_from_round_number(int round_number)
             weather = CLEAR;
         }
         create_boss = SpringBoss::createSpringBossEntt;
-        current_round_monster_types.emplace_back(SPRING_BOSS);
+		if (max_boss > 0)
+			current_round_monster_types.emplace_back(SPRING_BOSS);
     }
     else if (world_season_str == SUMMER_TITLE)
     {
@@ -1073,7 +1091,8 @@ void WorldSystem::setup_round_from_round_number(int round_number)
         }
         //create_boss = SummerBoss::createSummerBossEntt;
 		create_boss =  Spider::createSpider;
-        current_round_monster_types.emplace_back(SPIDER);
+		if (max_boss > 0)
+			current_round_monster_types.emplace_back(SPIDER);
     }
     else if (world_season_str == FALL_TITLE)
     {
@@ -1086,7 +1105,8 @@ void WorldSystem::setup_round_from_round_number(int round_number)
             weather = CLEAR;
         }
         create_boss = FallBoss::createFallBossEntt;
-        current_round_monster_types.emplace_back(FALL_BOSS);
+		if (max_boss > 0)
+			current_round_monster_types.emplace_back(FALL_BOSS);
     }
     else if (world_season_str == WINTER_TITLE)
     {
@@ -1099,7 +1119,8 @@ void WorldSystem::setup_round_from_round_number(int round_number)
             weather = CLEAR;
         }
         create_boss = WinterBoss::createWinterBossEntt;
-        current_round_monster_types.emplace_back(WINTER_BOSS);
+		if (max_boss > 0)
+			current_round_monster_types.emplace_back(WINTER_BOSS);
     }
 	else if (world_season_str == FINAL_TITLE)
 	{
@@ -1123,6 +1144,9 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	if (prev_weather != weather || round_number == 0) {
 	    AISystem::MapAI::setRandomMapWeatherTerrain(current_map, weather);
 	}
+
+	//update wanted board
+	WantedBoard::updateWantedEntries(wanted_board_entity, current_round_monster_types);
 
 	// update text
 	auto& round_text = registry.get<Text>(round_text_entity);
@@ -1295,6 +1319,33 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			}
 		}
 	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_E && game_state == in_game)
+	{
+		auto& board_meshref = registry.get<ShadedMeshRef>(wanted_board_entity);
+		board_meshref.show = !board_meshref.show;
+
+		auto& wantedboard = registry.get<WantedBoard>(wanted_board_entity);
+		auto& title_mesh_ref = registry.get<ShadedMeshRef>(wantedboard.wanted_title);
+		title_mesh_ref.show = !title_mesh_ref.show;
+
+		for (auto entity : wantedboard.wanted_entries)
+		{
+			auto& entries_meshref = registry.get<ShadedMeshRef>(entity);
+			entries_meshref.show = !entries_meshref.show;
+
+			auto& wanted_entries = registry.get<WantedEntry>(entity);
+			for (auto info_entity : wanted_entries.monster_info) {
+				if (registry.has<ShadedMeshRef>(info_entity)) {
+					ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(info_entity);
+					shaded_mesh_ref.show = !shaded_mesh_ref.show;
+				}
+				else if (registry.has<Text>(info_entity)) {
+					registry.get<Text>(info_entity).show = !registry.get<Text>(info_entity).show;
+				}
+			}
+		}
+ 	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P && game_state == in_game) {
 		pause_game();
@@ -1592,42 +1643,23 @@ void camera_control(vec2 mouse_pos)
 	}
 }
 
-// helper for mouse_hover_ui_button
-// show unit description when hover on unit button
-void update_unit_description(entt::entity entity)
-{
-	//std::cout << "Hover: " << build_ui.unit_name << "\n";
-	for (auto card_entity : registry.view<UI_unit_description_card>())
-		registry.destroy(card_entity);
-	UI_unit_description_card::createUI_unit_description_card(entity);
-}
-
-// helper for mouse_hover_ui_button
-// show upgrade description when hover on upgrade button
-void update_upgrade_description(entt::entity entity)
-{
-	for (auto entity : registry.view<UI_selected_description_card>())
-		registry.destroy(entity);
-	UI_selected_description_card::createUI_selected_description_card(entity);
-}
-
 // helper for on_mouse_move
 // check if mouse is on top of unit buttons, and dispaly unit description if it is
 void mouse_hover_ui_button()
 {
 	remove_descriptions();
-	auto view_buttons = registry.view<Button, UI_element, HighlightBool, ShadedMeshRef>();
-	for (auto [entity, button, ui_element, highlight, shadedmeshref] : view_buttons.each()) {
+	auto view_buttons = registry.view<UI_element, HighlightBool, ShadedMeshRef>();
+	for (auto [entity, ui_element, highlight, shadedmeshref] : view_buttons.each()) {
 		if (highlight.highlight && shadedmeshref.show) { // if a button is highlighted and we click -> button was pressed.
 			if (registry.has<UI_build_unit>(entity))
 			{
-				update_unit_description(entity);
+				UI_description_card::create_UI_description_card(entity);
 			}
 			else if (registry.has<UI_selected_unit>(entity))
 			{
 				auto& selected_unit = registry.get<UI_selected_unit>(entity);
 				if (selected_unit.path_num < 3)
-					update_upgrade_description(entity);
+					UI_description_card::create_UI_description_card(entity);
 			}
 			break;
 		}
@@ -1689,6 +1721,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 				registry.destroy(entity_range_circle);
 		}
 	}
+
 	else if (game_state == start_menu)
 	{
 		// hover on title screen buttons, show eyes
@@ -2621,7 +2654,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				}
 				if (can_place_unit) {
 				    auto& motion = registry.get<Motion>(entity);
-                    current_map.setGridOccupancy(node.coord, placement_unit_selected, entity, motion.scale);
+                    current_map.setGridOccupancy(node.coord, placement_unit_selected, entity);
 				}
 				placement_unit_selected = NONE;
 
@@ -2758,7 +2791,7 @@ void WorldSystem::paused_click_handle(double xpos, double ypos, int button, int 
 void WorldSystem::sell_unit(entt::entity &entity)
 {
     auto& motion = registry.get<Motion>(entity);
-    current_map.setGridOccupancy(pixel_to_coord(motion.position), NONE, entity, motion.scale);
+    current_map.setGridOccupancy(pixel_to_coord(motion.position), NONE, entity);
 	// destroy the laser beam when removing robot
 	if (registry.has<Robot>(entity))
 	{
@@ -2910,7 +2943,7 @@ void WorldSystem::load_game()
 		}
 		
 		auto& motion = registry.get<Motion>(entity);
-        current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), type, entity, motion.scale);
+        current_map.setGridOccupancy(pixel_to_coord(vec2(x,y)), type, entity);
 		auto view_unit = registry.view<Unit>();
 		auto &curr_unit = view_unit.get<Unit>(entity);
 		

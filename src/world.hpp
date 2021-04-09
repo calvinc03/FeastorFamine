@@ -170,6 +170,9 @@ private:
 	// animation fps
 	float fps_ms;
 
+	// flag for AI paths
+	bool set_AI_paths = false;
+
 	// season
 	std::string world_season_str;
 
@@ -243,6 +246,7 @@ private:
 	entt::entity pause_menu_entity;
 	entt::entity help_menu_entity;
 	entt::entity title_button_highlight_entity;
+	entt::entity wanted_board_entity;
 
 	unit_type placement_unit_selected;
 	entt::entity entity_selected;

@@ -7,9 +7,9 @@
 #include "units/unit.hpp"
 #include "config/unit_upgrade_description_config.hpp"
 
-struct UI_unit_description_card
+struct UI_description_card
 {
-	static entt::entity createUI_unit_description_card(entt::entity button_entity);
+    static entt::entity create_UI_description_card(entt::entity);
 };
 
 const std::map<int, std::string> unit_name_str = {
@@ -90,10 +90,8 @@ const std::map<int, std::vector<std::string>> unit_description_str = {
     {snowmachine_button, snowmachine_description}
 };
 
-struct UI_selected_description_card
-{
-    static entt::entity createUI_selected_description_card(entt::entity button_entity);
-};
+
+
 
 const std::map<std::string, std::string> upgrade_short_descriptions = {
     {"path_1_upgrade_button_hunter_0", "Damage" },
@@ -261,3 +259,6 @@ const std::map<std::string, std::vector<std::string>> selected_upgrade_descripti
     {"path_2_upgrade_button_wall_1", path_2_upgrade_button_wall_1 },
     {"path_2_upgrade_button_wall_2", path_2_upgrade_button_wall_2 }
 };
+
+
+
