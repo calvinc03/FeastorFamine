@@ -206,11 +206,11 @@ namespace DebugSystem
 				DebugSystem::createPoint(a, 5.0f, vec3(0.1,0.9,0.1));
 	
 				//rig vertices
-				//for (int i = 0; i < mesh_ref.size(); i++) {
-				//	auto& v = mesh_ref[i];
-				//	vec3 g = temp_transform.mat * vec3(v.position.x, v.position.y, 1.0f);
-				//	DebugSystem::createPoint(g, 5.0f);
-				//}
+				for (int i = 0; i < mesh_ref.size(); i++) {
+					auto& v = mesh_ref[i];
+					vec3 g = temp_transform.mat * vec3(v.position.x, v.position.y, 1.0f);
+					DebugSystem::createPoint(g, 5.0f);
+				}
 			}
 		}
 	}
