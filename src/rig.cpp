@@ -1,7 +1,7 @@
 #include "rig.hpp"
 #include <iostream>
 
-vec2 point_in_world_space(vec2 pos, Transform transform_part, Transform root_transform);
+
 Transform parent(Transform parent, Motion child_motion, Motion root_motion);
 void animate_rig_fk_helper(entt::entity character, float elapsed_ms);
 //TODO: find_keyframe function + make it based on elapsed_ms
@@ -40,7 +40,7 @@ entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 of
 }
 
 
-entt::entity Rig::createPartTextured(std::string name, vec2 offset, float angle, vec2 scale)
+entt::entity Rig::createPartTextured(entt::entity rigPart, std::string name, vec2 offset, float angle, vec2 scale, int layer)
 {
     auto entity = registry.create();
 
@@ -54,12 +54,12 @@ entt::entity Rig::createPartTextured(std::string name, vec2 offset, float angle,
 
 
     ShadedMeshRef& mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
-    mesh_ref.layer = 22;
+    mesh_ref.layer = layer;
 
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = angle;
     motion.velocity = { 0, 0 };
-    motion.scale = resource.mesh.original_size * scale;
+    motion.scale = scale; //resource.mesh.original_size * 
     motion.position = offset;
     //motion.scale.y *= -1;
     motion.boundingbox = motion.scale;
@@ -67,7 +67,7 @@ entt::entity Rig::createPartTextured(std::string name, vec2 offset, float angle,
     auto& transform = registry.emplace<Transform>(entity);
     transform.mat = glm::mat3(1.0);
     
-
+    registry.emplace<RigTexture>(entity, rigPart);
 
     return entity;
 }

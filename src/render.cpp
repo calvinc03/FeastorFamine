@@ -117,13 +117,33 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 		const auto& rigPart = registry.get<RigPart>(entity);
 		Motion root_motion = registry.get<Motion>(rigPart.root_entity);
 
+
 		transform.mat = mat3(1.0f);
 		transform.translate(root_motion.position * camera_scale);
 		transform.rotate(root_motion.angle);
 		transform.scale(camera_scale);
 
-		const auto& entity_transform = registry.get<Transform>(entity);
+		auto& entity_transform = registry.get<Transform>(entity);
 		transform.mat = transform.mat * entity_transform.mat;
+		//entity_transform = transform;
+	}
+	else if (registry.has<RigTexture>(entity)) {
+		auto rigPart = registry.get<RigTexture>(entity).rigPart;
+		auto& root_motion = registry.get<Motion>(registry.get<RigPart>(rigPart).root_entity);
+
+		auto& rigPart_motion = registry.get<Motion>(rigPart);
+		auto&  rigTexture_motion = registry.get<Motion>(entity);
+		Transform entity_transform = registry.get<Transform>(rigPart);
+
+		transform.mat = mat3(1.0f);
+		transform.translate(root_motion.position * camera_scale);
+		transform.rotate(root_motion.angle);
+		transform.scale(camera_scale);
+		transform.mat = transform.mat * entity_transform.mat;
+		transform.scale(vec2(1.0f, 1.0f) / rigPart_motion.scale);
+		transform.translate(rigTexture_motion.position);
+		transform.rotate(rigTexture_motion.angle);
+		transform.scale(rigTexture_motion.scale);
 	}
 	else 
 	{
@@ -436,6 +456,11 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 	float ty_ui = -(top_ui + bottom_ui) / (top_ui - bottom_ui);
 	mat3 projection_2D_ui{{sx_ui, 0.f, 0.f}, {0.f, sy_ui, 0.f}, {tx_ui, ty_ui, 1.f}};
 
+	//temp soln - need to render rig parts first...
+	auto view_rigParts = registry.view<RigPart>();
+	for (auto entity : view_rigParts) {
+		drawTexturedMesh(entity, projection_2D);
+	}
 
 	auto view_mesh_ref = registry.view<ShadedMeshRef>();
 	auto view_render_property = registry.view<RenderProperty>();
@@ -476,10 +501,11 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 						drawn_particle = true;
 					}
 				}
-				else
+				else if(!registry.has<RigPart>(entity))
 				{
 					drawTexturedMesh(entity, projection_2D);
 				}
+				
 				if (registry.has<Text>(entity)) {
 
 					auto text = registry.get<Text>(entity);
@@ -490,6 +516,13 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 			}
 		}
 	}
+
+
+	////temp soln
+	//auto view_rigTextures = registry.view<RigTexture>();
+	//for (auto entity : view_rigTextures) {
+	//	drawTexturedMesh(entity, projection_2D);
+	//}
 
 
 	//useful for rendering entities with only text and no ShadedMeshRef
