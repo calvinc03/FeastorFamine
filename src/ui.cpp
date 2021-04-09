@@ -37,6 +37,14 @@ std::string button_to_string(int button) {
 		return "save_button";
 	case tips_button:
 		return "tips_button";
+	case add_monster_button:
+		return "add_monster_button";
+	case rem_monster_button:
+		return "rem_monster_button";
+	case inc_m_speed_button:
+		return "inc_m_speed_button";
+	case dec_m_speed_button:
+		return "dec_m_speed_button";
 	}
 
 	return "no button / invalid button / or this method is broken!";
@@ -151,8 +159,19 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 		else if (button == tips_button) {
 			RenderSystem::createSprite(resource, ui_texture_path("tips_button.png"), "ui");
 		}
+		else if (button == add_monster_button) {
+			RenderSystem::createSprite(resource, ui_texture_path("add_monster_button.png"), "ui");
+		}
+		else if (button == rem_monster_button) {
+			RenderSystem::createSprite(resource, ui_texture_path("remove_monster_button.png"), "ui");
+		}
+		else if (button == inc_m_speed_button) {
+			RenderSystem::createSprite(resource, ui_texture_path("increase_speed_button.png"), "ui");
+		}
+		else if (button == dec_m_speed_button) {
+			RenderSystem::createSprite(resource, ui_texture_path("decrease_speed_button.png"), "ui");
+		}
 	}
-
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
@@ -189,7 +208,6 @@ entt::entity UI_button::createTips_button(vec2 position)
 		RenderSystem::createSprite(resource, ui_texture_path("tips_button.png"), "ui");
 	}
 
-
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
 	shaded_mesh.layer = 91;
@@ -219,7 +237,6 @@ entt::entity UI_button::createWantedBoard_button(vec2 position)
 		resource = ShadedMesh();
 		RenderSystem::createSprite(resource, ui_texture_path("wantedboard_button.png"), "ui");
 	}
-
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
@@ -251,7 +268,6 @@ entt::entity UI_button::createStart_button(vec2 position)
 		RenderSystem::createSprite(resource, ui_texture_path("start_button.png"), "ui");
 	}
 
-
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
 	shaded_mesh.layer = 91;
@@ -281,7 +297,6 @@ entt::entity UI_button::createPause_button(vec2 position)
 		resource = ShadedMesh();
 		RenderSystem::createSprite(resource, ui_texture_path("pause_button.png"), "ui");
 	}
-
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
@@ -313,7 +328,6 @@ entt::entity UI_button::createMore_button(vec2 position)
 		RenderSystem::createSprite(resource, ui_texture_path("more_options.png"), "ui");
 	}
 
-
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
 	shaded_mesh.layer = 91;
@@ -326,6 +340,126 @@ entt::entity UI_button::createMore_button(vec2 position)
 
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, Button::more_options_button);
+	registry.emplace<UI_button>(entity);
+
+
+	return entity;
+}
+
+entt::entity UI_button::create_add_monster_button(vec2 position)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "add_monster_button";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("add_monster_button.png"), "ui");
+	}
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 91;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = key;
+	ui_element.scale = vec2({ 1.7f, 1.7f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.position = position;
+
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, Button::add_monster_button);
+	registry.emplace<UI_button>(entity);
+
+
+	return entity;
+}
+
+entt::entity UI_button::create_rem_monster_button(vec2 position)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "rem_monster_button";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("rem_monster_button.png"), "ui");
+	}
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 91;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = key;
+	ui_element.scale = vec2({ 1.7f, 1.7f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.position = position;
+
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, Button::rem_monster_button);
+	registry.emplace<UI_button>(entity);
+
+
+	return entity;
+}
+
+entt::entity UI_button::create_inc_m_speed_button(vec2 position)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "inc_m_speed_button";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("inc_m_speed_button.png"), "ui");
+	}
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 91;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = key;
+	ui_element.scale = vec2({ 1.7f, 1.7f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.position = position;
+
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, Button::inc_m_speed_button);
+	registry.emplace<UI_button>(entity);
+
+
+	return entity;
+}
+
+entt::entity UI_button::create_dec_m_speed_button(vec2 position)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "dec_m_speed_button";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("dec_m_speed_button.png"), "ui");
+	}
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 91;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = key;
+	ui_element.scale = vec2({ 1.7f, 1.7f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.position = position;
+
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, Button::dec_m_speed_button);
 	registry.emplace<UI_button>(entity);
 
 

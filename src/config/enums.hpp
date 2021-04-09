@@ -88,7 +88,11 @@ enum Button
     wantedboard_button,
     pause_button,
     more_options_button, 
-    fastforward_button
+    fastforward_button,
+    add_monster_button,
+    rem_monster_button,
+    inc_m_speed_button,
+    dec_m_speed_button
 };
 
 // Menu button

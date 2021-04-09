@@ -79,6 +79,14 @@ static const float SANDBOX_BUTTON_Y = 550;
 
 // tips button
 static const vec2 TIPS_GAME_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 25, WINDOW_SIZE_IN_PX.y - 40 };
+// add monster button
+static const vec2 ADD_GAME_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 325, WINDOW_SIZE_IN_PX.y - 40 };
+// rem monster button
+static const vec2 REM_GAME_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 250, WINDOW_SIZE_IN_PX.y - 40 };
+// increase monster speed button
+static const vec2 INC_GAME_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 175, WINDOW_SIZE_IN_PX.y - 40 };
+// decrease monster speed button
+static const vec2 DEC_GAME_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 100, WINDOW_SIZE_IN_PX.y - 40 };
 // wantedboard button
 static const vec2 WANTED_BOARD_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 100, WINDOW_SIZE_IN_PX.y - 40 };
 // start battle button

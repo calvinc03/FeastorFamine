@@ -39,6 +39,10 @@ struct UI_button
 	static entt::entity createStart_button(vec2 pos);
 	static entt::entity createPause_button(vec2 pos);
 	static entt::entity createMore_button(vec2 pos);
+	static entt::entity create_add_monster_button(vec2 pos);
+	static entt::entity create_rem_monster_button(vec2 pos);
+	static entt::entity create_inc_m_speed_button(vec2 pos);
+	static entt::entity create_dec_m_speed_button(vec2 pos);
 	static entt::entity createFastforward_button(vec2 pos);
 	static entt::entity createWantedBoard_button(vec2 pos);
 	static entt::entity createUI_build_unit_button(int pos, Button button, size_t cost = 0, std::string tag = "default_ui_button_tag", bool show = true);
@@ -103,4 +107,3 @@ struct UI_unit_stats
 {
 
 };
-

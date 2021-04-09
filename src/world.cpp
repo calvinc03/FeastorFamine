@@ -1012,42 +1012,57 @@ void WorldSystem::restart()
 	UI_button::createUI_build_unit_button(4, snowmachine_button, unit_cost.at(SNOWMACHINE));
 	UI_button::createUI_build_unit_button(5, green_house_button, unit_cost.at(GREENHOUSE));
 	UI_button::createUI_build_unit_button(6, wall_button, unit_cost.at(WALL));
+
+	if (sandbox) {
+		UI_button::create_add_monster_button(ADD_GAME_BUTTON_POS);
+		UI_button::create_rem_monster_button(REM_GAME_BUTTON_POS);
+		UI_button::create_inc_m_speed_button(INC_GAME_BUTTON_POS);
+		UI_button::create_dec_m_speed_button(DEC_GAME_BUTTON_POS);
+	}
+
 	// general buttons
-	//MenuButton::create_button(TIPS_GAME_BUTTON_X, TIPS_GAME_BUTTON_Y, MenuButtonType::menu_tips_button);
 	UI_button::createTips_button(TIPS_GAME_BUTTON_POS);
 	UI_button::createWantedBoard_button(WANTED_BOARD_BUTTON_POS);
 	UI_button::createStart_button(START_BATTLE_BUTTON_POS);
-	//UI_button::createPause_button(PAUSE_BUTTON_POS);
 	UI_button::createMore_button(MORE_OPTIONS_BUTTON_POS);
 	UI_button::createFastforward_button(FASTFORWARD_BUTTON_POS);
-	//UI_button::createUI_button(8, start_button, START_BUTTON_TITLE);
-	//UI_button::createUI_button(9, save_button, SAVE_BUTTON_TITLE);
+
 	// ui background
 	UI_background::createUI_background();
 	UI_background::createUI_top_bar();
+
 	// season wheel
 	UI_season_wheel::createUI_season_wheel();
 	season_wheel_arrow_entity = UI_season_wheel::createUI_season_wheel_arrow();
+
 	// weather icon
 	weather_icon_entity = UI_weather_icon::createUI_weather_icon();
+
 	// ui text
 	season_text_entity = create_ui_text(vec2(SEASON_X_OFFSET, WINDOW_SIZE_IN_PX.y - SEASON_Y_OFFSET), "Spring", SEASON_SCALE);
 	weather_text_entity = create_ui_text(vec2(WEATHER_TEXT_X_OFFSET, WINDOW_SIZE_IN_PX.y - WEATHER_TEXT_Y_OFFSET), "Clear", WEATHER_TEXT_SCALE);
 	stage_text_entity = create_ui_text(vec2(5, 65), "PREPARE");
+
 	// round label
 	create_ui_text(vec2(ROUND_LABEL_X_OFFSET, WINDOW_SIZE_IN_PX.y - ROUND_LABEL_Y_OFFSET), "Round:          / " + std::to_string(MAX_ROUND_NUMBER), ROUND_LABEL_SCALE);
+
 	// round number text
 	round_text_entity = create_ui_text(vec2(ROUND_NUM_X_OFFSET, WINDOW_SIZE_IN_PX.y - ROUND_NUM_Y_OFFSET), "1", ROUND_NUM_SCALE, { 1.f, 0.f, 0.f });
+
 	// food label
 	create_ui_text(vec2(FOOD_LABEL_X_OFFSET, WINDOW_SIZE_IN_PX.y - FOOD_LABEL_Y_OFFSET), "Food:", FOOD_LABEL_SCALE);
+	
 	// food number text
 	food_text_entity = create_ui_text(vec2(FOOD_NUM_X_OFFSET, WINDOW_SIZE_IN_PX.y - FOOD_NUM_Y_OFFSET), "", FOOD_NUM_SCALE, { 0.f, 1.f, 0.f });
+	
 	// pause menu
 	pause_menu_entity = Menu::createMenu((float)WINDOW_SIZE_IN_PX.x / 2, (float)WINDOW_SIZE_IN_PX.y / 2, "pause_menu", Menu_texture::pause_menu, 90, vec2({ 22.f, 26.f }));
 	registry.get<ShadedMeshRef>(pause_menu_entity).show = false;
+	
 	// help menu
 	help_menu_entity = Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "help_menu", Menu_texture::help_menu, 98, { 0.5, 0.5 });
 	RenderSystem::hide_entity(help_menu_entity);
+	
 	// wanted board entity
 	wanted_board_entity = WantedBoard::createWantedBoard();
 
@@ -1065,8 +1080,6 @@ void WorldSystem::restart()
 
 	// set up variables for first round
 	setup_round_from_round_number(world_round_number);
-
-	//TestRig::createTest();
 }
 
 void WorldSystem::setup_round_from_round_number(int round_number)
@@ -1078,9 +1091,9 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	remove_game_tip_and_story_card();
 
 	if (sandbox) {
-		max_mobs = 9999;
-		mob_delay_ms = 100;
-		max_boss = 9999;
+		max_mobs = 10;
+		mob_delay_ms = 100; 
+		max_boss = 10;
 		boss_delay_ms = 100;
 		world_season_str = "spring";
 
@@ -2502,13 +2515,39 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 	else if (ui_button == Button::tips_button)
 	{
 		game_tips = !game_tips;
-		//std::cout << std::boolalpha;
-		//std::cout << "Game tips: " << game_tips << std::endl;
 	}
 	else if (ui_button == Button::wantedboard_button)
 	{
 		auto board_meshref = registry.get<ShadedMeshRef>(wanted_board_entity);
 		WantedBoard::updateWantedBoardDisplay(wanted_board_entity, !board_meshref.show);
+	}
+	else if (ui_button == Button::add_monster_button)
+	{
+		std::cout << "more mobs" << std::endl;
+		max_mobs++;
+		max_boss++;
+	}
+	else if (ui_button == Button::rem_monster_button)
+	{
+		if (max_mobs > 1 && max_boss > 1) {
+			std::cout << "less mobs" << std::endl;
+			max_mobs--;
+			max_boss--;
+		}
+	}
+	else if (ui_button == Button::inc_m_speed_button)
+	{
+		if (mob_delay_ms > 100 && boss_delay_ms > 100) {
+			std::cout << "increased" << std::endl;
+			mob_delay_ms -= 100;
+			boss_delay_ms -= 100;
+		}
+	}
+	else if (ui_button == Button::dec_m_speed_button)
+	{
+		std::cout << "delayed" << std::endl;
+		mob_delay_ms += 100;
+		boss_delay_ms += 100;
 	}
 }
 
