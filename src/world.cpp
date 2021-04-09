@@ -692,8 +692,12 @@ void WorldSystem::start_victory_screen()
 // called at the end of battle pahse to set up next round
 void WorldSystem::end_battle_phase()
 {
-	world_round_number++;
-
+	if (world_round_number >= 0) {
+		world_round_number++;
+		prepare_setup_stage();
+		return;
+	}
+	
 	if (world_round_number == MAX_ROUND_NUMBER)
 	{
 		start_victory_screen();
@@ -703,6 +707,12 @@ void WorldSystem::end_battle_phase()
 		setup_round_from_round_number(world_round_number);
 		// re-roll some fraction of map for weather terrains
 		int max_rerolls = (int)ceil(0.3 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
+		screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
+		
+		for (auto particle : registry.view<ParticleSystem>()) {
+			registry.destroy(particle);
+		}
+
 		AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
 		player_state = set_up_stage;
 		num_bosses_spawned = 0;
@@ -979,14 +989,13 @@ void destroy_entity(const entt::entity entity)
 
 void WorldSystem::restart()
 {
-		
 	std::cout << "Restarting\n";
 
 	// Reset the game state
 	current_speed = 1.f;
 	health = STARTING_HEALTH;				  //reset health
 	placement_unit_selected = NONE; // no initial selection
-	world_round_number = 0;
+	world_round_number = game_state == sandbox ? -1 : 0;
 	reward_multiplier = 1;
 	num_bosses_spawned = 0;
 	num_mobs_spawned = 0;
@@ -1059,7 +1068,7 @@ void WorldSystem::restart()
 	camera = Camera::createCamera();
 
 	// set up variables for first round
-	setup_round_from_round_number(0);
+	setup_round_from_round_number(world_round_number);
 
 	//TestRig::createTest();
 }
@@ -1070,23 +1079,32 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	stage_text.content = "PREPARE";
 	stage_text.colour = { 1.0f, 1.0f, 1.0f };
 
-	nlohmann::json round_json = get_json(INPUT_PATH + std::to_string(round_number) + JSON_EXTENSION);
-	max_mobs = round_json["max_mobs"];
-	mob_delay_ms = round_json["mob_delay_ms"];
-	max_boss = round_json["max_bosses"];
-	boss_delay_ms = round_json["boss_delay_ms"];
-	world_season_str = round_json["season"];
-	int prev_weather = weather;
-
 	remove_game_tip_and_story_card();
 
-	if (game_state != help_menu)
-	{
-		game_state = story_card;
-		StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number + 1));
-		TalkyBoi::createTalkyBoiEntt();
+	if (game_state == sandbox) {
+		max_mobs = 9999;
+		mob_delay_ms = 100;
+		max_boss = 9999;
+		boss_delay_ms = 100;
+		world_season_str = "spring";
+	}
+	else {
+		nlohmann::json round_json = get_json(INPUT_PATH + std::to_string(round_number) + JSON_EXTENSION);
+		max_mobs = round_json["max_mobs"];
+		mob_delay_ms = round_json["mob_delay_ms"];
+		max_boss = round_json["max_bosses"];
+		boss_delay_ms = round_json["boss_delay_ms"];
+		world_season_str = round_json["season"];
+
+		if (game_state != help_menu)
+		{
+			game_state = story_card;
+			StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number], std::to_string(round_number + 1));
+			TalkyBoi::createTalkyBoiEntt();
+		}
 	}
 
+	int prev_weather = weather;
     current_round_monster_types.clear();
     current_round_monster_types.emplace_back(MOB);
     if (world_season_str == SPRING_TITLE)
@@ -1171,6 +1189,9 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 
 	//update wanted board
 	WantedBoard::updateWantedEntries(wanted_board_entity, current_round_monster_types);
+
+	std::cout << std::to_string(round_number) << std::endl;
+	std::cout << std::to_string(world_round_number) << std::endl;
 
 	// update text
 	auto& round_text = registry.get<Text>(round_text_entity);
@@ -2266,12 +2287,15 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
 			break;
 		case (MenuButtonType::sandbox_button):
-			remove_menu_buttons();
-			restart();
 			game_state = sandbox;
+			remove_menu_buttons();
+			world_round_number = -1;
+			restart();
 			auto& stage_text = registry.get<Text>(stage_text_entity);
 			stage_text.content = "Sandbox";
 			player_state = set_up_stage;
+			world_round_number = -1;
+			std::cout << "here" << std::endl;
 			break;
 		}
 	}	
