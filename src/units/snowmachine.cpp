@@ -24,6 +24,7 @@ entt::entity SnowMachine::createSnowMachine(vec2 pos)
     motion.position = pos;
     // Then we scale it to whatever size is needed
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
+    motion.standing = true;
 
     auto& unit = registry.emplace<Unit>(entity);
     unit = snowmachine_unit;
