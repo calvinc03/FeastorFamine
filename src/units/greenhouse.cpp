@@ -25,7 +25,7 @@ entt::entity GreenHouse::createGreenHouse(vec2 pos)
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame_num = 3.f;
-    animate.update_interval = 10;
+    animate.update_interval = 40;
 
     // Initialize the position component
     auto& motion = registry.emplace<Motion>(entity);
