@@ -31,7 +31,7 @@ entt::entity  DragonRig::createDragon() {
 
     auto wing = Rig::createPart(entity, "arm_simple", vec2(0,0), vec2(0, -0.5), 3.14f); // position offset, origin, angle
 
-    auto arm = Rig::createPart(entity, "arm_simple", vec2(0,0.8), vec2(0, -0.5f), 0);
+    auto outer_arm = Rig::createPart(entity, "arm_simple", vec2(0,0.8), vec2(0, -0.5f), 0);
 
     auto mouth = Rig::createPart(entity, "arm_simple", vec2(0,-0.1), vec2(0, 0.5f), 3.14 / 2.0f);
 
@@ -40,7 +40,7 @@ entt::entity  DragonRig::createDragon() {
     rig.chains.push_back(Chain(entity, { body }));
     rig.chains.push_back(Chain(body, { neck, head }));
     rig.chains.push_back(Chain(body, { wing })); 
-    rig.chains.push_back(Chain(body, { arm }));
+    rig.chains.push_back(Chain(body, { outer_arm }));
 
     rig.chains.push_back(Chain(head, { mouth }));
 
@@ -59,14 +59,14 @@ entt::entity  DragonRig::createDragon() {
     auto neck_texture = Rig::createPartTextured(neck, DRAGON_NECK, vec2(0, 0), 2.0f, 1.5f * vec2(1, 1), 21);
     auto body_texture = Rig::createPartTextured(body, DRAGON_BODY, vec2(0, 0), 0.0f, 2.0f * vec2(1, 1), 20);
     auto wing_texture = Rig::createPartTextured(wing, DRAGON_OUTERWING, vec2(0, 0.5f), 3.10f,2.0f* vec2(1, 1), 22);
-    auto arm_texture = Rig::createPartTextured(arm, DRAGON_OUTERPAW, vec2(0, 0), 1.0f, vec2(1, 1), 24);
+    auto arm_texture = Rig::createPartTextured(outer_arm, DRAGON_OUTERPAW, vec2(0, 0), 1.0f, vec2(1, 1), 24);
 
 
-    auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = 5000;
-    monster.health = monster.max_health;
-    monster.damage = 0;
-    monster.reward = 10000;
+    //auto& monster = registry.emplace<Monster>(entity);
+    //monster.max_health = 5000;
+    //monster.health = monster.max_health;
+    //monster.damage = 0;
+    //monster.reward = 10000;
 
     registry.emplace<DragonRig>(entity);
     registry.emplace<HitReaction>(entity);
@@ -75,6 +75,9 @@ entt::entity  DragonRig::createDragon() {
     transform.mat = glm::mat3(1.0);
 
     RigSystem::update_rig(entity);
+
+    RopeRig::createRope(neck, 10, vec2(100, 0));
+    
     return entity;
 }
 

@@ -8,7 +8,7 @@
 #include "rig.hpp"
 #include <monsters/spider.hpp>
 #include <particle.hpp>
-
+#include "rope.hpp"
 const size_t POTENTIAL_COLLISION_RANGE = 150;
 
 // Returns the local bounding coordinates scaled by the current size of the entity 
@@ -239,6 +239,13 @@ void PhysicsSystem::step(float elapsed_ms)
 		}
 	}
 
+	//rope rig constraint updates
+	auto view_ropeRigs = registry.view<RopeRig>();
+	for (auto entity : view_ropeRigs) {
+		RopeSystem::update_physics(entity, elapsed_ms);
+		RopeSystem::update_rig(entity);
+	
+	}
 
 	if (DebugSystem::in_debug_mode)
 	{
