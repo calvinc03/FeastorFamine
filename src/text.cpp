@@ -587,7 +587,7 @@ unsigned GetNumberOfDigits(unsigned i)
 }
 
 
-void HealthChangeText::create_haelth_gain_text(int num, int health)
+void HealthChangeText::create_health_gain_text(int num, int health)
 {
     int health_text_num = (int)registry.view<HealthChangeText>().size();
     float on_screen_time_ms = 400;
@@ -600,7 +600,7 @@ void HealthChangeText::create_haelth_gain_text(int num, int health)
     registry.emplace<HealthChangeText>(d_text);
 }
 
-void HealthChangeText::create_haelth_deduct_text(int num, int health)
+void HealthChangeText::create_health_deduct_text(int num, int health)
 {
     int health_text_num = (int)registry.view<HealthChangeText>().size();
     float on_screen_time_ms = 400;

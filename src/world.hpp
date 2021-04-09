@@ -105,6 +105,7 @@ public:
 	// game state
 	int game_state;
 	bool game_tips;
+	static bool sandbox;
 
 	// Particle System
 //    GLuint billboard_vertex_buffer;
@@ -118,7 +119,6 @@ public:
 		settings_menu,
 		help_menu,
 		story_card,
-		sandbox,
 		paused,
 		darken_screen,
 		lost_game_screen,

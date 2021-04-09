@@ -84,7 +84,7 @@ int main()
 
 		DebugSystem::clearDebugComponents();
 		HealthSystem::updateHealthComponents(elapsed_ms);
-		if (world.game_state == WorldSystem::story_card || world.game_state == WorldSystem::sandbox) {
+		if (world.game_state == WorldSystem::story_card) {
 			world.animate_speaker(elapsed_ms * world.speed_up_factor);
 		}
 		else if (world.game_state == WorldSystem::in_game) {
