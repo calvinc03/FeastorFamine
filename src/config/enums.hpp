@@ -107,14 +107,3 @@ enum MenuButtonType
     menu_save_button,
     sandbox_button
 };
-//enum directions
-//{
-//    UP,
-//    DOWN,
-//    LEFT,
-//    RIGHT,
-//    UL,
-//    UR,
-//    LL,
-//    LR,
-//};

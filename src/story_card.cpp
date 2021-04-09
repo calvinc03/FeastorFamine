@@ -47,27 +47,6 @@ StoryCard::StoryCard(std::string story_card_text, std::string level_number)
 	base.x_offset = pos.x + STORY_TEXT_X_OFFSET;
 	base.font = font;
 	base.card_text = story_card_text;
-	
-	/*
-	while (story_card_text.length() > 0) {
-
-		int delimiter_pos = (int)story_card_text.find(DELIMITER);
-		if (delimiter_pos == std::string::npos) {
-			delimiter_pos = (int)story_card_text.length();
-		}
-
-		std::string line_string = story_card_text.substr(0, delimiter_pos);
-		for (int i = 0; i < line_string.length(); i++) {
-			auto story_text_entity = registry.create();
-			auto& t_story = registry.emplace<Text>(story_text_entity, Text(std::string(1, line_string.at(i)), font, vec2(x_offset + i * KERNING, line_offset)));
-			t_story.scale = story_text_scale;
-			t_story.colour = { 1.0f, 1.0f, 1.0f };
-			registry.emplace<StoryCardText>(story_text_entity);
-		}
-		line_offset -= LINE_SPACING;
-
-		story_card_text.erase(0, delimiter_pos + DELIMITER.length());
-	}*/
 }
 
 void StoryCardBase::write_character()

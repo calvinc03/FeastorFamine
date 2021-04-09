@@ -39,6 +39,8 @@ entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_t
 			case restart_round_button:
 				texture_file_name = "empty_button.png";
 				break;
+			case sandbox_button:
+				texture_file_name = "sandbox_button.png";
 			default:
 				texture_file_name = "empty_button.png";
 				break;

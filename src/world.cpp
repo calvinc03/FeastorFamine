@@ -1078,15 +1078,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	world_season_str = round_json["season"];
 	int prev_weather = weather;
 
-	for (auto& story_card : registry.view<StoryCardBase>())
-	{
-		registry.destroy(story_card);
-	}
-
-	for (auto entity : registry.view<StoryCardText>())
-	{
-		registry.destroy(entity);
-	}
+	remove_game_tip_and_story_card();
 
 	if (game_state != help_menu)
 	{
@@ -2012,7 +2004,7 @@ void WorldSystem::on_mouse_click(int button, int action, int mod)
 	glfwGetCursorPos(window, &xpos, &ypos);
 
 	if (game_tips) {
-		remove_game_tip();
+		remove_game_tip_and_story_card();
 	}
   
 	switch (game_state)
@@ -2097,18 +2089,7 @@ void WorldSystem::story_card_click_handle(double mouse_pos_x, double mouse_pos_y
 {
 	if (action == GLFW_PRESS)
 	{
-		for (auto entity : registry.view<StoryCardBase>())
-		{
-			registry.destroy(entity);
-		}
-		for (auto& talky_boi : registry.view<TalkyBoi>())
-		{
-			registry.destroy(talky_boi);
-		}
-		for (auto entity : registry.view<StoryCardText>())
-		{
-			registry.destroy(entity);
-		}
+		remove_game_tip_and_story_card();
 		game_state = in_game;
 	}
 	// avoid 'unreferenced formal parameter' warning message
@@ -2118,10 +2099,22 @@ void WorldSystem::story_card_click_handle(double mouse_pos_x, double mouse_pos_y
 	(void)mod;
 }
 
-void WorldSystem::remove_game_tip()
+void WorldSystem::remove_game_tip_and_story_card()
 {
 	auto tip_card_view = registry.view<TipCard>();
 	for (auto entity : tip_card_view)
+	{
+		registry.destroy(entity);
+	}
+	for (auto entity : registry.view<StoryCardBase>())
+	{
+		registry.destroy(entity);
+	}
+	for (auto& talky_boi : registry.view<TalkyBoi>())
+	{
+		registry.destroy(talky_boi);
+	}
+	for (auto entity : registry.view<StoryCardText>())
 	{
 		registry.destroy(entity);
 	}
@@ -2276,6 +2269,9 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 			remove_menu_buttons();
 			restart();
 			game_state = sandbox;
+			auto& stage_text = registry.get<Text>(stage_text_entity);
+			stage_text.content = "Sandbox";
+			player_state = set_up_stage;
 			break;
 		}
 	}	
@@ -2350,6 +2346,7 @@ void WorldSystem::create_start_menu()
 	MenuButton::create_button(LOAD_GAME_BUTTON_X, LOAD_GAME_BUTTON_Y, MenuButtonType::load_game_button, "", { 1.2f, 1.2f });
 	MenuButton::create_button(TITLE_HELP_BUTTON_X, TITLE_HELP_BUTTON_Y, MenuButtonType::title_help_button, "", { 1.2f, 1.2f }, TITLE_HELP_BUTTON_ANGLE);
 	MenuButton::create_button(TITLE_EXIT_BUTTON_X, TITLE_EXIT_BUTTON_Y, MenuButtonType::title_exit_button, "", { 1.2f, 1.2f });
+	MenuButton::create_button(SANDBOX_BUTTON_X, SANDBOX_BUTTON_Y, MenuButtonType::sandbox_button, "", { 1.2f, 1.2f });
 	title_button_highlight_entity = MenuButton::create_button_arrow();
 	// blinking eyes
 	std::vector<vec2> locations = { vec2({984, 442}), vec2({891, 429}), vec2({851, 427}), vec2({764, 434}), vec2({719, 435}),
@@ -2828,7 +2825,7 @@ void WorldSystem::paused_click_handle(double xpos, double ypos, int button, int 
 		else
 		{
 			// remove game tips if exist
-			remove_game_tip();
+			remove_game_tip_and_story_card();
 			resume_game();
 		}
 	}

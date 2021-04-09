@@ -164,7 +164,7 @@ private:
 	void init_audio();
 
 	// remove game tip
-	void remove_game_tip();
+	void remove_game_tip_and_story_card();
 
 	void handle_game_tips();
 
