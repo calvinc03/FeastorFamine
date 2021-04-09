@@ -638,7 +638,7 @@ entt::entity UI_sell_button::createUI_sell_button(int pos, Button button, std::s
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = tag;
 	ui_element.scale = static_cast<vec2>(resource.texture.size);
-	ui_element.position = vec2(155 + pos * (ui_element.scale.x + 10), WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
+	ui_element.position = vec2(230 + pos * (ui_element.scale.x), WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
 
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);

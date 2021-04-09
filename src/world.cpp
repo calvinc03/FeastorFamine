@@ -1935,6 +1935,7 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 		auto view_selectable = registry.view<Selectable>();
 		// get the selected unit
 		Unit selected_unit;
+		bool wall_or_greenhouse = false;
 		for (auto entity : view_selectable)
 		{
 			if (view_selectable.get<Selectable>(entity).selected)
@@ -1944,6 +1945,7 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 				previous_selected = entity;
 				auto& motion = registry.get<Motion>(entity);
 				selected_range_circle = RangeCircle::createRangeCircle(motion.position, selected_unit.attack_range);
+				wall_or_greenhouse = registry.has<Wall>(entity) || registry.has<GreenHouse>(entity);
 			}
 		}
 
@@ -1951,8 +1953,9 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 			remove_selected_unit_buttons();
 
 			upgrade_button_1 = UI_selected_unit::createUI_selected_unit_upgrade_button(2, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE, selected_unit.type, selected_unit.path_1_upgrade);
-			upgrade_button_2 = UI_selected_unit::createUI_selected_unit_upgrade_button(3, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE, selected_unit.type, selected_unit.path_2_upgrade);
-			button_sell = UI_sell_button::createUI_sell_button(5, sell_button, SELL_BUTTON_TITLE);
+			if (!wall_or_greenhouse)
+				upgrade_button_2 = UI_selected_unit::createUI_selected_unit_upgrade_button(3, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE, selected_unit.type, selected_unit.path_2_upgrade);
+			button_sell = UI_sell_button::createUI_sell_button(4, sell_button, SELL_BUTTON_TITLE);
 			selected_view_change = false;
 		}
 
@@ -1961,9 +1964,12 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 			registry.remove<HighlightBool>(upgrade_button_1);
 		}
 		
-		update_selected_button(upgrade_button_2, selected_unit);
-		if (registry.has<HighlightBool>(upgrade_button_2) && selected_unit.path_2_upgrade >= 3) {
-			registry.remove<HighlightBool>(upgrade_button_2);
+		if (!wall_or_greenhouse)
+		{
+			update_selected_button(upgrade_button_2, selected_unit);
+			if (registry.has<HighlightBool>(upgrade_button_2) && selected_unit.path_2_upgrade >= 3) {
+				registry.remove<HighlightBool>(upgrade_button_2);
+			}
 		}
 
 		update_sell_button_text(button_sell, selected_unit.sell_price);
