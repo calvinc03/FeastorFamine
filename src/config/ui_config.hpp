@@ -77,6 +77,8 @@ static const float TITLE_EXIT_BUTTON_Y = 613;
 
 // tips button
 static const vec2 TIPS_GAME_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 25, WINDOW_SIZE_IN_PX.y - 40 };
+// wantedboard button
+static const vec2 WANTED_BOARD_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 100, WINDOW_SIZE_IN_PX.y - 40 };
 // start battle button
 static const vec2 START_BATTLE_BUTTON_POS = { 40,  WINDOW_SIZE_IN_PX.y - 40 };
 // puase game button

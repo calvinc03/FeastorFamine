@@ -85,6 +85,7 @@ enum Button
     sell_button,
     start_button,
     tips_button,
+    wantedboard_button,
     pause_button,
     more_options_button, 
     fastforward_button

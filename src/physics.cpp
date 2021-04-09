@@ -9,7 +9,7 @@
 #include <monsters/spider.hpp>
 #include <particle.hpp>
 
-const size_t POTENTIAL_COLLISION_RANGE = 200;
+const size_t POTENTIAL_COLLISION_RANGE = 150;
 
 // Returns the local bounding coordinates scaled by the current size of the entity 
 vec2 get_bounding_box(const Motion& motion)
