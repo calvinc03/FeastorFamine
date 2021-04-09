@@ -55,10 +55,8 @@ void Priestess::updateBuffs() {
             {
                 largest_damage_buff = largest_damage_buff < priestess_unit.damage ? priestess_unit.damage : largest_damage_buff;
                 largest_attack_speed_buff = largest_attack_speed_buff < priestess_unit.attack_interval_ms ? priestess_unit.attack_interval_ms : largest_attack_speed_buff;
-                std::cout << largest_attack_speed_buff << "\n";
             }
         }
-        std::cout << largest_attack_speed_buff << "\n";
         auto& unit = registry.get<Unit>(e_unit);
         unit.damage_buff = largest_damage_buff;
         unit.attack_speed_buff = largest_attack_speed_buff;

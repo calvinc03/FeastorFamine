@@ -2494,8 +2494,8 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 	else if (ui_button == Button::tips_button)
 	{
 		game_tips = !game_tips;
-		std::cout << std::boolalpha;
-		std::cout << "Game tips: " << game_tips << std::endl;
+		//std::cout << std::boolalpha;
+		//std::cout << "Game tips: " << game_tips << std::endl;
 	}
 	else if (ui_button == Button::wantedboard_button)
 	{
@@ -2677,6 +2677,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				if (can_place_unit) {
 				    auto& motion = registry.get<Motion>(entity);
                     current_map.setGridOccupancy(node.coord, placement_unit_selected, entity);
+					set_AI_paths = false;
 				}
 				placement_unit_selected = NONE;
 
