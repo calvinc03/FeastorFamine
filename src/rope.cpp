@@ -4,7 +4,7 @@ const std::string link= "monsters/dragon_rig/chain_link.png";
 entt::entity RopeRig::createRope(vec2 start, int length) {
 
     for (int i = 0; i < length; i++) {
-        createRopePart();
+        createRopePart(start + vec2(i,i));
     }
 }
 
