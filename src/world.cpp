@@ -253,9 +253,9 @@ void WorldSystem::step(float elapsed_ms)
 			for (auto entity : registry.view<Animate>())
 			{
 				auto& animate = registry.get<Animate>(entity);
-				animate.update_interval--;
-				if(animate.update_interval <= 0) {
-					animate.update_interval = animate.update_interval;
+				animate.next_update -= 1;
+				if(animate.next_update <= 0) {
+					animate.next_update = animate.update_interval;
 					animate.frame += 1;
 					animate.frame = (int)animate.frame % (int)animate.frame_num;
 				}
