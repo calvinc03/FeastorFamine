@@ -448,6 +448,20 @@ void WorldSystem::step(float elapsed_ms)
 			}
 		}
 
+		// change slow text y position
+		auto view_slow_text = registry.view<SlowHitText>();
+		for (auto entity : view_slow_text)
+		{
+			auto& slow_text = view_slow_text.get<SlowHitText>(entity);
+			auto& text = registry.get<Text>(entity);
+			float delta_y = 0.05 * elapsed_ms * current_speed;
+			if (slow_text.y_distance > 0)
+			{
+				text.position.y += delta_y;
+				slow_text.y_distance -= delta_y;
+			}
+		}
+
 		auto& food_num_text = registry.get<Text>(food_text_entity);
 		food_num_text.content = std::to_string(health);
 
@@ -1240,18 +1254,19 @@ void WorldSystem::damage_monster_helper(entt::entity e_monster, int damage, bool
 		monster.speed_multiplier *= ((100 - max_slow) / 100);
 		damage_properties.current_slow = max_slow;
 		// add hit point text
-		HitPointsText::create_hit_points_text(damage, e_monster, {0.f, 0.f, 1.f});
+		SlowHitText::create_slow_hit_text(damage, e_monster, {0.f, 1.f, 1.f});
 	}
 	else {
 		monster.health -= damage;
 		// add hit point text
 		HitPointsText::create_hit_points_text(damage, e_monster, { 1.f, 0.f, 0.f });
+		// health bar
+		auto& hit_reaction = registry.get<HitReaction>(e_monster);
+		hit_reaction.counter_ms = 750; //ms duration used by health bar
 	}
 	
 	monster.collided = true;
 
-	auto& hit_reaction = registry.get<HitReaction>(e_monster);
-	hit_reaction.counter_ms = 750; //ms duration used by health bar
 
 	if (monster.health <= 0)
 	{

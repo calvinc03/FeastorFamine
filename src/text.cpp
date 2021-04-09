@@ -555,6 +555,25 @@ entt::entity DisappearingText::createDisappearingText(std::shared_ptr<TextFont> 
     return entity;
 }
 
+// slow hit text
+void SlowHitText::create_slow_hit_text(int slow_number, entt::entity e_damaged, vec3 color)
+{
+    auto motion = registry.get<Motion>(e_damaged);
+    float on_screen_time_ms = 200;
+    float text_scale = 0.4f;
+    auto closeness_outline = TextFont::load("data/fonts/Closeness/closeness.outline-regular.ttf");
+    auto closeness_regular = TextFont::load("data/fonts/Closeness/closeness.regular.ttf");
+    vec3 text_colour = color;
+    vec3 outline_colour = { 0.f, 0.f, 0.f };
+    //std::string slow_text_string = "slow";
+    std::string slow_text_string = "slow";
+    auto d_text_outline = DisappearingText::createDisappearingText(closeness_outline, slow_text_string, motion.position, on_screen_time_ms, text_scale, outline_colour);
+    auto d_text = DisappearingText::createDisappearingText(closeness_regular, slow_text_string, motion.position, on_screen_time_ms, text_scale, text_colour);
+    auto& slow_hit_text = registry.emplace<SlowHitText>(d_text);
+    slow_hit_text.y_distance = 20;
+    auto& slow_hit_outline = registry.emplace<SlowHitText>(d_text_outline);
+    slow_hit_outline.y_distance = 20;
+}
 
 // create hit points when projectile hits monsters
 void HitPointsText::create_hit_points_text(int hit_points, entt::entity e_damaged, vec3 color)
