@@ -4,10 +4,8 @@
 
 const std::string WALK_SPRITE = "monsters/final/fireball.png";
 const std::string ATTACK_SPRITE = "NA";
-const std::string DEATH_SPRITE = "NA";
 const int WALK_FRAMES = 3;
 const int ATTACK_FRAMES = 0;
-const int DEATH_FRAMES = 0;
 
 entt::entity FireballBoss::createFireballBossEntt()
 {
@@ -50,10 +48,6 @@ entt::entity FireballBoss::createFireballBossEntt()
     monster.attack_sprite = ATTACK_SPRITE;
     monster.walk_frames = WALK_FRAMES;
     monster.walk_sprite = WALK_SPRITE;
-    monster.run_frames = WALK_FRAMES;
-    monster.run_sprite = WALK_SPRITE;
-    monster.death_frames = DEATH_FRAMES;
-    monster.death_sprite = DEATH_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0;

@@ -8,7 +8,6 @@ const size_t DEATH_FRAMES = 1.f;
 const std::string DIR = "monsters/mob/";
 const std::string WALK_SPRITE = DIR + "rabbit_walk.png";
 const std::string ATTACK_SPRITE = DIR + "rabbit_attack.png";
-const std::string DEATH_SPRITE = DIR + "rabbit_death.png";
 
 entt::entity Mob::createMobEntt()
 {
@@ -33,7 +32,7 @@ entt::entity Mob::createMobEntt()
     motion.angle = 0.f;
     motion.velocity = grid_to_pixel_velocity(vec2(2.5f, 0));
     motion.position = coord_to_pixel(FOREST_COORD);
-    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 0.5, WALK_FRAMES);
+    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 0.8, WALK_FRAMES);
     // temporary fix
     //motion.boundingbox = vec2({ motion.scale.x , motion.scale.y });
     motion.boundingbox = vec2({ motion.scale.x*0.13f , motion.scale.y });
@@ -49,10 +48,6 @@ entt::entity Mob::createMobEntt()
     monster.attack_sprite = ATTACK_SPRITE;
     monster.walk_frames = WALK_FRAMES;
     monster.walk_sprite = WALK_SPRITE;
-    monster.run_frames = WALK_FRAMES;
-    monster.run_sprite = WALK_SPRITE;
-    monster.death_frames = DEATH_FRAMES;
-    monster.death_sprite = DEATH_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0;
