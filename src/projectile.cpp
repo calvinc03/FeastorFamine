@@ -60,7 +60,7 @@ entt::entity Snowball::createSnowball(entt::entity e_unit, entt::entity e_monste
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, projectiles_texture_path("rock.png"), "textured");
+        RenderSystem::createSprite(resource, projectiles_texture_path("snow.png"), "textured");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
