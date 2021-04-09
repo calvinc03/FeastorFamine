@@ -692,11 +692,12 @@ void WorldSystem::start_victory_screen()
 // called at the end of battle pahse to set up next round
 void WorldSystem::end_battle_phase()
 {
-	if (world_round_number >= 0) {
-		world_round_number++;
+	if (world_round_number < 0) {
 		prepare_setup_stage();
 		return;
 	}
+
+	world_round_number++;
 	
 	if (world_round_number == MAX_ROUND_NUMBER)
 	{
