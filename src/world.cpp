@@ -1092,9 +1092,9 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 
 	if (sandbox) {
 		max_mobs = 10;
-		mob_delay_ms = 100; 
+		mob_delay_ms = 1000; 
 		max_boss = 10;
-		boss_delay_ms = 100;
+		boss_delay_ms = 1000;
 		world_season_str = "spring";
 
 		auto& stage_text = registry.get<Text>(stage_text_entity);
