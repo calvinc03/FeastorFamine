@@ -5,6 +5,7 @@
 struct WantedBoard {
 	static entt::entity createWantedBoard();
     static void updateWantedEntries(entt::entity wanted_board, std::vector<int> current_round_monster_types);
+    static void updateWantedBoardDisplay(entt::entity wanted_board_entity, bool show);
     entt::entity wanted_title;
     std::vector<entt::entity> wanted_entries;
 };

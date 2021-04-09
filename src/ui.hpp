@@ -40,6 +40,7 @@ struct UI_button
 	static entt::entity createPause_button(vec2 pos);
 	static entt::entity createMore_button(vec2 pos);
 	static entt::entity createFastforward_button(vec2 pos);
+	static entt::entity createWantedBoard_button(vec2 pos);
 	static entt::entity createUI_build_unit_button(int pos, Button button, size_t cost = 0, std::string tag = "default_ui_button_tag", bool show = true);
 	static entt::entity createUI_button(int pos, Button button, std::string tag = "default_ui_button_tag", bool show = true);
 	// wrapper for buttons that shows up when a unit is selected

@@ -25,7 +25,7 @@ entt::entity WantedBoard::createWantedBoard() {
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "wanted_board";
 	ui_element.scale = static_cast<vec2>(resource.texture.size);
-	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x /2 , WINDOW_SIZE_IN_PX.y / 2);
+	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x /2 , WINDOW_SIZE_IN_PX.y / 2 - 5);
 	
 	auto& board = registry.emplace<WantedBoard>(entity);
 
@@ -54,6 +54,32 @@ entt::entity WantedTitle::createWantedSign() {
 	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x / 2, ui_element.scale.y / 2 + UI_TOP_BAR_HEIGHT + 30);
 
 	return entity;
+}
+
+void WantedBoard::updateWantedBoardDisplay(entt::entity wanted_board_entity, bool show) {
+	auto& board_meshref = registry.get<ShadedMeshRef>(wanted_board_entity);
+	board_meshref.show = show;
+
+	auto& wantedboard = registry.get<WantedBoard>(wanted_board_entity);
+	auto& title_mesh_ref = registry.get<ShadedMeshRef>(wantedboard.wanted_title);
+	title_mesh_ref.show = show;
+
+	for (auto entity : wantedboard.wanted_entries)
+	{
+		auto& entries_meshref = registry.get<ShadedMeshRef>(entity);
+		entries_meshref.show = show;
+
+		auto& wanted_entries = registry.get<WantedEntry>(entity);
+		for (auto info_entity : wanted_entries.monster_info) {
+			if (registry.has<ShadedMeshRef>(info_entity)) {
+				ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(info_entity);
+				shaded_mesh_ref.show = show;
+			}
+			else if (registry.has<Text>(info_entity)) {
+				registry.get<Text>(info_entity).show = show;
+			}
+		}
+	}
 }
 
 void WantedBoard::updateWantedEntries(entt::entity wanted_board, std::vector<int> current_round_monster_types)

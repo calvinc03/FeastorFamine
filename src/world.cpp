@@ -912,6 +912,9 @@ void WorldSystem::start_round()
 			RenderSystem::show_entity(entity);
 		}
 	}
+
+	WantedBoard::updateWantedBoardDisplay(wanted_board_entity, false);
+
 	player_state = battle_stage;
 	next_mob_spawn = 0;
 	next_boss_spawn = 0;
@@ -979,6 +982,7 @@ void WorldSystem::restart()
 	// general buttons
 	//MenuButton::create_button(TIPS_GAME_BUTTON_X, TIPS_GAME_BUTTON_Y, MenuButtonType::menu_tips_button);
 	UI_button::createTips_button(TIPS_GAME_BUTTON_POS);
+	UI_button::createWantedBoard_button(WANTED_BOARD_BUTTON_POS);
 	UI_button::createStart_button(START_BATTLE_BUTTON_POS);
 	//UI_button::createPause_button(PAUSE_BUTTON_POS);
 	UI_button::createMore_button(MORE_OPTIONS_BUTTON_POS);
@@ -1319,33 +1323,6 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			}
 		}
 	}
-
-	if (action == GLFW_RELEASE && key == GLFW_KEY_E && game_state == in_game)
-	{
-		auto& board_meshref = registry.get<ShadedMeshRef>(wanted_board_entity);
-		board_meshref.show = !board_meshref.show;
-
-		auto& wantedboard = registry.get<WantedBoard>(wanted_board_entity);
-		auto& title_mesh_ref = registry.get<ShadedMeshRef>(wantedboard.wanted_title);
-		title_mesh_ref.show = !title_mesh_ref.show;
-
-		for (auto entity : wantedboard.wanted_entries)
-		{
-			auto& entries_meshref = registry.get<ShadedMeshRef>(entity);
-			entries_meshref.show = !entries_meshref.show;
-
-			auto& wanted_entries = registry.get<WantedEntry>(entity);
-			for (auto info_entity : wanted_entries.monster_info) {
-				if (registry.has<ShadedMeshRef>(info_entity)) {
-					ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(info_entity);
-					shaded_mesh_ref.show = !shaded_mesh_ref.show;
-				}
-				else if (registry.has<Text>(info_entity)) {
-					registry.get<Text>(info_entity).show = !registry.get<Text>(info_entity).show;
-				}
-			}
-		}
- 	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P && game_state == in_game) {
 		pause_game();
@@ -2479,6 +2456,11 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 		game_tips = !game_tips;
 		std::cout << std::boolalpha;
 		std::cout << "Game tips: " << game_tips << std::endl;
+	}
+	else if (ui_button == Button::wantedboard_button)
+	{
+		auto board_meshref = registry.get<ShadedMeshRef>(wanted_board_entity);
+		WantedBoard::updateWantedBoardDisplay(wanted_board_entity, !board_meshref.show);
 	}
 }
 

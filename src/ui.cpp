@@ -208,6 +208,37 @@ entt::entity UI_button::createTips_button(vec2 position)
 	return entity;
 }
 
+entt::entity UI_button::createWantedBoard_button(vec2 position)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "WantedBoard_button";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("wantedboard_button.png"), "ui");
+	}
+
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = 91;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = key;
+	ui_element.scale = static_cast<vec2>(resource.texture.size);
+	ui_element.position = position;
+
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, Button::wantedboard_button);
+	registry.emplace<UI_button>(entity);
+
+
+	return entity;
+}
+
 entt::entity UI_button::createStart_button(vec2 position)
 {
 	auto entity = registry.create();
