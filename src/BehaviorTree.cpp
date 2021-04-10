@@ -343,7 +343,6 @@ void increment_monster_step(entt::entity entity) {
 		else {
 			registry.destroy(entity);
 		}
-		
 		return;
 	}
 
@@ -352,7 +351,7 @@ void increment_monster_step(entt::entity entity) {
 	ivec2 next_path_coord = monster.path_coords.at(monster.current_path_index + 1);
 	vec2 next_step_position = motion.position + time_step * motion.velocity * monster.speed_multiplier;
 	ivec2 next_step_coord = pixel_to_coord(next_step_position);
-
+    auto& next_node = WorldSystem::current_map.getNodeAtCoord(next_path_coord);
 	// change direction if reached the middle of the this node
 	if (!monster.current_node_visited) {
 		if (length(coord_to_pixel(current_path_coord) - motion.position) <= length(motion.velocity * time_step * monster.speed_multiplier)) {
@@ -361,6 +360,13 @@ void increment_monster_step(entt::entity entity) {
 			motion.velocity = length(motion.velocity) * move_direction;
 			motion.angle = atan(move_direction.y / move_direction.x);
 			monster.current_node_visited = true;
+
+			if (next_node.occupancy != NONE && next_node.occupancy != FOREST && next_node.occupancy != VILLAGE) {
+                monster.state = ATTACK;
+			    monster.sprite = monster.attack_sprite;
+			    monster.frames = monster.attack_frames;
+			    monster.setSprite(entity);
+			}
 			//std::cout << "distance to center: " << length(coord_to_pixel(current_path_coord) - motion.position) << "\n\n";
 		}
 		/*else {
@@ -369,12 +375,39 @@ void increment_monster_step(entt::entity entity) {
 		}*/
 	}
 
+    if (monster.state == ATTACK) {
+        auto atk_entity = next_node.occupying_entity;
+        if (next_node.occupancy == NONE) {
+            monster.state = WALK;
+            monster.sprite = monster.walk_sprite;
+            monster.frames = monster.walk_frames;
+            monster.setSprite(entity);
+            return;
+        }
+        auto& atk_unit = registry.get<Unit>(atk_entity);
+        if (atk_unit.health <= 0) {
+            next_node.setOccupancy(NONE, atk_entity);
+            registry.destroy(atk_entity);
+            return;
+        }
+        monster.next_attack -= 1;
+        if (monster.next_attack <= 0) {
+            monster.next_attack = monster.attack_interval;
+
+            auto& hit_reaction = registry.get<HitReaction>(atk_entity);
+            hit_reaction.counter_ms = hit_reaction.counter_interval;
+            hit_reaction.hit_bool = true;
+            atk_unit.health -= monster.damage;
+            HitPointsText::create_hit_points_text(monster.damage, atk_entity, { 1.f, 0.8, 0.f });
+        }
+    }
+
 	// increment path index and apply terrain speed multiplier
 	if (next_step_coord == next_path_coord) {
 		monster.current_path_index++;
 		monster.current_node_visited = false;
 		terrain_type current_terran = WorldSystem::current_map.getNodeAtCoord(current_path_coord).terrain;
-		terrain_type next_terran = WorldSystem::current_map.getNodeAtCoord(next_path_coord).terrain;
+		terrain_type next_terran = next_node.terrain;
 		monster.speed_multiplier /= monster_move_speed_multiplier.at({monster.type, current_terran});
 		monster.speed_multiplier *= monster_move_speed_multiplier.at({monster.type, next_terran});
 	}

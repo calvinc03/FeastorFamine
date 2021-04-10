@@ -175,7 +175,10 @@ void PhysicsSystem::step(float elapsed_ms)
 	for(auto entity: registry.view<Motion>()) {
 	    auto& motion = registry.get<Motion>(entity);
 		if (registry.has<Monster>(entity)) {
-			motion.position += step_seconds * motion.velocity * registry.get<Monster>(entity).speed_multiplier;
+		    auto& monster = registry.get<Monster>(entity);
+		    if (monster.state != ATTACK) {
+                motion.position += step_seconds * motion.velocity * monster.speed_multiplier;
+		    }
 		}
 		else {
 			motion.position += step_seconds * motion.velocity;

@@ -791,7 +791,7 @@ void WorldSystem::end_battle_phase()
 
 	setup_round_from_round_number(world_round_number);
 	// re-roll some fraction of map for weather terrains
-	int max_rerolls = (int)ceil(0.3 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
+	int max_rerolls = (int)ceil(0.7 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
 	screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
 		
 	for (auto particle : registry.view<ParticleSystem>()) {
@@ -1360,6 +1360,9 @@ void WorldSystem::damage_monster_helper(entt::entity e_monster, int damage, bool
 	monster.collided = true;
 	
 
+	auto& hit_reaction = registry.get<HitReaction>(e_monster);
+	hit_reaction.counter_ms = hit_reaction.counter_interval; //ms duration used by health bar
+
 	if (monster.health <= 0)
 	{
 		
@@ -1726,7 +1729,7 @@ void grid_highlight_system(vec2 mouse_pos, GridMap current_map)
 	auto &node = current_map.getNodeAtCoord(pixel_to_coord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each())
 	{
-		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == NONE && node.terrain != TERRAIN_PAVEMENT)
+		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == NONE && node.terrain != TERRAIN_FIRE && node.terrain != TERRAIN_PUDDLE)
 		{
 			highlight.highlight = true;
 		}
@@ -2796,7 +2799,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			vec2 unit_position = coord_to_pixel(node.coord);
             bool can_place_unit = true;
             entt::entity entity;
-			if (node.occupancy == NONE && node.terrain != TERRAIN_PAVEMENT && node.terrain != TERRAIN_FIRE)
+			if (node.occupancy == NONE && node.terrain != TERRAIN_PUDDLE && node.terrain != TERRAIN_FIRE)
 			{
 				if (placement_unit_selected == HUNTER && health >= hunter_unit.cost)
 				{

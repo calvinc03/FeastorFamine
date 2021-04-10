@@ -1,5 +1,6 @@
 #include "common.hpp"
 #include "text.hpp"
+#include "rig.hpp"
 #include <iostream>
 #include <world.hpp>
 
@@ -134,4 +135,20 @@ nlohmann::json get_json(std::string json_path)
 	catch (std::exception) {
 		return NULL;
 	}
+}
+
+void Monster::setSprite(entt::entity entity){
+    if (registry.has<Rig>(entity)) {
+        return;
+    }
+    // Create the rendering components
+    std::string key = sprite;
+    ShadedMesh& resource = cache_resource(key);
+    if (resource.effect.program.resource == 0)
+    {
+        resource = ShadedMesh();
+        RenderSystem::createSprite(resource, textures_path(sprite), "monster");
+    }
+    auto& shaded_mesh_ref = registry.get<ShadedMeshRef>(entity);
+    shaded_mesh_ref.reference_to_cache = &resource;
 }

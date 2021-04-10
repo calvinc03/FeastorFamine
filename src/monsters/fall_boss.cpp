@@ -6,10 +6,8 @@
 const std::string DIR = "monsters/fall/";
 const std::string WALK_SPRITE = DIR+"bear_walk.png";
 const std::string ATTACK_SPRITE = DIR+"bear_attack.png";
-const std::string DEATH_SPRITE = DIR + "bear_death.png";
 const int WALK_FRAMES = 4;
 const int ATTACK_FRAMES = 4;
-const int DEATH_FRAMES = 1;
 
 entt::entity FallBoss::createFallBossEntt()
 {
@@ -52,8 +50,6 @@ entt::entity FallBoss::createFallBossEntt()
     monster.attack_sprite = ATTACK_SPRITE;
     monster.walk_frames = WALK_FRAMES;
     monster.walk_sprite = WALK_SPRITE;
-    monster.death_frames = DEATH_FRAMES;
-    monster.death_sprite = DEATH_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0;
