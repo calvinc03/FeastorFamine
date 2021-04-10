@@ -60,8 +60,9 @@ struct Monster {
     int max_health; //useful for displaying health bars
     int health;
     int damage;
-    int attack_interval = 5;
-    int next_attack = 1;
+    int effect_interval = 5;
+    int next_attack = 0;
+    int next_damage = 0;
     int current_path_index = 0;
 	bool current_node_visited = false;
     int reward;

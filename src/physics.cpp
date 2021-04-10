@@ -3,12 +3,14 @@
 #include "entt.hpp"
 #include "debug.hpp"
 #include <iostream>
-#include "grid_node.hpp"
 #include <projectile.hpp>
 #include "rig.hpp"
 #include <monsters/spider.hpp>
 #include <particle.hpp>
+#include <units/priestess.hpp>
 #include "rope.hpp"
+#include "world.hpp"
+
 const size_t POTENTIAL_COLLISION_RANGE = 150;
 
 // Returns the local bounding coordinates scaled by the current size of the entity 
@@ -163,6 +165,19 @@ bool preciseCollides(entt::entity spider, entt::entity projectile)
 	return false;
 }
 
+void fire_damage (Monster& monster, entt::entity entity) {
+    monster.next_damage --;
+    if (monster.next_damage < 0) {
+        monster.next_damage = monster.effect_interval;
+        int fire_damage = 10;
+        monster.health -= fire_damage;
+        HitPointsText::create_hit_points_text(fire_damage, entity, { 1.f, 0.3, 0.f });
+        auto& hit_reaction = registry.get<HitReaction>(entity);
+        hit_reaction.counter_ms = hit_reaction.counter_interval;
+        hit_reaction.hit_bool = true;
+    }
+}
+
 void PhysicsSystem::step(float elapsed_ms)
 {
 	// Move entities based on how much time has passed, this is to (partially) avoid
@@ -179,9 +194,18 @@ void PhysicsSystem::step(float elapsed_ms)
 		    if (monster.state != ATTACK) {
                 motion.position += step_seconds * motion.velocity * monster.speed_multiplier;
 		    }
+            auto& node = WorldSystem::current_map.getNodeAtCoord(pixel_to_coord(motion.position));
+            if (node.terrain == TERRAIN_FIRE && monster.type != TALKY_BOI) {
+                fire_damage(monster, entity);
+            }
 		}
 		else {
 			motion.position += step_seconds * motion.velocity;
+			if (registry.has<Priestess>(entity)) {
+			    if (length(coord_to_pixel(pixel_to_coord(motion.position)) - motion.position) >= (float)GRID_CELL_SIZE / 15) {
+			        motion.velocity *= -1;
+			    }
+			}
 		}
 	}
 

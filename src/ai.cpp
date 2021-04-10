@@ -230,7 +230,7 @@ float heuristic_diagonal_dist(GridMap& current_map, int monster_type, ivec2 from
         auto& node = current_map.getNodeAtCoord(to_coord);
         unit_move_cost = monster_move_cost.at({monster_type, node.terrain});
         if (node.occupancy != NONE) {
-            unit_move_cost += monster_atk_cost.at(monster_type);
+            unit_move_cost += monster_attack_cost.at(monster_type);
         }
     }
     float diag_cost = sqrt(2 * unit_move_cost);
@@ -279,13 +279,15 @@ std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int mons
                     break;
                 }
             }
-            for (search_node node : closed) {
-                if (exists_lower) break;
-                if (node.coord == nbr_coord && node.f < nbr_node.f) {
-                    exists_lower = true;
-                    break;
+            if (!exists_lower) {
+                for (search_node node : closed) {
+                    if (node.coord == nbr_coord && node.f < nbr_node.f) {
+                        exists_lower = true;
+                        break;
+                    }
                 }
             }
+
             if (exists_lower) {
                 continue;
             }

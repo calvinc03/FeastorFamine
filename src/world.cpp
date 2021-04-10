@@ -2805,43 +2805,36 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				{
                     entity = Hunter::createHunter(unit_position);
 					deduct_health(hunter_unit.cost);
-					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == GREENHOUSE && health >= greenhouse_unit.cost)
 				{
 					entity = GreenHouse::createGreenHouse(unit_position);
 					deduct_health(greenhouse_unit.cost);
-					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == EXTERMINATOR && health >= exterminator_unit.cost)
 				{
 					entity = Exterminator::createExterminator(unit_position);
 					deduct_health(exterminator_unit.cost);
-					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == ROBOT && health >= robot_unit.cost)
 				{
 					entity = Robot::createRobot(unit_position);
 					deduct_health(robot_unit.cost);
-					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == PRIESTESS && health >= priestess_unit.cost)
 				{
 					entity = Priestess::createPriestess(unit_position);
 					deduct_health(priestess_unit.cost);
-					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == SNOWMACHINE && health >= snowmachine_unit.cost)
 				{
 					entity = SnowMachine::createSnowMachine(unit_position);
 					deduct_health(snowmachine_unit.cost);
-					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else if (placement_unit_selected == WALL && health >= wall_unit.cost)
 				{
 					entity = Wall::createWall(unit_position/*, false*/);
 					deduct_health(wall_unit.cost);
-					Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				}
 				else
 				{
@@ -2850,6 +2843,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
                     can_place_unit = false;
 				}
 				if (can_place_unit) {
+                    Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				    auto& motion = registry.get<Motion>(entity);
                     current_map.setGridOccupancy(node.coord, placement_unit_selected, entity);
 					set_AI_paths = false;

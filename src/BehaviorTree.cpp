@@ -13,6 +13,8 @@
 #include <monsters/mob.hpp>
 #include <world.hpp>
 #include <rig.hpp>
+#include <monsters/spring_boss.hpp>
+
 #pragma once
 
 // A general decorator with lambda condition
@@ -183,7 +185,7 @@ public:
         auto& monster = registry.get<Monster>(e);
         auto& entity_to_attack = attackable_entities.back();
         auto& unit = registry.get<Unit>(entity_to_attack);
-        next_attack[e] = monster.attack_interval;
+        next_attack[e] = monster.effect_interval;
 
         // TODO: create on hit and damaged(hp<=0) appearances for unit
         unit.health -= monster.damage;
@@ -362,10 +364,12 @@ void increment_monster_step(entt::entity entity) {
 			monster.current_node_visited = true;
 
 			if (next_node.occupancy != NONE && next_node.occupancy != FOREST && next_node.occupancy != VILLAGE) {
-                monster.state = ATTACK;
-			    monster.sprite = monster.attack_sprite;
-			    monster.frames = monster.attack_frames;
-			    monster.setSprite(entity);
+                if (!registry.has<SpringBoss>(entity) || next_node.occupancy != WALL) {
+                    monster.state = ATTACK;
+                    monster.sprite = monster.attack_sprite;
+                    monster.frames = monster.attack_frames;
+                    monster.setSprite(entity);
+                }
 			}
 			//std::cout << "distance to center: " << length(coord_to_pixel(current_path_coord) - motion.position) << "\n\n";
 		}
@@ -391,8 +395,8 @@ void increment_monster_step(entt::entity entity) {
             return;
         }
         monster.next_attack -= 1;
-        if (monster.next_attack <= 0) {
-            monster.next_attack = monster.attack_interval;
+        if (monster.next_attack < 0) {
+            monster.next_attack = monster.effect_interval;
 
             auto& hit_reaction = registry.get<HitReaction>(atk_entity);
             hit_reaction.counter_ms = hit_reaction.counter_interval;

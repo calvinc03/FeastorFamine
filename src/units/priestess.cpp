@@ -26,6 +26,7 @@ entt::entity Priestess::createPriestess(vec2 pos)
     // Then we scale it to whatever size is needed
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1.5);
     motion.standing = true;
+    motion.velocity = grid_to_pixel_velocity(vec2(0, 0.1));
 
     auto& unit = registry.emplace<Unit>(entity);
     unit = priestess_unit;
