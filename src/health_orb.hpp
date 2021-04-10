@@ -5,7 +5,7 @@
 
 struct HealthOrb
 {
-	static entt::entity createHealthDrop(vec2 position, int food_amount);
+	static entt::entity createHealthOrb(vec2 position, int food_amount);
 	vec2 starting_point;
 	float hover_distance;
 	float shrink_delay_ms;

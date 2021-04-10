@@ -1354,7 +1354,7 @@ void WorldSystem::damage_monster_helper(entt::entity e_monster, int damage, bool
 		auto food_gain_amount = (int)((float)monster.reward * reward_multiplier);
 		auto& motion = registry.get<Motion>(e_monster);
 		// health drop
-		HealthOrb::createHealthDrop(motion.position, food_gain_amount);
+		HealthOrb::createHealthOrb(motion.position, food_gain_amount);
 		// gain food
 		//add_health(food_gain_amount);
 		// remove monster
@@ -2997,6 +2997,8 @@ void WorldSystem::sell_unit(entt::entity &entity)
 {
     auto& motion = registry.get<Motion>(entity);
     current_map.setGridOccupancy(pixel_to_coord(motion.position), NONE, entity);
+	// ai path find reset
+	set_AI_paths = false;
 	// destroy the laser beam when removing robot
 	if (registry.has<Robot>(entity))
 	{
