@@ -1032,6 +1032,11 @@ void WorldSystem::restart()
 		UI_button::create_rem_monster_button(REM_GAME_BUTTON_POS);
 		UI_button::create_inc_m_speed_button(INC_GAME_BUTTON_POS);
 		UI_button::create_dec_m_speed_button(DEC_GAME_BUTTON_POS);
+		create_ui_text(vec2(ADD_GAME_BUTTON_POS.x - 50, 30), "MONSTERS", .3f, vec3(1.f,1.f,1.f));
+		create_ui_text(vec2(INC_GAME_BUTTON_POS.x - 50, 30), "SPEED", .3f, vec3(1.f, 1.f, 1.f));
+		max_mobs_text_entity = create_ui_text(vec2(ADD_GAME_BUTTON_POS.x - 25, 10), std::to_string(max_mobs), .3f, vec3(1.f, 1.f, 1.f));
+		float monster_speed = 1000.f / (float)mob_delay_ms;
+		mob_speed_text_entity = create_ui_text(vec2(INC_GAME_BUTTON_POS.x - 50, 10), std::to_string(monster_speed), .3f, vec3(1.f, 1.f, 1.f));
 	}
 
 	// general buttons
@@ -1113,6 +1118,13 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 
 		auto& stage_text = registry.get<Text>(stage_text_entity);
 		stage_text.content = "SANDBOX";
+
+		auto& max_mobs_text = registry.get<Text>(max_mobs_text_entity);
+		max_mobs_text.content = std::to_string(max_mobs);
+
+		auto& mob_speed_text = registry.get<Text>(mob_speed_text_entity);
+		float monster_speed = 1000.f / (float)mob_delay_ms;
+		mob_speed_text.content = std::to_string(monster_speed);
 	}
 	else {
 		nlohmann::json round_json = get_json(INPUT_PATH + std::to_string(round_number) + JSON_EXTENSION);
@@ -2543,6 +2555,9 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 		std::cout << "more mobs" << std::endl;
 		max_mobs++;
 		max_boss++;
+
+		auto& max_mobs_text = registry.get<Text>(max_mobs_text_entity);
+		max_mobs_text.content = std::to_string(max_mobs);
 	}
 	else if (ui_button == Button::rem_monster_button)
 	{
@@ -2550,6 +2565,9 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 			std::cout << "less mobs" << std::endl;
 			max_mobs--;
 			max_boss--;
+
+			auto& max_mobs_text = registry.get<Text>(max_mobs_text_entity);
+			max_mobs_text.content = std::to_string(max_mobs);
 		}
 	}
 	else if (ui_button == Button::inc_m_speed_button)
@@ -2558,6 +2576,10 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 			std::cout << "increased" << std::endl;
 			mob_delay_ms -= 100;
 			boss_delay_ms -= 100;
+
+			auto& mob_speed_text = registry.get<Text>(mob_speed_text_entity);
+			float monster_speed = 1000.f / (float)mob_delay_ms;
+			mob_speed_text.content = std::to_string(monster_speed);
 		}
 	}
 	else if (ui_button == Button::dec_m_speed_button)
@@ -2565,6 +2587,10 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 		std::cout << "delayed" << std::endl;
 		mob_delay_ms += 100;
 		boss_delay_ms += 100;
+
+		auto& mob_speed_text = registry.get<Text>(mob_speed_text_entity);
+		float monster_speed = 1000.f / (float)mob_delay_ms;
+		mob_speed_text.content = std::to_string(monster_speed);
 	}
 }
 

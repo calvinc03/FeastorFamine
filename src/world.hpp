@@ -252,6 +252,8 @@ private:
 	entt::entity help_menu_entity;
 	entt::entity title_button_highlight_entity;
 	entt::entity wanted_board_entity;
+	entt::entity max_mobs_text_entity;
+	entt::entity mob_speed_text_entity;
 
 	unit_type placement_unit_selected;
 	entt::entity entity_selected;
