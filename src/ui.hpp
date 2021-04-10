@@ -35,6 +35,9 @@ struct UI_button
 {
 	static void fastforward_light_up();
 	static void fastforward_light_off();
+	static void wantedboard_update_on(entt::entity button);
+	static void wantedboard_update_off(entt::entity button);
+
 	static entt::entity createTips_button(vec2 pos);
 	static entt::entity createStart_button(vec2 pos);
 	static entt::entity createPause_button(vec2 pos);

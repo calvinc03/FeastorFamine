@@ -231,7 +231,7 @@ entt::entity UI_button::createWantedBoard_button(vec2 position)
 	auto entity = registry.create();
 
 	// Create rendering primitives
-	std::string key = "WantedBoard_button";
+	std::string key = "WantedBoard_button_off";
 	ShadedMesh& resource = cache_resource(key);
 	if (resource.effect.program.resource == 0) {
 		resource = ShadedMesh();
@@ -505,6 +505,32 @@ void UI_button::fastforward_light_off()
 		}
 	}
 
+}
+
+void UI_button::wantedboard_update_on(entt::entity button)
+{
+	registry.remove<ShadedMeshRef>(button);
+	std::string key = "WantedBoard_button_on";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("wantedboard_button_update.png"), "textured");
+	}
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(button, resource);
+	shaded_mesh.layer = 91;
+}
+
+void UI_button::wantedboard_update_off(entt::entity button)
+{
+	registry.remove<ShadedMeshRef>(button);
+	std::string key = "WantedBoard_button_off";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("wantedboard_button.png"), "textured");
+	}
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(button, resource);
+	shaded_mesh.layer = 91;
 }
 
 entt::entity UI_button::createFastforward_button(vec2 position)

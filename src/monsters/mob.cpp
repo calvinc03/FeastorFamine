@@ -1,6 +1,7 @@
 // Header
 #include "mob.hpp"
 #include "render.hpp"
+#include "config/monster_config.hpp"
 
 const size_t WALK_FRAMES = 4.f;
 const size_t ATTACK_FRAMES = 4.f;
@@ -31,17 +32,17 @@ entt::entity Mob::createMobEntt()
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = grid_to_pixel_velocity(vec2(2.5f, 0));
+    motion.velocity = grid_to_pixel_velocity(monster_velocities.at(MOB));
     motion.position = coord_to_pixel(FOREST_COORD);
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 0.5, WALK_FRAMES);
     // temporary fix
     //motion.boundingbox = vec2({ motion.scale.x , motion.scale.y });
     motion.boundingbox = vec2({ motion.scale.x*0.13f , motion.scale.y });
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = 30;
+    monster.max_health = monster_health.at(MOB);
     monster.health = monster.max_health;
-    monster.damage = 10;
-    monster.reward = 10;
+    monster.damage = monster_damage.at(MOB);
+    monster.reward = monster_reward.at(MOB);
     monster.type = MOB;
     monster.sprite = WALK_SPRITE;
     monster.frames = WALK_FRAMES;

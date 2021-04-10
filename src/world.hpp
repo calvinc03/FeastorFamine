@@ -236,6 +236,7 @@ private:
 	entt::entity upgrade_button_1;
 	entt::entity upgrade_button_2;
 	entt::entity button_sell;
+	entt::entity wanted_board_button;
 	// true if a unit is selected on the field
 	bool unit_selected = false;
 

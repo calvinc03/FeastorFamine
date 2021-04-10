@@ -1,6 +1,8 @@
 // Header
 #include "render.hpp"
 #include "spring_boss.hpp"
+#include "config/monster_config.hpp"
+
 const std::string DIR = "monsters/spring/";
 const std::string WALK_SPRITE = DIR + "bird_walk.png";
 const std::string ATTACK_SPRITE = DIR + "bird_attack.png";
@@ -31,7 +33,7 @@ entt::entity SpringBoss::createSpringBossEntt()
     //auto& motion = ECS::registry<Motion>.emplace(entity);
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = grid_to_pixel_velocity(vec2(1.5, 0));
+    motion.velocity = grid_to_pixel_velocity(monster_velocities.at(SPRING_BOSS));
     motion.position = coord_to_pixel(FOREST_COORD);
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1.3, WALK_FRAMES);
 
@@ -40,10 +42,10 @@ entt::entity SpringBoss::createSpringBossEntt()
     motion.boundingbox = vec2({ motion.scale.x * 0.85f/WALK_FRAMES, motion.scale.y });
 
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = 60;
+    monster.max_health = monster_health.at(SPRING_BOSS);
     monster.health = monster.max_health;
-    monster.damage = 20;
-    monster.reward = 30;
+    monster.damage = monster_damage.at(SPRING_BOSS);
+    monster.reward = monster_reward.at(SPRING_BOSS);
 
     monster.hit = false;
     monster.type = SPRING_BOSS;

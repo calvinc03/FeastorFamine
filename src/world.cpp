@@ -1036,7 +1036,7 @@ void WorldSystem::restart()
 
 	// general buttons
 	UI_button::createTips_button(TIPS_GAME_BUTTON_POS);
-	UI_button::createWantedBoard_button(WANTED_BOARD_BUTTON_POS);
+	wanted_board_button = UI_button::createWantedBoard_button(WANTED_BOARD_BUTTON_POS);
 	UI_button::createStart_button(START_BATTLE_BUTTON_POS);
 	UI_button::createMore_button(MORE_OPTIONS_BUTTON_POS);
 	UI_button::createFastforward_button(FASTFORWARD_BUTTON_POS);
@@ -1215,6 +1215,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 
 	//update wanted board
 	WantedBoard::updateWantedEntries(wanted_board_entity, current_round_monster_types);
+	UI_button::wantedboard_update_on(wanted_board_button);
 
 	// update text
 	auto& round_text = registry.get<Text>(round_text_entity);
@@ -2533,6 +2534,7 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 	}
 	else if (ui_button == Button::wantedboard_button)
 	{
+		UI_button::wantedboard_update_off(wanted_board_button);
 		auto board_meshref = registry.get<ShadedMeshRef>(wanted_board_entity);
 		WantedBoard::updateWantedBoardDisplay(wanted_board_entity, !board_meshref.show);
 	}
@@ -2673,6 +2675,9 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 	if (player_state == set_up_stage)
 	{
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && in_game_area)
+			WantedBoard::updateWantedBoardDisplay(wanted_board_entity, false);
+		
 		// Mouse click for placing units
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && placement_unit_selected != NONE && in_game_area)
 		{
@@ -2750,6 +2755,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		{
 			on_click_ui(ui_button);
 		}
+
 		Priestess::updateBuffs();
 	}
 	else if (player_state == battle_stage)
