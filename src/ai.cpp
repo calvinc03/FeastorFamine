@@ -229,7 +229,7 @@ float heuristic_diagonal_dist(GridMap& current_map, int monster_type, ivec2 from
     if (length((vec2)(from_coord - to_coord)) <= sqrt(2)) {
         auto& node = current_map.getNodeAtCoord(to_coord);
         unit_move_cost = monster_move_cost.at({monster_type, node.terrain});
-        if (node.occupancy != NONE) {
+        if (node.occupancy != NONE && node.occupancy != FOREST &&  node.occupancy != VILLAGE) {
             unit_move_cost += monster_attack_cost.at(monster_type);
         }
     }
@@ -348,8 +348,8 @@ void AISystem::MapAI::setRandomWeatherTerrain(GridMap &map, int max_rerolls, int
 bool is_valid_terrain_path(GridMap& current_map, ivec2 coord)
 {
     if (is_inbounds(coord)) {
-        int terrain = current_map.getNodeAtCoord(coord).terrain;
-        int occupancy = current_map.getNodeAtCoord(coord).occupancy;
+        auto terrain = current_map.getNodeAtCoord(coord).terrain;
+        auto occupancy = current_map.getNodeAtCoord(coord).occupancy;
         return terrain != TERRAIN_PAVEMENT && occupancy == NONE;
     }
     return false;

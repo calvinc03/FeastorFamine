@@ -57,7 +57,7 @@ void GridMap::setGridTerrain(ivec2 grid_coord, terrain_type terrain) {
     node.setTerrain(entity, terrain);
 }
 
-void GridMap::setGridOccupancy(ivec2 grid_coord, int occupancy, entt::entity& occupying_entity) {
+void GridMap::setGridOccupancy(ivec2 grid_coord, unit_type occupancy, entt::entity& occupying_entity) {
     if (!is_inbounds(grid_coord)) {
         std::cout<<"Debug: out of bounds"<< std::endl;
         return;

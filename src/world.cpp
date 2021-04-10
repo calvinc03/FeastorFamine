@@ -3141,7 +3141,7 @@ void WorldSystem::load_game()
 	{
 		int x = unit["x_coord"];
 		int y = unit["y_coord"];
-		int type = unit["type"];
+        unit_type type = unit["type"];
 		entt::entity entity;
 		if (type == GREENHOUSE)
 		{

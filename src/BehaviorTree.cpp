@@ -414,6 +414,24 @@ void increment_monster_step(entt::entity entity) {
 		terrain_type next_terran = next_node.terrain;
 		monster.speed_multiplier /= monster_move_speed_multiplier.at({monster.type, current_terran});
 		monster.speed_multiplier *= monster_move_speed_multiplier.at({monster.type, next_terran});
+
+        if (monster.type != TALKY_BOI) {
+            if (next_node.terrain == TERRAIN_FIRE) {
+                monster.next_damage --;
+                if (monster.next_damage < 0) {
+                    monster.next_damage = monster.effect_interval;
+                    int fire_damage = 10;
+                    monster.health -= fire_damage;
+                    HitPointsText::create_hit_points_text(fire_damage, entity, { 1.f, 0.3, 0.f });
+                    auto& hit_reaction = registry.get<HitReaction>(entity);
+                    hit_reaction.counter_ms = hit_reaction.counter_interval;
+                    hit_reaction.hit_bool = true;
+                }
+            }
+            if (next_node.terrain == TERRAIN_PUDDLE) {
+                SlowHitText::create_slow_hit_text(0, entity, {0.f, 1.f, 1.f});
+            }
+        }
 	}
 
 	if (DebugSystem::in_debug_mode)

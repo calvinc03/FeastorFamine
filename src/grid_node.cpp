@@ -64,7 +64,7 @@ void GridNode::setTerrain(entt::entity entity, terrain_type new_terrain) {
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1, animate.frame_num);
 }
 
-void GridNode::setOccupancy(int new_occupancy, entt::entity& entity) {
+void GridNode::setOccupancy(unit_type new_occupancy, entt::entity& entity) {
     this->occupancy = new_occupancy;
     if (new_occupancy != NONE) {
         this->occupying_entity = entity;
