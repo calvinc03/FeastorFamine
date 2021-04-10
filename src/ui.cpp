@@ -678,7 +678,7 @@ entt::entity UI_selected_unit::createUI_selected_unit_upgrade_button(int pos, Bu
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = tag;
 	ui_element.scale = static_cast<vec2>(resource.texture.size);
-	ui_element.position = vec2(185 + pos * (ui_element.scale.x + 10), WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
+	ui_element.position = vec2(175 + pos * (ui_element.scale.x + 10), WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
 
 	auto& UIselection = registry.emplace<UI_selected_unit>(entity);
 	UIselection.path_num = path_num;
@@ -705,13 +705,12 @@ entt::entity UI_selected_unit::create_selected_button_image(vec2 pos, std::strin
 	}
 
 	// Create rendering primitives
-	std::string image_key = tag + "_" + unit_str.at(unit.type) + "_" + std::to_string(path);
-	std::string key = "UI_selected_button_" + image_key;
+	std::string key = "UI_selected_button " + path + tag + unit_str.at(unit.type);
 	ShadedMesh& resource = cache_resource(key);
 	if (resource.effect.program.resource == 0) {
 		resource = ShadedMesh();
 
-		RenderSystem::createSprite(resource, ui_upgrade_texture_path(upgrade_image_paths.at(image_key)), "ui");
+		RenderSystem::createSprite(resource, ui_texture_path("damage_upgrade.png"), "ui");
 	}
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
@@ -799,7 +798,7 @@ entt::entity UI_sell_button::createUI_sell_button(int pos, Button button, std::s
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = tag;
 	ui_element.scale = static_cast<vec2>(resource.texture.size);
-	ui_element.position = vec2(240 + pos * (ui_element.scale.x), WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
+	ui_element.position = vec2(230 + pos * (ui_element.scale.x), WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f);
 
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);

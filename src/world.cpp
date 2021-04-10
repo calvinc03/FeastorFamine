@@ -678,7 +678,11 @@ void WorldSystem::darken_screen_step(float elapsed_ms)
 			// exit button
 			MenuButton::create_button(EXIT_BUTTON_X, EXIT_BUTTON_Y, MenuButtonType::exit_button, "Exit");
 		}
+		
+		
+		
 	}
+	
 }
 
 // lost game
@@ -1798,35 +1802,20 @@ void update_unit_stats(Unit unit)
 	int y_position = 65;
 	int y_line_offset = 15;
 	entt::entity damage_stats;
-	std::string stat_1_string = "Attack Damage: ";
-	std::string stat_2_string = "Attack speed: ";
-	std::string stat_3_string = "Attack Range: ";
-	float aps = 0.f;
+	// create stats text
+	if (unit.damage_buff > 0) 
+		damage_stats = create_ui_text(vec2(x_position, y_position), "Attack Damage: " + std::to_string(unit.damage + unit.damage_buff), 0.3f, {1, 0, 0});
+	else
+		damage_stats = create_ui_text(vec2(x_position, y_position), "Attack Damage: " + std::to_string(unit.damage));
+	registry.emplace<UI_unit_stats>(damage_stats);
 
 	// attacks per seconds
-
+	float aps = 0.f;
 	if (unit.attack_interval_ms != 0)
 	{
 		aps = 1000 / (float)unit.attack_interval_ms;
 	}
-
-	if (unit.type == PRIESTESS) {
-		stat_1_string = "Damage Buff: ";
-		stat_2_string = "Attack Speed Buff: ";
-		stat_3_string = "Buff Range: ";
-		aps = 1000 / aps;
-	}
-	else if (unit.type == SNOWMACHINE) {
-		stat_1_string = "Slow Percentage: ";
-	}
-
-	// create stats text
-	if (unit.damage_buff > 0) 
-		damage_stats = create_ui_text(vec2(x_position, y_position), stat_1_string + std::to_string(unit.damage + unit.damage_buff), 0.3f, {1, 0, 0});
-	else
-		damage_stats = create_ui_text(vec2(x_position, y_position), stat_1_string + std::to_string(unit.damage));
-	registry.emplace<UI_unit_stats>(damage_stats);
-
+	
 	entt::entity attack_speed_stats;
 	if (unit.attack_speed_buff > 1) {
 		// display aps to 2 decimals
@@ -1834,7 +1823,7 @@ void update_unit_stats(Unit unit)
 		aps_out.precision(2);
 		aps_out << std::fixed << (aps * unit.attack_speed_buff);
 
-		attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), stat_2_string + aps_out.str() + " (aps)", 0.3f, {1,0,0});
+		attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), "Attack speed: " + aps_out.str() + " (aps)", 0.3f, {1,0,0});
 	}
 	else {
 		// display aps to 2 decimals
@@ -1842,13 +1831,13 @@ void update_unit_stats(Unit unit)
 		aps_out.precision(2);
 		aps_out << std::fixed << aps;
 
-		attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), stat_2_string + aps_out.str() + " (aps)");
+		attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), "Attack speed: " + aps_out.str() + " (aps)");
 	}
 	
 	registry.emplace<UI_unit_stats>(attack_speed_stats);
 
 	// attack range
-	auto attack_range_stats = create_ui_text(vec2(x_position, y_position - (2 * y_line_offset)), stat_3_string + std::to_string(unit.attack_range));
+	auto attack_range_stats = create_ui_text(vec2(x_position, y_position - (2 * y_line_offset)), "Attack range: " + std::to_string(unit.attack_range));
 	registry.emplace<UI_unit_stats>(attack_range_stats);
 }
 
@@ -1863,60 +1852,47 @@ void update_unit_portrait(Unit unit)
 }
 
 //helper for the selected buttons
-void update_selected_button(entt::entity e_button, Unit unit, bool remove_highlight, bool destroy_flag)
+void update_selected_button(entt::entity e_button, Unit unit)
 {
-	if (destroy_flag) {
-		auto& selected_components = registry.get<UI_selected_unit>(e_button);
-		for (auto component : selected_components.button_components) {
-			registry.destroy(component);
-		}
-		registry.destroy(e_button);
+	auto& selected_components = registry.get<UI_selected_unit>(e_button);
+	for (auto component : selected_components.button_components) {
+		registry.destroy(component);
+	}
+	selected_components.button_components = std::vector<entt::entity>();
+
+	auto ui = registry.get<UI_element>(e_button);
+
+	int path_num;
+	if (ui.tag == PATH_1_UPGRADE_BUTTON_TITLE) {
+		path_num = unit.path_1_upgrade;
 	}
 	else {
-		auto& selected_components = registry.get<UI_selected_unit>(e_button);
-		for (auto component : selected_components.button_components) {
-			registry.destroy(component);
-		}
-		selected_components.button_components = std::vector<entt::entity>();
-
-		auto ui = registry.get<UI_element>(e_button);
-
-		int path_num;
-		if (ui.tag == PATH_1_UPGRADE_BUTTON_TITLE) {
-			path_num = unit.path_1_upgrade;
-		}
-		else {
-			path_num = unit.path_2_upgrade;
-		}
-
-		auto image = UI_selected_unit::create_selected_button_image(vec2(ui.position.x - ui.scale.x / 4, ui.position.y + 10), ui.tag, unit);
-		auto progress = UI_selected_unit::create_selected_button_progress_bar(vec2(ui.position.x + ui.scale.x / 4, ui.position.y), path_num);
-
-		// text
-		float line_size = 35; // relative to the text size
-		float left_margin = 3;
-		// unit name text
-		std::string key = ui.tag + "_" + unit_str.at(unit.type) + "_" + std::to_string(path_num);
-		std::string short_description = upgrade_short_descriptions.at(key);
-		auto title_text_scale = 0.35f;
-		auto bubblegum = TextFont::load("data/fonts/MagicalMystery/MAGIMT__.ttf");
-		// center text
-		auto x_offset = (ui.scale.x - (short_description.length() * title_text_scale * 27)) / 2;
-		// place title text at the top
-		float top_margin = 10;
-		auto y_title_offset = ui.scale.y / 2 - title_text_scale * line_size - top_margin;
-		vec2 title_text_position = get_center_text_position(vec2(ui.scale.x / 2, ui.scale.y), vec2(ui.position.x - ui.scale.x / 4, ui.position.y), title_text_scale, short_description);
-		auto& title = registry.emplace_or_replace<Text>(e_button, Text(short_description, bubblegum, vec2(title_text_position.x, title_text_position.y + y_title_offset)));
-		title.scale = title_text_scale;
-		title.colour = { 0.f, 0.f, 0.f };
-
-		selected_components.button_components.push_back(image);
-		selected_components.button_components.push_back(progress);
-
-		if (remove_highlight) {
-			registry.remove<HighlightBool>(e_button);
-		}
+		path_num = unit.path_2_upgrade;
 	}
+
+	auto image = UI_selected_unit::create_selected_button_image(vec2(ui.position.x - ui.scale.x / 4, ui.position.y + 10), ui.tag, unit);
+	auto progress = UI_selected_unit::create_selected_button_progress_bar(vec2(ui.position.x + ui.scale.x / 4, ui.position.y), path_num);
+
+	// text
+	float line_size = 35; // relative to the text size
+	float left_margin = 3;
+	// unit name text
+	std::string key = ui.tag + "_" + unit_str.at(unit.type) + "_" + std::to_string(path_num);
+	std::string short_description = upgrade_short_descriptions.at(key);
+	auto title_text_scale = 0.4f;
+	auto bubblegum = TextFont::load("data/fonts/MagicalMystery/MAGIMT__.ttf");
+	// center text
+	auto x_offset = (ui.scale.x - (short_description.length() * title_text_scale * 27)) / 2;
+	// place title text at the top
+	float top_margin = 10;
+	auto y_title_offset = ui.scale.y / 2 - title_text_scale * line_size - top_margin;
+	vec2 title_text_position = get_center_text_position(vec2(ui.scale.x / 2, ui.scale.y), vec2(ui.position.x - ui.scale.x / 4, ui.position.y), title_text_scale, short_description);
+	auto& title = registry.emplace_or_replace<Text>(e_button, Text(short_description, bubblegum, vec2(title_text_position.x, title_text_position.y + y_title_offset)));
+	title.scale = title_text_scale;
+	title.colour = { 0.f, 0.f, 0.f };
+
+	selected_components.button_components.push_back(image);
+	selected_components.button_components.push_back(progress);
 }
 
 //helper for the selected buttons
@@ -1997,8 +1973,7 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 		auto view_selectable = registry.view<Selectable>();
 		// get the selected unit
 		Unit selected_unit;
-		bool destroy_flag_1 = false;
-		bool destroy_flag_2 = false;
+		bool wall_or_greenhouse = false;
 		for (auto entity : view_selectable)
 		{
 			if (view_selectable.get<Selectable>(entity).selected)
@@ -2008,9 +1983,7 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 				previous_selected = entity;
 				auto& motion = registry.get<Motion>(entity);
 				selected_range_circle = RangeCircle::createRangeCircle(motion.position, selected_unit.attack_range);
-				destroy_flag_1 = (registry.has<SnowMachine>(entity) || registry.has<Exterminator>(entity)) && selected_unit.path_2_upgrade > 0;
-				destroy_flag_2 = registry.has<Wall>(entity) || registry.has<GreenHouse>(entity) || 
-					((registry.has<SnowMachine>(entity) || registry.has<Exterminator>(entity)) && selected_unit.path_1_upgrade > 0);
+				wall_or_greenhouse = registry.has<Wall>(entity) || registry.has<GreenHouse>(entity);
 			}
 		}
 
@@ -2018,21 +1991,23 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 			remove_selected_unit_buttons();
 
 			upgrade_button_1 = UI_selected_unit::createUI_selected_unit_upgrade_button(2, upgrade_path_1_button, PATH_1_UPGRADE_BUTTON_TITLE, selected_unit.type, selected_unit.path_1_upgrade);
-			upgrade_button_2 = UI_selected_unit::createUI_selected_unit_upgrade_button(3, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE, selected_unit.type, selected_unit.path_2_upgrade);
+			if (!wall_or_greenhouse)
+				upgrade_button_2 = UI_selected_unit::createUI_selected_unit_upgrade_button(3, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE, selected_unit.type, selected_unit.path_2_upgrade);
 			button_sell = UI_sell_button::createUI_sell_button(4, sell_button, SELL_BUTTON_TITLE);
 			selected_view_change = false;
 		}
 
-		if (registry.valid(upgrade_button_1))
-		{
-			bool highlight_flag_button_1 = registry.has<HighlightBool>(upgrade_button_1) && selected_unit.path_1_upgrade >= 3;
-			update_selected_button(upgrade_button_1, selected_unit, highlight_flag_button_1, destroy_flag_1);
+		update_selected_button(upgrade_button_1, selected_unit);
+		if (registry.has<HighlightBool>(upgrade_button_1) && selected_unit.path_1_upgrade >= 3) {
+			registry.remove<HighlightBool>(upgrade_button_1);
 		}
 		
-		if (registry.valid(upgrade_button_2))
+		if (!wall_or_greenhouse)
 		{
-			bool highlight_flag_button_2 = registry.has<HighlightBool>(upgrade_button_2) && selected_unit.path_2_upgrade >= 3;
-			update_selected_button(upgrade_button_2, selected_unit, highlight_flag_button_2, destroy_flag_2);
+			update_selected_button(upgrade_button_2, selected_unit);
+			if (registry.has<HighlightBool>(upgrade_button_2) && selected_unit.path_2_upgrade >= 3) {
+				registry.remove<HighlightBool>(upgrade_button_2);
+			}
 		}
 
 		update_sell_button_text(button_sell, selected_unit.sell_price);
