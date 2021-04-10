@@ -1231,7 +1231,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		world_season_str = round_json["season"];
 	}
 
-	if (game_state != help_menu)
+	if (game_state != help_menu && !sandbox)
 	{
 		game_state = story_card;
 		StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number + 1], std::to_string(round_number + 1));
@@ -2264,9 +2264,9 @@ void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y,
 			RenderSystem::hide_entity(entity);
 		}
 		
-		if (world_round_number == 0) {
+		if (world_round_number <= 0) {
 			game_state = story_card;
-			StoryCard story_card(STORY_TEXT_PER_LEVEL[world_round_number], std::to_string(1));
+			StoryCard story_card(STORY_TEXT_PER_LEVEL[world_round_number + 1], std::to_string(1));
 			TalkyBoi::createTalkyBoiEntt();
 		}
 
