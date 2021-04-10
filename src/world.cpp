@@ -468,13 +468,88 @@ void WorldSystem::step(float elapsed_ms)
 		// Increment round number if all enemies are not on the map and projectiles are removed
 		if (num_bosses_spawned == max_boss && num_mobs_spawned == max_mobs)
 		{
-			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty())
+			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty() && registry.view<HealthOrb>().empty())
 			{
 				end_battle_phase_step(elapsed_ms);
 			}
 		}
 	}
 	
+	// health drop
+	for (auto entity : registry.view<HealthOrb>())
+	{
+		auto& health_drop = registry.get<HealthOrb>(entity);
+		auto& motion = registry.get<Motion>(entity);
+		if (health_drop.clicked)
+		{
+			float c_constant = FOOD_NUM_X_OFFSET;
+			float a_constant = (health_drop.starting_point.x - c_constant) / pow(health_drop.starting_point.y, 2);
+			float delta_x = 7.5f;
+			float tangent_slope = 1 / (2 * sqrt(a_constant) * sqrt(motion.position.x - c_constant));
+			motion.velocity.x = -1.f;
+			
+			if (motion.position.x < c_constant)
+			{
+				a_constant = (c_constant - health_drop.starting_point.x) / pow(health_drop.starting_point.y, 2);
+				tangent_slope = 1 / (2 * sqrt(a_constant) * sqrt(c_constant - motion.position.x));
+				motion.velocity.x = 1.f;
+			}
+
+			motion.velocity.y = -1.f * tangent_slope;
+			float speed = 800.f;
+			motion.velocity = speed * normalize(motion.velocity);
+			
+			if (motion.position.y < FOOD_NUM_Y_OFFSET)
+			{
+				add_health(health_drop.food_gain_amount);
+				registry.destroy(entity);
+			}
+			// shrink
+			if (motion.scale.x > 0.f)
+			{
+				//health_drop.scale_change -= 0.01 * elapsed_ms;
+				motion.scale -= 0.005 * elapsed_ms;
+			}
+		}
+		else
+		{
+			// hover
+			if (motion.position.y < health_drop.starting_point.y - health_drop.hover_distance)
+			{
+				if (motion.velocity.y < 0)
+				{
+					motion.velocity.y *= -1.f;
+				}
+			}
+			else if (motion.position.y > health_drop.starting_point.y)
+			{
+				if (motion.velocity.y > 0)
+				{
+					motion.velocity.y *= -1.f;
+				}
+			}
+			//shrink delay
+			if (health_drop.shrink_delay_ms > 0.f)
+			{
+				health_drop.shrink_delay_ms -= elapsed_ms;
+			}
+			else
+			{
+				// shrink
+				if (motion.scale.x > 0.f)
+				{
+					//health_drop.scale_change -= 0.01 * elapsed_ms;
+					motion.scale -= 0.005 * elapsed_ms;
+				}
+				else
+				{
+					registry.destroy(entity);
+				}
+			}
+		}
+		
+		
+	}
 }
 
 void WorldSystem::end_battle_phase_step(float elapsed_ms)
@@ -1238,6 +1313,10 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	// update season wheel angle
 	auto& season_wheel_arrow = registry.get<UI_element>(season_wheel_arrow_entity);
 	season_wheel_arrow.angle += PI / (2 * ROUND_PER_SEASON);
+	// monster path reset
+	for (auto entity : registry.view<Path>())
+		registry.destroy(entity);
+	set_AI_paths = false;
 
 	UI_weather_icon::change_weather_icon(weather_icon_entity, weather);
 }
@@ -1267,12 +1346,18 @@ void WorldSystem::damage_monster_helper(entt::entity e_monster, int damage, bool
 	}
 	
 	monster.collided = true;
-
+	
 
 	if (monster.health <= 0)
 	{
-		//health += (int)((float)monster.reward * reward_multiplier);
-		add_health((int)((float)monster.reward * reward_multiplier));
+		
+		auto food_gain_amount = (int)((float)monster.reward * reward_multiplier);
+		auto& motion = registry.get<Motion>(e_monster);
+		// health drop
+		HealthOrb::createHealthDrop(motion.position, food_gain_amount);
+		// gain food
+		//add_health(food_gain_amount);
+		// remove monster
 		if (registry.has<Rig>(e_monster)) {
 			Rig::delete_rig(e_monster); //rigs have multiple pieces to be deleted
 		}
@@ -2773,7 +2858,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				UI_button::fastforward_light_up();
 				// set speed up factor
 				speed_up_factor = FAST_SPEED;
-			}				
+			}
 		}
 		else if (ui_button == Button::more_options_button)
 		{
@@ -2783,6 +2868,16 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area)
 		{
 			on_click_ui_when_selected(ui_button);
+		}
+		// click on health drop
+		for (auto e_health_drop : registry.view<HealthOrb>())
+		{
+			auto health_drop_motion = registry.get<Motion>(e_health_drop);
+			if (sdBox(mouse_world_pos, health_drop_motion.position, health_drop_motion.scale / 2.0f) < 0.0f) {
+				auto& health_drop = registry.get<HealthOrb>(e_health_drop);
+				health_drop.clicked = true;
+				health_drop.starting_point = health_drop_motion.position;
+			}
 		}
 	}
 

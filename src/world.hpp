@@ -11,6 +11,7 @@
 #include "ui_description.hpp"
 #include "tip_manager.hpp"
 #include "story_card.hpp"
+#include "health_drop.hpp"
 
 // stlib
 #include <vector>
