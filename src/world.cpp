@@ -1344,8 +1344,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	weather_text.content = weather_str.at(weather);
 	weather_text.colour = weather_str_colour.at(weather);
 	// update season wheel angle
-	auto& season_wheel_arrow = registry.get<UI_element>(season_wheel_arrow_entity);
-	season_wheel_arrow.angle += PI / (2 * ROUND_PER_SEASON);
+	UI_season_wheel::set_arrow(season_wheel_arrow_entity, season);
 	// monster path reset
 	for (auto entity : registry.view<Path>())
 		registry.destroy(entity);

@@ -919,6 +919,30 @@ void UI_season_wheel::get_season_sequence() {
 
 }
 
+void UI_season_wheel::set_arrow(entt::entity season_wheel_arrow_entity, int season)
+{
+	auto& season_wheel_arrow = registry.get<UI_element>(season_wheel_arrow_entity);
+	switch (season)
+	{
+	case season::SPRING:
+		// update season wheel angle
+		season_wheel_arrow.angle = - PI * 3 / 4;
+		break;
+	case season::SUMMER:
+		// update season wheel angle
+		season_wheel_arrow.angle = - PI * 1 / 4;
+		break;
+	case season::FALL:
+		// update season wheel angle
+		season_wheel_arrow.angle = PI * 1 / 4;
+		break;
+	case season::WINTER:
+		// update season wheel angle
+		season_wheel_arrow.angle = PI * 3 / 4;
+		break;
+	}
+}
+
 entt::entity UI_season_wheel::createUI_season_wheel_arrow() {
 	auto entity = registry.create();
 
