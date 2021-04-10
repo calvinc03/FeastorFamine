@@ -2530,7 +2530,7 @@ void WorldSystem::create_start_menu()
 void WorldSystem::create_controls_menu()
 {
 	std::cout << "In Controls Menu\n";
-	int menu_layer = 90;
+	int menu_layer = LAYER_MENU;
 	std::string menu_name = "controls";
 	auto menu = Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, menu_name, Menu_texture::controls, menu_layer, { WINDOW_SIZE_IN_PX.x / 10, WINDOW_SIZE_IN_PX.x / 10});
 	// title text

@@ -83,7 +83,7 @@ entt::entity Menu::createLostMenu()
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(background_entity, resource);
-	shaded_mesh_ref.layer = 90;
+	shaded_mesh_ref.layer = LAYER_MENU;
 
 	// Setting initial motion values
 	UI_element& ui_element = registry.emplace<UI_element>(background_entity);
@@ -104,7 +104,7 @@ entt::entity Menu::createLostMenu()
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& rabbit_shaded_mesh_ref = registry.emplace<ShadedMeshRef>(rabbits_entity, rabbit_resource);
-	rabbit_shaded_mesh_ref.layer = 91;
+	rabbit_shaded_mesh_ref.layer = LAYER_MENU + 1;
 	auto& anime = registry.emplace<Animate>(rabbits_entity);
 	anime.state_num = 1;
 	anime.frame_num = 4;
@@ -134,7 +134,7 @@ void create_victory_title()
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh_ref.layer = 97;
+	shaded_mesh_ref.layer = LAYER_MENU + 1;
 
 	// Setting initial motion values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
@@ -157,7 +157,7 @@ void create_grill_animation()
 
 	//// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& grill_anime_shaded_mesh_ref = registry.emplace<ShadedMeshRef>(e_grill_animation, resource);
-	grill_anime_shaded_mesh_ref.layer = 95;
+	grill_anime_shaded_mesh_ref.layer = LAYER_MENU + 2;
 	auto& anime = registry.emplace<Animate>(e_grill_animation);
 	anime.state_num = 1;
 	anime.frame_num = 10;
@@ -183,7 +183,7 @@ void create_meat_animation()
 
 	//// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh_ref.layer = 96;
+	shaded_mesh_ref.layer = LAYER_MENU + 3;
 	auto& anime = registry.emplace<Animate>(entity);
 	anime.state_num = 1;
 	anime.frame_num = 5;
@@ -209,7 +209,7 @@ void create_fire_animation()
 
 	//// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& grill_anime_shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
-	grill_anime_shaded_mesh_ref.layer = 97;
+	grill_anime_shaded_mesh_ref.layer = LAYER_MENU + 4;
 	auto& anime = registry.emplace<Animate>(entity);
 	anime.state_num = 1;
 	anime.frame_num = 5;
@@ -235,7 +235,7 @@ void create_grill_foreground()
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(e_grill_foreground, resource);
-	shaded_mesh_ref.layer = 96;
+	shaded_mesh_ref.layer = LAYER_MENU + 3;
 
 	// Setting initial motion values
 	UI_element& ui_element = registry.emplace<UI_element>(e_grill_foreground);
@@ -259,7 +259,7 @@ void create_grill_background()
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(e_grill_background, resource);
-	shaded_mesh_ref.layer = 94;
+	shaded_mesh_ref.layer = LAYER_MENU + 1;
 
 	// Setting initial motion values
 	UI_element& ui_element = registry.emplace<UI_element>(e_grill_background);
@@ -284,7 +284,7 @@ void create_fire_wood()
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh_ref.layer = 96;
+	shaded_mesh_ref.layer = LAYER_MENU + 3;
 
 	// Setting initial motion values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
@@ -308,7 +308,7 @@ void create_fire_wood_animation()
 
 	//// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& grill_anime_shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
-	grill_anime_shaded_mesh_ref.layer = 97;
+	grill_anime_shaded_mesh_ref.layer = LAYER_MENU + 4;
 	auto& anime = registry.emplace<Animate>(entity);
 	anime.state_num = 1;
 	anime.frame_num = 5;
@@ -334,7 +334,7 @@ entt::entity Menu::createVictoryScreen()
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(background_entity, resource);
-	shaded_mesh_ref.layer = 90;
+	shaded_mesh_ref.layer = LAYER_MENU;
 
 	// Setting initial motion values
 	UI_element& ui_element = registry.emplace<UI_element>(background_entity);
@@ -366,7 +366,7 @@ entt::entity TitleEyes::createTitleEyes(vec2 position)
 		RenderSystem::createSprite(resource, menu_texture_path("eyes.png"), "textured");
 	}
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh_ref.layer = 86;
+	shaded_mesh_ref.layer = LAYER_MENU + 1;
 	shaded_mesh_ref.show = false;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);

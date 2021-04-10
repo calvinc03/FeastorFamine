@@ -1,3 +1,14 @@
+enum layer_value {
+    LAYER_MAP = 0,
+    LAYER_UNITS = 10,
+    LAYER_MONSTERS = 30,
+    LAYER_DEBUG = 40,
+    LAYER_PROJECTILES = 50,
+    LAYER_PARTICLES = 60,
+    LAYER_UI = 70,
+    LAYER_MENU = 80
+};
+
 // Terrains with neg value are ones that cannot be placed on
 // May be refactored later if too hard to keep track
 enum terrain_type
@@ -20,10 +31,10 @@ enum monster_type
     SUMMER_BOSS,
     FALL_BOSS,
     WINTER_BOSS,
-    FINAL_BOSS,
-    FIREBALL_BOSS,
     BURROW_BOSS,
     SPIDER,
+    FINAL_BOSS,
+    FIREBALL_BOSS,
     TALKY_BOI
 };
 

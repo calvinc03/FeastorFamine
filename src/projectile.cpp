@@ -26,7 +26,7 @@ entt::entity Projectile::createProjectile(entt::entity e_unit, entt::entity e_mo
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 60;
+    shaded_mesh.layer = LAYER_PROJECTILES;
 
     auto monster_motion = registry.get<Motion>(e_monster);
     auto hunter_motion = registry.get<Motion>(e_unit);
@@ -65,7 +65,7 @@ entt::entity Snowball::createSnowball(entt::entity e_unit, entt::entity e_monste
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 60;
+    shaded_mesh.layer = LAYER_PROJECTILES;
 
     auto monster_motion = registry.get<Motion>(e_monster);
     auto hunter_motion = registry.get<Motion>(e_unit);
@@ -122,7 +122,7 @@ entt::entity Flamethrower::createFlamethrower(entt::entity e_unit, entt::entity 
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 60;
+    shaded_mesh.layer = LAYER_PROJECTILES;
 
     auto& motion_h = registry.get<Motion>(e_unit);
     auto& motion_m = registry.get<Motion>(e_monster);
@@ -169,7 +169,7 @@ entt::entity LaserBeam::createLaserBeam(entt::entity e_unit, entt::entity e_mons
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 60;
+    shaded_mesh.layer = LAYER_PROJECTILES;
 
     auto& hunter_position = registry.get<Motion>(e_unit).position;
     auto& monster_position = registry.get<Motion>(e_monster).position;
@@ -212,7 +212,7 @@ entt::entity Missile::createMissile(entt::entity e_unit, entt::entity e_monster,
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 60;
+    shaded_mesh.layer = LAYER_PROJECTILES;
 
     auto monster_motion = registry.get<Motion>(e_monster);
     auto hunter_motion = registry.get<Motion>(e_unit);
@@ -253,7 +253,7 @@ entt::entity Explosion::createExplosion(entt::entity e_projectile, int damage)
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 60;
+    shaded_mesh.layer = LAYER_PROJECTILES;
 
     auto hunter_motion = registry.get<Motion>(e_projectile);
 
@@ -296,7 +296,7 @@ entt::entity IceField::createIceField(entt::entity e_unit, entt::entity e_monste
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 9;
+    shaded_mesh.layer = LAYER_MONSTERS - 1;
 
     auto monster_motion = registry.get<Motion>(e_monster);
     auto hunter_motion = registry.get<Motion>(e_unit);

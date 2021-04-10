@@ -49,7 +49,7 @@ entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_t
 		RenderSystem::createSprite(resource, menu_button_texture_path(texture_file_name), "textured");
 	}
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh_ref.layer = 98;
+	shaded_mesh_ref.layer = LAYER_MENU + 1;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = menu_button_ui_tag.at(button_type);
@@ -95,7 +95,7 @@ entt::entity MenuButton::create_button_arrow()
 	}
 
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh_ref.layer = 97;
+	shaded_mesh_ref.layer = LAYER_MENU;
 	shaded_mesh_ref.show = false;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);

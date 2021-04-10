@@ -21,7 +21,7 @@ entt::entity Wall::createWall(vec2 position/*, bool rotate*/) // rotation should
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh_ref.layer = 40;
+	shaded_mesh_ref.layer = LAYER_UNITS;
 
 	// Setting initial motion values
 	Motion& motion = registry.emplace<Motion>(entity);

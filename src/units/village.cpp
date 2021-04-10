@@ -16,7 +16,7 @@ entt::entity Village::createVillage(GridMap& current_map)
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 11;
+	shaded_mesh.layer = LAYER_UNITS;
 
 	// Setting initial motion values
 	Motion& motion = registry.emplace<Motion>(entity);

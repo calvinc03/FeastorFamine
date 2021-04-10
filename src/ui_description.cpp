@@ -12,7 +12,7 @@ entt::entity UI_description_card::create_UI_description_card(entt::entity button
 		RenderSystem::createSprite(resource, ui_texture_path("UI-texture-0.png"), "ui_transparent");
 	}
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 98;
+	shaded_mesh.layer = LAYER_UI + 1;
 
 	auto button_ui_element = registry.get<UI_element>(button_entity);
 	int ui_bar_gap = 10;

@@ -17,7 +17,7 @@ entt::entity Robot::createRobot(vec2 pos)
     
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 50;
+    shaded_mesh.layer = LAYER_UNITS;
 
     // Initialize the position component
     auto& motion = registry.emplace<Motion>(entity);

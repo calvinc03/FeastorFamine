@@ -49,7 +49,7 @@ namespace DebugSystem
 
 		// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 		ShadedMeshRef& shaded_mesh =  registry.emplace<ShadedMeshRef>(entity, resource);
-		shaded_mesh.layer = 90;
+		shaded_mesh.layer = LAYER_DEBUG;
 
 		// Create motion
 		auto& motion = registry.emplace<Motion>(entity);
@@ -108,7 +108,7 @@ namespace DebugSystem
 
 		// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 		ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-		shaded_mesh.layer = 90;
+		shaded_mesh.layer = LAYER_DEBUG;
 		// Create motion
 		auto& motion = registry.emplace<Motion>(entity);
 		motion.angle = angle;
@@ -157,7 +157,7 @@ namespace DebugSystem
 
 		// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 		ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-		shaded_mesh.layer = 90;
+		shaded_mesh.layer = LAYER_DEBUG;
 
 		// Create motion
 		auto& motion = registry.emplace<Motion>(entity);
