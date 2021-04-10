@@ -24,7 +24,7 @@ entt::entity FinalBoss::createFinalBossEntt()
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 60;
+    shaded_mesh.layer = LAYER_MONSTERS + FINAL_BOSS;
 
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);

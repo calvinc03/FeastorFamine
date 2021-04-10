@@ -11,7 +11,7 @@ enum Menu_texture { title_screen, controls, default_menu, help_menu, pause_menu,
 struct Menu
 {
 	std::vector<entt::entity> buttons = {};
-	static entt::entity createMenu(float x, float y, std::string menu_name, Menu_texture texture, int layer = 0, vec2 scale = { 1.f, 1.f });
+	static entt::entity createMenu(float x, float y, std::string menu_name, Menu_texture texture, int layer = LAYER_MENU, vec2 scale = { 1.f, 1.f });
 	static entt::entity createLostMenu();
 	static entt::entity createVictoryScreen();
 };

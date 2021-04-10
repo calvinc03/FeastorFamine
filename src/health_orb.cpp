@@ -15,7 +15,7 @@ entt::entity HealthOrb::createHealthOrb(vec2 position, int food_amount)
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 95;
+	shaded_mesh.layer = LAYER_UI + 1;
 
 	// Setting initial ui_element values
 	Motion& motion = registry.emplace<Motion>(entity);

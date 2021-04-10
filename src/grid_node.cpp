@@ -20,7 +20,7 @@ entt::entity GridNode::createGridNode(terrain_type terrain, vec2 coord)
         RenderSystem::createSprite(resource, textures_path(terrain_texture_path(terrain)), NODE_SHADER);
     }
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 1;
+    shaded_mesh.layer = LAYER_MAP + 1;
 
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;

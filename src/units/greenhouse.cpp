@@ -21,7 +21,7 @@ entt::entity GreenHouse::createGreenHouse(vec2 pos)
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 50;
+    shaded_mesh.layer = LAYER_UNITS;
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame_num = 3.f;

@@ -73,7 +73,7 @@ entt::entity UI_background::createUI_background()
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 90;
+	shaded_mesh.layer = LAYER_UI;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "in_game_ui_background";
@@ -98,7 +98,7 @@ entt::entity UI_background::createUI_top_bar()
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 90;
+	shaded_mesh.layer = LAYER_UI;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "in_game_ui_background";
@@ -175,7 +175,7 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 91;
+	shaded_mesh.layer = LAYER_UI + 1;
 	shaded_mesh.show = show;
 
 	// Setting initial ui_element values
@@ -210,7 +210,7 @@ entt::entity UI_button::createTips_button(vec2 position)
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 91;
+	shaded_mesh.layer = LAYER_UI + 1;
 
 	// Setting initial ui_element values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
@@ -240,7 +240,7 @@ entt::entity UI_button::createWantedBoard_button(vec2 position)
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 91;
+	shaded_mesh.layer = LAYER_UI + 1;
 
 	// Setting initial ui_element values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
@@ -270,7 +270,7 @@ entt::entity UI_button::createStart_button(vec2 position)
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 91;
+	shaded_mesh.layer = LAYER_UI + 1;
 
 	// Setting initial ui_element values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
@@ -300,7 +300,7 @@ entt::entity UI_button::createPause_button(vec2 position)
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 91;
+	shaded_mesh.layer = LAYER_UI + 1;
 
 	// Setting initial ui_element values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
@@ -330,7 +330,7 @@ entt::entity UI_button::createMore_button(vec2 position)
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 91;
+	shaded_mesh.layer = LAYER_UI + 1;
 
 	// Setting initial ui_element values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
@@ -360,7 +360,7 @@ entt::entity UI_button::create_add_monster_button(vec2 position)
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 91;
+	shaded_mesh.layer = LAYER_UI + 1;
 
 	// Setting initial ui_element values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
@@ -420,7 +420,7 @@ entt::entity UI_button::create_inc_m_speed_button(vec2 position)
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 91;
+	shaded_mesh.layer = LAYER_UI + 1;
 
 	// Setting initial ui_element values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
@@ -450,7 +450,7 @@ entt::entity UI_button::create_dec_m_speed_button(vec2 position)
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 91;
+	shaded_mesh.layer = LAYER_UI + 1;
 
 	// Setting initial ui_element values
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
@@ -481,7 +481,7 @@ void UI_button::fastforward_light_up()
 				RenderSystem::createSprite(resource, ui_texture_path("fastforward_button_light.png"), "textured");
 			}
 			ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-			shaded_mesh.layer = 91;
+			shaded_mesh.layer = LAYER_UI + 1;
 		}
 	}
 }
@@ -501,7 +501,7 @@ void UI_button::fastforward_light_off()
 				RenderSystem::createSprite(resource, ui_texture_path("fastforward_button.png"), "ui");
 			}
 			ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-			shaded_mesh.layer = 91;
+			shaded_mesh.layer = LAYER_UI + 1;
 		}
 	}
 
@@ -517,7 +517,7 @@ void UI_button::wantedboard_update_on(entt::entity button)
 		RenderSystem::createSprite(resource, ui_texture_path("wantedboard_button_update.png"), "textured");
 	}
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(button, resource);
-	shaded_mesh.layer = 91;
+	shaded_mesh.layer = LAYER_UI + 1;
 }
 
 void UI_button::wantedboard_update_off(entt::entity button)
@@ -530,7 +530,7 @@ void UI_button::wantedboard_update_off(entt::entity button)
 		RenderSystem::createSprite(resource, ui_texture_path("wantedboard_button.png"), "textured");
 	}
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(button, resource);
-	shaded_mesh.layer = 91;
+	shaded_mesh.layer = LAYER_UI + 1;
 }
 
 entt::entity UI_button::createFastforward_button(vec2 position)
@@ -548,7 +548,7 @@ entt::entity UI_button::createFastforward_button(vec2 position)
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 91;
+	shaded_mesh.layer = LAYER_UI + 1;
 	shaded_mesh.show = false;
 
 	// Setting initial ui_element values
@@ -609,7 +609,7 @@ entt::entity UI_selected_unit_portrait::createUI_selected_unit_portrait(unit_typ
 	}
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
 	shaded_mesh.show = true;
-	shaded_mesh.layer = 99;
+	shaded_mesh.layer = LAYER_UI + 2;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "portraits";
@@ -668,7 +668,7 @@ entt::entity UI_selected_unit::createUI_selected_unit_upgrade_button(int pos, Bu
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 91;
+	shaded_mesh.layer = LAYER_UI + 1;
 	shaded_mesh.show = show;
 
 	RenderProperty& render_property = registry.emplace<RenderProperty>(entity);
@@ -715,7 +715,7 @@ entt::entity UI_selected_unit::create_selected_button_image(vec2 pos, std::strin
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 95;
+	shaded_mesh.layer = LAYER_UI + 2;
 	shaded_mesh.show = true;
 
 	RenderProperty& render_property = registry.emplace<RenderProperty>(entity);
@@ -758,7 +758,7 @@ entt::entity UI_selected_unit::create_selected_button_progress_bar(vec2 pos, int
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 95;
+	shaded_mesh.layer = LAYER_UI + 2;
 	shaded_mesh.show = true;
 
 	RenderProperty& render_property = registry.emplace<RenderProperty>(entity);
@@ -788,7 +788,7 @@ entt::entity UI_sell_button::createUI_sell_button(int pos, Button button, std::s
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 91;
+	shaded_mesh.layer = LAYER_UI + 1;
 	shaded_mesh.show = show;
 
 	RenderProperty& render_property = registry.emplace<RenderProperty>(entity);
@@ -839,7 +839,7 @@ entt::entity UI_sell_button::create_sell_button_icon(vec2 pos)
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 95;
+	shaded_mesh.layer = LAYER_UI + 2;
 	shaded_mesh.show = true;
 
 	RenderProperty& render_property = registry.emplace<RenderProperty>(entity);
@@ -892,7 +892,7 @@ entt::entity UI_season_wheel::createUI_season_wheel() {
 		RenderSystem::createSprite(resource, ui_texture_path("season_wheel.png"), "textured");
 	}
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 98;
+	shaded_mesh.layer = LAYER_UI + 1;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "UI_season_wheel";
@@ -928,7 +928,7 @@ entt::entity UI_season_wheel::createUI_season_wheel_arrow() {
 		RenderSystem::createSprite(resource, ui_texture_path("season_wheel_arrow.png"), "textured");
 	}
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 99;
+	shaded_mesh.layer = LAYER_UI + 2;
 
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
@@ -950,7 +950,7 @@ entt::entity UI_weather_icon::createUI_weather_icon() {
 		RenderSystem::createSprite(resource, ui_texture_path("weather_clear.png"), "textured");
 	}
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 98;
+	shaded_mesh.layer = LAYER_UI + 1;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "UI_weather_icon";
@@ -988,5 +988,5 @@ void UI_weather_icon::change_weather_icon(entt::entity entity, int weather) {
 
 	}
 	ShadedMeshRef& shaded_mesh = registry.replace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 98;
+	shaded_mesh.layer = LAYER_UI + 1;
 }

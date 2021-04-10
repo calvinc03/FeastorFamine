@@ -19,7 +19,7 @@ entt::entity WantedBoard::createWantedBoard() {
 	}
 
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 70;
+	shaded_mesh.layer = LAYER_UI + 1;
 	shaded_mesh.show = false;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
@@ -45,7 +45,7 @@ entt::entity WantedTitle::createWantedSign() {
 	}
 
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 71;
+	shaded_mesh.layer = LAYER_UI + 1;
 	shaded_mesh.show = false;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
@@ -124,7 +124,7 @@ entt::entity WantedEntry::createWantedEntry(vec2 position, int monster_type)
 	}
 
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 80;
+	shaded_mesh.layer = LAYER_MENU;
 	shaded_mesh.show = false;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
@@ -173,7 +173,7 @@ void WantedEntry::createMonsterIcon(entt::entity entry, vec2 position, vec2 scal
 	}
 
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 90;
+	shaded_mesh.layer = LAYER_MENU + 1;
 	shaded_mesh.show = false;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);

@@ -21,7 +21,7 @@ entt::entity TipCard::createTipCard(int x, int y, std::vector<std::string> text_
 		RenderSystem::createSprite(resource, ui_texture_path("UI-texture-0.png"), "ui_transparent");
 	}
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = 98;
+	shaded_mesh.layer = LAYER_MENU;
 
 
 

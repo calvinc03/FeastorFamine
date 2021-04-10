@@ -20,7 +20,7 @@ StoryCard::StoryCard(std::string story_card_text, std::string level_number)
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh_ref.layer = 80;
+	shaded_mesh_ref.layer = LAYER_MENU;
 
 	// Setting initial motion values
 	Motion& motion = registry.emplace<Motion>(entity);

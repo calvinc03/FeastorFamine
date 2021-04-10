@@ -25,7 +25,7 @@ entt::entity GridMap::createGridMap()
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     //ECS::registry<ShadedMeshRef>.emplace(entity, resource);
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 0;
+    shaded_mesh.layer = LAYER_MAP;
 
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
