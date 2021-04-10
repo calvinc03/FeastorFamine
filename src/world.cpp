@@ -468,13 +468,88 @@ void WorldSystem::step(float elapsed_ms)
 		// Increment round number if all enemies are not on the map and projectiles are removed
 		if (num_bosses_spawned == max_boss && num_mobs_spawned == max_mobs)
 		{
-			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty())
+			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty() && registry.view<HealthOrb>().empty())
 			{
 				end_battle_phase_step(elapsed_ms);
 			}
 		}
 	}
 	
+	// health drop
+	for (auto entity : registry.view<HealthOrb>())
+	{
+		auto& health_drop = registry.get<HealthOrb>(entity);
+		auto& motion = registry.get<Motion>(entity);
+		if (health_drop.clicked)
+		{
+			float c_constant = FOOD_NUM_X_OFFSET;
+			float a_constant = (health_drop.starting_point.x - c_constant) / pow(health_drop.starting_point.y, 2);
+			float delta_x = 7.5f;
+			float tangent_slope = 1 / (2 * sqrt(a_constant) * sqrt(motion.position.x - c_constant));
+			motion.velocity.x = -1.f;
+			
+			if (motion.position.x < c_constant)
+			{
+				a_constant = (c_constant - health_drop.starting_point.x) / pow(health_drop.starting_point.y, 2);
+				tangent_slope = 1 / (2 * sqrt(a_constant) * sqrt(c_constant - motion.position.x));
+				motion.velocity.x = 1.f;
+			}
+
+			motion.velocity.y = -1.f * tangent_slope;
+			float speed = 800.f;
+			motion.velocity = speed * normalize(motion.velocity);
+			
+			if (motion.position.y < FOOD_NUM_Y_OFFSET)
+			{
+				add_health(health_drop.food_gain_amount);
+				registry.destroy(entity);
+			}
+			// shrink
+			if (motion.scale.x > 0.f)
+			{
+				//health_drop.scale_change -= 0.01 * elapsed_ms;
+				motion.scale -= 0.005 * elapsed_ms;
+			}
+		}
+		else
+		{
+			// hover
+			if (motion.position.y < health_drop.starting_point.y - health_drop.hover_distance)
+			{
+				if (motion.velocity.y < 0)
+				{
+					motion.velocity.y *= -1.f;
+				}
+			}
+			else if (motion.position.y > health_drop.starting_point.y)
+			{
+				if (motion.velocity.y > 0)
+				{
+					motion.velocity.y *= -1.f;
+				}
+			}
+			//shrink delay
+			if (health_drop.shrink_delay_ms > 0.f)
+			{
+				health_drop.shrink_delay_ms -= elapsed_ms;
+			}
+			else
+			{
+				// shrink
+				if (motion.scale.x > 0.f)
+				{
+					//health_drop.scale_change -= 0.01 * elapsed_ms;
+					motion.scale -= 0.005 * elapsed_ms;
+				}
+				else
+				{
+					registry.destroy(entity);
+				}
+			}
+		}
+		
+		
+	}
 }
 
 void WorldSystem::end_battle_phase_step(float elapsed_ms)
@@ -716,7 +791,7 @@ void WorldSystem::end_battle_phase()
 
 	setup_round_from_round_number(world_round_number);
 	// re-roll some fraction of map for weather terrains
-	int max_rerolls = (int)ceil(0.3 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
+	int max_rerolls = (int)ceil(0.7 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
 	screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
 		
 	for (auto particle : registry.view<ParticleSystem>()) {
@@ -1032,6 +1107,11 @@ void WorldSystem::restart()
 		UI_button::create_rem_monster_button(REM_GAME_BUTTON_POS);
 		UI_button::create_inc_m_speed_button(INC_GAME_BUTTON_POS);
 		UI_button::create_dec_m_speed_button(DEC_GAME_BUTTON_POS);
+		create_ui_text(vec2(ADD_GAME_BUTTON_POS.x - 50, 30), "MONSTERS", .3f, vec3(1.f,1.f,1.f));
+		create_ui_text(vec2(INC_GAME_BUTTON_POS.x - 50, 30), "SPEED", .3f, vec3(1.f, 1.f, 1.f));
+		max_mobs_text_entity = create_ui_text(vec2(ADD_GAME_BUTTON_POS.x - 25, 10), std::to_string(max_mobs), .3f, vec3(1.f, 1.f, 1.f));
+		float monster_speed = 1000.f / (float)mob_delay_ms;
+		mob_speed_text_entity = create_ui_text(vec2(INC_GAME_BUTTON_POS.x - 50, 10), std::to_string(monster_speed), .3f, vec3(1.f, 1.f, 1.f));
 	}
 
 	// general buttons
@@ -1106,13 +1186,20 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 
 	if (sandbox) {
 		max_mobs = 10;
-		mob_delay_ms = 100; 
+		mob_delay_ms = 1000; 
 		max_boss = 10;
-		boss_delay_ms = 100;
+		boss_delay_ms = 1000;
 		world_season_str = "spring";
 
 		auto& stage_text = registry.get<Text>(stage_text_entity);
 		stage_text.content = "SANDBOX";
+
+		auto& max_mobs_text = registry.get<Text>(max_mobs_text_entity);
+		max_mobs_text.content = std::to_string(max_mobs);
+
+		auto& mob_speed_text = registry.get<Text>(mob_speed_text_entity);
+		float monster_speed = 1000.f / (float)mob_delay_ms;
+		mob_speed_text.content = std::to_string(monster_speed);
 	}
 	else {
 		nlohmann::json round_json = get_json(INPUT_PATH + std::to_string(round_number) + JSON_EXTENSION);
@@ -1238,6 +1325,10 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	// update season wheel angle
 	auto& season_wheel_arrow = registry.get<UI_element>(season_wheel_arrow_entity);
 	season_wheel_arrow.angle += PI / (2 * ROUND_PER_SEASON);
+	// monster path reset
+	for (auto entity : registry.view<Path>())
+		registry.destroy(entity);
+	set_AI_paths = false;
 
 	UI_weather_icon::change_weather_icon(weather_icon_entity, weather);
 }
@@ -1267,12 +1358,21 @@ void WorldSystem::damage_monster_helper(entt::entity e_monster, int damage, bool
 	}
 	
 	monster.collided = true;
+	
 
+	auto& hit_reaction = registry.get<HitReaction>(e_monster);
+	hit_reaction.counter_ms = hit_reaction.counter_interval; //ms duration used by health bar
 
 	if (monster.health <= 0)
 	{
-		//health += (int)((float)monster.reward * reward_multiplier);
-		add_health((int)((float)monster.reward * reward_multiplier));
+		
+		auto food_gain_amount = (int)((float)monster.reward * reward_multiplier);
+		auto& motion = registry.get<Motion>(e_monster);
+		// health drop
+		HealthOrb::createHealthOrb(motion.position, food_gain_amount);
+		// gain food
+		//add_health(food_gain_amount);
+		// remove monster
 		if (registry.has<Rig>(e_monster)) {
 			Rig::delete_rig(e_monster); //rigs have multiple pieces to be deleted
 		}
@@ -1629,7 +1729,7 @@ void grid_highlight_system(vec2 mouse_pos, GridMap current_map)
 	auto &node = current_map.getNodeAtCoord(pixel_to_coord(mouse_pos));
 	for (auto [entity, grid_motion, highlight] : view_ui.each())
 	{
-		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == NONE && node.terrain != TERRAIN_PAVEMENT)
+		if (sdBox(mouse_pos, grid_motion.position, grid_motion.scale / 2.0f) < 0.0f && node.occupancy == NONE && node.terrain != TERRAIN_FIRE && node.terrain != TERRAIN_PUDDLE)
 		{
 			highlight.highlight = true;
 		}
@@ -2543,6 +2643,9 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 		std::cout << "more mobs" << std::endl;
 		max_mobs++;
 		max_boss++;
+
+		auto& max_mobs_text = registry.get<Text>(max_mobs_text_entity);
+		max_mobs_text.content = std::to_string(max_mobs);
 	}
 	else if (ui_button == Button::rem_monster_button)
 	{
@@ -2550,6 +2653,9 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 			std::cout << "less mobs" << std::endl;
 			max_mobs--;
 			max_boss--;
+
+			auto& max_mobs_text = registry.get<Text>(max_mobs_text_entity);
+			max_mobs_text.content = std::to_string(max_mobs);
 		}
 	}
 	else if (ui_button == Button::inc_m_speed_button)
@@ -2558,6 +2664,10 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 			std::cout << "increased" << std::endl;
 			mob_delay_ms -= 100;
 			boss_delay_ms -= 100;
+
+			auto& mob_speed_text = registry.get<Text>(mob_speed_text_entity);
+			float monster_speed = 1000.f / (float)mob_delay_ms;
+			mob_speed_text.content = std::to_string(monster_speed);
 		}
 	}
 	else if (ui_button == Button::dec_m_speed_button)
@@ -2565,6 +2675,10 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 		std::cout << "delayed" << std::endl;
 		mob_delay_ms += 100;
 		boss_delay_ms += 100;
+
+		auto& mob_speed_text = registry.get<Text>(mob_speed_text_entity);
+		float monster_speed = 1000.f / (float)mob_delay_ms;
+		mob_speed_text.content = std::to_string(monster_speed);
 	}
 }
 
@@ -2685,7 +2799,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			vec2 unit_position = coord_to_pixel(node.coord);
             bool can_place_unit = true;
             entt::entity entity;
-			if (node.occupancy == NONE && node.terrain != TERRAIN_PAVEMENT && node.terrain != TERRAIN_FIRE)
+			if (node.occupancy == NONE && node.terrain != TERRAIN_PUDDLE && node.terrain != TERRAIN_FIRE)
 			{
 				if (placement_unit_selected == HUNTER && health >= hunter_unit.cost)
 				{
@@ -2773,7 +2887,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				UI_button::fastforward_light_up();
 				// set speed up factor
 				speed_up_factor = FAST_SPEED;
-			}				
+			}
 		}
 		else if (ui_button == Button::more_options_button)
 		{
@@ -2783,6 +2897,16 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 		else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area)
 		{
 			on_click_ui_when_selected(ui_button);
+		}
+		// click on health drop
+		for (auto e_health_drop : registry.view<HealthOrb>())
+		{
+			auto health_drop_motion = registry.get<Motion>(e_health_drop);
+			if (sdBox(mouse_world_pos, health_drop_motion.position, health_drop_motion.scale / 2.0f) < 0.0f) {
+				auto& health_drop = registry.get<HealthOrb>(e_health_drop);
+				health_drop.clicked = true;
+				health_drop.starting_point = health_drop_motion.position;
+			}
 		}
 	}
 
@@ -2902,6 +3026,8 @@ void WorldSystem::sell_unit(entt::entity &entity)
 {
     auto& motion = registry.get<Motion>(entity);
     current_map.setGridOccupancy(pixel_to_coord(motion.position), NONE, entity);
+	// ai path find reset
+	set_AI_paths = false;
 	// destroy the laser beam when removing robot
 	if (registry.has<Robot>(entity))
 	{

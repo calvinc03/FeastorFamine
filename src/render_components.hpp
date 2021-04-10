@@ -159,6 +159,7 @@ struct HitReaction
 {
 	bool hit_bool;
 	float counter_ms = 0;
+	float counter_interval = 750;
 };
 //for ui 
 struct HighlightBool

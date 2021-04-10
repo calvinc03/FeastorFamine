@@ -21,12 +21,7 @@ public:
 	struct MapAI {
         static bool is_walkable(GridMap& current_map, ivec2 coord)
         {
-            if (is_inbounds(coord))
-            {
-                int occupancy = current_map.getNodeAtCoord(coord).occupancy;
-                return occupancy == NONE || occupancy == FOREST || occupancy == VILLAGE;
-            }
-            return false;
+            return is_inbounds(coord);
         }
         static std::vector<ivec2> findPathBFS(GridMap& current_map,
                                               ivec2 start_coord = FOREST_COORD,
@@ -52,4 +47,6 @@ public:
 private:
 	// PhysicsSystem handle
 	PhysicsSystem* physics;
+
+    void updateHunterTarget() const;
 };

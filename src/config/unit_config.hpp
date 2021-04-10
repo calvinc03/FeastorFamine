@@ -102,5 +102,5 @@ const std::map<unit_type, int> unit_health = {
 	{ROBOT, 150},
 	{PRIESTESS, 150},
 	{SNOWMACHINE, 150},
-	{WALL, 50}
+	{WALL, 250}
 };
