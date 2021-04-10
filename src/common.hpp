@@ -25,6 +25,8 @@
 #include <glm/mat3x3.hpp>           // mat3
 #include <json.hpp>					// json
 
+#include <SDL_mixer.h>
+
 using namespace glm;
 static const float PI = 3.14159265359f;
 
@@ -164,3 +166,13 @@ extern entt::entity screen_state_entity;
 extern entt::entity camera;
 
 nlohmann::json get_json(std::string json_path);
+
+struct SoundRef
+{
+	Mix_Chunk* sound_reference = nullptr;
+	float play_delay_counter_ms = -1;
+	float play_delay_ms = 99999.f; // prevent sound to get played again for some projectiles
+	bool play_sound = true;
+	bool on_impact_destory = false;
+	int channel_num;
+};

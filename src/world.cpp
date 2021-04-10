@@ -168,8 +168,6 @@ WorldSystem::~WorldSystem()
 		Mix_FreeChunk(salmon_dead_sound);
 	if (salmon_eat_sound != nullptr)
 		Mix_FreeChunk(salmon_eat_sound);
-	if (impact_sound != nullptr)
-		Mix_FreeChunk(impact_sound);
 	Mix_CloseAudio();
 
 	// Destroy all created components
@@ -197,11 +195,9 @@ void WorldSystem::init_audio()
 	ui_sound_tick = Mix_LoadWAV(audio_path("tick.wav").c_str());
 	ui_sound_hollow_tick = Mix_LoadWAV(audio_path("hollow_tick.wav").c_str());
 	ui_sound_negative_tick = Mix_LoadWAV(audio_path("negative_tick.wav").c_str());
-	impact_sound = Mix_LoadWAV(audio_path("impact.wav").c_str());
-	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr || impact_sound == nullptr || ui_sound_bottle_pop == nullptr)
+	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr || ui_sound_bottle_pop == nullptr)
 		throw std::runtime_error("Failed to load sounds make sure the data directory is present: " +
 								 audio_path("music2.wav") +
-								 audio_path("impact.wav") +
 								 audio_path("salmon_dead.wav") +
 								 audio_path("salmon_eat.wav") +
 								 audio_path("ui_sound_bottle_pop.wav"));
@@ -495,7 +491,7 @@ void WorldSystem::step(float elapsed_ms)
 		}
 	}
 	
-	// health drop
+	// health orb
 	for (auto entity : registry.view<HealthOrb>())
 	{
 		auto& health_drop = registry.get<HealthOrb>(entity);
@@ -521,6 +517,7 @@ void WorldSystem::step(float elapsed_ms)
 			
 			if (motion.position.y < FOOD_NUM_Y_OFFSET)
 			{
+				registry.get<SoundRef>(entity).play_sound = true;
 				add_health(health_drop.food_gain_amount);
 				registry.destroy(entity);
 			}
@@ -1357,10 +1354,9 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	UI_weather_icon::change_weather_icon(weather_icon_entity, weather);
 }
 
-void WorldSystem::damage_monster_helper(entt::entity e_monster, int damage, bool slow) {
+void WorldSystem::damage_monster_helper(entt::entity e_monster, entt::entity e_projectile, int damage, bool slow) {
 	
 	auto& monster = registry.get<Monster>(e_monster);
-	Mix_PlayChannel(-1, impact_sound, 0);
 
 	if (slow) {
 		auto& damage_properties = registry.get<DamageProperties>(e_monster);
@@ -1380,7 +1376,12 @@ void WorldSystem::damage_monster_helper(entt::entity e_monster, int damage, bool
 		auto& hit_reaction = registry.get<HitReaction>(e_monster);
 		hit_reaction.counter_ms = 750; //ms duration used by health bar
 	}
-	
+	// set projectile sound to true when hit monster
+	if (registry.has<SoundRef>(e_projectile))
+	{
+		auto& sound_ref = registry.get<SoundRef>(e_projectile);
+		sound_ref.play_sound = true;
+	}
 	monster.collided = true;
 	
 
@@ -1432,18 +1433,18 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 
 			rock.bezier_points = bezierVelocities(bezierCurve(points, 1000));
 		}
-		damage_monster_helper(e_monster, prj.damage, true);
+		damage_monster_helper(e_monster, e_projectile, prj.damage, true);
 	}
 	else if (registry.has<Flamethrower>(e_projectile) || registry.has<LaserBeam>(e_projectile) || registry.has<Explosion>(e_projectile) || registry.has<IceField>(e_projectile)) {
 		auto& dot = registry.get<DamageProperties>(e_monster);
 		if (dot.dot_map.find(e_projectile) == dot.dot_map.end()) {
 			dot.dot_map.insert({ e_projectile, DOT_DELAY });
-			damage_monster_helper(e_monster, prj.damage, registry.has<IceField>(e_projectile));
+			damage_monster_helper(e_monster, e_projectile, prj.damage, registry.has<IceField>(e_projectile));
 		}
 		else {
 			if (dot.dot_map[e_projectile] <= 0) {
 				dot.dot_map[e_projectile] = DOT_DELAY;
-				damage_monster_helper(e_monster, prj.damage, registry.has<IceField>(e_projectile));
+				damage_monster_helper(e_monster, e_projectile, prj.damage, registry.has<IceField>(e_projectile));
 			}
 		}
 	}
@@ -1454,7 +1455,7 @@ void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, en
 	}
 
 	else {
-		damage_monster_helper(e_monster, prj.damage);
+		damage_monster_helper(e_monster, e_projectile, prj.damage);
 		registry.destroy(e_projectile);
 	}
 }
@@ -1472,11 +1473,10 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 	}
 	if (key == GLFW_KEY_T) // for testing rigs
 	{
-		speed_up_factor = 1.f;
 	}
 	if (key == GLFW_KEY_Y) // for testing rigs
 	{
-		speed_up_factor = FAST_SPEED;
+		
 	}
 	if (key == GLFW_KEY_N) // for testing rigs
 	{

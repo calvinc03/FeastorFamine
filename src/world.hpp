@@ -12,7 +12,6 @@
 #include "tip_manager.hpp"
 #include "story_card.hpp"
 #include "health_orb.hpp"
-
 // stlib
 #include <vector>
 
@@ -271,7 +270,7 @@ private:
 	entt::entity create_help_menu();
 
 	//helper methods for updateProjectileMonsterCollision() method
-	void damage_monster_helper(entt::entity e_monster, int damage, bool slow = false);
+	void damage_monster_helper(entt::entity e_monster, entt::entity e_projectile, int damage, bool slow = false);
 
 	// helper for start menu mouse click and in_game mouse click
 	void start_menu_click_handle(double mosue_pos_x, double mouse_pos_y, int button, int action, int mod);
@@ -301,9 +300,9 @@ private:
 	Mix_Music* background_music;
 	Mix_Chunk* salmon_dead_sound;
 	Mix_Chunk* salmon_eat_sound;
-	Mix_Chunk* impact_sound;
 	Mix_Chunk* ui_sound_bottle_pop;
 	Mix_Chunk* ui_sound_tick;
 	Mix_Chunk* ui_sound_negative_tick;
 	Mix_Chunk* ui_sound_hollow_tick;
+	Mix_Chunk* snowball_hit_sound;
 };

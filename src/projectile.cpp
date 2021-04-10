@@ -46,6 +46,12 @@ entt::entity Projectile::createProjectile(entt::entity e_unit, entt::entity e_mo
     Projectile& p = registry.emplace<Projectile>(entity);
     p.damage = damage;
 
+    auto& sound = registry.emplace<SoundRef>(entity);
+    sound.sound_reference = Mix_LoadWAV(audio_path("projectile/impact.wav").c_str());
+    sound.play_delay_counter_ms = -1;
+    sound.play_sound = false;
+    sound.on_impact_destory = true;
+
     return entity;
 }
 
@@ -103,6 +109,10 @@ entt::entity Snowball::createSnowball(entt::entity e_unit, entt::entity e_monste
     Snowball& rock = registry.emplace<Snowball>(entity);
     rock.bezier_points = bezier;
 
+    auto& sound = registry.emplace<SoundRef>(entity);
+    sound.sound_reference = Mix_LoadWAV(audio_path("projectile/snowball_hit.wav").c_str());
+    sound.play_sound = false;
+
     return entity;
 }
 
@@ -149,6 +159,11 @@ entt::entity Flamethrower::createFlamethrower(entt::entity e_unit, entt::entity 
     auto& flame = registry.emplace<Flamethrower>(entity);
     flame.e_unit = e_unit;
 
+    auto& sound = registry.emplace<SoundRef>(entity);
+    sound.sound_reference = Mix_LoadWAV(audio_path("projectile/flamethrower.wav").c_str());
+    sound.play_delay_counter_ms = -1;
+    sound.play_delay_ms = 3300;
+
     return entity;
 }
 
@@ -191,7 +206,11 @@ entt::entity LaserBeam::createLaserBeam(entt::entity e_unit, entt::entity e_mons
     auto& beam = registry.emplace<LaserBeam>(entity);
     beam.e_unit = e_monster;
     beam.unit_pos = hunter_position;
-
+    
+    auto& sound = registry.emplace<SoundRef>(entity);
+    sound.sound_reference = Mix_LoadWAV(audio_path("projectile/laser.wav").c_str());
+    sound.play_delay_counter_ms = -1;
+    sound.play_delay_ms = 3000;
     return entity;
 }
 

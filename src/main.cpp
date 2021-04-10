@@ -11,11 +11,10 @@
 #include "world.hpp"
 #include "entt.hpp"
 //#include "tiny_ecs.hpp"
-
+#include "sound_system.hpp"
 #include "render.hpp"
 #include "physics.hpp"
 #include "ai.hpp"
-
 #include "debug.hpp"
 #include "health_bar.hpp"
 
@@ -35,8 +34,10 @@ int main()
 	// Initialize the main systems
 	PhysicsSystem physics;
 	AISystem ai(&physics);
+	
 	WorldSystem world(WINDOW_SIZE_IN_PX, &physics);
 	RenderSystem renderer(*world.window);
+	SoundSystem sound_system;
 
 	world.screen_sprite = &renderer.screen_sprite;
 	
@@ -115,7 +116,7 @@ int main()
 			world.title_screen_step(elapsed_ms);
 			physics.title_screen_step(elapsed_ms);
 		}
-        
+		sound_system.step(actual_ms);
 		renderer.draw(billboard_vertex_buffer, particles_position_buffer);
 	}
 	//

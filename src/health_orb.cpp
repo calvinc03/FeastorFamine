@@ -32,5 +32,10 @@ entt::entity HealthOrb::createHealthOrb(vec2 position, int food_amount)
 	health_drop.clicked = true;
 	health_drop.food_gain_amount = food_amount;
 
+	auto& sound = registry.emplace<SoundRef>(entity);
+	sound.on_impact_destory = true;
+	sound.sound_reference = Mix_LoadWAV(audio_path("ui/health_gain_sound.wav").c_str());
+	sound.play_sound = false;
+
 	return entity;
 }
