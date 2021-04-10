@@ -79,8 +79,10 @@ void AISystem::step(float elapsed_ms)
 		// TODO: scale projectile spawn with the current speed of the game 
 		placeable_unit.next_projectile_spawn -= elapsed_ms;
 	}
+    updateHunterTarget();
+}
 
-    // Attack mobs if in range of hunter
+void AISystem::updateHunterTarget() const {// Attack mobs if in range of hunter
     for (auto unit : registry.view<Unit>()) {
         auto hunter = entt::to_entity(registry, unit);
         auto& motion_h = registry.get<Motion>(hunter);
@@ -97,7 +99,7 @@ void AISystem::step(float elapsed_ms)
                 priority_queue.push(monster);
             }
         }
-        
+
         if (!priority_queue.empty() && !motion_h.standing) {
             auto monster = priority_queue.top();
             auto& motion_monster = registry.get<Motion>(monster);
@@ -106,7 +108,7 @@ void AISystem::step(float elapsed_ms)
         }
 
         if (placeable_unit.next_projectile_spawn <= 0.f && placeable_unit.health > 0) {
-            
+
             int num_spawned_prj = 0;
             while (num_spawned_prj < placeable_unit.num_projectiles && !priority_queue.empty())
             {
@@ -120,7 +122,7 @@ void AISystem::step(float elapsed_ms)
                 }
                 placeable_unit.create_projectile(hunter, monster, placeable_unit.damage + placeable_unit.damage_buff);
                 num_spawned_prj += 1;
-                
+
             }
             if (num_spawned_prj >= 1)
                 placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms / placeable_unit.attack_speed_buff;
@@ -136,12 +138,12 @@ void AISystem::updateProjectileMonsterCollision(entt::entity monster)
 		if (!boss.hit)
 		{
 			boss.hit = true;
-
-			if (boss.speed_multiplier > 1)
-			{
-				boss.sprite = boss.run_sprite;
-				boss.frames = boss.run_frames;
-			}
+//
+//			if (boss.speed_multiplier > 1)
+//			{
+//				boss.sprite = boss.run_sprite;
+//				boss.frames = boss.run_frames;
+//			}
 		}
 	}
     else {
@@ -318,9 +320,8 @@ void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map, int weather) {
         for (int j = 0; j < MAP_SIZE_IN_COORD.y; j++) {
             auto& node = map.getNodeAtCoord(ivec2(i,j));
 
-            if (node.terrain != TERRAIN_PAVEMENT && node.occupancy != VILLAGE && node.occupancy != FOREST) {
-                terrain_type weather_terrain = get_random_weather_terrain(weather);
-                map.setGridTerrain(ivec2(i, j), weather_terrain);
+            if (node.terrain != TERRAIN_PAVEMENT && node.occupancy != NONE) {
+                map.setGridTerrain(ivec2(i, j), get_random_weather_terrain(weather));
             }
         }
     }
@@ -330,7 +331,7 @@ void AISystem::MapAI::setRandomWeatherTerrain(GridMap &map, int max_rerolls, int
     for (int i = 0; i < max_rerolls; i++) {
         ivec2 random_coord(uniform_dist(rng)*MAP_SIZE_IN_COORD.x,  uniform_dist(rng)*MAP_SIZE_IN_COORD.y);
         auto& node = map.getNodeAtCoord(random_coord);
-        if (node.terrain != TERRAIN_PAVEMENT) {
+        if (node.terrain != TERRAIN_PAVEMENT && node.occupancy != NONE) {
             map.setGridTerrain(random_coord, get_random_weather_terrain(weather));
         }
     }

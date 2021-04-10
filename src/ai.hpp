@@ -52,4 +52,6 @@ public:
 private:
 	// PhysicsSystem handle
 	PhysicsSystem* physics;
+
+    void updateHunterTarget() const;
 };

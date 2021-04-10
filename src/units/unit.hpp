@@ -20,9 +20,9 @@ struct Unit {
 	int upgrade_path_1_cost = 0;
 	int upgrade_path_2_cost = 0;
 	int cost = 0;
-	unsigned int sell_price = 0;
-	unsigned int health = 100;
-	unsigned int max_health = 100;
+	int sell_price = 0;
+	int health = 100;
+	int max_health = 100;
 	int damage_buff;
 	float attack_speed_buff;
 };

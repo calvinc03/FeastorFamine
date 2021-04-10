@@ -60,26 +60,26 @@ struct Monster {
     int max_health; //useful for displaying health bars
     int health;
     int damage;
-    int attack_interval = 20;
+    int attack_interval = 5;
+    int next_attack = 1;
     int current_path_index = 0;
 	bool current_node_visited = false;
     int reward;
     bool collided = false;
     std::vector<ivec2> path_coords;
-
+    int state = WALK;
 	bool hit;
 	float speed_multiplier = 1.0;
 	monster_type type;
 	std::string walk_sprite;
-	std::string run_sprite;
 	std::string attack_sprite;
 	std::string special_sprite;
 	std::string sprite;
 	int walk_frames = 4;
-	int run_frames = 4;
 	int attack_frames = 4;
 	int special_frames = 0;
 	int frames;
+    void setSprite(entt::entity entity);
 };
 
 struct Food {

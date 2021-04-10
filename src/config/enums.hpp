@@ -27,6 +27,12 @@ enum monster_type
     TALKY_BOI
 };
 
+enum monster_state {
+    WALK,
+    ATTACK,
+    SPECIAL,
+};
+
 enum unit_type
 {
     NONE,

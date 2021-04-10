@@ -1201,7 +1201,7 @@ void WorldSystem::damage_monster_helper(entt::entity e_monster, int damage, bool
 	monster.collided = true;
 
 	auto& hit_reaction = registry.get<HitReaction>(e_monster);
-	hit_reaction.counter_ms = 750; //ms duration used by health bar
+	hit_reaction.counter_ms = hit_reaction.counter_interval; //ms duration used by health bar
 
 	if (monster.health <= 0)
 	{
@@ -2578,7 +2578,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			vec2 unit_position = coord_to_pixel(node.coord);
             bool can_place_unit = true;
             entt::entity entity;
-			if (node.occupancy == NONE && node.terrain != TERRAIN_PAVEMENT && node.terrain != TERRAIN_FIRE)
+			if (node.occupancy == NONE && node.terrain != TERRAIN_PUDDLE && node.terrain != TERRAIN_FIRE)
 			{
 				if (placement_unit_selected == HUNTER && health >= hunter_unit.cost)
 				{

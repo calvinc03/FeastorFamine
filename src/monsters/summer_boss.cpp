@@ -4,7 +4,6 @@
 const std::string DIR = "monsters/summer/";
 const std::string WALK_SPRITE = DIR + "moose_walk.png";
 const std::string ATTACK_SPRITE = DIR + "moose_attack.png";
-const std::string DEATH_SPRITE = DIR + "moose_death.png";
 const int WALK_FRAMES = 4;
 const int ATTACK_FRAMES = 4;
 
@@ -50,8 +49,6 @@ entt::entity SummerBoss::createSummerBossEntt()
     monster.attack_sprite = ATTACK_SPRITE;
     monster.walk_frames = WALK_FRAMES;
     monster.walk_sprite = WALK_SPRITE;
-    monster.run_frames = WALK_FRAMES;
-    monster.run_sprite = WALK_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0;
