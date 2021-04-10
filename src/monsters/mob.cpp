@@ -4,7 +4,6 @@
 
 const size_t WALK_FRAMES = 4.f;
 const size_t ATTACK_FRAMES = 4.f;
-const size_t DEATH_FRAMES = 1.f;
 const std::string DIR = "monsters/mob/";
 const std::string WALK_SPRITE = DIR + "rabbit_walk.png";
 const std::string ATTACK_SPRITE = DIR + "rabbit_attack.png";

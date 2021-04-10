@@ -71,10 +71,12 @@ struct Monster {
 	float speed_multiplier = 1.0;
 	monster_type type;
 	std::string walk_sprite;
+	std::string run_sprite;
 	std::string attack_sprite;
 	std::string special_sprite;
 	std::string sprite;
 	int walk_frames = 4;
+	int run_frames = 4;
 	int attack_frames = 4;
 	int special_frames = 0;
 	int frames;

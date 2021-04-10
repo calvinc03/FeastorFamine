@@ -10,7 +10,6 @@ const std::string DEATH_SPRITE = "NA";
 const int WALK_FRAMES = 6;
 const int RUN_FRAMES = 0;
 const int ATTACK_FRAMES = 0;
-const int DEATH_FRAMES = 0;
 
 entt::entity TalkyBoi::createTalkyBoiEntt()
 {
@@ -56,8 +55,6 @@ entt::entity TalkyBoi::createTalkyBoiEntt()
     monster.walk_sprite = WALK_SPRITE;
     monster.run_frames = RUN_FRAMES;
     monster.run_sprite = RUN_SPRITE;
-    monster.death_frames = DEATH_FRAMES;
-    monster.death_sprite = DEATH_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0;

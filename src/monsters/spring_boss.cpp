@@ -7,7 +7,6 @@ const std::string ATTACK_SPRITE = DIR + "bird_attack.png";
 const std::string DEATH_SPRITE = DIR + "bird_death.png";
 const int WALK_FRAMES = 4;
 const int ATTACK_FRAMES = 4;
-const int DEATH_FRAMES = 1;
 
 entt::entity SpringBoss::createSpringBossEntt()
 {
@@ -56,8 +55,6 @@ entt::entity SpringBoss::createSpringBossEntt()
     monster.walk_sprite = WALK_SPRITE;
     monster.run_frames = WALK_FRAMES;
     monster.run_sprite = WALK_SPRITE;
-    monster.death_frames = DEATH_FRAMES;
-    monster.death_sprite = DEATH_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0;

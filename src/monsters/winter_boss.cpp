@@ -8,7 +8,6 @@ const std::string DEATH_SPRITE = DIR + "penguin_death.png";
 const std::string RUN_SPRITE = DIR + "penguin_run.png";
 const int WALK_FRAMES = 4;
 const int ATTACK_FRAMES = 4;
-const int DEATH_FRAMES = 1;
 const int RUN_FRAMES = 1;
 
 entt::entity WinterBoss::createWinterBossEntt()
@@ -57,8 +56,6 @@ entt::entity WinterBoss::createWinterBossEntt()
     monster.walk_sprite = WALK_SPRITE;
     monster.run_frames = RUN_FRAMES;
     monster.run_sprite = RUN_SPRITE;
-    monster.death_frames = DEATH_FRAMES;
-    monster.death_sprite = DEATH_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0;

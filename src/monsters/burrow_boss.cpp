@@ -9,7 +9,6 @@ const std::string DEATH_SPRITE = "burrow/burrow_death.png";
 const int WALK_FRAMES = 13;
 const int RUN_FRAMES = 0;
 const int ATTACK_FRAMES = 4;
-const int DEATH_FRAMES = 0;
 
 entt::entity BurrowBoss::createBurrowBossEntt()
 {
@@ -53,10 +52,8 @@ entt::entity BurrowBoss::createBurrowBossEntt()
     monster.attack_sprite = ATTACK_SPRITE;
     monster.walk_frames = WALK_FRAMES;
     monster.walk_sprite = WALK_SPRITE;
-    monster.run_frames = RUN_FRAMES;
-    monster.run_sprite = RUN_SPRITE;
-    monster.death_frames = DEATH_FRAMES;
-    monster.death_sprite = DEATH_SPRITE;
+    monster.run_frames = WALK_FRAMES;
+    monster.run_sprite = WALK_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0;
