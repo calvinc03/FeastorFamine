@@ -30,7 +30,7 @@
 #include "talky_boi.hpp"
 
 #include "rig.hpp"
-//#include "monsters/test_rig.hpp"
+#include "monsters/dragon_rig.hpp"
 #include "monsters/spider.hpp"
 #include <BehaviorTree.hpp>
 
@@ -232,6 +232,40 @@ void WorldSystem::animate_speaker(float elapsed_ms)
 	}
 }
 
+
+void  WorldSystem::create_fireball() {
+	//create fireball
+	entt::entity fireball = FireballBoss::createFireballBossEntt();
+	registry.emplace<DamageProperties>(fireball);
+	auto& monster = registry.get<Monster>(fireball);
+	monster.path_coords = default_monster_paths.at(monster.type);
+	BTCollision->init(fireball);
+}
+
+//manages fireball spawning and dragon animations
+// checks timeline + anim_state of dragon to spawn fireballs during it's attack animation
+void  WorldSystem::manage_dragon_animations() {
+
+	auto anim_view = registry.view<DragonRig>();
+	for (auto entity : anim_view) {
+
+		auto& anim = registry.get<FK_Animations>(entity);
+		auto& timeline = registry.get<Timeline>(entity);
+		auto& attack_bool = registry.get<Attack_bool>(entity);
+		auto& timing = registry.get<Animation_timing>(entity);
+		
+		if (timeline.current_time > timing.loop_end +1.5f) { // reset timeline to restart animation loop manually.
+			anim.anim_state = anim.next_anim_state; // change what animation to play next
+			timeline.current_time = 0.0f;
+			attack_bool.value = true;
+		}
+		// 0 == attack animation  //check dragon's timeline to see if we need to spawn a fireball
+		if (anim.anim_state == 0 && timeline.current_time > timing.t_fireball && attack_bool.value) {
+			create_fireball();
+			attack_bool.value = false; //set to false to avoid attacking again this loop of the animation
+		}
+	}
+}
 // Update our game world
 void WorldSystem::step(float elapsed_ms)
 {
@@ -295,19 +329,7 @@ void WorldSystem::step(float elapsed_ms)
 			BTCollision->init(mob);
 		}
 
-		// spawn new fireballs for the final boss
-		next_fireball_spawn -= (int)(elapsed_ms * current_speed);
-		if (!registry.empty<FinalBoss>() && next_fireball_spawn < 0.f)
-		{
-			next_fireball_spawn = FIREBALL_DELAY_MS;
-			entt::entity fireball = FireballBoss::createFireballBossEntt();
-
-			registry.emplace<DamageProperties>(fireball);
-			auto& monster = registry.get<Monster>(fireball);
-            monster.path_coords = default_monster_paths.at(monster.type);
-
-			BTCollision->init(fireball);
-		}
+		manage_dragon_animations(); //replaces fireball code
 
 		// update velocity for every monster
 		for (auto entity : registry.view<Monster>())
@@ -351,8 +373,6 @@ void WorldSystem::step(float elapsed_ms)
 				return;
 			}
 		}
-
-		
 
 		// removes projectiles that are out of the screen
 		for (auto projectile : registry.view<Projectile>())
@@ -551,6 +571,7 @@ void WorldSystem::step(float elapsed_ms)
 		
 	}
 }
+
 
 void WorldSystem::end_battle_phase_step(float elapsed_ms)
 {
@@ -1277,12 +1298,13 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		if (max_boss > 0)
 			current_round_monster_types.emplace_back(WINTER_BOSS);
     }
-	else if (world_season_str == FINAL_TITLE)
+	else if (world_season_str == FINAL_TITLE)// FINAL_TITLE) else ifSPRING_TITLE
 	{
+		
 		season = SUMMER;
 
-		fireball_delay_ms = 5100;
-		next_fireball_spawn = fireball_delay_ms;
+		//fireball_delay_ms = FIREBALL_DELAY_MS;//5100;
+		//next_fireball_spawn = fireball_delay_ms;
 
 		int weather_int = rand() % 5 + 1;
 		if (weather_int % 2 == 1)
@@ -1293,7 +1315,9 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 			weather = CLEAR;
 		}
 		std::cout << "SPAWNING FINAL BOSS" << std::endl;
-		create_boss = FinalBoss::createFinalBossEntt;
+
+		create_boss = DragonRig::createDragon; //FinalBoss::createFinalBossEntt; //
+
         // current_round_monster_types.emplace_back(FINAL_BOSS);
 	}
 	if (prev_weather != weather || round_number == 0) {

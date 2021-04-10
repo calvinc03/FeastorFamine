@@ -47,6 +47,7 @@ struct Keyframes_FK {
 
 struct FK_Animations {
 	int anim_state = 0;
+	int next_anim_state = 0; //change this anytime to switch animation after the current loop completes
 	std::vector<Keyframes_FK> anims;
 };
 
@@ -55,14 +56,14 @@ struct KeyFrames_IK {
 	std::vector<std::map<float, vec2>> data;
 };
 
-struct Animations { // using string as key temporarily. 
+struct IK_Animations { // using string as key temporarily. 
 	int anim_state = 0;
 	std::map<int,KeyFrames_IK> anims;
 };
 
 struct Timeline { // per rig time
 	float current_time = 0; 
-	bool loop = true;
+	bool loop = false;
 };
 
 //temp

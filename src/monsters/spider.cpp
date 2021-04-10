@@ -41,7 +41,7 @@ entt::entity  Spider::createSpider() {
 
     //has a current_time var used to animate fk/ik systems
     auto& timeline = registry.emplace<Timeline>(entity);
-    auto& animations = registry.emplace<Animations>(entity);
+    auto& animations = registry.emplace<IK_Animations>(entity);
 
     auto& keyframes_ik = animations.anims[animations.anim_state];
     add_frames_IK(keyframes_ik);

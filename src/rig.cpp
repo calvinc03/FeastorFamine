@@ -131,7 +131,6 @@ void animate_rig_fk_helper(entt::entity character, float elapsed_ms) {
     timeline.current_time += elapsed_ms/1000.0f;
     float t_current = timeline.current_time;
     
-    bool finished_loop = true;
 
     auto& rig = registry.get<Rig>(character);
     auto& fk_animations = registry.get<FK_Animations>(character);
@@ -154,21 +153,17 @@ void animate_rig_fk_helper(entt::entity character, float elapsed_ms) {
                 auto& motion = registry.get<Motion>(part);
                 float new_angle = mix(a0, a1, ratio);
                 motion.angle = new_angle;
-
-                finished_loop = false; //when all chains are at the end, this doesn't get set
             }
         }
     }
-    if (finished_loop && timeline.loop) {
-        timeline.current_time = 0;
-    }
+
 }
 
 
 //make a procedurally animated character. animation speed based on velocity.
 //able to take recoil from hits
 void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
-    if (!registry.has<Animations>(character)) {
+    if (!registry.has<IK_Animations>(character)) {
         return;
     }
     auto& rig = registry.get<Rig>(character);
@@ -178,7 +173,7 @@ void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
     float t_current = timeline.current_time;
 
   
-    auto& animations = registry.get<Animations>(character);
+    auto& animations = registry.get<IK_Animations>(character);
     auto& keyframes = animations.anims[animations.anim_state];
 
     bool finished_loop = true;

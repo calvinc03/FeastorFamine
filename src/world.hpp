@@ -36,6 +36,9 @@ public:
 
 	ShadedMesh* screen_sprite;
 
+	//manage dragon animations
+	void manage_dragon_animations();
+	void create_fireball();
 	// menu
 	void game_setup();
 	void create_start_menu();
@@ -293,7 +296,7 @@ private:
 	// end of battle phase
 	void end_battle_phase_step(float elapsed_ms);
 
-
+	
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* salmon_dead_sound;

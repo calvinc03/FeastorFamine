@@ -31,7 +31,7 @@ entt::entity FireballBoss::createFireballBossEntt()
     motion.angle = 200.f;
     motion.velocity = monster_velocities.at(FIREBALL_BOSS);
     motion.position = coord_to_pixel(vec2(6, DRAGON_COORD.y + 1.5));
-    motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), .75f);
+    motion.scale = 5.0f*scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), .75f);
     motion.boundingbox = { 75, 75 };
 
     auto& monster = registry.emplace<Monster>(entity);
