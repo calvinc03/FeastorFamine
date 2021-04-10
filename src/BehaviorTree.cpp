@@ -14,6 +14,9 @@
 #include <world.hpp>
 #include <rig.hpp>
 #include <monsters/spring_boss.hpp>
+#include <units/robot.hpp>
+#include <units/exterminator.hpp>
+#include <units/snowmachine.hpp>
 
 #pragma once
 
@@ -324,6 +327,31 @@ public:
 	}
 };
 
+// helper for increment_monster_step
+void remove_unit_entity(entt::entity e_unit)
+{
+	if (registry.has<Robot>(e_unit))
+	{
+		auto& robot = registry.get<Robot>(e_unit);
+		for (auto projectile : robot.lasers) 
+			registry.destroy(projectile);
+	}
+	else if (registry.has<Exterminator>(e_unit))
+	{
+		auto& exterminator = registry.get<Exterminator>(e_unit);
+		for (auto projectile : exterminator.flamethrowers)
+			registry.destroy(projectile);
+	}
+	else if (registry.has<SnowMachine>(e_unit))
+	{
+		auto& snowmachine = registry.get<SnowMachine>(e_unit);
+		for (auto projectile : snowmachine.snowfields)
+			registry.destroy(projectile);
+	}
+
+	registry.destroy(e_unit);
+}
+
 void increment_monster_step(entt::entity entity) {
 	auto& monster = registry.get<Monster>(entity);
 	auto& motion = registry.get<Motion>(entity);
@@ -391,7 +419,7 @@ void increment_monster_step(entt::entity entity) {
         auto& atk_unit = registry.get<Unit>(atk_entity);
         if (atk_unit.health <= 0) {
             next_node.setOccupancy(NONE, atk_entity);
-            registry.destroy(atk_entity);
+			remove_unit_entity(atk_entity);
             return;
         }
         monster.next_attack -= 1;

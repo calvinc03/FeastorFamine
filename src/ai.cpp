@@ -16,6 +16,9 @@
 #include <monsters/fireball_boss.hpp>
 #include <units/unit.hpp>
 #include <units/priestess.hpp>
+#include <units/robot.hpp>
+#include <units/exterminator.hpp>
+#include <units/snowmachine.hpp>
 
 const size_t BULLET_UPGRADE = 2;
 const size_t FLAMETHROWER_UPGRADE = 3;
@@ -110,6 +113,8 @@ void AISystem::updateHunterTarget() const {// Attack mobs if in range of hunter
         if (placeable_unit.next_projectile_spawn <= 0.f && placeable_unit.health > 0) {
 
             int num_spawned_prj = 0;
+            std::vector<entt::entity> projectiles;
+
             while (num_spawned_prj < placeable_unit.num_projectiles && !priority_queue.empty())
             {
                 auto monster = priority_queue.top();
@@ -120,10 +125,45 @@ void AISystem::updateHunterTarget() const {// Attack mobs if in range of hunter
                 if (!motion_h.standing) {
                     motion_h.angle = atan2(direction.y, direction.x);
                 }
-                placeable_unit.create_projectile(hunter, monster, placeable_unit.damage + placeable_unit.damage_buff);
+
+                auto projectile = placeable_unit.create_projectile(hunter, monster, placeable_unit.damage + placeable_unit.damage_buff);
+                projectiles.push_back(projectile);
+                
                 num_spawned_prj += 1;
 
             }
+
+            if (placeable_unit.type == ROBOT)
+            {
+                auto& robot = registry.get<Robot>(hunter);
+                for (auto prj_entity : robot.lasers)
+                {
+                    if (registry.valid(prj_entity))
+                        projectiles.push_back(prj_entity);
+                }
+                robot.lasers = projectiles;
+            }
+            else if (placeable_unit.type == EXTERMINATOR && placeable_unit.path_2_upgrade == 0)
+            {
+                auto& exterminator = registry.get<Exterminator>(hunter);
+                for (auto prj_entity : exterminator.flamethrowers)
+                {
+                    if (registry.valid(prj_entity))
+                        projectiles.push_back(prj_entity);
+                }
+                exterminator.flamethrowers = projectiles;
+            }
+            else if (placeable_unit.type == SNOWMACHINE && placeable_unit.path_1_upgrade == 0 && placeable_unit.path_2_upgrade > 0)
+            {
+                auto& snowmachine = registry.get<SnowMachine>(hunter);
+                for (auto prj_entity : snowmachine.snowfields)
+                {
+                    if (registry.valid(prj_entity))
+                        projectiles.push_back(prj_entity);
+                }
+                snowmachine.snowfields = projectiles;
+            }
+
             if (num_spawned_prj >= 1)
                 placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms / placeable_unit.attack_speed_buff;
         }

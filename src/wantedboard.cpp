@@ -45,7 +45,7 @@ entt::entity WantedTitle::createWantedSign() {
 	}
 
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = LAYER_UI + 1;
+	shaded_mesh.layer = LAYER_MENU;
 	shaded_mesh.show = false;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);

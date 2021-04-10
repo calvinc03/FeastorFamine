@@ -1171,7 +1171,7 @@ void WorldSystem::restart()
 	food_text_entity = create_ui_text(vec2(FOOD_NUM_X_OFFSET, WINDOW_SIZE_IN_PX.y - FOOD_NUM_Y_OFFSET), "", FOOD_NUM_SCALE, { 0.f, 1.f, 0.f });
 	
 	// pause menu
-	pause_menu_entity = Menu::createMenu((float)WINDOW_SIZE_IN_PX.x / 2, (float)WINDOW_SIZE_IN_PX.y / 2, "pause_menu", Menu_texture::pause_menu, 90, vec2({ 22.f, 26.f }));
+	pause_menu_entity = Menu::createMenu((float)WINDOW_SIZE_IN_PX.x / 2, (float)WINDOW_SIZE_IN_PX.y / 2, "pause_menu", Menu_texture::pause_menu, LAYER_MENU, vec2({ 22.f, 26.f }));
 	registry.get<ShadedMeshRef>(pause_menu_entity).show = false;
 	
 	// help menu
@@ -2378,8 +2378,13 @@ bool WorldSystem::click_on_unit(double mouse_pos_x, double mouse_pos_y)
 	auto view_selectable = registry.view<Selectable, Motion>();
 	for (auto [entity, selectable, motion] : view_selectable.each())
 	{
+		vec2 scale = motion.scale / 2.f;
+		if (registry.has<GreenHouse>(entity)) {
+			scale /= 3.f;
+		}
+
 		// check click on units
-		if (sdBox(mouse_pos, motion.position, motion.scale / 2.0f) < 0.0f && entity != entity_selected)
+		if (sdBox(mouse_pos, motion.position, scale) < 0.0f && entity != entity_selected)
 		{
 			// add selected status
 			selectable.selected = true;
@@ -2525,15 +2530,15 @@ void WorldSystem::create_start_menu()
 {
 	std::cout << "In Start Menu\n";
 	// background
-	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "start_menu", Menu_texture::title_screen, 65, {1.0, 0.9});
+	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "start_menu", Menu_texture::title_screen, LAYER_MAP, {1.0, 0.9});
 	// foreground trees
-	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "foreground_trees", Menu_texture::foreground_trees, 71, { 1.0, 0.9 });
+	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "foreground_trees", Menu_texture::foreground_trees, LAYER_MAP + 1, { 1.0, 0.9 });
 	// sign post
-	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "sign_post", Menu_texture::sign_post, 72, { 1.0, 0.9 });
+	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "sign_post", Menu_texture::sign_post, LAYER_MAP + 2, { 1.0, 0.9 });
 	//Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, 100, "title_screen_title", Menu_texture::title_screen_title, 86, { 0.9, 0.9 });
 	// title: Feast or Famine
-	Menu::createMenu(300, 150, "title_screen_title2", Menu_texture::title_screen_title2, 87, { 1.1, 1.1 });
-	Menu::createMenu(470, 120, "title_screen_title_or", Menu_texture::title_screen_title2_or, 87, { 0.7, 0.7 });
+	Menu::createMenu(300, 150, "title_screen_title2", Menu_texture::title_screen_title2, LAYER_MAP + 3, { 1.1, 1.1 });
+	Menu::createMenu(470, 120, "title_screen_title_or", Menu_texture::title_screen_title2_or, LAYER_MAP + 3, { 0.7, 0.7 });
 	//buttons
 	MenuButton::create_button(NEW_GAME_BUTTON_X, NEW_GAME_BUTTON_Y, MenuButtonType::new_game_button, "", { 1.2f, 1.2f }, NEW_GAME_BUTTON_ANGLE);
 	MenuButton::create_button(LOAD_GAME_BUTTON_X, LOAD_GAME_BUTTON_Y, MenuButtonType::load_game_button, "", { 1.2f, 1.2f });
