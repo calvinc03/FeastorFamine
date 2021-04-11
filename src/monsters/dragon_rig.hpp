@@ -10,6 +10,9 @@ struct Animation_timing {
 	float loop_start = 0.0f;
 	float t_fireball = 0.4f;
 	float loop_end = 1.2f;
+
+
+	
 };
 struct Attack_bool{
 	bool value = true;

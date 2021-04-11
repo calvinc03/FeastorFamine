@@ -4,8 +4,6 @@
 
 Transform parent(Transform parent, Motion child_motion, Motion root_motion);
 void animate_rig_fk_helper(entt::entity character, float elapsed_ms);
-//TODO: find_keyframe function + make it based on elapsed_ms
-//TODO: complex prescribed motion for keyframes interpolation
 
 
 //create a simple entity that takes part in kinematic chain

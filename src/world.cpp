@@ -253,16 +253,40 @@ void  WorldSystem::manage_dragon_animations() {
 		auto& attack_bool = registry.get<Attack_bool>(entity);
 		auto& timing = registry.get<Animation_timing>(entity);
 		
-		if (timeline.current_time > timing.loop_end +1.5f) { // reset timeline to restart animation loop manually.
-			anim.anim_state = anim.next_anim_state; // change what animation to play next
-			timeline.current_time = 0.0f;
-			attack_bool.value = true;
+
+		/*
+		* an amazing state machine
+		*/
+
+		if (anim.anim_state == 0 ) {//intro 
+			if (timeline.current_time > 2.1f) { // reset timeline to restart animation loop manually.
+				anim.next_anim_state = 2; // after this loop, attack loop
+				anim.anim_state = anim.next_anim_state; // change what animation to play next
+				timeline.current_time = 0.0f;
+
+				//stop the dragon in its tracks!
+				auto& motion = registry.get<Motion>(entity);
+				motion.velocity = vec2();
+			}
 		}
-		// 0 == attack animation  //check dragon's timeline to see if we need to spawn a fireball
-		if (anim.anim_state == 0 && timeline.current_time > timing.t_fireball && attack_bool.value) {
-			//create_fireball();
-			attack_bool.value = false; //set to false to avoid attacking again this loop of the animation
+
+		if (anim.anim_state == 1) {//idle
+			anim.next_anim_state = 2; // after this loop, attack
 		}
+
+		// 2 == attack animation  //check dragon's timeline to see if we need to spawn a fireball
+		if (anim.anim_state == 2 ) {
+			if (timeline.current_time > timing.loop_end + 1.5f) { // reset timeline to restart animation loop manually.
+				anim.anim_state = anim.next_anim_state; // change what animation to play next
+				timeline.current_time = 0.0f;
+				attack_bool.value = true;
+			}
+			if (timeline.current_time > timing.t_fireball && attack_bool.value) {
+				create_fireball();
+				attack_bool.value = false; //set to false to avoid attacking again this loop of the animation
+			}
+		}
+
 	}
 }
 // Update our game world
