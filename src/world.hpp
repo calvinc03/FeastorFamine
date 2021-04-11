@@ -153,6 +153,10 @@ public:
 	// is victorious
 	bool victory = false;
 
+    static void set_default_paths();
+
+// flag for AI paths
+static bool set_AI_paths;
 private:
 	// PhysicsSystem handle
 	PhysicsSystem* physics;
@@ -177,10 +181,7 @@ private:
 	// animation fps
 	float fps_ms;
 
-	// flag for AI paths
-	bool set_AI_paths = false;
-
-	// season
+    // season
 	std::string world_season_str;
 
 	// Game state
@@ -305,4 +306,5 @@ private:
 	Mix_Chunk* ui_sound_negative_tick;
 	Mix_Chunk* ui_sound_hollow_tick;
 	Mix_Chunk* snowball_hit_sound;
+
 };

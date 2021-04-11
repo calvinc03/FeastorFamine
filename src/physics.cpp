@@ -186,7 +186,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		else {
 			motion.position += step_seconds * motion.velocity;
 			if (registry.has<Priestess>(entity)) {
-			    if (length(coord_to_pixel(pixel_to_coord(motion.position)) - motion.position) >= (float)GRID_CELL_SIZE / 15) {
+			    if (length(coord_to_pixel(pixel_to_coord(motion.position)) - motion.position) >= (float)GRID_CELL_SIZE / 20) {
 			        motion.velocity *= -1;
 			    }
 			}

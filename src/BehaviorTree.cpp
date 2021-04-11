@@ -426,6 +426,8 @@ void increment_monster_step(entt::entity entity) {
         if (atk_unit.health <= 0) {
             next_node.setOccupancy(NONE, atk_entity);
 			remove_unit_entity(atk_entity);
+            WorldSystem::set_AI_paths = false;
+            WorldSystem::set_default_paths();
             return;
         }
         monster.next_attack -= 1;
@@ -440,33 +442,42 @@ void increment_monster_step(entt::entity entity) {
         }
     }
 
+    auto& curr_node = WorldSystem::current_map.getNodeAtCoord(current_path_coord);
+    // fire and puddle effects on monsters
+    if (monster.type != TALKY_BOI && monster.type != SPRING_BOSS) {
+        if (curr_node.terrain != TERRAIN_DEFAULT && curr_node.terrain != TERRAIN_PAVEMENT && curr_node.terrain != TERRAIN_DRY) {
+            monster.next_effect --;
+        }
+        if (monster.next_effect < 0) {
+            monster.next_effect = monster.effect_interval;
+            if (curr_node.terrain == TERRAIN_FIRE) {
+                int fire_damage = 10;
+                monster.health -= fire_damage;
+                HitPointsText::create_hit_points_text(fire_damage, entity, { 1.f, 0.5, 0.f });
+                auto& hit_reaction = registry.get<HitReaction>(entity);
+                hit_reaction.counter_ms = hit_reaction.counter_interval;
+                hit_reaction.hit_bool = true;
+            }
+            else if (curr_node.terrain == TERRAIN_PUDDLE) {
+                EffectHitText::create_effect_hit_text("splash", entity, {0.f, 0.8, 0.8});
+            }
+            else if (curr_node.terrain == TERRAIN_MUD) {
+                EffectHitText::create_effect_hit_text("slosh", entity, {0.8, 0.4, 0.1});
+            }
+            else if (curr_node.terrain == TERRAIN_ICE) {
+                EffectHitText::create_effect_hit_text("slip", entity, {0.7, 1.0, 1.0});
+            }
+        }
+    }
+
 	// increment path index and apply terrain speed multiplier
 	if (next_step_coord == next_path_coord) {
 		monster.current_path_index++;
 		monster.current_node_visited = false;
-		terrain_type current_terran = WorldSystem::current_map.getNodeAtCoord(current_path_coord).terrain;
+		terrain_type current_terran = curr_node.terrain;
 		terrain_type next_terran = next_node.terrain;
 		monster.speed_multiplier /= monster_move_speed_multiplier.at({monster.type, current_terran});
 		monster.speed_multiplier *= monster_move_speed_multiplier.at({monster.type, next_terran});
-
-		// fire and puddle effects on monsters
-        if (monster.type != TALKY_BOI) {
-            if (next_node.terrain == TERRAIN_FIRE) {
-                monster.next_damage --;
-                if (monster.next_damage < 0) {
-                    monster.next_damage = monster.effect_interval;
-                    int fire_damage = 10;
-                    monster.health -= fire_damage;
-                    HitPointsText::create_hit_points_text(fire_damage, entity, { 1.f, 0.3, 0.f });
-                    auto& hit_reaction = registry.get<HitReaction>(entity);
-                    hit_reaction.counter_ms = hit_reaction.counter_interval;
-                    hit_reaction.hit_bool = true;
-                }
-            }
-            if (next_node.terrain == TERRAIN_PUDDLE) {
-                SlowHitText::create_slow_hit_text(0, entity, {0.f, 1.f, 1.f});
-            }
-        }
 	}
 
 	if (DebugSystem::in_debug_mode)

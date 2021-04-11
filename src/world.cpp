@@ -61,6 +61,7 @@ int WorldSystem::health = 1000;
 bool WorldSystem::sandbox = false;
 float WorldSystem::speed_up_factor = 1.f;
 float WorldSystem::reward_multiplier = 1.f;
+bool WorldSystem::set_AI_paths = false;
 GridMap WorldSystem::current_map;
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
@@ -465,10 +466,10 @@ void WorldSystem::step(float elapsed_ms)
 		}
 
 		// change slow text y position
-		auto view_slow_text = registry.view<SlowHitText>();
+		auto view_slow_text = registry.view<EffectHitText>();
 		for (auto entity : view_slow_text)
 		{
-			auto& slow_text = view_slow_text.get<SlowHitText>(entity);
+			auto& slow_text = view_slow_text.get<EffectHitText>(entity);
 			auto& text = registry.get<Text>(entity);
 			float delta_y = 0.05 * elapsed_ms * current_speed;
 			if (slow_text.y_distance > 0)
@@ -997,23 +998,9 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		std::string shader = "snow";
 		ParticleSystem::createParticle(velocity, position, life, texture, shader);
 	}
+    set_default_paths();
 
-	// set default paths for monster AI for this round
-	if (!set_AI_paths) {
-		for (auto entity : registry.view<Path>())
-			registry.destroy(entity);
-
-		int size = current_round_monster_types.size();
-		int num = 0;
-		for (int monster_type : current_round_monster_types) {
-			default_monster_paths.at(monster_type) = AISystem::MapAI::findPathAStar(current_map, monster_type);
-			Path::createPath(default_monster_paths.at(monster_type), monster_type, size, num);
-			num += 1;
-		}
-		set_AI_paths = true;
-	}
-
-	// remove disapperaing text when time's up 
+    // remove disapperaing text when time's up
 	auto view_disappearing_text = registry.view<DisappearingText>();
 	for (auto entity : view_disappearing_text)
 	{
@@ -1030,6 +1017,22 @@ void WorldSystem::set_up_step(float elapsed_ms)
 	if (registry.get<Text>(round_text_entity).content.length() == 2)
 		registry.get<Text>(round_text_entity).position.x = ROUND_NUM_X_OFFSET - 20;
 	registry.get<Text>(food_text_entity).content = std::to_string(health);
+}
+
+void WorldSystem::set_default_paths() {// set default paths for monster AI for this round
+    if (!set_AI_paths) {
+        for (auto entity : registry.view<Path>())
+            registry.destroy(entity);
+
+        int size = current_round_monster_types.size();
+        int num = 0;
+        for (int monster_type : current_round_monster_types) {
+            default_monster_paths.at(monster_type) = AISystem::MapAI::findPathAStar(current_map, monster_type);
+            Path::createPath(default_monster_paths.at(monster_type), monster_type, size, num);
+            num += 1;
+        }
+        set_AI_paths = true;
+    }
 }
 
 void WorldSystem::start_round()
@@ -1365,7 +1368,7 @@ void WorldSystem::damage_monster_helper(entt::entity e_monster, entt::entity e_p
 		monster.speed_multiplier *= ((100 - max_slow) / 100);
 		damage_properties.current_slow = max_slow;
 		// add hit point text
-		SlowHitText::create_slow_hit_text(damage, e_monster, {0.f, 1.f, 1.f});
+        EffectHitText::create_effect_hit_text("slow", e_monster, {0.5, 1.f, 1.f});
 	}
 	else {
 		monster.health -= damage;
