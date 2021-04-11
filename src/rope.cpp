@@ -29,8 +29,7 @@ entt::entity RopeRig::createRope(entt::entity anchor, int length, vec2 offset) {
             rope.chain.push_back(createRopePart(vec2(10 * i, 0), link_top)); // add links to a vector
         }        
     }
-    
-
+   
     RopeSystem::update_rig(entity); //initialize rig
     return entity;
 }
@@ -161,4 +160,14 @@ void RopeSystem::update_physics(entt::entity rope_rig,float elapsed_ms) {
         motion.position += velocity; //assumes uniform motion from last physics step.
         motion.position += motion.acceleration * step_seconds; //grab the gravity value and apply it as a velocity*step_period.
     }
+}
+
+
+void RopeRig::delete_rope(entt::entity rope_entity) {
+    auto& ropeRig = registry.get<RopeRig>(rope_entity);
+
+    for (auto link : ropeRig.chain) {
+        registry.destroy(link);
+    }
+    registry.destroy(rope_entity);
 }

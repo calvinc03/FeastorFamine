@@ -40,7 +40,7 @@ entt::entity  DragonRig::createDragon() {
     motion.boundingbox = motion.scale * 2.0f;
 
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = 5000;
+    monster.max_health = 10000;
     monster.health = monster.max_health;
     monster.damage = 0;
     monster.reward = 10000;
@@ -81,15 +81,17 @@ entt::entity  DragonRig::createDragon() {
     auto wing_texture = Rig::createPartTextured(wing, DRAGON_OUTERWING, vec2(0, 0.5f), 3.10f, 2.0f * vec2(1, 1), dragon_layer - 2);
     auto arm_texture = Rig::createPartTextured(outer_arm, DRAGON_OUTERPAW, vec2(0, 0), 1.0f, vec2(1, 1), dragon_layer - 2);
    
+    rig.textures.push_back(head_texture);
+    rig.textures.push_back(mouth_texture);
+    rig.textures.push_back(neck_texture);
+    rig.textures.push_back(body_texture);
+    rig.textures.push_back(wing_texture);
+    rig.textures.push_back(arm_texture);
 
-
-    
-    
 
     /*
        add animations 
        initialize pose
-       add rope 
     */
 
     add_attack(entity, rig, fk_animations);
@@ -98,8 +100,14 @@ entt::entity  DragonRig::createDragon() {
     RigSystem::animate_rig_fk(entity, 1);
     RigSystem::update_rig(entity);
 
-    RopeRig::createRope(entity, 10, vec2(-0.5f, 0.47f));
-    
+
+    /*
+        create and attach rope
+    */
+
+    auto& rope_attachement = registry.emplace<Rope_attachement>(entity);
+    rope_attachement.rope_rig = RopeRig::createRope(entity, 10, vec2(-0.5f, 0.47f));
+
     return entity;
 }
 

@@ -107,6 +107,9 @@ void Rig::delete_rig(entt::entity character) {
             registry.destroy(part);
         }
     }
+    for (auto texture : rig.textures) {
+        registry.destroy(texture);
+    }
     registry.destroy(character);
 }
 
