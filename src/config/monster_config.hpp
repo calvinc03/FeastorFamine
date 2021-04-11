@@ -22,7 +22,7 @@ const std::map<int, int> monster_health = {
 	{ WINTER_BOSS, 200},
 	{ BURROW_BOSS, 20},
 	{ FINAL_BOSS, 5000},
-	{ FIREBALL_BOSS, 500}
+	{ FIREBALL_BOSS, 250}
 };
 
 const std::map<int, int> monster_damage = {
@@ -30,7 +30,7 @@ const std::map<int, int> monster_damage = {
 	{ SPIDER, 80},
 	{ SPRING_BOSS, 20},
 	{ SUMMER_BOSS, 30},
-	{ FALL_BOSS, 100},
+	{ FALL_BOSS, 40},
 	{ WINTER_BOSS, 40},
 	{ BURROW_BOSS, 10},
 	{ FINAL_BOSS, 0},

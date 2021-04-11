@@ -1965,6 +1965,7 @@ void update_unit_stats(Unit unit)
 	std::string stat_1_string = "Attack Damage: ";
 	std::string stat_2_string = "Attack speed: ";
 	std::string stat_3_string = "Attack Range: ";
+	std::string stat_4_string = "Current Health: ";
 	
 	float aps = 0.f;
 	if (unit.attack_interval_ms != 0)
@@ -2013,6 +2014,9 @@ void update_unit_stats(Unit unit)
 	// attack range
 	auto attack_range_stats = create_ui_text(vec2(x_position, y_position - (2 * y_line_offset)), stat_3_string + std::to_string(unit.attack_range));
 	registry.emplace<UI_unit_stats>(attack_range_stats);
+
+	auto current_health_stats = create_ui_text(vec2(x_position, y_position - (3 * y_line_offset)), stat_4_string + std::to_string(unit.health));
+	registry.emplace<UI_unit_stats>(current_health_stats);
 }
 
 void update_unit_portrait(Unit unit)
