@@ -52,7 +52,7 @@ void Path::createPathLine(vec2 position1, vec2 position2, vec3 color, int monste
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = LAYER_DEBUG;
+	shaded_mesh.layer = LAYER_MAP + 2;
 
 	auto& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.angle = angle;

@@ -8,12 +8,13 @@
 
 #include "render_components.hpp"
 #include "health_bar.hpp"
+#include "world.hpp"
 
 namespace HealthSystem
 {
 
 	//NOTE: currently, health is not percentage based.
-	void createHealthBar(vec2 position,  int health, int max_health) {
+	void createHealthBar(vec2 position,  int health, int max_health, vec3 color) {
 		auto entity = registry.create();
 
 		std::string key = "health bar";
@@ -21,21 +22,20 @@ namespace HealthSystem
 		if (resource.effect.program.resource == 0) {
 			// create a procedural circle
 			constexpr float z = -0.1f;
-			vec3 red = { 0.8,0.1,0.1 };
 
 			// Corner points
 			ColoredVertex v;
 			v.position = { -0.5,-0.5,z };
-			v.color = red;
+			v.color = color;
 			resource.mesh.vertices.push_back(v);
 			v.position = { -0.5,0.5,z };
-			v.color = red;
+			v.color = color;
 			resource.mesh.vertices.push_back(v);
 			v.position = { 0.5,0.5,z };
-			v.color = red;
+			v.color = color;
 			resource.mesh.vertices.push_back(v);
 			v.position = { 0.5,-0.5,z };
-			v.color = red;
+			v.color = color;
 			resource.mesh.vertices.push_back(v);
 
 			// Two triangles
@@ -76,9 +76,14 @@ namespace HealthSystem
 				createHealthBar(motion.position, monster.health,monster.max_health );
 			}
 		}
-		
-
-	}
+        auto view_unit_hit_reactions = registry.view<HitReaction, Motion, Unit>();
+        for (auto [entity, hit, motion, unit] : view_unit_hit_reactions.each()) {
+            hit.counter_ms -= elapsed_ms;
+            if (hit.counter_ms > 0) {
+                createHealthBar(motion.position, unit.health, unit.max_health );
+            }
+        }
+    }
 
 
 }

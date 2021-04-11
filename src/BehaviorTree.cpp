@@ -142,78 +142,78 @@ private:
 	std::map<entt::entity, vec2> vel;
 };
 
-class Attack : public BTNode {
-public:
-    Attack() noexcept {
-        vel = std::map<entt::entity, vec2>();
-        next_attack = std::map<entt::entity, int>();
-        attackable_entities = std::vector<entt::entity>();
-    }
-
-    void init(entt::entity e) override {
-        auto& motion = registry.get<Motion>(e);
-        vel[e] = motion.velocity;
-        next_attack[e] = 0;
-        first_process = true;
-    }
-
-    BTState process(entt::entity e) override {
-        auto& motion = registry.get<Motion>(e);
-
-        // add all attackable units to list
-        if (first_process) {
-            ivec2 coord = pixel_to_coord(motion.position);
-            for (ivec2 nbr : neighbor_map.at(DIRECT_NBRS)) {
-                ivec2 nbr_coord = coord + nbr;
-                if (!is_inbounds(nbr_coord)) {
-                    continue;
-                }
-                auto& node = WorldSystem::current_map.getNodeAtCoord(nbr_coord);
-                if (node.occupancy != NONE
-                    && registry.has<Unit>(node.occupying_entity)
-                    && registry.get<Unit>(node.occupying_entity).health > 0) {
-                    attackable_entities.emplace_back(node.occupying_entity);
-                }
-            }
-            first_process = false;
-        }
-
-        motion.velocity *= 0;
-        if (next_attack[e] > 0) {
-            next_attack[e]--;
-            return BTState::Attack;
-        }
-
-        // attack a unit from attackable list
-        auto& monster = registry.get<Monster>(e);
-        auto& entity_to_attack = attackable_entities.back();
-        auto& unit = registry.get<Unit>(entity_to_attack);
-        next_attack[e] = monster.effect_interval;
-
-        // TODO: create on hit and damaged(hp<=0) appearances for unit
-        unit.health -= monster.damage;
-        
-        auto &hit_reaction = registry.get<HitReaction>(entity_to_attack);
-        hit_reaction.counter_ms = 750;
-
-        if (unit.health <= 0) {
-            attackable_entities.pop_back();
-        }
-
-        // continue moving if no more attackables
-        if (attackable_entities.empty()) {
-            motion.velocity = vel[e];
-            first_process = true;
-            return BTState::Failure;
-        }
-        return BTState::Attack;
-    }
-private:
-    std::map<entt::entity, vec2> vel;
-    std::map<entt::entity, int> next_attack;
-    std::vector<entt::entity> attackable_entities;
-    bool first_process;
-};
+//class Attack : public BTNode {
+//public:
+//    Attack() noexcept {
+//        vel = std::map<entt::entity, vec2>();
+//        next_attack = std::map<entt::entity, int>();
+//        attackable_entities = std::vector<entt::entity>();
+//    }
+//
+//    void init(entt::entity e) override {
+//        auto& motion = registry.get<Motion>(e);
+//        vel[e] = motion.velocity;
+//        next_attack[e] = 0;
+//        first_process = true;
+//    }
+//
+//    BTState process(entt::entity e) override {
+//        auto& motion = registry.get<Motion>(e);
+//
+//        // add all attackable units to list
+//        if (first_process) {
+//            ivec2 coord = pixel_to_coord(motion.position);
+//            for (ivec2 nbr : neighbor_map.at(DIRECT_NBRS)) {
+//                ivec2 nbr_coord = coord + nbr;
+//                if (!is_inbounds(nbr_coord)) {
+//                    continue;
+//                }
+//                auto& node = WorldSystem::current_map.getNodeAtCoord(nbr_coord);
+//                if (node.occupancy != NONE
+//                    && registry.has<Unit>(node.occupying_entity)
+//                    && registry.get<Unit>(node.occupying_entity).health > 0) {
+//                    attackable_entities.emplace_back(node.occupying_entity);
+//                }
+//            }
+//            first_process = false;
+//        }
+//
+//        motion.velocity *= 0;
+//        if (next_attack[e] > 0) {
+//            next_attack[e]--;
+//            return BTState::Attack;
+//        }
+//
+//        // attack a unit from attackable list
+//        auto& monster = registry.get<Monster>(e);
+//        auto& entity_to_attack = attackable_entities.back();
+//        auto& unit = registry.get<Unit>(entity_to_attack);
+//        next_attack[e] = monster.effect_interval;
+//
+//        // TODO: create on hit and damaged(hp<=0) appearances for unit
+//        unit.health -= monster.damage;
+//
+//        auto &hit_reaction = registry.get<HitReaction>(entity_to_attack);
+//        hit_reaction.counter_ms = 750;
+//
+//        if (unit.health <= 0) {
+//            attackable_entities.pop_back();
+//        }
+//
+//        // continue moving if no more attackables
+//        if (attackable_entities.empty()) {
+//            motion.velocity = vel[e];
+//            first_process = true;
+//            return BTState::Failure;
+//        }
+//        return BTState::Attack;
+//    }
+//private:
+//    std::map<entt::entity, vec2> vel;
+//    std::map<entt::entity, int> next_attack;
+//    std::vector<entt::entity> attackable_entities;
+//    bool first_process;
+//};
 
 class Run : public BTNode {
 public:
@@ -330,20 +330,26 @@ void remove_unit_entity(entt::entity e_unit)
 	if (registry.has<Robot>(e_unit))
 	{
 		auto& robot = registry.get<Robot>(e_unit);
-		for (auto projectile : robot.lasers) 
-			registry.destroy(projectile);
+		for (auto projectile : robot.lasers)
+            if (registry.valid(projectile)) {
+                registry.destroy(projectile);
+            }
 	}
 	else if (registry.has<Exterminator>(e_unit))
 	{
 		auto& exterminator = registry.get<Exterminator>(e_unit);
 		for (auto projectile : exterminator.flamethrowers)
-			registry.destroy(projectile);
+		    if (registry.valid(projectile)) {
+                registry.destroy(projectile);
+		    }
 	}
 	else if (registry.has<SnowMachine>(e_unit))
 	{
 		auto& snowmachine = registry.get<SnowMachine>(e_unit);
 		for (auto projectile : snowmachine.snowfields)
-			registry.destroy(projectile);
+            if (registry.valid(projectile)) {
+                registry.destroy(projectile);
+            }
 	}
 
 	registry.destroy(e_unit);
@@ -424,7 +430,6 @@ void increment_monster_step(entt::entity entity) {
             next_node.setOccupancy(NONE, atk_entity);
 			remove_unit_entity(atk_entity);
             WorldSystem::set_AI_paths = false;
-            WorldSystem::set_default_paths();
             return;
         }
         monster.next_attack -= 1;

@@ -458,7 +458,7 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
 	//std::shared_ptr <BTNode> stop = std::make_unique<Stop>();
 	std::shared_ptr <BTNode> run = std::make_unique<Run>();
     std::shared_ptr <BTNode> knockback = std::make_unique<Knockback>();
-    std::shared_ptr <BTNode> attack = std::make_unique<Attack>();
+//    std::shared_ptr <BTNode> attack = std::make_unique<Attack>();
 
 	std::shared_ptr <BTIfCondition> conditional_donothing = std::make_unique<BTIfCondition>(
 		donothing,
@@ -468,39 +468,39 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
 		grow,
 		[](entt::entity e) {return registry.has<WinterBoss>(e); }
 	);
-    std::shared_ptr <BTIfCondition> conditional_attack = std::make_unique<BTIfCondition>(
-            attack,
-            [](entt::entity e) {
-                // must be spring boss to attack for now
-                if (!registry.has<SpringBoss>(e)) {
-                    return false;
-                }
-                // must be near the center of corresponding grid to attack
-                auto& motion = registry.get<Motion>(e);
-                ivec2 coord = pixel_to_coord(motion.position);
-                if (abs(length(coord_to_pixel(coord) - motion.position)) > length(motion.velocity) * ELAPSED_MS / 1000.f) {
-                    return false;
-                }
-
-                // can attack if next to a placeable unit that has health left
-                // TODO: allow various size monsters
-                for (ivec2 nbr : neighbor_map.at(DIRECT_NBRS)) {
-                    // check if neighbor in-bounds
-                    ivec2 nbr_coord = coord + nbr;
-                    if (!is_inbounds(nbr_coord)) {
-                        continue;
-                    }
-                    // check if containing at least one attackable unit
-                    auto& node = WorldSystem::current_map.getNodeAtCoord(nbr_coord);
-                    if (node.occupancy != NONE
-                            && registry.has<Unit>(node.occupying_entity)
-                            && registry.get<Unit>(node.occupying_entity).health > 0) {
-                       return true;
-                    }
-                }
-                return false;
-            }
-    );
+//    std::shared_ptr <BTIfCondition> conditional_attack = std::make_unique<BTIfCondition>(
+//            attack,
+//            [](entt::entity e) {
+//                // must be spring boss to attack for now
+//                if (!registry.has<SpringBoss>(e)) {
+//                    return false;
+//                }
+//                // must be near the center of corresponding grid to attack
+//                auto& motion = registry.get<Motion>(e);
+//                ivec2 coord = pixel_to_coord(motion.position);
+//                if (abs(length(coord_to_pixel(coord) - motion.position)) > length(motion.velocity) * ELAPSED_MS / 1000.f) {
+//                    return false;
+//                }
+//
+//                // can attack if next to a placeable unit that has health left
+//                // TODO: allow various size monsters
+//                for (ivec2 nbr : neighbor_map.at(DIRECT_NBRS)) {
+//                    // check if neighbor in-bounds
+//                    ivec2 nbr_coord = coord + nbr;
+//                    if (!is_inbounds(nbr_coord)) {
+//                        continue;
+//                    }
+//                    // check if containing at least one attackable unit
+//                    auto& node = WorldSystem::current_map.getNodeAtCoord(nbr_coord);
+//                    if (node.occupancy != NONE
+//                            && registry.has<Unit>(node.occupying_entity)
+//                            && registry.get<Unit>(node.occupying_entity).health > 0) {
+//                       return true;
+//                    }
+//                }
+//                return false;
+//            }
+//    );
 	/*std::shared_ptr <BTIfCondition> conditional_stop = std::make_unique<BTIfCondition>(
 		stop,
 		[](entt::entity e) {return registry.has<SummerBoss>(e); }

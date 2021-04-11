@@ -127,5 +127,6 @@ enum MenuButtonType
     back_button,
     restart_round_button,
     menu_save_button,
-    sandbox_button
+    sandbox_button,
+    survival_mode_button
 };

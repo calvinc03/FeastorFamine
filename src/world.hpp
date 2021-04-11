@@ -110,6 +110,7 @@ public:
 	int game_state;
 	bool game_tips;
 	static bool sandbox;
+	static bool survival_mode;
 
 	// Particle System
 //    GLuint billboard_vertex_buffer;
@@ -192,8 +193,8 @@ private:
 	float next_mob_spawn;
 	float next_particle_spawn;
 
-    static int path_lifespan;
-    static int path_life;
+    static int show_path_duration;
+    static int show_path;
 
 	// Season
 	int season;

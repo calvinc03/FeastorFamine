@@ -59,11 +59,12 @@ const int STARTING_HEALTH = 1000;
 
 int WorldSystem::health = 1000;
 bool WorldSystem::sandbox = false;
+bool WorldSystem::survival_mode = false;
 float WorldSystem::speed_up_factor = 1.f;
 float WorldSystem::reward_multiplier = 1.f;
 bool WorldSystem::set_AI_paths = false;
-int WorldSystem::path_lifespan = 50;
-int WorldSystem::path_life = path_lifespan;
+int WorldSystem::show_path_duration = 50;
+int WorldSystem::show_path = show_path_duration;
 GridMap WorldSystem::current_map;
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
@@ -268,11 +269,14 @@ void  WorldSystem::manage_dragon_animations() {
 void WorldSystem::step(float elapsed_ms)
 {
 	if (game_state == in_game) {
-        path_life--;
-	    if (path_life < 0) {
+        show_path--;
+	    if (show_path < 0) {
             for (auto entity : registry.view<Path>())
                 registry.destroy(entity);
 	    }
+
+	    // for when units are destroyed (or placed in survival mode)
+	    set_default_paths();
 
 		//rig animation
 		auto view_rigs = registry.view<Timeline>();
@@ -1023,6 +1027,10 @@ void WorldSystem::set_up_step(float elapsed_ms)
 	if (registry.get<Text>(round_text_entity).content.length() == 2)
 		registry.get<Text>(round_text_entity).position.x = ROUND_NUM_X_OFFSET - 20;
 	registry.get<Text>(food_text_entity).content = std::to_string(health);
+
+	if(survival_mode) {
+        start_round();
+	}
 }
 
 void WorldSystem::set_default_paths() {// set default paths for monster AI for this round
@@ -1037,7 +1045,7 @@ void WorldSystem::set_default_paths() {// set default paths for monster AI for t
             Path::createPath(default_monster_paths.at(monster_type), monster_type, size, num);
             num += 1;
         }
-        path_life = path_lifespan;
+        show_path = show_path_duration;
         set_AI_paths = true;
     }
 }
@@ -1046,10 +1054,13 @@ void WorldSystem::start_round()
 {
 	game_tips = false;
 	// hide towers buttons
-	for (auto entity : registry.view<UI_build_unit>())
-	{
-		RenderSystem::hide_entity(entity);
+	if (!survival_mode) {
+        for (auto entity : registry.view<UI_build_unit>())
+        {
+            RenderSystem::hide_entity(entity);
+        }
 	}
+
 	// hide start_button and shwo fastforward button
 	auto view_ui_button = registry.view<Button, ShadedMeshRef>();
 	for (auto [entity, button, shaded_mesh_ref] : view_ui_button.each())
@@ -1075,8 +1086,10 @@ void WorldSystem::start_round()
 	stage_text.content = "BATTLE";
 	stage_text.colour = { 1.0f, 0.1f, 0.1f };
 
-	for (auto entity : registry.view<Path>())
-		registry.destroy(entity);
+    if (!survival_mode) {
+        for (auto entity : registry.view<Path>())
+            registry.destroy(entity);
+    }
 	set_AI_paths = false;
 
 	std::cout << world_season_str << " season! \n";
@@ -1405,7 +1418,7 @@ void WorldSystem::damage_monster_helper(entt::entity e_monster, entt::entity e_p
 		HitPointsText::create_hit_points_text(damage, e_monster, { 1.f, 0.f, 0.f });
 		// health bar
 		auto& hit_reaction = registry.get<HitReaction>(e_monster);
-		hit_reaction.counter_ms = 750; //ms duration used by health bar
+		hit_reaction.counter_ms = hit_reaction.counter_interval; //ms duration used by health bar
 	}
 	// set projectile sound to true when hit monster
 	if (registry.has<SoundRef>(e_projectile))
@@ -1933,7 +1946,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 		camera_control(mouse_pos);
 		mouse_hover_ui_button();
 		bool in_game_area = mouse_in_game_area(mouse_pos);
-		if (in_game_area && placement_unit_selected != NONE && player_state == set_up_stage)
+		if (in_game_area && placement_unit_selected != NONE && (player_state == set_up_stage || survival_mode))
 		{
 			grid_highlight_system(mouse_pos, current_map);
 			createEntityRangeIndicator(mouse_pos);
@@ -2242,7 +2255,7 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 	{
 		selected_view_change = true;
 		remove_selected_unit_buttons();
-		if (player_state == PlayerState::set_up_stage)
+		if (player_state == PlayerState::set_up_stage || survival_mode)
 		{
 			// show build unit buttons
 			for (auto entity : view_ui_build_buttons)
@@ -2510,6 +2523,8 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 		{
 		case (MenuButtonType::sandbox_button):
 			sandbox = true;
+        case (MenuButtonType::survival_mode_button):
+            survival_mode = true;
 		case (MenuButtonType::new_game_button):
 			remove_menu_buttons();
 			game_state = help_menu;
@@ -2607,6 +2622,7 @@ void WorldSystem::create_start_menu()
 	MenuButton::create_button(TITLE_HELP_BUTTON_X, TITLE_HELP_BUTTON_Y, MenuButtonType::title_help_button, "", { 1.2f, 1.2f }, TITLE_HELP_BUTTON_ANGLE);
 	MenuButton::create_button(TITLE_EXIT_BUTTON_X, TITLE_EXIT_BUTTON_Y, MenuButtonType::title_exit_button, "", { 1.2f, 1.2f });
 	MenuButton::create_button(SANDBOX_BUTTON_X, SANDBOX_BUTTON_Y, MenuButtonType::sandbox_button, "", { 1.2f, 1.2f });
+	MenuButton::create_button(SURVIVAL_MODE_BUTTON_X, SURVIVAL_MODE_BUTTON_Y, MenuButtonType::survival_mode_button, "", { 1.2f, 1.2f });
 	title_button_highlight_entity = MenuButton::create_button_arrow();
 	// blinking eyes
 	std::vector<vec2> locations = { vec2({984, 442}), vec2({891, 429}), vec2({851, 427}), vec2({764, 434}), vec2({719, 435}),
@@ -2909,7 +2925,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
 
-	if (player_state == set_up_stage)
+	if (player_state == set_up_stage || survival_mode)
 	{
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && in_game_area)
 			WantedBoard::updateWantedBoardDisplay(wanted_board_entity, false);
@@ -2982,6 +2998,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
                     Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				    auto& motion = registry.get<Motion>(entity);
                     current_map.setGridOccupancy(node.coord, placement_unit_selected, entity);
+                    show_path = show_path_duration;
 					set_AI_paths = false;
 				}
 				placement_unit_selected = NONE;
@@ -3202,6 +3219,7 @@ void WorldSystem::save_game()
 	nlohmann::json save_json;
 	save_json["round_number"] = world_round_number;
 	save_json["health"] = health;
+	save_json["survival_mode"] = survival_mode;
 
 	// TODO finish implementing, may need to edit unit struct
 	auto view_unit = registry.view<Unit>();
@@ -3270,7 +3288,7 @@ void WorldSystem::load_game()
 
 	health = save_json["health"];
 	world_round_number = save_json["round_number"];
-
+    survival_mode = save_json["survival_mode"];
 	setup_round_from_round_number(world_round_number);
 
 	for (nlohmann::json unit : save_json["units"])
