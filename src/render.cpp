@@ -524,6 +524,10 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 	//	drawTexturedMesh(entity, projection_2D);
 	//}
 
+	auto view_rigs = registry.view<RigPart>();
+	for (auto entity : view_rigs) {
+		drawTexturedMesh(entity, projection_2D);
+	}
 
 	//useful for rendering entities with only text and no ShadedMeshRef
 	auto view_text = registry.view<Text>();

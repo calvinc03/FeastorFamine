@@ -37,7 +37,7 @@ entt::entity  DragonRig::createDragon() {
     motion.velocity = normalize(vec2(45, 535) - coord_to_pixel(DRAGON_COORD)) * 2.f;
     motion.scale = vec2(150, 150);
     motion.position = coord_to_pixel(DRAGON_COORD); // vec2(100, 500);// coord_to_pixel(FOREST_COORD);
-    motion.boundingbox = motion.scale * 2.0f;
+    motion.boundingbox = motion.scale * 5.0f;
 
     auto& monster = registry.emplace<Monster>(entity);
     monster.max_health = 10000;
