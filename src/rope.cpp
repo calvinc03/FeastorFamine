@@ -50,9 +50,9 @@ entt::entity RopeRig::createRopePart(vec2 pos, std::string name) {
     ShadedMeshRef& mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
 
     if(name == link_side)
-        mesh_ref.layer = LAYER_MONSTERS + SPIDER + 1;
+        mesh_ref.layer = LAYER_MONSTERS + 5 + 1;
     else 
-        mesh_ref.layer = LAYER_MONSTERS + SPIDER;
+        mesh_ref.layer = LAYER_MONSTERS + 5;
  
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 3.14/2.0f;

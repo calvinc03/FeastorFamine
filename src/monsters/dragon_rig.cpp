@@ -72,13 +72,14 @@ entt::entity  DragonRig::createDragon() {
 
     rig.chains.push_back(Chain(head, { mouth }));
 
+    int dragon_layer = LAYER_MONSTERS + 5;
 
-    auto head_texture = Rig::createPartTextured(head, DRAGON_HEAD, vec2(-0.2f, 0.1f), -3.14 / 2.0f, 2.0f * vec2(1, 1), 24);
-    auto mouth_texture = Rig::createPartTextured(mouth, DRAGON_MOUTH, vec2(0, 0.2f), -3.14 / 2.0f, 1.5f * vec2(1, 1), 23);
-    auto neck_texture = Rig::createPartTextured(neck, DRAGON_NECK, vec2(0, 0), 2.0f, 1.5f * vec2(1, 1), 21);
-    auto body_texture = Rig::createPartTextured(body, DRAGON_BODY, vec2(0, 0), 0.0f, 2.0f * vec2(1, 1), 20);
-    auto wing_texture = Rig::createPartTextured(wing, DRAGON_OUTERWING, vec2(0, 0.5f), 3.10f, 2.0f * vec2(1, 1), 22);
-    auto arm_texture = Rig::createPartTextured(outer_arm, DRAGON_OUTERPAW, vec2(0, 0), 1.0f, vec2(1, 1), 24);
+    auto head_texture = Rig::createPartTextured(head, DRAGON_HEAD, vec2(-0.2f, 0.1f), -3.14 / 2.0f, 2.0f * vec2(1, 1), dragon_layer + 1);
+    auto mouth_texture = Rig::createPartTextured(mouth, DRAGON_MOUTH, vec2(0, 0.2f), -3.14 / 2.0f, 1.5f * vec2(1, 1), dragon_layer - 1 );
+    auto neck_texture = Rig::createPartTextured(neck, DRAGON_NECK, vec2(0, 0), 2.0f, 1.5f * vec2(1, 1), dragon_layer - 2);
+    auto body_texture = Rig::createPartTextured(body, DRAGON_BODY, vec2(0, 0), 0.0f, 2.0f * vec2(1, 1), dragon_layer - 3);
+    auto wing_texture = Rig::createPartTextured(wing, DRAGON_OUTERWING, vec2(0, 0.5f), 3.10f, 2.0f * vec2(1, 1), dragon_layer - 2);
+    auto arm_texture = Rig::createPartTextured(outer_arm, DRAGON_OUTERPAW, vec2(0, 0), 1.0f, vec2(1, 1), dragon_layer - 2);
    
 
 
