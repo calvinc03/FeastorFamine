@@ -1,5 +1,7 @@
 #include "rope.hpp"
+#include "rig.hpp"
 #include <iostream>
+#include "camera.hpp"
 
 /* Physics Based Animation
 Implement time stepping based physical simulation which can either serve as a background effects (e.g. water, 
@@ -17,18 +19,17 @@ entt::entity RopeRig::createRope(entt::entity anchor, int length, vec2 offset) {
     auto& rope = registry.emplace<RopeRig>(entity);
 
     rope.anchor = anchor;
+    rope.offset = offset;
 
     for (int i = 0; i < length; i++) {
         if (i % 2 == 0) {
-            rope.chain.push_back(createRopePart( vec2(45 * i, 40 * i), link_top)); // add links to a vector
+            rope.chain.push_back(createRopePart(vec2(10 * i, 0), link_side)); // add links to a vector
         }
         else {
-            rope.chain.push_back(createRopePart( vec2(45 * i, 40 * i), link_side)); // add links to a vector
-        }
-            
+            rope.chain.push_back(createRopePart(vec2(10 * i, 0), link_top)); // add links to a vector
+        }        
     }
-    rope.anchor = rope.chain[0];
-    rope.offset = offset;
+    
 
     RopeSystem::update_rig(entity); //initialize rig
     return entity;
@@ -46,7 +47,6 @@ entt::entity RopeRig::createRopePart(vec2 pos, std::string name) {
         RenderSystem::createSprite(resource, textures_path(name), "monster");
     }
 
-
     ShadedMeshRef& mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
 
     if(name == link_side)
@@ -55,19 +55,29 @@ entt::entity RopeRig::createRopePart(vec2 pos, std::string name) {
         mesh_ref.layer = LAYER_MONSTERS + SPIDER;
  
     auto& motion = registry.emplace<Motion>(entity);
-    motion.angle = 0.0f;
+    motion.angle = 3.14/2.0f;
     motion.velocity = { 0, 0 };
+    motion.origin = { 0,0 };
     motion.scale = vec2(25,25); 
     motion.position = pos;
-    //motion.scale.y *= -1;
     motion.boundingbox = motion.scale;
-    motion.acceleration = { 0,50 }; //TODO: tweak this
+    motion.acceleration = { 0,150}; //TODO: gravity value
     return entity;
-    
-
 }
 
-void update_helper(RopeRig ropeRig) {
+
+void update_helper(RopeRig ropeRig , vec2 anchor_pos) {
+
+    //fix first chain link position -- 'anchor it'
+    auto& link_motion = registry.get<Motion>(ropeRig.chain[0]);
+    link_motion.position = anchor_pos;
+
+    
+    //fix first chain part to mouse
+    //auto& mouse = registry.get<MouseMovement>(camera).mouse_pos;
+    //auto link = ropeRig.chain[0];
+    //auto& link_motion = registry.get<Motion>(link);
+    //link_motion.position = mouse;
 
     for (int i = 0; i < ropeRig.chain.size() - 1; i++) {
         auto link0 = ropeRig.chain[i];
@@ -82,9 +92,9 @@ void update_helper(RopeRig ropeRig) {
 
         //update dist
         float dif = abs(dist - 10.0f);
-        //link0_motion.position = link0_motion.position + dir * dif / 2.0f;
-        //link1_motion.position = link1_motion.position - dir * dif / 2.0f;
-         link1_motion.position = link1_motion.position - dir * dif ;
+        link0_motion.position = link0_motion.position + dir * dif / 2.0f;
+        link1_motion.position = link1_motion.position - dir * dif / 2.0f;
+        //link1_motion.position = link1_motion.position - dir * dif ;
 
         //update rotation
         float angle = atan(dir.y/ dir.x);
@@ -93,25 +103,38 @@ void update_helper(RopeRig ropeRig) {
    
     }
 }
-#include "camera.hpp"
+
+
+vec2 get_anchor_pos(RopeRig ropeRig) {
+    auto& anchor_motion = registry.get<Motion>(ropeRig.anchor);
+   
+    Motion root_motion = registry.get<Motion>(ropeRig.anchor);
+    auto& rig = registry.get<Rig>(ropeRig.anchor);
+
+    Transform transform;
+    transform.mat = mat3(1.0f);
+    transform.translate(root_motion.position);
+    transform.rotate(root_motion.angle);
+
+    auto part = rig.chains[1].chain_vector[0]; // neck
+
+    auto& motion = registry.get<Motion>(part);
+    const auto& entity_transform = registry.get<Transform>(part);
+
+    vec3 anchor_pt = transform.mat * entity_transform.mat * vec3(ropeRig.offset.x , ropeRig.offset.y, 1.0f);
+
+
+    return anchor_pt;
+}
+
+
 //normalizes link distances and fixes position of 'anchor'
 void RopeSystem::update_rig(entt::entity rope_rig) {
     auto& ropeRig = registry.get<RopeRig>(rope_rig);
-
-    //fix initial chain link to a particular position
-    auto& mouse = registry.get<MouseMovement>(camera).mouse_pos;
-    auto link = ropeRig.chain[0];
-    auto& link_motion = registry.get<Motion>(link);
-    link_motion.position = mouse;
-
-    //auto& anchor_motion = registry.get<Motion>(ropeRig.anchor); 
-    //auto link = ropeRig.chain[0];
-    //auto& link_motion = registry.get<Motion>(link);
-    //link_motion.position = anchor_motion.position + ropeRig.offset;
-
+    vec2 anchor_pos = get_anchor_pos(ropeRig);
     // iterative solver.
     for (int i = 0; i < 10; i++) { 
-        update_helper(ropeRig);
+        update_helper(ropeRig, anchor_pos);
     }
 }
 
@@ -124,8 +147,10 @@ void RopeSystem::update_physics(entt::entity rope_rig,float elapsed_ms) {
     for (int i = 0; i < ropeRig.chain.size(); i++) {
         auto link = ropeRig.chain[i];
         auto& motion = registry.get<Motion>(link);
-        motion.velocity += motion.acceleration * step_seconds;
-        motion.velocity = min(motion.velocity, vec2(500,500)); //terminal velocity
         
+        vec2 velocity = (motion.position - motion.origin); // pos_current - pos_old ***this is pos_delta/step_period -> can add velocity directly to pos.
+        motion.origin = motion.position; // using origin to store old position
+        motion.position += velocity; //assumes uniform motion from last physics step.
+        motion.position += motion.acceleration * step_seconds; //grab the gravity value and apply it as a velocity*step_period.
     }
 }

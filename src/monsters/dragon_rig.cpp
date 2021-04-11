@@ -48,6 +48,8 @@ entt::entity  DragonRig::createDragon() {
     /*
         Create rig
     */
+    auto& transform = registry.emplace<Transform>(entity);
+    transform.mat = glm::mat3(1.0);
     //create entities/parts to be part of the kinematic chains -- requires setting position offset, pivot/origin of rotation, and intial angle
     auto body = Rig::createPart(entity, "face_box", vec2(), vec2(),0);
 
@@ -78,21 +80,24 @@ entt::entity  DragonRig::createDragon() {
     auto wing_texture = Rig::createPartTextured(wing, DRAGON_OUTERWING, vec2(0, 0.5f), 3.10f, 2.0f * vec2(1, 1), 22);
     auto arm_texture = Rig::createPartTextured(outer_arm, DRAGON_OUTERPAW, vec2(0, 0), 1.0f, vec2(1, 1), 24);
    
-    auto& transform = registry.emplace<Transform>(entity);
-    transform.mat = glm::mat3(1.0);
 
-    RigSystem::update_rig(entity);
 
+    
+    
 
     /*
        add animations 
+       initialize pose
        add rope 
     */
 
     add_attack(entity, rig, fk_animations);
     add_frames_FK(entity, rig, fk_animations);
 
-    //RopeRig::createRope(neck, 10, vec2(100, 0));
+    RigSystem::animate_rig_fk(entity, 1);
+    RigSystem::update_rig(entity);
+
+    RopeRig::createRope(entity, 10, vec2(-0.5f, 0.47f));
     
     return entity;
 }
