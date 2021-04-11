@@ -109,6 +109,7 @@ public:
 	int game_state;
 	bool game_tips;
 	static bool sandbox;
+	static bool survival_mode;
 
 	// Particle System
 //    GLuint billboard_vertex_buffer;

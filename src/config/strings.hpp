@@ -55,7 +55,8 @@ const std::map<MenuButtonType, std::string> menu_button_ui_tag = {
     {back_button,       "back_button"},
     {menu_save_button,  "save_game_button"},
     {empty_button,      "empty_button"},
-    {sandbox_button,      "sandbox_button"}
+    {sandbox_button,      "sandbox_button"},
+    {survival_mode_button,      "survival_mode_button"}
 };
 
 const std::string INPUT_PATH = "data/monster_rounds/";

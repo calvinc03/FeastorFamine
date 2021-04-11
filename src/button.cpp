@@ -42,6 +42,9 @@ entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_t
 			case sandbox_button:
 				texture_file_name = "sandbox_button.png";
 				break;
+		    case survival_mode_button:
+		        texture_file_name = "survival_mode_button.png";
+                break;
 			default:
 				texture_file_name = "empty_button.png";
 				break;
