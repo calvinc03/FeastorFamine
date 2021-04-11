@@ -10,6 +10,7 @@
 #include <units/priestess.hpp>
 #include "rope.hpp"
 #include "world.hpp"
+#include <monsters/dragon_rig.hpp>
 
 const size_t POTENTIAL_COLLISION_RANGE = 150;
 
@@ -130,33 +131,39 @@ bool collidesSAT(entt::entity entity1, entt::entity entity2)
 }
 
 // Precise Collisions with two convex objects 
-bool preciseCollides(entt::entity spider, entt::entity projectile)
+bool preciseCollides(entt::entity monster, entt::entity projectile)
 {
-	auto& spider_motion = registry.get<Motion>(spider);
+	auto& monster_motion = registry.get<Motion>(monster);
 
 	std::vector<vec2> projectile_vertices = get_box_vertices(projectile);
 	std::vector<vec2> projectile_norms = get_norms(projectile_vertices);
 
-	auto& spider_rig = registry.get<Rig>(spider);
+	auto& rig = registry.get<Rig>(monster);
+	Transform transform;
+	transform.mat = mat3(1.0f);
+	transform.translate(monster_motion.position);
+	transform.rotate(monster_motion.angle);
 
-	for (auto rig_vector : spider_rig.chains) {
-		for (auto rig_entity : rig_vector.chain_vector) {
-			auto& motion = registry.get<Motion>(rig_entity);
-			auto& meshref = registry.get<ShadedMeshRef>(rig_entity);
+	for (auto chain : rig.chains) {
 
-			Transform transform;
-			transform.translate(spider_motion.position + motion.position);
-			transform.rotate(spider_motion.angle + motion.angle);
-			transform.scale(spider_motion.scale + motion.scale);
+		for (auto part : chain.chain_vector) {
+			auto mesh_ref = registry.get<ShadedMeshRef>(part).reference_to_cache->mesh.vertices;
 
-			std::vector<vec2> spider_rig_vertices;
-			for (auto& v : meshref.reference_to_cache->mesh.vertices) {
-				vec3 global_pos = transform.mat * vec3(v.position.x, v.position.y, 1.0f);
-				spider_rig_vertices.push_back(vec2(global_pos.x, global_pos.y));
+			const auto& entity_transform = registry.get<Transform>(part);
+			Transform temp_transform;
+			temp_transform.mat = transform.mat * entity_transform.mat;
+
+			//rig vertices
+			std::vector<vec2> rig_vertices;
+			for (int i = 0; i < mesh_ref.size(); i++) {
+				auto& v = mesh_ref[i];
+				vec3 g = temp_transform.mat * vec3(v.position.x, v.position.y, 1.0f);
+				rig_vertices.push_back(vec2(g.x, g.y));
 			}
-			std::vector<vec2> spider_rig_norms = get_norms(spider_rig_vertices);
 
-			if (checkProjection(spider_rig_vertices, projectile_vertices, spider_rig_norms, projectile_norms)) {
+			std::vector<vec2> rig_norms = get_norms(rig_vertices);
+
+			if (checkProjection(rig_vertices, projectile_vertices, rig_norms, projectile_norms)) {
 				return true;
 			}
 		}
@@ -213,8 +220,8 @@ void PhysicsSystem::step(float elapsed_ms)
 			if ((registry.has<Projectile>(entity_i) && registry.has<Monster>(entity_j)) || (registry.has<Projectile>(entity_j) && registry.has<Monster>(entity_i)))
 			{
 				// considers collisions if entities are within a certain range
-				if (length(motion_i.position - motion_j.position) < POTENTIAL_COLLISION_RANGE) {
-
+				if (length(motion_i.position - motion_j.position) < POTENTIAL_COLLISION_RANGE || registry.has<DragonRig>(entity_i) || registry.has<DragonRig>(entity_j)) {
+				
 					// convex polygon precise collision
 					if (registry.has<Rig>(entity_i) || registry.has<Rig>(entity_j)) {
 						// notify Observers - ORDER MATTERS

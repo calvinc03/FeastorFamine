@@ -190,7 +190,6 @@ namespace DebugSystem
 		transform.translate(root_motion.position);
 		transform.rotate(root_motion.angle);
 
-
 		for (auto chain : rig.chains) {
 			
 			for (auto part : chain.chain_vector) {
