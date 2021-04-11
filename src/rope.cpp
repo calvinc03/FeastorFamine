@@ -55,7 +55,7 @@ entt::entity RopeRig::createRopePart(vec2 pos, std::string name) {
         mesh_ref.layer = LAYER_MONSTERS + 5;
  
     auto& motion = registry.emplace<Motion>(entity);
-    motion.angle = 3.14/2.0f;
+    motion.angle = 0.0f;
     motion.velocity = { 0, 0 };
     motion.origin = { 0,0 };
     motion.scale = vec2(25,25); 
@@ -97,10 +97,18 @@ void update_helper(RopeRig ropeRig , vec2 anchor_pos) {
         //link1_motion.position = link1_motion.position - dir * dif ;
 
         //update rotation
-        float angle = atan(dir.y/ dir.x);
-       
-        link1_motion.angle = angle;
+        //float angle = atan(dir.y / dir.x);
+        //link1_motion.angle = angle;
    
+        vec2 y_axis = vec2(0, 1);
+        float angle = acos(dot(dir, y_axis));
+
+        if (dir.x < 0) {
+            link1_motion.angle = angle;
+        }
+        else if (dir.x > 0) {
+            link1_motion.angle = -(angle) ;
+        }
     }
 }
 
