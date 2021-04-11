@@ -50,12 +50,14 @@ entt::entity FallBoss::createFallBossEntt()
     monster.attack_sprite = ATTACK_SPRITE;
     monster.walk_frames = WALK_FRAMES;
     monster.walk_sprite = WALK_SPRITE;
+    monster.slow_walk = true;
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0;
     animate.state = 0;
     animate.frame_num = WALK_FRAMES;
     animate.state_num = 1;
+    animate.update_interval = 2;
 
     registry.emplace<FallBoss>(entity);
     registry.emplace<HitReaction>(entity);

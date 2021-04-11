@@ -392,10 +392,12 @@ void increment_monster_step(entt::entity entity) {
 			monster.current_node_visited = true;
 
 			if (next_node.occupancy != NONE && next_node.occupancy != FOREST && next_node.occupancy != VILLAGE) {
-                if (!registry.has<SpringBoss>(entity) || next_node.occupancy != WALL) {
+                if (!registry.has<SpringBoss>(entity) || unit_create_projectiles.at(next_node.occupancy) != NULL) {
                     monster.state = ATTACK;
                     monster.sprite = monster.attack_sprite;
                     monster.frames = monster.attack_frames;
+                    auto& animate = registry.get<Animate>(entity);
+                    animate.update_interval = 1;
                     monster.setSprite(entity);
                 }
 			}
@@ -410,6 +412,10 @@ void increment_monster_step(entt::entity entity) {
     if (monster.state == ATTACK) {
         auto atk_entity = next_node.occupying_entity;
         if (next_node.occupancy == NONE) {
+            auto& animate = registry.get<Animate>(entity);
+            if(monster.slow_walk) {
+                animate.update_interval = 2;
+            }
             monster.state = WALK;
             monster.sprite = monster.walk_sprite;
             monster.frames = monster.walk_frames;
@@ -443,6 +449,7 @@ void increment_monster_step(entt::entity entity) {
 		monster.speed_multiplier /= monster_move_speed_multiplier.at({monster.type, current_terran});
 		monster.speed_multiplier *= monster_move_speed_multiplier.at({monster.type, next_terran});
 
+		// fire and puddle effects on monsters
         if (monster.type != TALKY_BOI) {
             if (next_node.terrain == TERRAIN_FIRE) {
                 monster.next_damage --;

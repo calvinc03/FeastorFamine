@@ -59,7 +59,8 @@ entt::entity WinterBoss::createWinterBossEntt()
     animate.state = 0;
     animate.frame_num = WALK_FRAMES;
     animate.state_num = 1;
-
+    animate.update_interval = 2;
+    
     registry.emplace<WinterBoss>(entity);
     registry.emplace<HitReaction>(entity);
 

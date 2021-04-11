@@ -4,7 +4,7 @@
 #include "rig.hpp"
 #include "rope.hpp"
 
-const struct Animation_timing {
+struct Animation_timing {
 	float timing_scale = 1.0f; // only affects initialization of animations
 
 	float loop_start = 0.0f;

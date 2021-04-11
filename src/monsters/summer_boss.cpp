@@ -51,6 +51,7 @@ entt::entity SummerBoss::createSummerBossEntt()
     monster.attack_sprite = ATTACK_SPRITE;
     monster.walk_frames = WALK_FRAMES;
     monster.walk_sprite = WALK_SPRITE;
+    monster.slow_walk = true;
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0;

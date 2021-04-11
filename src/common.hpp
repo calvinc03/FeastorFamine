@@ -83,6 +83,7 @@ struct Monster {
 	int special_frames = 0;
 	int frames;
     void setSprite(entt::entity entity);
+    bool slow_walk = false;
 };
 
 struct Food {
