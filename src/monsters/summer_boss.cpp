@@ -44,7 +44,7 @@ entt::entity SummerBoss::createSummerBossEntt()
 
     monster.hit = false;
     monster.type = SUMMER_BOSS;
-    monster.speed_multiplier = 6.f;
+    monster.speed_multiplier = 1.5f;
     monster.sprite = WALK_SPRITE;
     monster.frames = WALK_FRAMES;
     monster.attack_frames = ATTACK_FRAMES;
