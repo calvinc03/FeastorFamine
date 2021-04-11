@@ -34,9 +34,9 @@ entt::entity  DragonRig::createDragon() {
     // root entity acts like any other entity.
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
+    motion.velocity = normalize(vec2(45, 535) - coord_to_pixel(DRAGON_COORD)) * 2.f;
     motion.scale = vec2(150, 150);
-    motion.position = coord_to_pixel(DRAGON_COORD) + vec2(150, 75); // vec2(100, 500);// coord_to_pixel(FOREST_COORD);
+    motion.position = coord_to_pixel(DRAGON_COORD); // vec2(100, 500);// coord_to_pixel(FOREST_COORD);
     motion.boundingbox = motion.scale * 2.0f;
 
     auto& monster = registry.emplace<Monster>(entity);
