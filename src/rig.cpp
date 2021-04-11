@@ -21,7 +21,8 @@ entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 of
         RenderSystem::createColoredMesh(resource, "spider"); // TODO: need texturedMesh function
     }
     ShadedMeshRef& mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
-    mesh_ref.layer = LAYER_MONSTERS + SPIDER;
+    mesh_ref.layer = 0; 
+   // mesh_ref.show = false;
 
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = angle;

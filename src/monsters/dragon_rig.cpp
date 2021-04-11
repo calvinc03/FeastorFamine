@@ -6,8 +6,10 @@ const std::string DRAGON_MOUTH = "monsters/dragon_rig/jaw.png";
 const std::string DRAGON_BODY = "monsters/dragon_rig/body.png";
 const std::string DRAGON_NECK = "monsters/dragon_rig/neck.png";
 const std::string DRAGON_OUTERPAW= "monsters/dragon_rig/outerpaw.png";
+const std::string DRAGON_INNERPAW = "monsters/dragon_rig/innerpaw.png";
 const std::string DRAGON_OUTERWING = "monsters/dragon_rig/outerwing.png";
 const std::string DRAGON_INNERWING = "monsters/dragon_rig/innerwing.png";
+
 static void add_frames_FK(entt::entity, Rig rig, FK_Animations& fk_animations);
 static void add_attack(entt::entity, Rig rig, FK_Animations& fk_animations);
 
@@ -36,7 +38,7 @@ entt::entity  DragonRig::createDragon() {
     motion.angle = 0.f;
     motion.velocity = normalize(vec2(45, 535) - coord_to_pixel(DRAGON_COORD)) * 2.f;
     motion.scale = vec2(150, 150);
-    motion.position = coord_to_pixel(DRAGON_COORD); // vec2(100, 500);// coord_to_pixel(FOREST_COORD);
+    motion.position = coord_to_pixel(DRAGON_COORD);
     motion.boundingbox = motion.scale * 5.0f;
 
     auto& monster = registry.emplace<Monster>(entity);
@@ -44,6 +46,8 @@ entt::entity  DragonRig::createDragon() {
     monster.health = monster.max_health;
     monster.damage = 0;
     monster.reward = 10000;
+
+
 
     /*
         Create rig
@@ -53,11 +57,14 @@ entt::entity  DragonRig::createDragon() {
     //create entities/parts to be part of the kinematic chains -- requires setting position offset, pivot/origin of rotation, and intial angle
     auto body = Rig::createPart(entity, "face_box", vec2(), vec2(),0);
 
-    auto neck = Rig::createPart(entity, "arm_simple", vec2(0.5f,0.2f), vec2(0, -0.5), 3.14/2.0f);
-    auto head = Rig::createPart(entity, "arm_simple", vec2(-0.1f, 0), vec2(0, 0.5), 3.14f);
+    auto neck = Rig::createPart(entity, "arm_simple", vec2(0.6f,0.05), vec2(0, -0.5), 3.14/2.0f);
+    auto head = Rig::createPart(entity, "arm_simple", vec2(-0.1, -0.1), vec2(0, 0.5), 3.14f);
 
-    auto wing = Rig::createPart(entity, "arm_simple", vec2(0,0), vec2(0, -0.5), 3.14f); // position offset, origin, angle
-    auto outer_arm = Rig::createPart(entity, "arm_simple", vec2(0,0.8), vec2(0, -0.5f), 0);
+    auto outer_wing = Rig::createPart(entity, "arm_simple", vec2(0.2,0.1), vec2(0, -0.5), 3.14f); 
+    auto inner_wing = Rig::createPart(entity, "arm_simple", vec2(0.3, 0), vec2(0, -0.5), 3.14f);
+
+    auto outer_arm = Rig::createPart(entity, "arm_simple", vec2(0,0.5), vec2(0, -0.5f), 0);
+    auto inner_arm = Rig::createPart(entity, "arm_simple", vec2(0.2, 0.2), vec2(0, -0.5f), 0);
 
     auto mouth = Rig::createPart(entity, "arm_simple", vec2(0,-0.1), vec2(0, 0.5f), 3.14 / 2.0f);
 
@@ -67,27 +74,35 @@ entt::entity  DragonRig::createDragon() {
     auto& rig = registry.emplace<Rig>(entity);
     rig.chains.push_back(Chain(entity, { body }));
     rig.chains.push_back(Chain(body, { neck, head }));
-    rig.chains.push_back(Chain(body, { wing })); 
+    rig.chains.push_back(Chain(body, { outer_wing }));
     rig.chains.push_back(Chain(body, { outer_arm }));
-
     rig.chains.push_back(Chain(head, { mouth }));
+    rig.chains.push_back(Chain(body, { inner_wing }));
+    rig.chains.push_back(Chain(body, { inner_arm }));
 
     int dragon_layer = LAYER_MONSTERS + 5;
 
     auto head_texture = Rig::createPartTextured(head, DRAGON_HEAD, vec2(-0.2f, 0.1f), -3.14 / 2.0f, 2.0f * vec2(1, 1), dragon_layer + 1);
     auto mouth_texture = Rig::createPartTextured(mouth, DRAGON_MOUTH, vec2(0, 0.2f), -3.14 / 2.0f, 1.5f * vec2(1, 1), dragon_layer - 1 );
-    auto neck_texture = Rig::createPartTextured(neck, DRAGON_NECK, vec2(0, 0), 2.0f, 1.5f * vec2(1, 1), dragon_layer - 2);
+
+    auto neck_texture = Rig::createPartTextured(neck, DRAGON_NECK, vec2(0.05, 0), 3.14/2.0f, 1.5f * vec2(1, 1), dragon_layer - 2);
+
     auto body_texture = Rig::createPartTextured(body, DRAGON_BODY, vec2(0, 0), 0.0f, 2.0f * vec2(1, 1), dragon_layer - 3);
-    auto wing_texture = Rig::createPartTextured(wing, DRAGON_OUTERWING, vec2(0, 0.5f), 3.10f, 2.0f * vec2(1, 1), dragon_layer - 2);
-    auto arm_texture = Rig::createPartTextured(outer_arm, DRAGON_OUTERPAW, vec2(0, 0), 1.0f, vec2(1, 1), dragon_layer - 2);
+
+    auto outer_wing_texture = Rig::createPartTextured(outer_wing, DRAGON_OUTERWING, vec2(0, 0.5f), 3.10f, 2.0f * vec2(1, 1), dragon_layer - 2);
+    auto outer_arm_texture = Rig::createPartTextured(outer_arm, DRAGON_OUTERPAW, vec2(0, 0), 1.0f, vec2(1, 1), dragon_layer - 2);
+
+    auto inner_wing_texture = Rig::createPartTextured(inner_wing, DRAGON_INNERWING, vec2(0, 0.5f), 3.10f, 2.0f * vec2(1, 1), dragon_layer - 4);
+    auto inner_arm_texture = Rig::createPartTextured(inner_arm, DRAGON_INNERPAW, vec2(0, 0), 1.0f, vec2(1, 1), dragon_layer - 4);
    
     rig.textures.push_back(head_texture);
     rig.textures.push_back(mouth_texture);
     rig.textures.push_back(neck_texture);
     rig.textures.push_back(body_texture);
-    rig.textures.push_back(wing_texture);
-    rig.textures.push_back(arm_texture);
-
+    rig.textures.push_back(outer_wing_texture);
+    rig.textures.push_back(outer_arm_texture);
+    rig.textures.push_back(inner_wing_texture);
+    rig.textures.push_back(inner_arm_texture);
 
     /*
        add animations 
@@ -106,7 +121,7 @@ entt::entity  DragonRig::createDragon() {
     */
 
     auto& rope_attachement = registry.emplace<Rope_attachement>(entity);
-    rope_attachement.rope_rig = RopeRig::createRope(entity, 10, vec2(-0.5f, 0.47f));
+    rope_attachement.rope_rig = RopeRig::createRope(entity, 10, vec2(-0.9, 0.5f));
 
     return entity;
 }
@@ -210,6 +225,19 @@ void add_attack(entt::entity entity, Rig rig, FK_Animations& fk_animations) {
     j4.data.emplace(loop_end, 0.0f);
 
 
+    //inner wing
+    Joint_angles j5;
+    j5.data.emplace(loop_start, -3.6f);
+    j5.data.emplace(t_fireball, -3.6f);
+    j5.data.emplace(loop_end, -3.6f);
+
+
+    // inner arm
+    Joint_angles j6;
+    j6.data.emplace(loop_start, -1.0f);
+    j6.data.emplace(loop_end, -1.0f);
+
+
     //add everything to keyframe_FK structure
     Keyframes_FK kfs;
     kfs.anim.emplace(rig.chains[1].chain_vector[0], j0);
@@ -217,7 +245,8 @@ void add_attack(entt::entity entity, Rig rig, FK_Animations& fk_animations) {
     kfs.anim.emplace(rig.chains[2].chain_vector[0], j2);
     kfs.anim.emplace(rig.chains[3].chain_vector[0], j3);
     kfs.anim.emplace(rig.chains[4].chain_vector[0], j4);
-
+    kfs.anim.emplace(rig.chains[5].chain_vector[0], j5);
+    kfs.anim.emplace(rig.chains[6].chain_vector[0], j6);
 
     fk_animations.anims.push_back(kfs);
 }

@@ -456,11 +456,7 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 	float ty_ui = -(top_ui + bottom_ui) / (top_ui - bottom_ui);
 	mat3 projection_2D_ui{{sx_ui, 0.f, 0.f}, {0.f, sy_ui, 0.f}, {tx_ui, ty_ui, 1.f}};
 
-	//temp soln - need to render rig parts first...
-	/*auto view_rigParts = registry.view<RigPart>();
-	for (auto entity : view_rigParts) {
-		drawTexturedMesh(entity, projection_2D);
-	}*/
+
 
 	auto view_mesh_ref = registry.view<ShadedMeshRef>();
 	auto view_render_property = registry.view<RenderProperty>();
@@ -518,16 +514,11 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 	}
 
 
-	////temp soln
-	//auto view_rigTextures = registry.view<RigTexture>();
-	//for (auto entity : view_rigTextures) {
+	//auto view_rigs = registry.view<RigPart>();
+	//for (auto entity : view_rigs) {
 	//	drawTexturedMesh(entity, projection_2D);
 	//}
-
-	/*auto view_rigs = registry.view<RigPart>();
-	for (auto entity : view_rigs) {
-		drawTexturedMesh(entity, projection_2D);
-	}*/
+	
 
 	//useful for rendering entities with only text and no ShadedMeshRef
 	auto view_text = registry.view<Text>();
