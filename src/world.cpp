@@ -92,7 +92,6 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     player_state(set_up_stage),
     fps_ms(0),
     next_boss_spawn(0),
-	next_fireball_spawn(0),
     next_mob_spawn(0),
     num_mobs_spawned(0),
     next_particle_spawn(0),
@@ -260,7 +259,7 @@ void  WorldSystem::manage_dragon_animations() {
 		}
 		// 0 == attack animation  //check dragon's timeline to see if we need to spawn a fireball
 		if (anim.anim_state == 0 && timeline.current_time > timing.t_fireball && attack_bool.value) {
-			create_fireball();
+			//create_fireball();
 			attack_bool.value = false; //set to false to avoid attacking again this loop of the animation
 		}
 	}

@@ -96,10 +96,11 @@ void AISystem::updateHunterTarget() const {// Attack mobs if in range of hunter
         std::priority_queue<entt::entity, std::vector<entt::entity>, compare_distance_to_village> priority_queue;
 
         for (auto monster : registry.view<Monster>()) {
-            auto& motion_m = registry.get<Motion>(monster);
+            auto monster_position = registry.get<Motion>(monster).position;
 
-            float distance_to_hunter = length(motion_m.position - motion_h.position);
-            if (distance_to_hunter < placeable_unit.attack_range) {
+            float distance_to_hunter = length(monster_position - motion_h.position);
+
+            if (distance_to_hunter < placeable_unit.attack_range || registry.has<DragonRig>(monster)) {
                 priority_queue.push(monster);
             }
         }
