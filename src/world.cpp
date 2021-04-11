@@ -2353,18 +2353,19 @@ void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y,
 			RenderSystem::hide_entity(entity);
 		}
 		
-		if (world_round_number <= 0) {
+		/*if (world_round_number <= 0) {
 			game_state = story_card;
 			StoryCard story_card(STORY_TEXT_PER_LEVEL[world_round_number + 1], std::to_string(1));
 			TalkyBoi::createTalkyBoiEntt();
-		}
+		}*/
 
-		if (registry.empty<StoryCardBase>()) {
+		/*if (registry.empty<StoryCardBase>()) {
 			game_state = in_game;
 		}
 		else {
 			game_state = story_card;
-		}
+		}*/
+		game_state = in_game;
 	}
 	// avoid 'unreferenced formal parameter' warning message
 	(void)mouse_pos_x;
