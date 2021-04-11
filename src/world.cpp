@@ -2527,7 +2527,7 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
             survival_mode = true;
 		case (MenuButtonType::new_game_button):
 			remove_menu_buttons();
-			game_state = help_menu;
+//			game_state = help_menu;
 			restart_with_save();
 			// show controls overlay
 			RenderSystem::show_entity(help_menu_entity);

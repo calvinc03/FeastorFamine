@@ -80,7 +80,7 @@ namespace HealthSystem
         for (auto [entity, hit, motion, unit] : view_unit_hit_reactions.each()) {
             hit.counter_ms -= elapsed_ms;
             if (hit.counter_ms > 0) {
-                createHealthBar(motion.position, unit.health, unit.max_health );
+                createHealthBar(motion.position, unit.health, unit.max_health, vec3(1, 0.8, 0));
             }
         }
     }
