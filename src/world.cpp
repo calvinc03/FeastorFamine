@@ -1213,7 +1213,7 @@ void WorldSystem::restart()
 	registry.get<ShadedMeshRef>(pause_menu_entity).show = false;
 	
 	// help menu
-	help_menu_entity = Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "help_menu", Menu_texture::help_menu, 98, { 0.5, 0.5 });
+	help_menu_entity = Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "help_menu", Menu_texture::help_menu, 98, { 0.8, 0.8 });
 	RenderSystem::hide_entity(help_menu_entity);
 	
 	// wanted board entity
@@ -1638,43 +1638,43 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	// Hot keys for selecting placeable units
 
-	else if (action == GLFW_PRESS && key == GLFW_KEY_2)
+	else if (action == GLFW_PRESS && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_6)
 	{
 		placement_unit_selected = GREENHOUSE;
 		create_unit_indicator = GreenHouse::createGreenHouse;
 	}
-    else if (action == GLFW_PRESS && key == GLFW_KEY_3)
+    else if (action == GLFW_PRESS && key == GLFW_KEY_1)
 	{
 		placement_unit_selected = HUNTER;
 		create_unit_indicator = Hunter::createHunter;
 	}
-    else if (action == GLFW_PRESS && key == GLFW_KEY_4)
+    else if (action == GLFW_PRESS && key == GLFW_KEY_7)
     {
         placement_unit_selected = WALL;
 		create_unit_indicator = Wall::createWall;
     }
-	else if (action == GLFW_PRESS && key == GLFW_KEY_5)
+	else if (action == GLFW_PRESS && key == GLFW_KEY_2)
 	{
 		placement_unit_selected = EXTERMINATOR;
 		create_unit_indicator = Exterminator::createExterminator;
 	}
-	else if (action == GLFW_PRESS && key == GLFW_KEY_6)
+	else if (action == GLFW_PRESS && key == GLFW_KEY_3)
 	{
 		placement_unit_selected = ROBOT;
 		create_unit_indicator = Robot::createRobot;
 	}
-	else if (action == GLFW_PRESS && key == GLFW_KEY_7)
+	else if (action == GLFW_PRESS && key == GLFW_KEY_4)
 	{
 		placement_unit_selected = PRIESTESS;
 		create_unit_indicator = Priestess::createPriestess;
 	}
-	else if (action == GLFW_PRESS && key == GLFW_KEY_8)
+	else if (action == GLFW_PRESS && key == GLFW_KEY_5)
 	{
 		placement_unit_selected = SNOWMACHINE;
 		create_unit_indicator = SnowMachine::createSnowMachine;
 	}
 	// Resetting game
-	if (action == GLFW_RELEASE && key == GLFW_KEY_R)
+	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_R)
 	{
 		if (game_state == in_game) {
 			int w, h;
@@ -2651,14 +2651,19 @@ void WorldSystem::create_start_menu()
 	
 }
 
+std::string add_quotation_marks(std::string hotkey)
+{
+	return "\"" + hotkey + "\"";
+}
+
 void WorldSystem::create_controls_menu()
 {
 	std::cout << "In Controls Menu\n";
-	int menu_layer = LAYER_MENU;
+	int menu_layer = LAYER_MENU + 2;
 	std::string menu_name = "controls";
 	auto menu = Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, menu_name, Menu_texture::controls, menu_layer, { WINDOW_SIZE_IN_PX.x / 10, WINDOW_SIZE_IN_PX.x / 10});
 	// title text
-	std::string title_text = "Controls";
+	std::string title_text = "Hotkeys";
 	auto title_text_scale = 1.2f;
 	auto title_x_offset = (title_text.length() * title_text_scale * 27) / 2;
 	auto notoRegular = TextFont::load("data/fonts/cascadia-code/Cascadia.ttf");
@@ -2666,26 +2671,26 @@ void WorldSystem::create_controls_menu()
 	title.scale = title_text_scale;
 	title.colour = { 1.0f, 0.8f, 0.0f };
 	// hotkey text
-	std::vector<std::string> hotkey_list = {"1", "2", "3", "4", "Space + mouse", "Scroll", "H", "Esc"};
+	std::vector<std::string> hotkey_list = {"1", "2", "3", "4", "5", "6", "7", "P", "Space + mouse", "Scroll", "H", "Esc"};
 	int para_y_offset = 230;
 	int hotkey_para_x_offset = 410;
-	auto hotkey_text_scale = 0.8f;
-	for (int i = 0; i <= 7; i++) {
+	auto hotkey_text_scale = 0.6f;
+	for (int i = 0; i < hotkey_list.size(); i++) {
 		auto entity = registry.create();
 		auto& menu_text = registry.emplace<MenuText>(entity);
 		menu_text.menu_name = menu_name;
 		int y_offset = para_y_offset + (int)(i * hotkey_text_scale * 60);
-		std::string hotkey_text = hotkey_list[i];
+		std::string hotkey_text = add_quotation_marks(hotkey_list[i]);
 		auto x_offset = (hotkey_text.length() * hotkey_text_scale * 27);
 		auto& hotkey = registry.emplace<Text>(entity, Text(hotkey_text, notoRegular, vec2(hotkey_para_x_offset - x_offset, WINDOW_SIZE_IN_PX.y - y_offset)));
 		hotkey.scale = hotkey_text_scale;
 		hotkey.colour = { 1.0f, 0.8f, 0.0f };
 	}
 	// hotkey description text
-	std::vector<std::string> hotkey_des_list = { "Select watchtower", "Select greenhouse", "Select hunter", "Select wall",
-											 "Move camera", "Zoom in / out", "Show  controls menu", "Goto title screen" };
+	std::vector<std::string> hotkey_des_list = { "Select hunter", "Select exterminator", "Select robot", "Select priestess", "Select snowmachine",
+												"Select greenhouse", "Select wall", "Pause game", "Move camera", "Zoom in / out", "Show hotkeys menu", "Return to title screen" };
 	int des_para_x_offset = 570;
-	for (int i = 0; i <= 7; i++) {
+	for (int i = 0; i < hotkey_list.size(); i++) {
 		auto entity = registry.create();
 		auto& menu_text = registry.emplace<MenuText>(entity);
 		menu_text.menu_name = menu_name;
@@ -2696,7 +2701,7 @@ void WorldSystem::create_controls_menu()
 		description.colour = { 1.0f, 0.8f, 0.0f };
 	}
 	// arrows
-	for (int i = 0; i <= 7; i++) {
+	for (int i = 0; i < hotkey_list.size(); i++) {
 		auto arrow = registry.create();
 		ShadedMesh& resource = cache_resource("control_arrow");
 		if (resource.effect.program.resource == 0) {

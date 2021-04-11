@@ -54,10 +54,10 @@ void Path::createPathLine(vec2 position1, vec2 position2, vec3 color, int monste
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
 	shaded_mesh.layer = LAYER_MAP + 2;
 
-	auto& ui_element = registry.emplace<UI_element>(entity);
-	ui_element.angle = angle;
-	ui_element.position = (position1 + position2) / 2.0f;
-	ui_element.scale = vec2(len, 8);
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.angle = angle;
+	motion.position = (position1 + position2) / 2.0f;
+	motion.scale = vec2(len, 8);
 
 	registry.emplace<HighlightBool>(entity);
 	auto path = registry.emplace<Path>(entity);
