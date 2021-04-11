@@ -12,7 +12,7 @@ void adjust_volume(int channel)
     {
         int volume = 110 - 4 * (channel_playing);
         Mix_Volume(i, volume);
-        std::cout << "Volume: " << volume << "\n";
+        //std::cout << "Volume: " << volume << "\n";
     }
     
 }

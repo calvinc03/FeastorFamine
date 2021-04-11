@@ -103,7 +103,7 @@ void upgrade_unit_path_2(entt::entity e_unit)
 		unit.num_projectiles = upgrades[2];
 	}
 	else if (registry.has<Priestess>(e_unit)) {
-		std::vector<int> upgrades = priestess_path_2.at(unit.path_2_upgrade);
+		std::vector<float> upgrades = priestess_path_2.at(unit.path_2_upgrade);
 		unit.upgrade_path_2_cost = upgrades[0];
 		unit.sell_price += upgrades[1];
 		unit.attack_interval_ms = upgrades[2];

@@ -1516,6 +1516,32 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		}
 	}
 
+	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_S)
+	{
+		if (player_state == set_up_stage)
+		{
+			start_round();
+		}
+		
+		num_bosses_spawned = max_boss;
+		num_mobs_spawned = max_mobs;
+		for (entt::entity projectile : registry.view<Projectile>())
+		{
+			registry.destroy(projectile);
+		}
+		for (entt::entity monster : registry.view<Monster>())
+		{
+			if (registry.has<Rig>(monster)) {
+				Rig::delete_rig(monster); //rigs have multiple pieces to be deleted
+			}
+			else {
+				registry.destroy(monster);
+			}
+		}
+
+		world_round_number = 15;
+	}
+
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P && game_state == in_game) {
 		pause_game();
 		more_options_menu();
@@ -2626,51 +2652,37 @@ void WorldSystem::create_controls_menu()
 
 void WorldSystem::on_click_ui_when_selected(Button ui_button)
 {
+	auto view_selectable = registry.view<Selectable>();
+	entt::entity entity_selected;
+	Unit unit;
+
+	for (auto entity : view_selectable)
+	{
+		if (view_selectable.get<Selectable>(entity).selected)
+		{
+			entity_selected = entity;
+			unit = registry.get<Unit>(entity);
+		}
+	}
+	
 	if (ui_button == Button::sell_button)
 	{
-		auto view_selectable = registry.view<Selectable>();
-		auto view_unit = registry.view<Unit>();
-		for (auto entity : view_selectable)
-		{
-			if (view_selectable.get<Selectable>(entity).selected)
-			{
-				auto& unit = view_unit.get<Unit>(entity);
-				health += unit.sell_price;
-				sell_unit(entity);
-			}
-		}
+		health += unit.sell_price;
+		sell_unit(entity_selected);
 	}
-	else if (ui_button == Button::upgrade_path_1_button && health >= hunter_unit.upgrade_path_1_cost)
+	else if (ui_button == Button::upgrade_path_1_button && health > unit.upgrade_path_1_cost)
 	{
-		// upgrade button is hit
-		auto view_selectable = registry.view<Selectable>();
-		auto view_unit = registry.view<Unit>();
-		for (auto entity : view_selectable)
-		{
-			if (view_selectable.get<Selectable>(entity).selected)
-			{
-				upgrade_unit_path_1(entity);
-				auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_1);
-				UIselection.path_num += 1;
-				mouse_hover_ui_button();
-			}
-		}
+		upgrade_unit_path_1(entity_selected);
+		auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_1);
+		UIselection.path_num += 1;
+		mouse_hover_ui_button();
 	}
-	else if (ui_button == Button::upgrade_path_2_button && health >= hunter_unit.upgrade_path_2_cost)
+	else if (ui_button == Button::upgrade_path_2_button && health > unit.upgrade_path_2_cost)
 	{
-		// upgrade button is hit
-		auto view_selectable = registry.view<Selectable>();
-		auto view_unit = registry.view<Unit>();
-		for (auto entity : view_selectable)
-		{
-			if (view_selectable.get<Selectable>(entity).selected)
-			{
-				upgrade_unit_path_2(entity);
-				auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_2);
-				UIselection.path_num += 1;
-				mouse_hover_ui_button();
-			}
-		}
+		upgrade_unit_path_2(entity_selected);
+		auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_2);
+		UIselection.path_num += 1;
+		mouse_hover_ui_button();
 	}
 }
 
@@ -2864,36 +2876,50 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				if (placement_unit_selected == HUNTER && health >= hunter_unit.cost)
 				{
                     entity = Hunter::createHunter(unit_position);
+					auto& sound = registry.emplace<SoundRef>(entity);
+					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/hunter_built_sound.wav").c_str());
 					deduct_health(hunter_unit.cost);
 				}
 				else if (placement_unit_selected == GREENHOUSE && health >= greenhouse_unit.cost)
 				{
 					entity = GreenHouse::createGreenHouse(unit_position);
+					auto& sound = registry.emplace<SoundRef>(entity);
+					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/greenhouse_built_sound.wav").c_str());
 					deduct_health(greenhouse_unit.cost);
 				}
 				else if (placement_unit_selected == EXTERMINATOR && health >= exterminator_unit.cost)
 				{
 					entity = Exterminator::createExterminator(unit_position);
+					auto& sound = registry.emplace<SoundRef>(entity);
+					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/exterminator_built_sound.wav").c_str());
 					deduct_health(exterminator_unit.cost);
 				}
 				else if (placement_unit_selected == ROBOT && health >= robot_unit.cost)
 				{
 					entity = Robot::createRobot(unit_position);
+					auto& sound = registry.emplace<SoundRef>(entity);
+					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/robot_built_sound.wav").c_str());
 					deduct_health(robot_unit.cost);
 				}
 				else if (placement_unit_selected == PRIESTESS && health >= priestess_unit.cost)
 				{
 					entity = Priestess::createPriestess(unit_position);
+					auto& sound = registry.emplace<SoundRef>(entity);
+					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/priestess_built_sound.wav").c_str());
 					deduct_health(priestess_unit.cost);
 				}
 				else if (placement_unit_selected == SNOWMACHINE && health >= snowmachine_unit.cost)
 				{
 					entity = SnowMachine::createSnowMachine(unit_position);
+					auto& sound = registry.emplace<SoundRef>(entity);
+					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/snowmachine_built_sound.wav").c_str());
 					deduct_health(snowmachine_unit.cost);
 				}
 				else if (placement_unit_selected == WALL && health >= wall_unit.cost)
 				{
 					entity = Wall::createWall(unit_position/*, false*/);
+					auto& sound = registry.emplace<SoundRef>(entity);
+					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/wall_built_sound.wav").c_str());
 					deduct_health(wall_unit.cost);
 				}
 				else

@@ -34,13 +34,13 @@ entt::entity  DragonRig::createDragon() {
     // root entity acts like any other entity.
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
+    motion.velocity = normalize(vec2(45, 535) - coord_to_pixel(DRAGON_COORD)) * 2.f;
     motion.scale = vec2(150, 150);
-    motion.position = coord_to_pixel(DRAGON_COORD) + vec2(150, 75); // vec2(100, 500);// coord_to_pixel(FOREST_COORD);
+    motion.position = coord_to_pixel(DRAGON_COORD); // vec2(100, 500);// coord_to_pixel(FOREST_COORD);
     motion.boundingbox = motion.scale * 2.0f;
 
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = 5000;
+    monster.max_health = 10000;
     monster.health = monster.max_health;
     monster.damage = 0;
     monster.reward = 10000;
@@ -48,6 +48,8 @@ entt::entity  DragonRig::createDragon() {
     /*
         Create rig
     */
+    auto& transform = registry.emplace<Transform>(entity);
+    transform.mat = glm::mat3(1.0);
     //create entities/parts to be part of the kinematic chains -- requires setting position offset, pivot/origin of rotation, and intial angle
     auto body = Rig::createPart(entity, "face_box", vec2(), vec2(),0);
 
@@ -70,30 +72,42 @@ entt::entity  DragonRig::createDragon() {
 
     rig.chains.push_back(Chain(head, { mouth }));
 
+    int dragon_layer = LAYER_MONSTERS + 5;
 
-    auto head_texture = Rig::createPartTextured(head, DRAGON_HEAD, vec2(-0.2f, 0.1f), -3.14 / 2.0f, 2.0f * vec2(1, 1), 24);
-    auto mouth_texture = Rig::createPartTextured(mouth, DRAGON_MOUTH, vec2(0, 0.2f), -3.14 / 2.0f, 1.5f * vec2(1, 1), 23);
-    auto neck_texture = Rig::createPartTextured(neck, DRAGON_NECK, vec2(0, 0), 2.0f, 1.5f * vec2(1, 1), 21);
-    auto body_texture = Rig::createPartTextured(body, DRAGON_BODY, vec2(0, 0), 0.0f, 2.0f * vec2(1, 1), 20);
-    auto wing_texture = Rig::createPartTextured(wing, DRAGON_OUTERWING, vec2(0, 0.5f), 3.10f, 2.0f * vec2(1, 1), 22);
-    auto arm_texture = Rig::createPartTextured(outer_arm, DRAGON_OUTERPAW, vec2(0, 0), 1.0f, vec2(1, 1), 24);
+    auto head_texture = Rig::createPartTextured(head, DRAGON_HEAD, vec2(-0.2f, 0.1f), -3.14 / 2.0f, 2.0f * vec2(1, 1), dragon_layer + 1);
+    auto mouth_texture = Rig::createPartTextured(mouth, DRAGON_MOUTH, vec2(0, 0.2f), -3.14 / 2.0f, 1.5f * vec2(1, 1), dragon_layer - 1 );
+    auto neck_texture = Rig::createPartTextured(neck, DRAGON_NECK, vec2(0, 0), 2.0f, 1.5f * vec2(1, 1), dragon_layer - 2);
+    auto body_texture = Rig::createPartTextured(body, DRAGON_BODY, vec2(0, 0), 0.0f, 2.0f * vec2(1, 1), dragon_layer - 3);
+    auto wing_texture = Rig::createPartTextured(wing, DRAGON_OUTERWING, vec2(0, 0.5f), 3.10f, 2.0f * vec2(1, 1), dragon_layer - 2);
+    auto arm_texture = Rig::createPartTextured(outer_arm, DRAGON_OUTERPAW, vec2(0, 0), 1.0f, vec2(1, 1), dragon_layer - 2);
    
-    auto& transform = registry.emplace<Transform>(entity);
-    transform.mat = glm::mat3(1.0);
-
-    RigSystem::update_rig(entity);
+    rig.textures.push_back(head_texture);
+    rig.textures.push_back(mouth_texture);
+    rig.textures.push_back(neck_texture);
+    rig.textures.push_back(body_texture);
+    rig.textures.push_back(wing_texture);
+    rig.textures.push_back(arm_texture);
 
 
     /*
        add animations 
-       add rope 
+       initialize pose
     */
 
     add_attack(entity, rig, fk_animations);
     add_frames_FK(entity, rig, fk_animations);
 
-    //RopeRig::createRope(neck, 10, vec2(100, 0));
-    
+    RigSystem::animate_rig_fk(entity, 1);
+    RigSystem::update_rig(entity);
+
+
+    /*
+        create and attach rope
+    */
+
+    auto& rope_attachement = registry.emplace<Rope_attachement>(entity);
+    rope_attachement.rope_rig = RopeRig::createRope(entity, 10, vec2(-0.5f, 0.47f));
+
     return entity;
 }
 

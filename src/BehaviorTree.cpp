@@ -272,12 +272,9 @@ public:
 	BTState process(entt::entity e) override {
 		auto& motion = registry.get<Motion>(e);
 
-		motion.position += motion.velocity;
-
 		// stop when dragon is at edge of screen
-		if (motion.position.x > 240) {
-			// if velocity is 0 it faces upwards??
-			motion.velocity.x = 0.01f;
+		if (motion.position.x < 46) {
+			motion.position += motion.velocity;
 		}
 
 		return BTState::Dragon;
