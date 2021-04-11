@@ -279,8 +279,18 @@ float heuristic_diagonal_dist(GridMap& current_map, int monster_type, ivec2 from
     return unit_move_cost * (dx + dy) + (diag_cost - 2 * unit_move_cost) * min(dx, dy);
 }
 
-std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int monster_type, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), int neighbor_type) {
-    std::vector<ivec2> neighbors = neighbor_map.at(neighbor_type);
+std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int monster_type, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2)) {
+    std::vector<ivec2> neighbors;
+    if (monster_type == SUMMER_BOSS || monster_type == FALL_BOSS || monster_type == WINTER_BOSS) {
+        neighbors = neighbor_map.at(DIRECT_NBRS);
+    }
+    else if (monster_type == SPRING_BOSS) {
+        neighbors = neighbor_map.at(DIAGONAL_NBRS);
+    }
+    else {
+        neighbors = neighbor_map.at(ALL_NBRS);
+    }
+
     std::vector<std::vector<search_node>> parent(MAP_SIZE_IN_COORD.x,std::vector<search_node> (MAP_SIZE_IN_COORD.y, {ivec2(-1, -1), INFINITY, INFINITY}));
     iterable_pq open;
     std::vector<search_node> closed;

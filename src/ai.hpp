@@ -31,8 +31,7 @@ public:
         static std::vector<ivec2> findPathAStar(GridMap& current_map, int monster_type,
                                                 ivec2 start_coord = FOREST_COORD,
                                                 ivec2 goal_coord = VILLAGE_COORD,
-                                                bool is_valid(GridMap&, ivec2) = is_walkable,
-                                                int neighbors = ALL_NBRS);
+                                                bool is_valid(GridMap&, ivec2) = is_walkable);
         static void setRandomMapWeatherTerrain(GridMap& map, int weather);
         static void setRandomWeatherTerrain(GridMap& map, int max_rerolls, int weather);
         static void setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, terrain_type terrain = TERRAIN_PAVEMENT);

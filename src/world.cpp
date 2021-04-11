@@ -1028,7 +1028,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		registry.get<Text>(round_text_entity).position.x = ROUND_NUM_X_OFFSET - 20;
 	registry.get<Text>(food_text_entity).content = std::to_string(health);
 
-	if(survival_mode) {
+	if(survival_mode && world_round_number > 0) {
         start_round();
 	}
 }
