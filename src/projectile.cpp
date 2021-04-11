@@ -48,7 +48,6 @@ entt::entity Projectile::createProjectile(entt::entity e_unit, entt::entity e_mo
 
     auto& sound = registry.emplace<SoundRef>(entity);
     sound.sound_reference = Mix_LoadWAV(audio_path("projectile/impact.wav").c_str());
-    sound.play_delay_counter_ms = -1;
     sound.play_sound = false;
     sound.on_impact_destory = true;
 
@@ -161,7 +160,6 @@ entt::entity Flamethrower::createFlamethrower(entt::entity e_unit, entt::entity 
 
     auto& sound = registry.emplace<SoundRef>(entity);
     sound.sound_reference = Mix_LoadWAV(audio_path("projectile/flamethrower.wav").c_str());
-    sound.play_delay_counter_ms = -1;
     sound.play_delay_ms = 3300;
 
     return entity;
@@ -209,7 +207,6 @@ entt::entity LaserBeam::createLaserBeam(entt::entity e_unit, entt::entity e_mons
     
     auto& sound = registry.emplace<SoundRef>(entity);
     sound.sound_reference = Mix_LoadWAV(audio_path("projectile/laser.wav").c_str());
-    sound.play_delay_counter_ms = -1;
     sound.play_delay_ms = 3000;
     return entity;
 }

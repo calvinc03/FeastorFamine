@@ -105,5 +105,11 @@ entt::entity MenuButton::create_button_arrow()
 	ui_element.tag = "title_button_arrow";
 	ui_element.scale = vec2({ 1.1f, 1.1f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
 	ui_element.position = { 0.f, 0.f };
+
+	auto& sound = registry.emplace<SoundRef>(entity);
+	sound.sound_reference = Mix_LoadWAV(audio_path("ui/sign_post_hover.wav").c_str());
+	sound.play_delay_ms = 0;
+	sound.play_sound = false;
+
 	return entity;
 }

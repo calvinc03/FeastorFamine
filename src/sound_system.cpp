@@ -38,7 +38,6 @@ void sound_on_destroy(entt::basic_registry<entt::entity>& registry, entt::entity
     if (!sound_ref.on_impact_destory)
     {
         Mix_HaltChannel(sound_ref.channel_num);
-        // free memory
         if (sound_ref.sound_reference != nullptr)
             Mix_FreeChunk(sound_ref.sound_reference);
     }
@@ -71,6 +70,13 @@ SoundSystem::SoundSystem()
 
 SoundSystem::~SoundSystem()
 {
+    for (auto entity : registry.view<SoundRef>())
+    {
+        auto* chunck = registry.get<SoundRef>(entity).sound_reference;
+        if (chunck != nullptr)
+            Mix_FreeChunk(chunck);
+    }
+    registry.clear<SoundRef>();
     Mix_CloseAudio();
 }
 

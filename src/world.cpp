@@ -172,7 +172,6 @@ WorldSystem::~WorldSystem()
 		Mix_FreeChunk(salmon_dead_sound);
 	if (salmon_eat_sound != nullptr)
 		Mix_FreeChunk(salmon_eat_sound);
-	Mix_CloseAudio();
 
 	// Destroy all created components
 	//ECS::ContainerInterface::clear_all_components();
@@ -595,8 +594,10 @@ void WorldSystem::end_battle_phase_step(float elapsed_ms)
 		auto closeness_outline = TextFont::load("data/fonts/Closeness/closeness.outline-regular.ttf");
 		auto closeness_regular = TextFont::load("data/fonts/Closeness/closeness.regular.ttf");
 		vec2 text_position = get_center_text_position(WINDOW_SIZE_IN_PX, { WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2 }, 2.f, "ROUND CLEARED!");
-		DisappearingText::createDisappearingText(closeness_regular, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 245.f / 255.f, 216.f / 255.f, 51.f / 255.f }));
+		auto round_clear_text = DisappearingText::createDisappearingText(closeness_regular, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 245.f / 255.f, 216.f / 255.f, 51.f / 255.f }));
 		DisappearingText::createDisappearingText(closeness_outline, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 0.f, 0.f, 0.f }));
+		auto& sound = registry.emplace<SoundRef>(round_clear_text);
+		sound.sound_reference = Mix_LoadWAV(audio_path("ui/round_cleared_sound.wav").c_str());
 		// change fastforward texture to not light up
 		UI_button::fastforward_light_off();
 		// hide fastforward button and showi start_button
@@ -1976,9 +1977,18 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 			auto ui_element = registry.get<UI_element>(ui_entity);
 			if (sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f) < 0.0f) {
 				is_hovering = true;
-				registry.get<UI_element>(title_button_highlight_entity).position = vec2({ ui_element.position.x,  ui_element.position.y });
+				
 				registry.get<UI_element>(title_button_highlight_entity).angle = ui_element.angle;
-				registry.get<ShadedMeshRef>(title_button_highlight_entity).show = true;
+				if (!registry.get<ShadedMeshRef>(title_button_highlight_entity).show)
+				{
+					registry.get<ShadedMeshRef>(title_button_highlight_entity).show = true;
+					registry.get<SoundRef>(title_button_highlight_entity).play_sound = true;
+				}
+				else if (registry.get<UI_element>(title_button_highlight_entity).position != vec2({ ui_element.position.x,  ui_element.position.y }))
+				{
+					registry.get<SoundRef>(title_button_highlight_entity).play_sound = true;
+				}
+				registry.get<UI_element>(title_button_highlight_entity).position = vec2({ ui_element.position.x,  ui_element.position.y });
 			}
 		}
 		if (is_hovering)
@@ -1989,6 +1999,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 		else
 		{
 			registry.get<ShadedMeshRef>(title_button_highlight_entity).show = false;
+			registry.get<SoundRef>(title_button_highlight_entity).play_sound = false;
 			for (auto entity : registry.view<TitleEyes>())
 				registry.get<TitleEyes>(entity).show = false;
 		}
