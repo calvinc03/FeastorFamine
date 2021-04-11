@@ -30,6 +30,7 @@ void play_sound(SoundRef& sound_ref)
     sound_ref.play_delay_counter_ms = sound_ref.play_delay_ms;
     sound_ref.channel_num = channel_played;
     sound_ref.play_sound = false;
+    sound_ref.one_time_sound_played = true;
 }
 
 void sound_on_destroy(entt::basic_registry<entt::entity>& registry, entt::entity entity) {
@@ -56,15 +57,14 @@ void sound_on_construct(entt::basic_registry<entt::entity>& registry, entt::enti
 }
 
 // constructor for SoundSystem
-SoundSystem::SoundSystem()
+SoundSystem::SoundSystem(WorldSystem* world)
 {
     volume = 110;
     // reserve 10 channels for world
     Mix_AllocateChannels(10);
     auto destroy_sink = registry.on_destroy<SoundRef>();
     destroy_sink.connect<&sound_on_destroy>();
-
-
+    this->world = world;
 }
 
 
@@ -83,15 +83,12 @@ SoundSystem::~SoundSystem()
 
 void SoundSystem::step(float elasped_ms)
 {
-    // resize channel_sound_ref
     auto sound_ref_view = registry.view<SoundRef>();
-
     // play all sounds continuously if the entity exists
 	for (auto entity : sound_ref_view)
 	{
         auto& sound_ref = registry.get<SoundRef>(entity);
-        Mix_Chunk* chunk = registry.get<SoundRef>(entity).sound_reference;
-        if (sound_ref.play_sound)
+        if (sound_ref.is_continuous)
         {
             if (sound_ref.play_delay_counter_ms > 0)
             {
@@ -101,6 +98,11 @@ void SoundSystem::step(float elasped_ms)
             {
                 play_sound(sound_ref);
             }
+        }
+        else
+        {
+            if (sound_ref.play_sound)
+                play_sound(sound_ref);
         }
 	}
     deallocate_channel();

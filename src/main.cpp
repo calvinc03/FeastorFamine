@@ -37,7 +37,7 @@ int main()
 	
 	WorldSystem world(WINDOW_SIZE_IN_PX, &physics);
 	RenderSystem renderer(*world.window);
-	SoundSystem sound_system;
+	SoundSystem sound_system(&world);
 
 	world.screen_sprite = &renderer.screen_sprite;
 	

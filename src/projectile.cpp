@@ -207,7 +207,7 @@ entt::entity LaserBeam::createLaserBeam(entt::entity e_unit, entt::entity e_mons
     
     auto& sound = registry.emplace<SoundRef>(entity);
     sound.sound_reference = Mix_LoadWAV(audio_path("projectile/laser.wav").c_str());
-    sound.play_delay_ms = 3000;
+    sound.play_delay_ms = 1000;
     return entity;
 }
 

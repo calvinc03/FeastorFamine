@@ -1432,7 +1432,10 @@ void WorldSystem::damage_monster_helper(entt::entity e_monster, entt::entity e_p
 	if (registry.has<SoundRef>(e_projectile))
 	{
 		auto& sound_ref = registry.get<SoundRef>(e_projectile);
-		sound_ref.play_sound = true;
+		if (sound_ref.is_continuous)
+			sound_ref.play_sound = true;
+		else if (!sound_ref.one_time_sound_played)
+			sound_ref.play_sound = true;
 	}
 	monster.collided = true;
 	
@@ -1707,14 +1710,7 @@ void WorldSystem::pause_game()
 {
 	std::cout << "Paused" << std::endl;
 	game_state = paused;
-	//// pause menu
-	//registry.get<ShadedMeshRef>(pause_menu_entity).show = true;
-	//auto menu_ui = registry.get<UI_element>(pause_menu_entity);
-	//
-	//float top_button_y_offset = menu_ui.position.y - menu_ui.scale.y / 2.f - 10;
-	//MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 1.f / 3.5f, MenuButtonType::restart_round_button, "Restart round", { 1.4f, 1.0f });
-	//MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 2.f / 3.5f, MenuButtonType::help_button, "Help", { 1.2f, 1.0f });
-	//MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 3.f / 3.5f, MenuButtonType::exit_button, "Exit", { 1.2f, 1.0f });
+	Mix_Pause(-1);
 }
 
 void WorldSystem::more_options_menu()
@@ -1733,6 +1729,7 @@ void WorldSystem::resume_game()
 {
 	std::cout << "Game Resumed" << std::endl;
 	game_state = in_game;
+	Mix_Resume(-1);
 	// hide pause menu and destroy all menu buttons
 	registry.get<ShadedMeshRef>(pause_menu_entity).show = false;
 	auto menu_button_view = registry.view<MenuButton>();
@@ -3178,7 +3175,8 @@ void WorldSystem::paused_click_handle(double xpos, double ypos, int button, int 
 				game_state = story_card;
 				break;
 			case MenuButtonType::help_button:
-				resume_game();
+				for (auto entity : registry.view<MenuButton>())
+					registry.destroy(entity);
 				RenderSystem::show_entity(help_menu_entity);
 				game_state = GameState::help_menu;
 				break;
