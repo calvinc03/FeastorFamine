@@ -1,6 +1,6 @@
 #include "rig.hpp"
 #include <iostream>
-
+#include "rope.hpp"
 
 Transform parent(Transform parent, Motion child_motion, Motion root_motion);
 void animate_rig_fk_helper(entt::entity character, float elapsed_ms);
@@ -101,6 +101,9 @@ void RigSystem::update_rig(entt::entity character) {
 }
 
 void Rig::delete_rig(entt::entity character) {
+    if (registry.has<Rope_attachement>(character)) {
+        RopeRig::delete_rope(registry.get<Rope_attachement>(character).rope_rig);
+    }
     auto& rig = registry.get<Rig>(character);
     for (auto chains : rig.chains) {
         for (auto part : chains.chain_vector) {
