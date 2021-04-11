@@ -11,8 +11,8 @@ such as momentum (linear or angular) and acceleration, and act based on those.
 */
 
 
-const std::string link_top = "monsters/dragon_rig/chain_top.png";
-const std::string link_side = "monsters/dragon_rig/chain_side.png";
+const std::string link_top = "monsters/dragon_rig/chain_top_small.png";
+const std::string link_side = "monsters/dragon_rig/chain_side_small.png";
 
 entt::entity RopeRig::createRope(entt::entity anchor, int length, vec2 offset) {
     auto entity = registry.create();
