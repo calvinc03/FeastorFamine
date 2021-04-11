@@ -17,6 +17,7 @@
 #include <units/robot.hpp>
 #include <units/exterminator.hpp>
 #include <units/snowmachine.hpp>
+#include <units/aura.hpp>
 
 #pragma once
 
@@ -325,9 +326,18 @@ public:
 };
 
 // helper for increment_monster_step
-void remove_unit_entity(entt::entity e_unit)
+void remove_unit_entity(unit_type type, entt::entity e_unit)
 {
-	if (registry.has<Robot>(e_unit))
+    if (type == PRIESTESS) {
+        for (auto e_aura : registry.view<Aura>()) {
+            auto& aura = registry.get<Aura>(e_aura);
+            if (aura.emitter == e_unit) {
+                registry.destroy(e_aura);
+            }
+        }
+    }
+
+	else if (type == ROBOT)
 	{
 		auto& robot = registry.get<Robot>(e_unit);
 		for (auto projectile : robot.lasers)
@@ -335,7 +345,7 @@ void remove_unit_entity(entt::entity e_unit)
                 registry.destroy(projectile);
             }
 	}
-	else if (registry.has<Exterminator>(e_unit))
+	else if (type == EXTERMINATOR)
 	{
 		auto& exterminator = registry.get<Exterminator>(e_unit);
 		for (auto projectile : exterminator.flamethrowers)
@@ -343,7 +353,7 @@ void remove_unit_entity(entt::entity e_unit)
                 registry.destroy(projectile);
 		    }
 	}
-	else if (registry.has<SnowMachine>(e_unit))
+	else if (type == SNOWMACHINE)
 	{
 		auto& snowmachine = registry.get<SnowMachine>(e_unit);
 		for (auto projectile : snowmachine.snowfields)
@@ -353,6 +363,40 @@ void remove_unit_entity(entt::entity e_unit)
 	}
 
 	registry.destroy(e_unit);
+}
+
+void handle_monster_attack(entt::entity entity, Monster& monster, GridNode& next_node) {
+    if (monster.state == ATTACK) {
+        auto atk_entity = next_node.occupying_entity;
+        if (next_node.occupancy == NONE) {
+            auto& animate = registry.get<Animate>(entity);
+            if(monster.slow_walk) {
+                animate.update_interval = 2;
+            }
+            monster.state = WALK;
+            monster.sprite = monster.walk_sprite;
+            monster.frames = monster.walk_frames;
+            monster.setSprite(entity);
+            return;
+        }
+        auto& atk_unit = registry.get<Unit>(atk_entity);
+        if (atk_unit.health <= 0) {
+            next_node.setOccupancy(NONE, atk_entity);
+            remove_unit_entity(atk_unit.type, atk_entity);
+            WorldSystem::set_AI_paths = false;
+            return;
+        }
+        monster.next_attack -= 1;
+        if (monster.next_attack < 0) {
+            monster.next_attack = monster.effect_interval;
+
+            auto& hit_reaction = registry.get<HitReaction>(atk_entity);
+            hit_reaction.counter_ms = hit_reaction.counter_interval;
+            hit_reaction.hit_bool = true;
+            atk_unit.health -= monster.damage;
+            HitPointsText::create_hit_points_text(monster.damage, atk_entity, { 1.f, 0.8, 0.f });
+        }
+    }
 }
 
 void increment_monster_step(entt::entity entity) {
@@ -412,37 +456,7 @@ void increment_monster_step(entt::entity entity) {
 		}*/
 	}
 
-    if (monster.state == ATTACK) {
-        auto atk_entity = next_node.occupying_entity;
-        if (next_node.occupancy == NONE) {
-            auto& animate = registry.get<Animate>(entity);
-            if(monster.slow_walk) {
-                animate.update_interval = 2;
-            }
-            monster.state = WALK;
-            monster.sprite = monster.walk_sprite;
-            monster.frames = monster.walk_frames;
-            monster.setSprite(entity);
-            return;
-        }
-        auto& atk_unit = registry.get<Unit>(atk_entity);
-        if (atk_unit.health <= 0) {
-            next_node.setOccupancy(NONE, atk_entity);
-			remove_unit_entity(atk_entity);
-            WorldSystem::set_AI_paths = false;
-            return;
-        }
-        monster.next_attack -= 1;
-        if (monster.next_attack < 0) {
-            monster.next_attack = monster.effect_interval;
-
-            auto& hit_reaction = registry.get<HitReaction>(atk_entity);
-            hit_reaction.counter_ms = hit_reaction.counter_interval;
-            hit_reaction.hit_bool = true;
-            atk_unit.health -= monster.damage;
-            HitPointsText::create_hit_points_text(monster.damage, atk_entity, { 1.f, 0.8, 0.f });
-        }
-    }
+    handle_monster_attack(entity, monster, next_node);
 
     auto& curr_node = WorldSystem::current_map.getNodeAtCoord(current_path_coord);
     // fire and puddle effects on monsters

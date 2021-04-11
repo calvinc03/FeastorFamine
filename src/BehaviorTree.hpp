@@ -21,5 +21,6 @@ public:
     virtual BTState process(entt::entity e) = 0;
 };
 
-static void remove_unit_entity(entt::entity e_unit);
+static void remove_unit_entity(unit_type type, entt::entity e_unit);
+static void handle_monster_attack(entt::entity entity, Monster& monster, GridNode& next_node);
 static void increment_monster_step(entt::entity entity);

@@ -1,5 +1,6 @@
 // Header
 #include "priestess.hpp"
+#include "aura.hpp"
 #include <iostream>
 
 entt::entity Priestess::createPriestess(vec2 pos)

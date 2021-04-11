@@ -48,6 +48,7 @@
 #include <units/priestess.hpp>
 #include <units/snowmachine.hpp>
 #include <units/rangecircle.hpp>
+#include <units/aura.hpp>
 #include <paths.hpp>
 #include <wantedboard.hpp>
 
@@ -274,6 +275,12 @@ void WorldSystem::step(float elapsed_ms)
             for (auto entity : registry.view<Path>())
                 registry.destroy(entity);
 	    }
+
+        for (auto entity : registry.view<Aura>())
+        {
+            auto& motion = registry.get<Motion>(entity);
+            motion.angle += 0.01;
+        }
 
 	    // for when units are destroyed (or placed in survival mode)
 	    set_default_paths();
@@ -2716,9 +2723,17 @@ void WorldSystem::on_click_ui_when_selected(Button ui_button)
 	
 	if (ui_button == Button::sell_button)
 	{
+        if (unit.type == PRIESTESS) {
+            for (auto e_aura : registry.view<Aura>()) {
+                auto& aura = registry.get<Aura>(e_aura);
+                if (aura.emitter == entity_selected) {
+                    registry.destroy(e_aura);
+                }
+            }
+        }
 		health += unit.sell_price;
 		sell_unit(entity_selected);
-	}
+    }
 	else if (ui_button == Button::upgrade_path_1_button && health >= unit.upgrade_path_1_cost)
 	{
 		upgrade_unit_path_1(entity_selected);
@@ -2969,6 +2984,8 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				else if (placement_unit_selected == PRIESTESS && health >= priestess_unit.cost)
 				{
 					entity = Priestess::createPriestess(unit_position);
+					auto& unit = registry.get<Unit>(entity);
+                    Aura::createAura(unit_position, unit.attack_range, entity);
 					auto& sound = registry.emplace<SoundRef>(entity);
 					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/priestess_built_sound.wav").c_str());
 					deduct_health(priestess_unit.cost);
