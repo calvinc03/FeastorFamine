@@ -97,10 +97,10 @@ const std::map<unit_type, int> unit_sell_price = {
 const std::map<unit_type, int> unit_health = {
 	{HUNTER, 100},
 	//{WATCHTOWER, 100},
-	{GREENHOUSE, 150},
-	{EXTERMINATOR, 150},
-	{ROBOT, 150},
-	{PRIESTESS, 150},
-	{SNOWMACHINE, 150},
+	{GREENHOUSE, 100},
+	{EXTERMINATOR, 100},
+	{ROBOT, 100},
+	{PRIESTESS, 100},
+	{SNOWMACHINE, 100},
 	{WALL, 100}
 };

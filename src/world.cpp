@@ -1987,6 +1987,7 @@ void update_unit_stats(Unit unit)
 	std::string stat_1_string = "Attack Damage: ";
 	std::string stat_2_string = "Attack speed: ";
 	std::string stat_3_string = "Attack Range: ";
+	std::string stat_4_string = "Current Health: ";
 	
 	float aps = 0.f;
 	if (unit.attack_interval_ms != 0)
@@ -2035,6 +2036,9 @@ void update_unit_stats(Unit unit)
 	// attack range
 	auto attack_range_stats = create_ui_text(vec2(x_position, y_position - (2 * y_line_offset)), stat_3_string + std::to_string(unit.attack_range));
 	registry.emplace<UI_unit_stats>(attack_range_stats);
+
+	auto current_health_stats = create_ui_text(vec2(x_position, y_position - (3 * y_line_offset)), stat_4_string + std::to_string(unit.health));
+	registry.emplace<UI_unit_stats>(current_health_stats);
 }
 
 void update_unit_portrait(Unit unit)
@@ -2699,14 +2703,14 @@ void WorldSystem::on_click_ui_when_selected(Button ui_button)
 		health += unit.sell_price;
 		sell_unit(entity_selected);
 	}
-	else if (ui_button == Button::upgrade_path_1_button && health > unit.upgrade_path_1_cost)
+	else if (ui_button == Button::upgrade_path_1_button && health >= unit.upgrade_path_1_cost)
 	{
 		upgrade_unit_path_1(entity_selected);
 		auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_1);
 		UIselection.path_num += 1;
 		mouse_hover_ui_button();
 	}
-	else if (ui_button == Button::upgrade_path_2_button && health > unit.upgrade_path_2_cost)
+	else if (ui_button == Button::upgrade_path_2_button && health >= unit.upgrade_path_2_cost)
 	{
 		upgrade_unit_path_2(entity_selected);
 		auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_2);
