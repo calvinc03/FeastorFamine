@@ -2623,51 +2623,37 @@ void WorldSystem::create_controls_menu()
 
 void WorldSystem::on_click_ui_when_selected(Button ui_button)
 {
+	auto view_selectable = registry.view<Selectable>();
+	entt::entity entity_selected;
+	Unit unit;
+
+	for (auto entity : view_selectable)
+	{
+		if (view_selectable.get<Selectable>(entity).selected)
+		{
+			entity_selected = entity;
+			unit = registry.get<Unit>(entity);
+		}
+	}
+	
 	if (ui_button == Button::sell_button)
 	{
-		auto view_selectable = registry.view<Selectable>();
-		auto view_unit = registry.view<Unit>();
-		for (auto entity : view_selectable)
-		{
-			if (view_selectable.get<Selectable>(entity).selected)
-			{
-				auto& unit = view_unit.get<Unit>(entity);
-				health += unit.sell_price;
-				sell_unit(entity);
-			}
-		}
+		health += unit.sell_price;
+		sell_unit(entity_selected);
 	}
-	else if (ui_button == Button::upgrade_path_1_button && health >= hunter_unit.upgrade_path_1_cost)
+	else if (ui_button == Button::upgrade_path_1_button && health > unit.upgrade_path_1_cost)
 	{
-		// upgrade button is hit
-		auto view_selectable = registry.view<Selectable>();
-		auto view_unit = registry.view<Unit>();
-		for (auto entity : view_selectable)
-		{
-			if (view_selectable.get<Selectable>(entity).selected)
-			{
-				upgrade_unit_path_1(entity);
-				auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_1);
-				UIselection.path_num += 1;
-				mouse_hover_ui_button();
-			}
-		}
+		upgrade_unit_path_1(entity_selected);
+		auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_1);
+		UIselection.path_num += 1;
+		mouse_hover_ui_button();
 	}
-	else if (ui_button == Button::upgrade_path_2_button && health >= hunter_unit.upgrade_path_2_cost)
+	else if (ui_button == Button::upgrade_path_2_button && health > unit.upgrade_path_2_cost)
 	{
-		// upgrade button is hit
-		auto view_selectable = registry.view<Selectable>();
-		auto view_unit = registry.view<Unit>();
-		for (auto entity : view_selectable)
-		{
-			if (view_selectable.get<Selectable>(entity).selected)
-			{
-				upgrade_unit_path_2(entity);
-				auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_2);
-				UIselection.path_num += 1;
-				mouse_hover_ui_button();
-			}
-		}
+		upgrade_unit_path_2(entity_selected);
+		auto& UIselection = registry.get<UI_selected_unit>(upgrade_button_2);
+		UIselection.path_num += 1;
+		mouse_hover_ui_button();
 	}
 }
 
