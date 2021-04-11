@@ -433,7 +433,7 @@ void WorldSystem::step(float elapsed_ms)
 			}
 			else if (weather == DROUGHT) {
 				// change screen_sprite water fs and vs to heat fs and vs
-				screen_sprite->effect.load_from_file(shader_path("heat") + ".vs.glsl", shader_path("heat") + ".fs.glsl");
+				//screen_sprite->effect.load_from_file(shader_path("heat") + ".vs.glsl", shader_path("heat") + ".fs.glsl");
 			}
 			else if (weather == FOG && next_particle_spawn < 0.f) {
 				next_particle_spawn = 3000;
