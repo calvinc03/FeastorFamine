@@ -62,6 +62,8 @@ bool WorldSystem::sandbox = false;
 float WorldSystem::speed_up_factor = 1.f;
 float WorldSystem::reward_multiplier = 1.f;
 bool WorldSystem::set_AI_paths = false;
+int WorldSystem::path_lifespan = 50;
+int WorldSystem::path_life = path_lifespan;
 GridMap WorldSystem::current_map;
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
@@ -267,6 +269,11 @@ void  WorldSystem::manage_dragon_animations() {
 void WorldSystem::step(float elapsed_ms)
 {
 	if (game_state == in_game) {
+        path_life--;
+	    if (path_life < 0) {
+            for (auto entity : registry.view<Path>())
+                registry.destroy(entity);
+	    }
 
 		//rig animation
 		auto view_rigs = registry.view<Timeline>();
@@ -1031,6 +1038,7 @@ void WorldSystem::set_default_paths() {// set default paths for monster AI for t
             Path::createPath(default_monster_paths.at(monster_type), monster_type, size, num);
             num += 1;
         }
+        path_life = path_lifespan;
         set_AI_paths = true;
     }
 }
