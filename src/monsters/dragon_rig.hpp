@@ -14,6 +14,8 @@ struct Animation_timing {
 struct Attack_bool{
 	bool value = true;
 };
+
+
 struct DragonRig {
 	static entt::entity createDragon();
 };

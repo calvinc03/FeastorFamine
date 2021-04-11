@@ -52,12 +52,12 @@ void Path::createPathLine(vec2 position1, vec2 position2, vec3 color, int monste
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh.layer = LAYER_DEBUG;
+	shaded_mesh.layer = LAYER_MAP + 2;
 
 	auto& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.angle = angle;
 	ui_element.position = (position1 + position2) / 2.0f;
-	ui_element.scale = vec2(len, 10);
+	ui_element.scale = vec2(len, 8);
 
 	registry.emplace<HighlightBool>(entity);
 	auto path = registry.emplace<Path>(entity);
@@ -74,22 +74,22 @@ void Path::createPath(std::vector<ivec2> path_coords, int monster_type, int size
 
 vec3 Path::getPathColor(int monster_type) {
 	if (monster_type == MOB) {
-		return { 1,0,0 };
+		return { 1,1,1 };
 	}
 	else if (monster_type == SPRING_BOSS) {
-		return { 1, 0.45, 0 };
+		return { 0.6, 1.0, 0.2 };
 	}
 	else if (monster_type == SUMMER_BOSS) {
 		return { 1, 1, 0 };
 	}
 	else if (monster_type == FALL_BOSS) {
-		return { 0.55, 1, 0.3 };
+		return { 1, 0.7, 0.1 };
 	}
 	else if (monster_type == WINTER_BOSS) {
-		return { 0.4, 0.8, 0 };
+		return { 0.5, 0.5, 1 };
 	}
 	else if (monster_type == FINAL_BOSS) {
-		return { 0, 1, 1 };
+		return { 1, 0, 0 };
 	}
 	else if (monster_type == BURROW_BOSS) {
 		return { 0, 0.4, 0.8 };

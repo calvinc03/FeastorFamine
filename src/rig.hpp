@@ -20,6 +20,7 @@ public:
 struct Rig { 
 	static entt::entity createPartTextured(entt::entity rigPart, std::string name, vec2 offset = { 0,0 }, float angle = 0, vec2 scale = { 1,1 }, int layer = 22);
 	std::vector< Chain> chains;
+	std::vector<entt::entity> textures;
 	static entt::entity createPart(entt::entity root_entity, std::string name, vec2 offset = { 0,0 }, vec2 origin = { 0,0 }, float angle = 0, vec2 scale = {1,1});
 	static void delete_rig(entt::entity character);
 };

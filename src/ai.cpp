@@ -19,6 +19,7 @@
 #include <units/robot.hpp>
 #include <units/exterminator.hpp>
 #include <units/snowmachine.hpp>
+#include <monsters/dragon_rig.hpp>
 
 const size_t BULLET_UPGRADE = 2;
 const size_t FLAMETHROWER_UPGRADE = 3;
@@ -536,13 +537,13 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
     std::shared_ptr <BTIfCondition> conditional_walk = std::make_unique<BTIfCondition>(
         walk,
         // return true for all monsters except the final boss and its fireballs
-        [](entt::entity e) {return !(registry.has<FinalBoss>(e) || registry.has<FireballBoss>(e)); }
+        [](entt::entity e) {return !(registry.has<DragonRig>(e) || registry.has<FireballBoss>(e)); }
     );
 
     std::shared_ptr<BTNode> final_boss_walk = std::make_unique<Dragon>();
     std::shared_ptr <BTIfCondition> conditional_final_boss_walk = std::make_unique<BTIfCondition>(
         final_boss_walk,
-        [](entt::entity e) {return registry.has<FinalBoss>(e); }
+        [](entt::entity e) {return registry.has<DragonRig>(e); }
     );
 
     std::shared_ptr<BTNode> fireball_walk = std::make_unique<Fireball>();

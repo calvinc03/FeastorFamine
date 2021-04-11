@@ -75,21 +75,21 @@ const std::map<unit_type, bool> unit_rotate = {
 const std::map<unit_type, int> unit_cost = {
 	{HUNTER, 150},
 	//{WATCHTOWER, 200},
-	{GREENHOUSE, 150},
-	{EXTERMINATOR, 150},
-	{ROBOT, 150},
-	{PRIESTESS, 150},
+	{GREENHOUSE, 250},
+	{EXTERMINATOR, 300},
+	{ROBOT, 400},
+	{PRIESTESS, 400},
 	{SNOWMACHINE, 150},
 	{WALL, 50}
 };
 
 const std::map<unit_type, int> unit_sell_price = {
-	{HUNTER, 100},
+	{HUNTER, 150},
 	//{WATCHTOWER, 150},
-	{GREENHOUSE, 150},
-	{EXTERMINATOR, 150},
-	{ROBOT, 150},
-	{PRIESTESS, 150},
+	{GREENHOUSE, 250},
+	{EXTERMINATOR, 300},
+	{ROBOT, 400},
+	{PRIESTESS, 400},
 	{SNOWMACHINE, 150},
 	{WALL, 50}
 };
@@ -102,5 +102,5 @@ const std::map<unit_type, int> unit_health = {
 	{ROBOT, 150},
 	{PRIESTESS, 150},
 	{SNOWMACHINE, 150},
-	{WALL, 250}
+	{WALL, 100}
 };

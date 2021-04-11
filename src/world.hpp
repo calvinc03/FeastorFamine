@@ -192,6 +192,9 @@ private:
 	float next_mob_spawn;
 	float next_particle_spawn;
 
+    static int show_path_duration;
+    static int show_path;
+
 	// Season
 	int season;
 
