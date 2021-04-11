@@ -87,6 +87,8 @@ static const vec2 REM_GAME_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 275, WINDOW_SIZE
 static const vec2 INC_GAME_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 150, WINDOW_SIZE_IN_PX.y - 65 };
 // decrease monster speed button
 static const vec2 DEC_GAME_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 175, WINDOW_SIZE_IN_PX.y - 65 };
+// randomize grid map button
+static const vec2 RANDOM_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 350, WINDOW_SIZE_IN_PX.y - 40 };
 // wantedboard button
 static const vec2 WANTED_BOARD_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 100, WINDOW_SIZE_IN_PX.y - 40 };
 // start battle button

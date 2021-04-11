@@ -42,6 +42,7 @@ public:
 	void game_setup();
 	void create_start_menu();
 	void setup_start_menu();
+	void create_sandbox_ui();
 
 	// restart level
 	void restart();

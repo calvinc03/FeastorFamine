@@ -1100,6 +1100,20 @@ void destroy_entity(const entt::entity entity)
 	registry.destroy(entity);
 }
 
+void WorldSystem::create_sandbox_ui()
+{
+	UI_button::create_add_monster_button(ADD_GAME_BUTTON_POS);
+	UI_button::create_rem_monster_button(REM_GAME_BUTTON_POS);
+	UI_button::create_inc_m_speed_button(INC_GAME_BUTTON_POS);
+	UI_button::create_dec_m_speed_button(DEC_GAME_BUTTON_POS);
+	UI_button::randomize_grid_map_button(RANDOM_BUTTON_POS);
+	create_ui_text(vec2(ADD_GAME_BUTTON_POS.x - 50, 30), "MONSTERS", .3f, vec3(1.f, 1.f, 1.f));
+	create_ui_text(vec2(INC_GAME_BUTTON_POS.x - 50, 30), "SPEED", .3f, vec3(1.f, 1.f, 1.f));
+	max_mobs_text_entity = create_ui_text(vec2(ADD_GAME_BUTTON_POS.x - 25, 10), std::to_string(max_mobs), .3f, vec3(1.f, 1.f, 1.f));
+	float monster_speed = 1000.f / (float)mob_delay_ms;
+	mob_speed_text_entity = create_ui_text(vec2(INC_GAME_BUTTON_POS.x - 50, 10), std::to_string(monster_speed), .3f, vec3(1.f, 1.f, 1.f));
+}
+
 void WorldSystem::restart()
 {
 	std::cout << "Restarting\n";
@@ -1113,6 +1127,10 @@ void WorldSystem::restart()
 	num_bosses_spawned = 0;
 	num_mobs_spawned = 0;
 	player_state = set_up_stage;
+
+	if (sandbox) {
+		world_season_str = WINTER_TITLE;
+	}
 
 	registry.each(destroy_entity);
 	registry.clear(); // Remove all entities that we created
@@ -1131,15 +1149,7 @@ void WorldSystem::restart()
 	UI_button::createUI_build_unit_button(6, wall_button, unit_cost.at(WALL));
 
 	if (sandbox) {
-		UI_button::create_add_monster_button(ADD_GAME_BUTTON_POS);
-		UI_button::create_rem_monster_button(REM_GAME_BUTTON_POS);
-		UI_button::create_inc_m_speed_button(INC_GAME_BUTTON_POS);
-		UI_button::create_dec_m_speed_button(DEC_GAME_BUTTON_POS);
-		create_ui_text(vec2(ADD_GAME_BUTTON_POS.x - 50, 30), "MONSTERS", .3f, vec3(1.f,1.f,1.f));
-		create_ui_text(vec2(INC_GAME_BUTTON_POS.x - 50, 30), "SPEED", .3f, vec3(1.f, 1.f, 1.f));
-		max_mobs_text_entity = create_ui_text(vec2(ADD_GAME_BUTTON_POS.x - 25, 10), std::to_string(max_mobs), .3f, vec3(1.f, 1.f, 1.f));
-		float monster_speed = 1000.f / (float)mob_delay_ms;
-		mob_speed_text_entity = create_ui_text(vec2(INC_GAME_BUTTON_POS.x - 50, 10), std::to_string(monster_speed), .3f, vec3(1.f, 1.f, 1.f));
+		create_sandbox_ui();
 	}
 
 	// general buttons
@@ -1217,7 +1227,19 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		mob_delay_ms = 1000; 
 		max_boss = 10;
 		boss_delay_ms = 1000;
-		world_season_str = "spring";
+
+		if (world_season_str == SPRING_TITLE) {
+			world_season_str = SUMMER_TITLE;
+		}
+		else if (world_season_str == SUMMER_TITLE) {
+			world_season_str = FALL_TITLE;
+		}
+		else if (world_season_str == FALL_TITLE) {
+			world_season_str = WINTER_TITLE;
+		}
+		else if (world_season_str == WINTER_TITLE) {
+			world_season_str = SPRING_TITLE;
+		}
 
 		auto& stage_text = registry.get<Text>(stage_text_entity);
 		stage_text.content = "SANDBOX";
@@ -2758,6 +2780,22 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 		auto& mob_speed_text = registry.get<Text>(mob_speed_text_entity);
 		float monster_speed = 1000.f / (float)mob_delay_ms;
 		mob_speed_text.content = std::to_string(monster_speed);
+	}
+	else if (ui_button == Button::randomize_grid_map)
+	{
+		std::cout << "asdf" << std::endl;
+		for (auto grid_map : registry.view<GridMap>()) {
+			registry.destroy(grid_map);
+		}
+		for (auto grid_node : registry.view<GridNode>()) {
+			registry.destroy(grid_node);
+		}
+		current_map = registry.get<GridMap>(GridMap::createGridMap());
+
+		AISystem::MapAI::setRandomMapWeatherTerrain(current_map, weather);
+
+		set_AI_paths = false;
+		set_default_paths();
 	}
 }
 

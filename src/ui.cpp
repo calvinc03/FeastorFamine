@@ -466,6 +466,36 @@ entt::entity UI_button::create_dec_m_speed_button(vec2 position)
 	return entity;
 }
 
+entt::entity UI_button::randomize_grid_map_button(vec2 position)
+{
+	auto entity = registry.create();
+
+	// Create rendering primitives
+	std::string key = "randomize_grid_map_button";
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();
+		RenderSystem::createSprite(resource, ui_texture_path("random.png"), "ui");
+	}
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh.layer = LAYER_UI + 1;
+
+	// Setting initial ui_element values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.tag = key;
+	ui_element.scale = vec2({ 1.7f, 1.7f }) * static_cast<vec2>(resource.texture.size) / 12.0f;
+	ui_element.position = position;
+
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, Button::randomize_grid_map);
+	registry.emplace<UI_button>(entity);
+
+
+	return entity;
+}
+
 void UI_button::fastforward_light_up()
 {
 	auto view = registry.view<Button>();

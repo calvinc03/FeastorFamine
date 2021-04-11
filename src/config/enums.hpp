@@ -109,7 +109,8 @@ enum Button
     add_monster_button,
     rem_monster_button,
     inc_m_speed_button,
-    dec_m_speed_button
+    dec_m_speed_button,
+    randomize_grid_map
 };
 
 // Menu button
