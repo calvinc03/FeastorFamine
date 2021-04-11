@@ -322,7 +322,7 @@ void WorldSystem::step(float elapsed_ms)
 		if (num_mobs_spawned < max_mobs && next_mob_spawn < 0.f)
 		{
 			next_mob_spawn = (mob_delay_ms / 2) + uniform_dist(rng) * (mob_delay_ms / 2);
-			entt::entity mob = Mob::createMobEntt();
+			entt::entity mob = Mob::createMobEntt(world_round_number);
 
 			registry.emplace<DamageProperties>(mob);
 			auto& monster = registry.get<Monster>(mob);
@@ -2505,6 +2505,7 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 		TitleEyes::createTitleEyes(vec2({ mouse_pos_x, mouse_pos_y }));*/
 		//MenuButton::create_button(mouse_pos_x, mouse_pos_y, MenuButtonType::exit_button, "X");
 		button_tag = on_click_button({mouse_pos_x, mouse_pos_y});
+		sandbox = false;
 		switch (button_tag)
 		{
 		case (MenuButtonType::sandbox_button):

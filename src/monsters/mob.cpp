@@ -3,13 +3,14 @@
 #include "render.hpp"
 #include "config/monster_config.hpp"
 
+const size_t MONSTER_SCALE_HEALTH = 10;
 const size_t WALK_FRAMES = 4.f;
 const size_t ATTACK_FRAMES = 4.f;
 const std::string DIR = "monsters/mob/";
 const std::string WALK_SPRITE = DIR + "rabbit_walk.png";
 const std::string ATTACK_SPRITE = DIR + "rabbit_attack.png";
 
-entt::entity Mob::createMobEntt()
+entt::entity Mob::createMobEntt(int round_number)
 {
     // Reserve en entity
     auto entity = registry.create();
@@ -37,7 +38,7 @@ entt::entity Mob::createMobEntt()
     //motion.boundingbox = vec2({ motion.scale.x , motion.scale.y });
     motion.boundingbox = vec2({ motion.scale.x*0.13f , motion.scale.y });
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = monster_health.at(MOB);
+    monster.max_health = monster_health.at(MOB) + (round_number / 2) * MONSTER_SCALE_HEALTH;
     monster.health = monster.max_health;
     monster.damage = monster_damage.at(MOB);
     monster.reward = monster_reward.at(MOB);

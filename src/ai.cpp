@@ -466,7 +466,7 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
 	);
 	std::shared_ptr <BTIfCondition> conditional_grow = std::make_unique<BTIfCondition>(
 		grow,
-		[](entt::entity e) {return registry.has<FallBoss>(e); }
+		[](entt::entity e) {return registry.has<WinterBoss>(e); }
 	);
     std::shared_ptr <BTIfCondition> conditional_attack = std::make_unique<BTIfCondition>(
             attack,
@@ -515,7 +515,7 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
     );
     std::shared_ptr <BTIfCondition> conditional_knockback = std::make_unique<BTIfCondition>(
         knockback,
-        [](entt::entity e) {return registry.has<WinterBoss>(e); }
+        [](entt::entity e) {return registry.has<FallBoss>(e); }
     );
 
 	std::vector<std::shared_ptr<BTIfCondition>> cond_nodes;
