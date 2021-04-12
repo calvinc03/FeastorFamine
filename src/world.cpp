@@ -1326,6 +1326,8 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		world_season_str = round_json["season"];
 	}
 
+	season = season_str_to_enum.at(world_season_str);
+
 	if (game_state != help_menu)
 	{
 	    if (sandbox || survival_mode) {
@@ -1449,14 +1451,13 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	weather_text.content = weather_str.at(weather);
 	weather_text.colour = weather_str_colour.at(weather);
 	// update season wheel angle
-	UI_season_wheel::set_arrow(season_wheel_arrow_entity, season);
+	UI_season_wheel::set_arrow(season_wheel_arrow_entity, season, round_number);
 	// monster path reset
 	for (auto entity : registry.view<Path>())
 		registry.destroy(entity);
 	set_AI_paths = false;
 
 	UI_weather_icon::change_weather_icon(weather_icon_entity, weather);
-    season = season_str_to_enum.at(world_season_str);
 }
 
 void WorldSystem::setup_round_from_save_file(int round_number, int weather)
@@ -1504,6 +1505,8 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 		boss_delay_ms = round_json["boss_delay_ms"];
 		world_season_str = round_json["season"];
 	}
+
+	season = season_str_to_enum.at(world_season_str);
 
 	if (game_state != help_menu)
 	{
@@ -1578,14 +1581,13 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 	weather_text.content = weather_str.at(weather);
 	weather_text.colour = weather_str_colour.at(weather);
 	// update season wheel angle
-	UI_season_wheel::set_arrow(season_wheel_arrow_entity, season);
+	UI_season_wheel::set_arrow(season_wheel_arrow_entity, season, round_number);
 	// monster path reset
 	for (auto entity : registry.view<Path>())
 		registry.destroy(entity);
 	set_AI_paths = false;
 
 	UI_weather_icon::change_weather_icon(weather_icon_entity, weather);
-    season = season_str_to_enum.at(world_season_str);
 }
 
 void WorldSystem::damage_monster_helper(entt::entity e_monster, entt::entity e_projectile, int damage, bool slow) {
