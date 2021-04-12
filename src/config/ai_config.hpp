@@ -25,8 +25,8 @@ const static std::map<int, std::vector<ivec2>> neighbor_map = {
 const static std::map<int, float> monster_attack_cost = {
         {MOB,              15.0},
         {SPRING_BOSS,      0.0},
-        {SUMMER_BOSS,      -1.0},
-        {FALL_BOSS,        -1.0},
+        {SUMMER_BOSS,      -0.9},
+        {FALL_BOSS,        -0.9},
         {WINTER_BOSS,      5.0},
         {SPIDER,           3.0},
 };
