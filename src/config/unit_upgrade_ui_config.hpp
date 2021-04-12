@@ -204,7 +204,7 @@ const std::vector<std::string> path_1_upgrade_button_priestess_2 = {
 
 // description cards for priestess path 2 upgrades
 const std::vector<std::string> path_2_upgrade_button_priestess_0 = {
-    "Current Attack Speed Buff: " + std::to_string(unit_attack_range.at(PRIESTESS)),
+    "Current Attack Speed Buff: " + std::to_string(unit_attack_interval_ms.at(PRIESTESS)),
     "",
     "Upgraded Attack Speed Buff: " + std::to_string(priestess_path_2.at(1)[2]),
     "Cost: " + std::to_string(priestess_path_2.at(0)[0])
