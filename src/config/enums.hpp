@@ -27,12 +27,12 @@ const int monster_type_count = 9;
 enum monster_type
 {
     MOB,
-    SPRING_BOSS,
     SUMMER_BOSS,
     FALL_BOSS,
     WINTER_BOSS,
     BURROW_BOSS,
     SPIDER,
+    SPRING_BOSS,
     FINAL_BOSS,
     FIREBALL_BOSS,
     TALKY_BOI,

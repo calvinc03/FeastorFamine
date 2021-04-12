@@ -12,15 +12,7 @@ uniform int highlight;
 // Output color
 layout(location = 0) out  vec4 color;
 
-vec2 distort(vec2 uv)
-{
-    vec2 coord = uv.xy;
-    coord += 0.004*vec2(sin(0.05*time + 1.*uv.y), cos(1234. + 0.025*time + 2.*uv.x));
-    coord += 0.002*vec2(sin(10.*(0.05*time + 1.*uv.y)), cos(10.*(1234. + 0.025*time + 2.*uv.x)));
-    return coord;
-}
-
 void main()
 {
-	color = vec4(fcolor, cos(time)) * texture(sampler0, vec2(texcoord.x, texcoord.y));
+	color = vec4(fcolor, 0.3 + 0.5 * cos(0.25 * time)) * texture(sampler0, vec2(texcoord.x, texcoord.y));
 }

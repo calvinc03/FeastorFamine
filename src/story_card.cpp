@@ -16,7 +16,7 @@ StoryCard::StoryCard(std::string story_card_text, std::string level_number)
 	std::string key = "story_card";
 	ShadedMesh& resource = cache_resource(key);
 	resource = ShadedMesh();
-	RenderSystem::createSprite(resource, data_path() + "/textures/story/story_text_box2.png", "textured");
+	RenderSystem::createSprite(resource, data_path() + "/textures/story/story_text_box.png", "textured");
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
@@ -26,14 +26,14 @@ StoryCard::StoryCard(std::string story_card_text, std::string level_number)
 	Motion& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = vec2(0, 0);
-	motion.scale = vec2(1.f, 1.f) * static_cast<vec2>(resource.texture.size);
+	motion.scale = vec2(850.f, 300.f);
 	motion.position = pos;
 
 	// text
 	auto font = TextFont::load("data/fonts/cascadia-code/Cascadia.ttf");
 	// Level number
 	auto level_text_entity = registry.create();
-	auto level_text_scale = 1.0f;
+	auto level_text_scale = 0.9f;
 	auto level_x_offset = -370;
 	auto level_y_offset = 165 - UI_TOP_BAR_HEIGHT;
 	auto& t_level = registry.emplace<Text>(level_text_entity, Text("Level " + level_number, font, vec2(pos.x + level_x_offset, pos.y + level_y_offset)));
@@ -44,7 +44,7 @@ StoryCard::StoryCard(std::string story_card_text, std::string level_number)
 	StoryCardBase& base = registry.emplace<StoryCardBase>(entity);
 	base.story_text_scale = .6f;
 	base.line_offset = pos.y + 100 - UI_TOP_BAR_HEIGHT;
-	base.x_offset = pos.x + STORY_TEXT_X_OFFSET;
+	base.x_offset = pos.x + level_x_offset;
 	base.font = font;
 	base.card_text = story_card_text;
 }

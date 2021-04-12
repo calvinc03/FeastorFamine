@@ -66,7 +66,7 @@ bool WorldSystem::survival_mode = false;
 float WorldSystem::speed_up_factor = 1.f;
 float WorldSystem::reward_multiplier = 1.f;
 bool WorldSystem::set_AI_paths = false;
-int WorldSystem::show_path_duration = 50;
+int WorldSystem::show_path_duration = 30;
 int WorldSystem::show_path = 0;
 GridMap WorldSystem::current_map;
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.

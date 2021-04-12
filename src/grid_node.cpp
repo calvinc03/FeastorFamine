@@ -1,6 +1,6 @@
 #include "grid_node.hpp"
 
-const std::string NODE_SHADER = "node";
+const std::string NODE_SHADER = "map";
 std::string terrain_texture_path(int terrain) { return "map/" + terrain_str.at(terrain) + ".png"; };
 
 entt::entity GridNode::createGridNode(terrain_type terrain, vec2 coord)
@@ -20,7 +20,7 @@ entt::entity GridNode::createGridNode(terrain_type terrain, vec2 coord)
         RenderSystem::createSprite(resource, textures_path(terrain_texture_path(terrain)), NODE_SHADER);
     }
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = LAYER_MAP + 1;
+    shaded_mesh.layer = LAYER_MAP + 2;
 
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;

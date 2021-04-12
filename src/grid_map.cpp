@@ -14,7 +14,7 @@ entt::entity GridMap::createGridMap()
     // maintain a GridMap registry (we might want to have multiple maps later)
     auto& map = registry.emplace<GridMap>(entity);
 
-    std::string key = "gridmap";
+    std::string key = "map";
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {

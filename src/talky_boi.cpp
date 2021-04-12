@@ -25,13 +25,13 @@ entt::entity TalkyBoi::createTalkyBoiEntt()
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = LAYER_MONSTERS + TALKY_BOI;
+    shaded_mesh.layer = LAYER_MENU + TALKY_BOI;
 
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 180.f;
     motion.velocity = vec2(0.f, 0.f);
-    motion.position = vec2(800.f, 200.f);
+    motion.position = vec2(800.f, 205.f);
     motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, -static_cast<vec2>(resource.texture.size).y), 3.5, WALK_FRAMES);
 
     motion.boundingbox = { 200, 200 };
