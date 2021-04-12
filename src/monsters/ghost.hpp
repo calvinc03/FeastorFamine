@@ -8,5 +8,5 @@ struct Ghost
 {
     // Creates all the associated render resources and default transform
     static entt::entity createGhostEntt(vec2 position);
-    int lifespan = 20;
+    int lifespan = 30;
 };

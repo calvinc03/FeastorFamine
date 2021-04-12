@@ -29,16 +29,10 @@ entt::entity Ghost::createGhostEntt(vec2 position)
     motion.angle = 0.f;
     motion.position = position;
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 0.8, WALK_FRAMES);
-    motion.velocity = grid_to_pixel_velocity(vec2(0, 0.5));
+    motion.velocity = grid_to_pixel_velocity(vec2(0, -1));
     // temporary fix
     //motion.boundingbox = vec2({ motion.scale.x , motion.scale.y });
     motion.boundingbox = vec2({ motion.scale.x*0.13f , motion.scale.y });
-    auto& monster = registry.emplace<Monster>(entity);
-    monster.type = GHOST;
-    monster.sprite = WALK_SPRITE;
-    monster.frames = WALK_FRAMES;
-    monster.walk_frames = WALK_FRAMES;
-    monster.walk_sprite = WALK_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
     animate.frame = 0;
