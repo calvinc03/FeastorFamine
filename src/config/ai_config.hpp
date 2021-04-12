@@ -25,8 +25,8 @@ const static std::map<int, std::vector<ivec2>> neighbor_map = {
 const static std::map<int, float> monster_attack_cost = {
         {MOB,              15.0},
         {SPRING_BOSS,      0.0},
-        {SUMMER_BOSS,      1.0},
-        {FALL_BOSS,        -2.0},
+        {SUMMER_BOSS,      -1.0},
+        {FALL_BOSS,        -1.0},
         {WINTER_BOSS,      5.0},
         {SPIDER,           3.0},
 };
@@ -49,13 +49,13 @@ const static std::map<std::pair<int, int>, float> monster_move_cost = {
         {std::pair(SPRING_BOSS, TERRAIN_FIRE),             10.0},
         {std::pair(SPRING_BOSS, TERRAIN_ICE),              1.0},
         // moose
-        {std::pair(SUMMER_BOSS, TERRAIN_PAVEMENT),         0.5},
-        {std::pair(SUMMER_BOSS, TERRAIN_DEFAULT),          1.0},
-        {std::pair(SUMMER_BOSS, TERRAIN_MUD),              2.0},
-        {std::pair(SUMMER_BOSS, TERRAIN_PUDDLE),           3.0},
-        {std::pair(SUMMER_BOSS, TERRAIN_DRY),              1.0},
-        {std::pair(SUMMER_BOSS, TERRAIN_FIRE),             10.0},
-        {std::pair(SUMMER_BOSS, TERRAIN_ICE),              1.5},
+        {std::pair(SUMMER_BOSS, TERRAIN_PAVEMENT),         1.0},
+        {std::pair(SUMMER_BOSS, TERRAIN_DEFAULT),          1.2},
+        {std::pair(SUMMER_BOSS, TERRAIN_MUD),              1.5},
+        {std::pair(SUMMER_BOSS, TERRAIN_PUDDLE),           2.0},
+        {std::pair(SUMMER_BOSS, TERRAIN_DRY),              1.2},
+        {std::pair(SUMMER_BOSS, TERRAIN_FIRE),             8.0},
+        {std::pair(SUMMER_BOSS, TERRAIN_ICE),              1.1},
         // bear
         {std::pair(FALL_BOSS, TERRAIN_PAVEMENT),         2.0},
         {std::pair(FALL_BOSS, TERRAIN_DEFAULT),          3.0},
