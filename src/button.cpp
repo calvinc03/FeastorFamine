@@ -13,16 +13,16 @@ entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_t
 		switch (button_type)
 		{
 			case new_game_button:
-				texture_file_name = "new_game_button.png";
+				texture_file_name = "signpost_arrow.png";
 				break;
 			case title_exit_button:
-				texture_file_name = "exit_button.png";
+				texture_file_name = "signpost_arrow.png";
 				break;
 			case title_help_button:
-				texture_file_name = "help_button.png";
+				texture_file_name = "signpost_arrow.png";
 				break;
 			case load_game_button:
-				texture_file_name = "load_game_button.png";
+				texture_file_name = "signpost_arrow.png";
 				break;			
 			case exit_button:
 				texture_file_name = "empty_button.png";
@@ -40,10 +40,10 @@ entt::entity MenuButton::create_button(float x, float y, MenuButtonType button_t
 				texture_file_name = "empty_button.png";
 				break;
 			case sandbox_button:
-				texture_file_name = "sandbox_button.png";
+				texture_file_name = "signpost_arrow.png";
 				break;
 		    case survival_mode_button:
-		        texture_file_name = "survival_mode_button.png";
+		        texture_file_name = "signpost_arrow.png";
                 break;
 			default:
 				texture_file_name = "empty_button.png";
@@ -94,16 +94,16 @@ entt::entity MenuButton::create_button_arrow()
 	ShadedMesh& resource = cache_resource(key);
 	if (resource.effect.program.resource == 0) {
 		resource = ShadedMesh();
-		RenderSystem::createSprite(resource, menu_button_texture_path("title_button_highlight.png"), "textured");
+		RenderSystem::createSprite(resource, menu_button_texture_path("signpost_arrow_highlight.png"), "textured");
 	}
 
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
-	shaded_mesh_ref.layer = LAYER_MENU;
+	shaded_mesh_ref.layer = LAYER_MENU + 3;
 	shaded_mesh_ref.show = false;
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "title_button_arrow";
-	ui_element.scale = vec2({ 1.1f, 1.1f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+	ui_element.scale = vec2({ 1.2f, 1.2f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
 	ui_element.position = { 0.f, 0.f };
 
 	auto& sound = registry.emplace<SoundRef>(entity);

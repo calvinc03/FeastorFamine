@@ -414,7 +414,6 @@ void WorldSystem::step(float elapsed_ms)
 
 			auto state = BTCollision->process(entity);
 			if (health < 0) {
-				//restart_with_save();
 				start_lost_game_screen();
 				return;
 			}
@@ -791,6 +790,8 @@ void WorldSystem::animation_step(float elapsed_ms)
 
 void WorldSystem::darken_screen_step(float elapsed_ms)
 {
+	if (weather == DROUGHT)
+		screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
 	auto& screen_state = registry.get<ScreenState>(screen_state_entity);
 	if (screen_state.darken_screen_factor < 2.f)
 	{
@@ -862,7 +863,7 @@ void WorldSystem::end_battle_phase()
 	setup_round_from_round_number(world_round_number);
 	// re-roll some fraction of map for weather terrains
 	int max_rerolls = (int)ceil(0.7 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
-	screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
+	//screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
 		
 	for (auto particle : registry.view<ParticleSystem>()) {
 		registry.destroy(particle);
@@ -1027,7 +1028,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		ParticleSystem::createParticle(velocity, position, life, texture, shader);
 	}
 	else if (weather == DROUGHT) {
-		screen_sprite->effect.load_from_file(shader_path("heat") + ".vs.glsl", shader_path("heat") + ".fs.glsl");
+		//screen_sprite->effect.load_from_file(shader_path("heat") + ".vs.glsl", shader_path("heat") + ".fs.glsl");
 	}
 
 	else if (weather == FOG && next_particle_spawn < 0.f) {
@@ -1324,6 +1325,10 @@ void WorldSystem::setup_round_from_round_number(int round_number)
             TalkyBoi::createTalkyBoiEntt();
 	    }
 	}
+	if (weather == DROUGHT)
+	{
+		screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
+	}
 
 	int prev_weather = weather;
     current_round_monster_types.clear();
@@ -1349,6 +1354,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
         if (weather_int % 2 == 1)
         {
             weather = DROUGHT;
+			screen_sprite->effect.load_from_file(shader_path("heat") + ".vs.glsl", shader_path("heat") + ".fs.glsl");
         } else {
             weather = CLEAR;
         }
@@ -2014,6 +2020,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 				is_hovering = true;
 				
 				registry.get<UI_element>(title_button_highlight_entity).angle = ui_element.angle;
+				registry.get<UI_element>(title_button_highlight_entity).scale = vec2(ui_element.scale.x * 1.05, ui_element.scale.y * 1.15);
 				if (!registry.get<ShadedMeshRef>(title_button_highlight_entity).show)
 				{
 					registry.get<ShadedMeshRef>(title_button_highlight_entity).show = true;
@@ -2664,18 +2671,31 @@ void WorldSystem::create_start_menu()
 	// foreground trees
 	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "foreground_trees", Menu_texture::foreground_trees, LAYER_MAP + 1, { 1.0, 0.9 });
 	// sign post
-	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, "sign_post", Menu_texture::sign_post, LAYER_MAP + 2, { 1.0, 0.9 });
-	//Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, 100, "title_screen_title", Menu_texture::title_screen_title, 86, { 0.9, 0.9 });
+	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 4, WINDOW_SIZE_IN_PX.y / 2 + 100, "sign_post", Menu_texture::sign_post, LAYER_MENU + 2, { 1.0, 0.9 });
+	// 2nd sign post
+	Menu::createMenu(WINDOW_SIZE_IN_PX.x * 3 / 4 + 60, WINDOW_SIZE_IN_PX.y / 2 + 80, "sign_post", Menu_texture::sign_post, LAYER_MENU + 2, { 0.5, 0.55 });
 	// title: Feast or Famine
 	Menu::createMenu(300, 150, "title_screen_title2", Menu_texture::title_screen_title2, LAYER_MAP + 3, { 1.1, 1.1 });
 	Menu::createMenu(470, 120, "title_screen_title_or", Menu_texture::title_screen_title2_or, LAYER_MAP + 3, { 0.7, 0.7 });
+	
 	//buttons
-	MenuButton::create_button(NEW_GAME_BUTTON_X, NEW_GAME_BUTTON_Y, MenuButtonType::new_game_button, "", { 1.2f, 1.2f }, NEW_GAME_BUTTON_ANGLE);
-	MenuButton::create_button(LOAD_GAME_BUTTON_X, LOAD_GAME_BUTTON_Y, MenuButtonType::load_game_button, "", { 1.2f, 1.2f });
-	MenuButton::create_button(TITLE_HELP_BUTTON_X, TITLE_HELP_BUTTON_Y, MenuButtonType::title_help_button, "", { 1.2f, 1.2f }, TITLE_HELP_BUTTON_ANGLE);
-	MenuButton::create_button(TITLE_EXIT_BUTTON_X, TITLE_EXIT_BUTTON_Y, MenuButtonType::title_exit_button, "", { 1.2f, 1.2f });
-	MenuButton::create_button(SANDBOX_BUTTON_X, SANDBOX_BUTTON_Y, MenuButtonType::sandbox_button, "", { 1.2f, 1.2f });
-	MenuButton::create_button(SURVIVAL_MODE_BUTTON_X, SURVIVAL_MODE_BUTTON_Y, MenuButtonType::survival_mode_button, "", { 1.2f, 1.2f });
+	MenuButton::create_button(NEW_GAME_BUTTON_X, NEW_GAME_BUTTON_Y, MenuButtonType::new_game_button, "", { 1.2f, 1.2f }, 0);
+	MenuButton::create_button(LOAD_GAME_BUTTON_X, LOAD_GAME_BUTTON_Y, MenuButtonType::load_game_button, "", { 1.2f, 1.2f }, PI);
+	MenuButton::create_button(SURVIVAL_MODE_BUTTON_X, SURVIVAL_MODE_BUTTON_Y, MenuButtonType::survival_mode_button, "", { 1.2f, 1.2f }, 0);
+	MenuButton::create_button(SANDBOX_BUTTON_X, SANDBOX_BUTTON_Y, MenuButtonType::sandbox_button, "", { 1.2f, 1.2f }, PI);
+	
+	MenuButton::create_button(TITLE_HELP_BUTTON_X, TITLE_HELP_BUTTON_Y, MenuButtonType::title_help_button, "", { 0.8f, 0.8f }, PI - TITLE_HELP_BUTTON_ANGLE);
+	MenuButton::create_button(TITLE_EXIT_BUTTON_X, TITLE_EXIT_BUTTON_Y, MenuButtonType::title_exit_button, "", { 0.8f, 0.8f }, -TITLE_HELP_BUTTON_ANGLE);
+
+	// button text
+	registry.get<UI_element>(Menu::createMenu(NEW_GAME_BUTTON_X, NEW_GAME_BUTTON_Y, "new_game_button_text", "menu_button/new_game_text.png", LAYER_MENU + 4, { 0.7, 0.7 })).angle = 0;
+	registry.get<UI_element>(Menu::createMenu(LOAD_GAME_BUTTON_X, LOAD_GAME_BUTTON_Y, "load_game_button_text", "menu_button/load_game_text.png", LAYER_MENU + 4, { 0.7, 0.7 })).angle = 0;
+	registry.get<UI_element>(Menu::createMenu(SURVIVAL_MODE_BUTTON_X, SURVIVAL_MODE_BUTTON_Y, "survival_mode_text", "menu_button/survival_mode_text.png", LAYER_MENU + 4, { 0.7, 0.7 })).angle = 0;
+	registry.get<UI_element>(Menu::createMenu(SANDBOX_BUTTON_X, SANDBOX_BUTTON_Y, "sandbox_text", "menu_button/sandbox_text.png", LAYER_MENU + 4, { 0.7, 0.7 })).angle = 0;
+
+	registry.get<UI_element>(Menu::createMenu(TITLE_HELP_BUTTON_X, TITLE_HELP_BUTTON_Y, "help_text", "menu_button/help_text.png", LAYER_MENU + 4, { 0.5, 0.5 })).angle = -TITLE_HELP_BUTTON_ANGLE;
+	registry.get<UI_element>(Menu::createMenu(TITLE_EXIT_BUTTON_X, TITLE_EXIT_BUTTON_Y, "exit_text", "menu_button/exit_text.png", LAYER_MENU + 4, { 0.5, 0.5 })).angle = -TITLE_HELP_BUTTON_ANGLE;
+
 	title_button_highlight_entity = MenuButton::create_button_arrow();
 	// blinking eyes
 	std::vector<vec2> locations = { vec2({984, 442}), vec2({891, 429}), vec2({851, 427}), vec2({764, 434}), vec2({719, 435}),
@@ -2684,7 +2704,7 @@ void WorldSystem::create_start_menu()
 	{
 		TitleEyes::createTitleEyes(position);
 	}
-	
+	screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
 }
 
 std::string add_quotation_marks(std::string hotkey)
@@ -2695,7 +2715,7 @@ std::string add_quotation_marks(std::string hotkey)
 void WorldSystem::create_controls_menu()
 {
 	std::cout << "In Controls Menu\n";
-	int menu_layer = LAYER_MENU + 2;
+	int menu_layer = LAYER_MENU + 5;
 	std::string menu_name = "controls";
 	auto menu = Menu::createMenu(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2, menu_name, Menu_texture::controls, menu_layer, { WINDOW_SIZE_IN_PX.x / 10, WINDOW_SIZE_IN_PX.x / 10});
 	// title text
@@ -2755,7 +2775,7 @@ void WorldSystem::create_controls_menu()
 		menu_text.menu_name = menu_name;
 	}
 
-	MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 6 / 7, MenuButtonType::back_button, "back");
+	registry.get<ShadedMeshRef>(MenuButton::create_button(WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y * 6 / 7, MenuButtonType::back_button, "back")).layer = menu_layer + 1;
 }
 
 void WorldSystem::on_click_ui_when_selected(Button ui_button)
