@@ -236,6 +236,9 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 		}
 	}
 
+	GLint season_uloc = glGetUniformLocation(texmesh.effect.program, "season");
+	glUniform1i(season_uloc, season);
+
 	gl_has_errors();
 
 	GLuint time_uloc = glGetUniformLocation(texmesh.effect.program, "time");
