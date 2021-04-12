@@ -9,7 +9,7 @@ const std::string ATTACK_SPRITE = DIR + "penguin_attack.png";
 const int WALK_FRAMES = 4;
 const int ATTACK_FRAMES = 4;
 
-entt::entity WinterBoss::createWinterBossEntt()
+entt::entity WinterBoss::createWinterBossEntt(int round_number)
 {
     // Reserve en entity
     auto entity = registry.create();
@@ -40,7 +40,7 @@ entt::entity WinterBoss::createWinterBossEntt()
     motion.boundingbox = vec2({ motion.scale.x * 0.85f / WALK_FRAMES, motion.scale.y });
     auto& monster = registry.emplace<Monster>(entity);
 
-    monster.max_health = monster_health.at(WINTER_BOSS);
+    monster.max_health = monster_health.at(WINTER_BOSS) + round_number * MONSTER_SCALE_HEALTH;
     monster.health = monster.max_health;
     monster.damage = monster_damage.at(WINTER_BOSS);
     monster.reward = monster_reward.at(WINTER_BOSS);

@@ -20,5 +20,5 @@ struct Attack_bool{
 
 
 struct DragonRig {
-	static entt::entity createDragon();
+	static entt::entity createDragon(int round_number);
 };

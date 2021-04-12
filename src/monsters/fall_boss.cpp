@@ -9,7 +9,7 @@ const std::string ATTACK_SPRITE = DIR+"bear_attack.png";
 const int WALK_FRAMES = 4;
 const int ATTACK_FRAMES = 4;
 
-entt::entity FallBoss::createFallBossEntt()
+entt::entity FallBoss::createFallBossEntt(int round_number)
 {
     // Reserve en entity
     auto entity = registry.create();
@@ -36,7 +36,7 @@ entt::entity FallBoss::createFallBossEntt()
     motion.boundingbox = vec2({ motion.scale.x *0.85f / WALK_FRAMES, motion.scale.y });
     motion.standing = true;
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = monster_health.at(FALL_BOSS);
+    monster.max_health = monster_health.at(FALL_BOSS) + round_number * MONSTER_SCALE_HEALTH;
     monster.health = monster.max_health;
     monster.damage = monster_damage.at(FALL_BOSS);
     monster.reward = monster_reward.at(FALL_BOSS);

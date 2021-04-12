@@ -7,5 +7,5 @@
 struct WinterBoss
 {
     // Creates all the associated render resources and default transform
-    static entt::entity createWinterBossEntt();
+    static entt::entity createWinterBossEntt(int round_number);
 };

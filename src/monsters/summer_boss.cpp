@@ -9,7 +9,7 @@ const std::string ATTACK_SPRITE = DIR + "moose_attack.png";
 const int WALK_FRAMES = 4;
 const int ATTACK_FRAMES = 4;
 
-entt::entity SummerBoss::createSummerBossEntt() 
+entt::entity SummerBoss::createSummerBossEntt(int round_number) 
 {
     // Reserve en entity
     auto entity = registry.create();
@@ -38,7 +38,7 @@ entt::entity SummerBoss::createSummerBossEntt()
     // motion.boundingbox = vec2({ motion.scale.x * (1 / WALK_FRAMES), motion.scale.y });
     motion.boundingbox = vec2({ motion.scale.x * 0.85f / WALK_FRAMES, motion.scale.y });
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = monster_health.at(SUMMER_BOSS);
+    monster.max_health = monster_health.at(SUMMER_BOSS) + round_number * MONSTER_SCALE_HEALTH;
     monster.health = monster.max_health;
     monster.damage = monster_damage.at(SUMMER_BOSS);
     monster.reward = monster_reward.at(SUMMER_BOSS);

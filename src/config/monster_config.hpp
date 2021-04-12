@@ -1,7 +1,8 @@
 #include <string>
 #include <map>
 
-const int MONSTER_SCALE_HEALTH = 4;
+const int MONSTER_SCALE_HEALTH = 5;
+const int BOSS_SCALE_HEALTH = 10;
 
 const std::map<int, vec2> monster_velocities = {
 	{ MOB, {2.5, 0}},

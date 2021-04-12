@@ -235,7 +235,7 @@ private:
 
 	int num_mobs_spawned;
 	int num_bosses_spawned;
-	entt::entity(*create_boss)();
+	entt::entity(*create_boss)(int round_number);
 
 	std::shared_ptr<BTNode> BTCollision;
 

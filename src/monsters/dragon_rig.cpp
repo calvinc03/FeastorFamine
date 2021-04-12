@@ -15,7 +15,7 @@ static void add_attack(entt::entity, Rig rig, FK_Animations& fk_animations);
 static void add_intro(entt::entity, Rig rig, FK_Animations& fk_animations);
 
 //does not have a mesh, but a set of entities
-entt::entity  DragonRig::createDragon() {
+entt::entity  DragonRig::createDragon(int round_number) {
 
     auto entity = registry.create();
 

@@ -358,7 +358,7 @@ void WorldSystem::step(float elapsed_ms)
 		{
 			// Reset spawn timer and spawn boss
 			next_boss_spawn = (boss_delay_ms / 2) + uniform_dist(rng) * (boss_delay_ms / 2);
-			entt::entity boss = create_boss();
+			entt::entity boss = create_boss(world_round_number);
 			
 			registry.emplace<DamageProperties>(boss);
 			auto& monster = registry.get<Monster>(boss);
@@ -1187,6 +1187,10 @@ void WorldSystem::restart()
 	num_bosses_spawned = 0;
 	num_mobs_spawned = 0;
 	player_state = set_up_stage;
+	max_mobs = 0;
+	mob_delay_ms = 0;
+	max_boss = 0;
+	boss_delay_ms = 0;
 
 	if (sandbox) {
 		world_season_str = WINTER_TITLE;
@@ -1284,10 +1288,12 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	remove_game_tip_and_story_card();
 
 	if (sandbox) {
-		max_mobs = 10;
-		mob_delay_ms = 1000; 
-		max_boss = 10;
-		boss_delay_ms = 1000;
+		if (max_mobs == 0) {
+			max_mobs = 10;
+			mob_delay_ms = 1000;
+			max_boss = 10;
+			boss_delay_ms = 1000;
+		}
 
 		if (world_season_str == SPRING_TITLE) {
 			world_season_str = SUMMER_TITLE;
@@ -1421,7 +1427,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		}
 		std::cout << "SPAWNING FINAL BOSS" << std::endl;
 
-		create_boss = DragonRig::createDragon; //FinalBoss::createFinalBossEntt; //
+		create_boss = DragonRig::createDragon;
 
         // current_round_monster_types.emplace_back(FINAL_BOSS);
 	}
