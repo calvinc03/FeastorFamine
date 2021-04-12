@@ -16,7 +16,7 @@ StoryCard::StoryCard(std::string story_card_text, std::string level_number)
 	std::string key = "story_card";
 	ShadedMesh& resource = cache_resource(key);
 	resource = ShadedMesh();
-	RenderSystem::createSprite(resource, data_path() + "/textures/story/story_text_box.png", "textured");
+	RenderSystem::createSprite(resource, data_path() + "/textures/story/story_text_box2.png", "textured");
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
