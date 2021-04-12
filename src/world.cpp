@@ -67,7 +67,7 @@ float WorldSystem::speed_up_factor = 1.f;
 float WorldSystem::reward_multiplier = 1.f;
 bool WorldSystem::set_AI_paths = false;
 int WorldSystem::show_path_duration = 50;
-int WorldSystem::show_path = show_path_duration;
+int WorldSystem::show_path = 0;
 GridMap WorldSystem::current_map;
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
@@ -2719,10 +2719,11 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 		sandbox = false;
 		switch (button_tag)
 		{
-		case (MenuButtonType::sandbox_button):
-			sandbox = true;
         case (MenuButtonType::survival_mode_button):
             survival_mode = true;
+            show_path = show_path_duration;
+		case (MenuButtonType::sandbox_button):
+			sandbox = true;
 		case (MenuButtonType::new_game_button):
 			remove_menu_buttons();
 //			game_state = help_menu;
