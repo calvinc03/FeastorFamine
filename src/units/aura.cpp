@@ -24,7 +24,7 @@ entt::entity Aura::createAura(vec2 pos, float range, entt::entity emitter)
     auto& motion = registry.emplace<Motion>(entity);
     motion.position = pos;
     // Then we scale it to whatever size is needed
-    motion.scale = 2.f * vec2(range, range);
+    motion.scale = 2.28f * vec2(range, range);
 
     auto& aura = registry.emplace<Aura>(entity);
     aura.emitter = emitter;
