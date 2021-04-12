@@ -92,6 +92,13 @@ const std::string WINTER_TITLE = "winter";
 const std::string FINAL_TITLE = "final";
 const std::string SAVE_PATH = "data/save_files/save_state.json";
 
+const std::map<std::string, int> season_str_to_enum = {
+        {SPRING_TITLE, SPRING},
+        {SUMMER_TITLE, SUMMER},
+        {FALL_TITLE, FALL},
+        {WINTER_TITLE, WINTER},
+};
+
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_state(start_menu),
     player_state(set_up_stage),
     fps_ms(0),
@@ -1183,6 +1190,7 @@ void WorldSystem::restart()
 
 	if (sandbox) {
 		world_season_str = WINTER_TITLE;
+		season = WINTER;
 	}
 
 	registry.each(destroy_entity);
@@ -1450,6 +1458,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	set_AI_paths = false;
 
 	UI_weather_icon::change_weather_icon(weather_icon_entity, weather);
+    season = season_str_to_enum.at(world_season_str);
 }
 
 void WorldSystem::setup_round_from_save_file(int round_number, int weather)
@@ -1584,6 +1593,7 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 	set_AI_paths = false;
 
 	UI_weather_icon::change_weather_icon(weather_icon_entity, weather);
+    season = season_str_to_enum.at(world_season_str);
 }
 
 void WorldSystem::damage_monster_helper(entt::entity e_monster, entt::entity e_projectile, int damage, bool slow) {
