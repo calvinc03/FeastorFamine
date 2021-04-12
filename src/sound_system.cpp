@@ -39,8 +39,6 @@ void sound_on_destroy(entt::basic_registry<entt::entity>& registry, entt::entity
     if (!sound_ref.on_impact_destory)
     {
         Mix_HaltChannel(sound_ref.channel_num);
-        if (sound_ref.sound_reference != nullptr)
-            Mix_FreeChunk(sound_ref.sound_reference);
     }
     else
     {
