@@ -1967,8 +1967,8 @@ void WorldSystem::createEntityRangeIndicator(vec2 mouse_pos)
 			registry.destroy(entity_selected);
 			entity_selected = create_unit_indicator(mouse_pos);
 			unit = registry.get<Unit>(entity_selected);
-			
-			registry.destroy(entity_range_circle);
+            unit.is_active = false;
+            registry.destroy(entity_range_circle);
 			entity_range_circle = RangeCircle::createRangeCircle(mouse_pos, unit.attack_range);
 		}
 	}
@@ -1976,6 +1976,7 @@ void WorldSystem::createEntityRangeIndicator(vec2 mouse_pos)
 		entity_selected = create_unit_indicator(mouse_pos);
 
 		auto& unit = registry.get<Unit>(entity_selected);
+        unit.is_active = false;
 		entity_range_circle = RangeCircle::createRangeCircle(mouse_pos, unit.attack_range);
 	}
 }
@@ -3069,7 +3070,6 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					set_AI_paths = false;
 
 					auto& unit = registry.get<Unit>(entity);
-					unit.is_active = true;
 				}
 				placement_unit_selected = NONE;
 
