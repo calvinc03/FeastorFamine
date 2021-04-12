@@ -1249,7 +1249,7 @@ void WorldSystem::restart()
 	food_text_entity = create_ui_text(vec2(FOOD_NUM_X_OFFSET, WINDOW_SIZE_IN_PX.y - FOOD_NUM_Y_OFFSET), "", FOOD_NUM_SCALE, { 0.f, 1.f, 0.f });
 	
 	// pause menu
-	pause_menu_entity = Menu::createMenu((float)WINDOW_SIZE_IN_PX.x / 2, (float)WINDOW_SIZE_IN_PX.y / 2, "pause_menu", Menu_texture::pause_menu, LAYER_MENU, vec2({ 22.f, 26.f }));
+	pause_menu_entity = Menu::createMenu((float)WINDOW_SIZE_IN_PX.x / 2, (float)WINDOW_SIZE_IN_PX.y / 2, "pause_menu", Menu_texture::pause_menu, LAYER_MENU + 1, vec2({ 220.f, 260.f }));
 	registry.get<ShadedMeshRef>(pause_menu_entity).show = false;
 	
 	// help menu
