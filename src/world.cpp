@@ -1305,11 +1305,15 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		world_season_str = round_json["season"];
 	}
 
-	if (game_state != help_menu && !sandbox)
+	if (game_state != help_menu)
 	{
-		game_state = story_card;
-		StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number + 1], std::to_string(round_number + 1));
-		TalkyBoi::createTalkyBoiEntt();
+	    if (sandbox || survival_mode) {
+	        game_state = in_game;
+	    } else {
+            game_state = story_card;
+            StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number + 1], std::to_string(round_number + 1));
+            TalkyBoi::createTalkyBoiEntt();
+	    }
 	}
 
 	int prev_weather = weather;
