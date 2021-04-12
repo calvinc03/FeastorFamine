@@ -44,7 +44,7 @@ entt::entity Mob::createMobEntt(int round_number)
     monster.type = MOB;
     monster.sprite = WALK_SPRITE;
     monster.frames = WALK_FRAMES;
-    monster.attack_frames = ATTACK_FRAMES;
+    monster.attack_frames = ATTACK_FRAMES; 
     monster.attack_sprite = ATTACK_SPRITE;
     monster.walk_frames = WALK_FRAMES;
     monster.walk_sprite = WALK_SPRITE;
