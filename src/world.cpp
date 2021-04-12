@@ -869,22 +869,24 @@ void WorldSystem::end_battle_phase()
 	{
 		start_victory_screen();
 	}
+	else
+	{
+		setup_round_from_round_number(world_round_number);
+		// re-roll some fraction of map for weather terrains
+		int max_rerolls = (int)ceil(0.7 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
+		//screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
 
-	setup_round_from_round_number(world_round_number);
-	// re-roll some fraction of map for weather terrains
-	int max_rerolls = (int)ceil(0.7 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
-	//screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
-		
-	for (auto particle : registry.view<ParticleSystem>()) {
-		registry.destroy(particle);
+		for (auto particle : registry.view<ParticleSystem>()) {
+			registry.destroy(particle);
+		}
+
+		AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
+		player_state = set_up_stage;
+		num_bosses_spawned = 0;
+		num_mobs_spawned = 0;
+		prepare_setup_stage();
+		save_game();
 	}
-
-	AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
-	player_state = set_up_stage;
-	num_bosses_spawned = 0;
-	num_mobs_spawned = 0;
-	prepare_setup_stage();
-	save_game();
 }
 
 void WorldSystem::handle_game_tips()
