@@ -1434,7 +1434,140 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	auto& season_text = registry.get<Text>(season_text_entity);
 	season_text.content = season_str.at(season);
 	season_text.colour = season_str_colour.at(season);
-	//aligne_text_right(season_text_entity, SEASON_WHEEL_X_OFFSET - 5.f);
+
+	auto& weather_text = registry.get<Text>(weather_text_entity);
+	weather_text.content = weather_str.at(weather);
+	weather_text.colour = weather_str_colour.at(weather);
+	// update season wheel angle
+	UI_season_wheel::set_arrow(season_wheel_arrow_entity, season);
+	// monster path reset
+	for (auto entity : registry.view<Path>())
+		registry.destroy(entity);
+	set_AI_paths = false;
+
+	UI_weather_icon::change_weather_icon(weather_icon_entity, weather);
+}
+
+void WorldSystem::setup_round_from_save_file(int round_number, int weather)
+{
+	auto& stage_text = registry.get<Text>(stage_text_entity);
+	stage_text.content = "PREPARE";
+	stage_text.colour = { 1.0f, 1.0f, 1.0f };
+
+	remove_game_tip_and_story_card();
+
+	if (sandbox) {
+		max_mobs = 10;
+		mob_delay_ms = 1000;
+		max_boss = 10;
+		boss_delay_ms = 1000;
+
+		if (world_season_str == SPRING_TITLE) {
+			world_season_str = SUMMER_TITLE;
+		}
+		else if (world_season_str == SUMMER_TITLE) {
+			world_season_str = FALL_TITLE;
+		}
+		else if (world_season_str == FALL_TITLE) {
+			world_season_str = WINTER_TITLE;
+		}
+		else if (world_season_str == WINTER_TITLE) {
+			world_season_str = SPRING_TITLE;
+		}
+
+		auto& stage_text = registry.get<Text>(stage_text_entity);
+		stage_text.content = "SANDBOX";
+
+		auto& max_mobs_text = registry.get<Text>(max_mobs_text_entity);
+		max_mobs_text.content = std::to_string(max_mobs);
+
+		auto& mob_speed_text = registry.get<Text>(mob_speed_text_entity);
+		float monster_speed = 1000.f / (float)mob_delay_ms;
+		mob_speed_text.content = std::to_string(monster_speed);
+	}
+	else {
+		nlohmann::json round_json = get_json(INPUT_PATH + std::to_string(round_number) + JSON_EXTENSION);
+		max_mobs = round_json["max_mobs"];
+		mob_delay_ms = round_json["mob_delay_ms"];
+		max_boss = round_json["max_bosses"];
+		boss_delay_ms = round_json["boss_delay_ms"];
+		world_season_str = round_json["season"];
+	}
+
+	if (game_state != help_menu)
+	{
+		if (sandbox || survival_mode) {
+			game_state = in_game;
+		}
+		else {
+			game_state = story_card;
+			StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number + 1], std::to_string(round_number + 1));
+			TalkyBoi::createTalkyBoiEntt();
+		}
+	}
+	// weather related
+	if (weather == DROUGHT)
+	{
+		screen_sprite->effect.load_from_file(shader_path("heat") + ".vs.glsl", shader_path("heat") + ".fs.glsl");
+	}
+	else
+	{
+		screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
+	}
+	// set up boss by season
+	if (world_season_str == SPRING_TITLE)
+	{
+		season = SPRING;
+		create_boss = SpringBoss::createSpringBossEntt;
+		if (max_boss > 0)
+			current_round_monster_types.emplace_back(SPRING_BOSS);
+	}
+	else if (world_season_str == SUMMER_TITLE)
+	{
+		season = SUMMER;
+		create_boss = SummerBoss::createSummerBossEntt;
+		if (max_boss > 0)
+			current_round_monster_types.emplace_back(SUMMER_BOSS);
+	}
+	else if (world_season_str == FALL_TITLE)
+	{
+		season = FALL;
+		create_boss = FallBoss::createFallBossEntt;
+		if (max_boss > 0)
+			current_round_monster_types.emplace_back(FALL_BOSS);
+	}
+	else if (world_season_str == WINTER_TITLE)
+	{
+		season = WINTER;
+		create_boss = WinterBoss::createWinterBossEntt;
+		if (max_boss > 0)
+			current_round_monster_types.emplace_back(WINTER_BOSS);
+	}
+	else if (world_season_str == FINAL_TITLE)// FINAL_TITLE) else ifSPRING_TITLE
+	{
+
+		season = SUMMER;
+		std::cout << "SPAWNING FINAL BOSS" << std::endl;
+		create_boss = DragonRig::createDragon; //FinalBoss::createFinalBossEntt; //
+	}
+
+	//update wanted board
+	WantedBoard::updateWantedEntries(wanted_board_entity, current_round_monster_types);
+	UI_button::wantedboard_update_on(wanted_board_button);
+
+	// update text
+	auto& round_text = registry.get<Text>(round_text_entity);
+	round_text.content = std::to_string(round_number + 1);
+	// only supports up to 2 digit rounds (99 max round)
+	if (round_text.content.length() == 2)
+		round_text.position.x = ROUND_NUM_X_OFFSET - 20;
+
+	auto& food_num_text = registry.get<Text>(food_text_entity);
+	food_num_text.content = std::to_string(health);
+
+	auto& season_text = registry.get<Text>(season_text_entity);
+	season_text.content = season_str.at(season);
+	season_text.colour = season_str_colour.at(season);
 
 	auto& weather_text = registry.get<Text>(weather_text_entity);
 	weather_text.content = weather_str.at(weather);
@@ -1586,7 +1719,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	}
 	// keys used to skip rounds; used to debug and test rounds
-	if (action == GLFW_RELEASE && key == GLFW_KEY_G)
+	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_G)
 	{
 		if (player_state == set_up_stage)
 		{
@@ -3311,6 +3444,7 @@ void WorldSystem::save_game()
 	save_json["round_number"] = world_round_number;
 	save_json["health"] = health;
 	save_json["survival_mode"] = survival_mode;
+	save_json["weather"] = weather;
 
 	// TODO finish implementing, may need to edit unit struct
 	auto view_unit = registry.view<Unit>();
@@ -3380,7 +3514,8 @@ void WorldSystem::load_game()
 	health = save_json["health"];
 	world_round_number = save_json["round_number"];
     survival_mode = save_json["survival_mode"];
-	setup_round_from_round_number(world_round_number);
+	weather = save_json["weather"];
+	setup_round_from_save_file(world_round_number, weather);
 
 	for (nlohmann::json unit : save_json["units"])
 	{

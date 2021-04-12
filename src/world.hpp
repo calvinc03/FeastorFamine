@@ -73,6 +73,8 @@ public:
 	// helper for path to round jsons
 	void setup_round_from_round_number(int round_number);
 
+	void setup_round_from_save_file(int round_number, int weather);
+
 	// Check for collisions
 	void updateProjectileMonsterCollision(entt::entity e_projectile, entt::entity e_monster);
 
