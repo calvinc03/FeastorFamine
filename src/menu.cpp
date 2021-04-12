@@ -15,7 +15,7 @@ entt::entity Menu::createMenu(float x, float y, std::string menu_name, Menu_text
 		switch (texture)
 		{
 			case title_screen:
-				texture_file_name = "title_screen.png";
+				texture_file_name = "title_screen_background.png";
 				break;
 			case controls:
 				texture_file_name = "controls_background.png";
@@ -54,6 +54,33 @@ entt::entity Menu::createMenu(float x, float y, std::string menu_name, Menu_text
 		RenderSystem::createSprite(resource, menu_texture_path(texture_file_name), "textured");
 	}
 	
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
+	shaded_mesh_ref.layer = layer;
+
+	// Setting initial motion values
+	UI_element& ui_element = registry.emplace<UI_element>(entity);
+	ui_element.angle = 0.f;
+	ui_element.tag = menu_name;
+	ui_element.scale = scale * static_cast<vec2>(resource.texture.size);
+	ui_element.position = { x, y };
+
+	registry.emplace<Menu>(entity);
+
+	return entity;
+}
+
+entt::entity Menu::createMenu(float x, float y, std::string menu_name, std::string texture_path, int layer, vec2 scale)
+{
+	auto entity = registry.create();
+	// Create rendering primitives
+	std::string key = "menu" + menu_name;
+	ShadedMesh& resource = cache_resource(key);
+	if (resource.effect.program.resource == 0) {
+		resource = ShadedMesh();		
+		RenderSystem::createSprite(resource, textures_path(texture_path), "textured");
+	}
+
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	auto& shaded_mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
 	shaded_mesh_ref.layer = layer;

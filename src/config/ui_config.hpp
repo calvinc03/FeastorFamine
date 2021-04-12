@@ -64,20 +64,22 @@ static const float EXIT_BUTTON_X = WINDOW_SIZE_IN_PX.x / 2;
 static const float EXIT_BUTTON_Y = WINDOW_SIZE_IN_PX.y * 7 / 8;
 
 // Title Screen Buttons
-static const float NEW_GAME_BUTTON_X = 194;
-static const float NEW_GAME_BUTTON_Y = 347;
+static const float NEW_GAME_BUTTON_X = 255;
+static const float NEW_GAME_BUTTON_Y = 340;
 static const float NEW_GAME_BUTTON_ANGLE = -3.1415926 / 16;
-static const float LOAD_GAME_BUTTON_X = 208;
-static const float LOAD_GAME_BUTTON_Y = 437;
-static const float TITLE_HELP_BUTTON_X = 213;
-static const float TITLE_HELP_BUTTON_Y = 521;
+static const float LOAD_GAME_BUTTON_X = 230;
+static const float LOAD_GAME_BUTTON_Y = 427;
+static const float SURVIVAL_MODE_BUTTON_X = 285;
+static const float SURVIVAL_MODE_BUTTON_Y = 505;
+static const float SANDBOX_BUTTON_X = 233;
+static const float SANDBOX_BUTTON_Y = 585;
+
+static const float TITLE_HELP_BUTTON_X = 815;
+static const float TITLE_HELP_BUTTON_Y = 395;
 static const float TITLE_HELP_BUTTON_ANGLE = -3.1415926 / 32;
-static const float TITLE_EXIT_BUTTON_X = 221;
-static const float TITLE_EXIT_BUTTON_Y = 613;
-static const float SANDBOX_BUTTON_X = 850;
-static const float SANDBOX_BUTTON_Y = 550;
-static const float SURVIVAL_MODE_BUTTON_X = 850;
-static const float SURVIVAL_MODE_BUTTON_Y = SANDBOX_BUTTON_Y + 100;
+static const float TITLE_EXIT_BUTTON_X = 850;
+static const float TITLE_EXIT_BUTTON_Y = TITLE_HELP_BUTTON_Y + 70;
+
 // tips button
 static const vec2 TIPS_GAME_BUTTON_POS = { WINDOW_SIZE_IN_PX.x - 25, WINDOW_SIZE_IN_PX.y - 40 };
 // add monster button

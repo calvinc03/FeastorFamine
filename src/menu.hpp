@@ -12,6 +12,7 @@ struct Menu
 {
 	std::vector<entt::entity> buttons = {};
 	static entt::entity createMenu(float x, float y, std::string menu_name, Menu_texture texture, int layer = LAYER_MENU, vec2 scale = { 1.f, 1.f });
+	static entt::entity createMenu(float x, float y, std::string menu_name, std::string texture_file_name, int layer = LAYER_MENU, vec2 scale = { 1.f, 1.f });
 	static entt::entity createLostMenu();
 	static entt::entity createVictoryScreen();
 };
