@@ -3054,6 +3054,9 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
                     current_map.setGridOccupancy(node.coord, placement_unit_selected, entity);
                     show_path = show_path_duration;
 					set_AI_paths = false;
+
+					auto& unit = registry.get<Unit>(entity);
+					unit.is_active = true;
 				}
 				placement_unit_selected = NONE;
 

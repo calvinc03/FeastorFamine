@@ -76,21 +76,20 @@ void AISystem::step(float elapsed_ms)
 {
 	//(void)elapsed_ms; // placeholder to silence unused warning until implemented
 	
-	for (auto& unit : registry.view<Unit>()) {
-		auto hunter = entt::to_entity(registry, unit);
-		auto& placeable_unit = registry.get<Unit>(hunter);
-
-		// TODO: scale projectile spawn with the current speed of the game 
-		placeable_unit.next_projectile_spawn -= elapsed_ms;
+	for (auto& e_unit : registry.view<Unit>()) {
+		auto& unit = registry.get<Unit>(e_unit);
+		// TODO: scale projectile spawn with the current speed of the game
+		if (unit.is_active) {
+            unit.next_projectile_spawn -= elapsed_ms;
+            updateUnitTarget(e_unit);
+		}
 	}
-    updateHunterTarget();
 }
 
-void AISystem::updateHunterTarget() const {// Attack mobs if in range of hunter
-    for (auto unit : registry.view<Unit>()) {
-        auto hunter = entt::to_entity(registry, unit);
-        auto& motion_h = registry.get<Motion>(hunter);
-        auto& placeable_unit = registry.get<Unit>(hunter);
+void AISystem::updateUnitTarget(entt::entity e_unit) const {// Attack mobs if in range of hunter
+
+        auto& motion_h = registry.get<Motion>(e_unit);
+        auto& unit = registry.get<Unit>(e_unit);
 
         // priority queue containing Motion of all monsters to the village
         std::priority_queue<entt::entity, std::vector<entt::entity>, compare_distance_to_village> priority_queue;
@@ -100,7 +99,7 @@ void AISystem::updateHunterTarget() const {// Attack mobs if in range of hunter
 
             float distance_to_hunter = length(monster_position - motion_h.position);
 
-            if (distance_to_hunter < placeable_unit.attack_range || registry.has<DragonRig>(monster)) {
+            if (distance_to_hunter < unit.attack_range || registry.has<DragonRig>(monster)) {
                 priority_queue.push(monster);
             }
         }
@@ -112,12 +111,12 @@ void AISystem::updateHunterTarget() const {// Attack mobs if in range of hunter
             motion_h.angle = atan2(direction.y, direction.x);
         }
 
-        if (placeable_unit.next_projectile_spawn <= 0.f && placeable_unit.health > 0) {
+        if (unit.next_projectile_spawn <= 0.f && unit.health > 0) {
 
             int num_spawned_prj = 0;
             std::vector<entt::entity> projectiles;
 
-            while (num_spawned_prj < placeable_unit.num_projectiles && !priority_queue.empty())
+            while (num_spawned_prj < unit.num_projectiles && !priority_queue.empty())
             {
                 auto monster = priority_queue.top();
                 priority_queue.pop();
@@ -128,16 +127,16 @@ void AISystem::updateHunterTarget() const {// Attack mobs if in range of hunter
                     motion_h.angle = atan2(direction.y, direction.x);
                 }
 
-                auto projectile = placeable_unit.create_projectile(hunter, monster, placeable_unit.damage + placeable_unit.damage_buff);
+                auto projectile = unit.create_projectile(e_unit, monster, unit.damage + unit.damage_buff);
                 projectiles.push_back(projectile);
                 
                 num_spawned_prj += 1;
 
             }
 
-            if (placeable_unit.type == ROBOT)
+            if (unit.type == ROBOT)
             {
-                auto& robot = registry.get<Robot>(hunter);
+                auto& robot = registry.get<Robot>(e_unit);
                 for (auto prj_entity : robot.lasers)
                 {
                     if (registry.valid(prj_entity))
@@ -145,9 +144,9 @@ void AISystem::updateHunterTarget() const {// Attack mobs if in range of hunter
                 }
                 robot.lasers = projectiles;
             }
-            else if (placeable_unit.type == EXTERMINATOR && placeable_unit.path_2_upgrade == 0)
+            else if (unit.type == EXTERMINATOR && unit.path_2_upgrade == 0)
             {
-                auto& exterminator = registry.get<Exterminator>(hunter);
+                auto& exterminator = registry.get<Exterminator>(e_unit);
                 for (auto prj_entity : exterminator.flamethrowers)
                 {
                     if (registry.valid(prj_entity))
@@ -155,9 +154,9 @@ void AISystem::updateHunterTarget() const {// Attack mobs if in range of hunter
                 }
                 exterminator.flamethrowers = projectiles;
             }
-            else if (placeable_unit.type == SNOWMACHINE && placeable_unit.path_1_upgrade == 0 && placeable_unit.path_2_upgrade > 0)
+            else if (unit.type == SNOWMACHINE && unit.path_1_upgrade == 0 && unit.path_2_upgrade > 0)
             {
-                auto& snowmachine = registry.get<SnowMachine>(hunter);
+                auto& snowmachine = registry.get<SnowMachine>(e_unit);
                 for (auto prj_entity : snowmachine.snowfields)
                 {
                     if (registry.valid(prj_entity))
@@ -167,9 +166,8 @@ void AISystem::updateHunterTarget() const {// Attack mobs if in range of hunter
             }
 
             if (num_spawned_prj >= 1)
-                placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms / placeable_unit.attack_speed_buff;
+                unit.next_projectile_spawn = unit.attack_interval_ms / unit.attack_speed_buff;
         }
-    }
 }
 
 void AISystem::updateProjectileMonsterCollision(entt::entity monster)

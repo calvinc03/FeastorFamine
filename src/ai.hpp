@@ -47,5 +47,5 @@ private:
 	// PhysicsSystem handle
 	PhysicsSystem* physics;
 
-    void updateHunterTarget() const;
+    void updateUnitTarget(entt::entity e_unit) const;
 };
