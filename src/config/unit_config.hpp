@@ -76,9 +76,9 @@ const std::map<unit_type, int> unit_cost = {
 	{HUNTER, 150},
 	//{WATCHTOWER, 200},
 	{GREENHOUSE, 250},
-	{EXTERMINATOR, 300},
-	{ROBOT, 400},
-	{PRIESTESS, 400},
+	{EXTERMINATOR, 200},
+	{ROBOT, 350},
+	{PRIESTESS, 350},
 	{SNOWMACHINE, 150},
 	{WALL, 50}
 };
@@ -87,9 +87,9 @@ const std::map<unit_type, int> unit_sell_price = {
 	{HUNTER, 150},
 	//{WATCHTOWER, 150},
 	{GREENHOUSE, 250},
-	{EXTERMINATOR, 300},
-	{ROBOT, 400},
-	{PRIESTESS, 400},
+	{EXTERMINATOR, 200},
+	{ROBOT, 350},
+	{PRIESTESS, 350},
 	{SNOWMACHINE, 150},
 	{WALL, 50}
 };

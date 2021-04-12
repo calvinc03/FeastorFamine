@@ -24,7 +24,7 @@ const std::map<int, std::string> unit_name_str = {
 };
 
 const std::vector<std::string> hunter_description = {
-    "Slow attack speed and short range.",
+    "Slow attack speed and single target",
     "",
     "Attack: " + std::to_string(unit_damage.at(HUNTER)),
     "Attack speed:" + std::to_string(1000.f / unit_attack_interval_ms.at(HUNTER)),
@@ -40,15 +40,17 @@ const std::vector<std::string> hunter_description = {
 //};
 
 const std::vector<std::string> greenhouse_description = {
-    "Produce extra food each round."
+    "Produce extra " + std::to_string(unit_damage.at(GREENHOUSE)) + " food each round."
 };
 
 const std::vector<std::string> wall_description = {
-    "Blocks the path."
+    "Blocks the path of certain monsters.",
+    "",
+    "Health: " + std::to_string(unit_health.at(WALL))
 };
 
 const std::vector<std::string> exterminator_description = {
-    "Flamethrower to burn enemies down",
+    "Burn down enemies in a small cone",
     "",
     "Attack: " + std::to_string(unit_damage.at(EXTERMINATOR)),
     "Attack speed:" + std::to_string(1000.f / unit_attack_interval_ms.at(EXTERMINATOR)),
@@ -67,7 +69,7 @@ const std::vector<std::string> priestess_description = {
     "Allies gain attack damage and speed",
     "",
     "Attack granted: " + std::to_string(unit_damage.at(PRIESTESS)),
-    "Attack speed granted: " + std::to_string(unit_attack_interval_ms.at(PRIESTESS)) + "x",
+    "Attack speed granted: " + std::to_string((int) ((unit_attack_interval_ms.at(PRIESTESS) - 1) * 100)) + "%",
     "Buff range:" + std::to_string(unit_attack_range.at(PRIESTESS))
 };
 

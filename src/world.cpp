@@ -97,6 +97,7 @@ const std::map<std::string, int> season_str_to_enum = {
         {SUMMER_TITLE, SUMMER},
         {FALL_TITLE, FALL},
         {WINTER_TITLE, WINTER},
+		{FINAL_TITLE, SUMMER}
 };
 
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_state(start_menu),
@@ -2401,8 +2402,9 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 	auto view_ui_selected_buttons = registry.view<UI_selected_unit, UI_element, ShadedMeshRef>();
 	auto view_ui_build_buttons = registry.view<UI_build_unit, UI_element, ShadedMeshRef>();
 
-	if (registry.valid(selected_range_circle))
+	if (registry.valid(selected_range_circle)) {
 		registry.destroy(selected_range_circle);
+	}
 	
 	// if a unit is selected and the sell button is not clicked
 	// show upgrade buttons and sell button
@@ -2659,35 +2661,28 @@ bool check_click_on_unit_selected_buttons(double mouse_pos_x, double mouse_pos_y
 // return true if a unit is selected; otherwise, false
 bool WorldSystem::click_on_unit(double mouse_pos_x, double mouse_pos_y)
 {
-	bool clicked_on_unit = false;
 	auto view_highlight = registry.view<HighlightBool>();
 	auto view_unit = registry.view<Unit>();
 	vec2 mouse_pos = mouse_in_world_coord({ mouse_pos_x, mouse_pos_y });
-	auto view_selectable = registry.view<Selectable, Motion>();
-	for (auto [entity, selectable, motion] : view_selectable.each())
-	{
-		vec2 scale = motion.scale / 2.f;
-		if (registry.has<GreenHouse>(entity)) {
-			scale /= 3.f;
-		}
-
-		// check click on units
-		if (sdBox(mouse_pos, motion.position, scale) < 0.0f && entity != entity_selected)
-		{
-			// add selected status
-			selectable.selected = true;
-			view_highlight.get<HighlightBool>(entity).highlight = true;
-
-			clicked_on_unit = true;
-		}
-		else
+	if (mouse_in_game_area(mouse_pos)) {
+		auto node = current_map.getNodeAtCoord(pixel_to_coord(mouse_pos));
+		auto view_selectable = registry.view<Selectable, Motion>();
+		for (auto [entity, selectable, motion] : view_selectable.each())
 		{
 			// remove selected status on all other units
 			selectable.selected = false;
 			view_highlight.get<HighlightBool>(entity).highlight = false;
 		}
+
+		if (registry.valid(node.occupying_entity)) {
+			view_selectable.get<Selectable>(node.occupying_entity).selected = true;
+			view_highlight.get<HighlightBool>(node.occupying_entity).highlight = true;
+
+			return true;
+		}
 	}
-	return clicked_on_unit;
+
+	return false;
 }
 
 vec2 WorldSystem::on_click_select_unit(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)

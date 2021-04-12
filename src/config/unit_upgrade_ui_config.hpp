@@ -182,46 +182,46 @@ const std::vector<std::string> path_2_upgrade_button_robot_2 = {
 
 // description cards for priestess path 1 upgrades
 const std::vector<std::string> path_1_upgrade_button_priestess_0 = {
-    "Current Attack Buff: " + std::to_string(unit_damage.at(PRIESTESS)),
+    "Current Attack Buff: " + std::to_string((int) unit_damage.at(PRIESTESS)),
     "",
-    "Upgraded Attack Buff: " + std::to_string(priestess_path_1.at(1)[2]),
-    "Cost: " + std::to_string(priestess_path_1.at(0)[0])
+    "Upgraded Attack Buff: " + std::to_string((int) priestess_path_1.at(1)[2]),
+    "Cost: " + std::to_string((int) priestess_path_1.at(0)[0])
 };
 
 const std::vector<std::string> path_1_upgrade_button_priestess_1 = {
-    "Current Attack Buff: " + std::to_string(priestess_path_1.at(1)[2]),
+    "Current Attack Buff: " + std::to_string((int) priestess_path_1.at(1)[2]),
     "",
-    "Upgraded Attack Buff: " + std::to_string(priestess_path_1.at(2)[2]),
-    "Cost: " + std::to_string(priestess_path_1.at(1)[0])
+    "Upgraded Attack Buff: " + std::to_string((int) priestess_path_1.at(2)[2]),
+    "Cost: " + std::to_string((int) priestess_path_1.at(1)[0])
 };
 
 const std::vector<std::string> path_1_upgrade_button_priestess_2 = {
-    "Current Attack Buff: " + std::to_string(priestess_path_1.at(2)[2]),
+    "Current Attack Buff: " + std::to_string((int) priestess_path_1.at(2)[2]),
     "",
-    "Upgraded Attack Buff: " + std::to_string(priestess_path_1.at(3)[2]),
-    "Cost: " + std::to_string(priestess_path_1.at(2)[0])
+    "Upgraded Attack Buff: " + std::to_string((int) priestess_path_1.at(3)[2]),
+    "Cost: " + std::to_string((int) priestess_path_1.at(2)[0])
 };
 
 // description cards for priestess path 2 upgrades
 const std::vector<std::string> path_2_upgrade_button_priestess_0 = {
-    "Current Attack Speed Buff: " + std::to_string(unit_attack_interval_ms.at(PRIESTESS)),
+    "Current Attack Speed Buff: " + std::to_string((int) ((unit_attack_interval_ms.at(PRIESTESS) - 1) * 100)) + "%",
     "",
-    "Upgraded Attack Speed Buff: " + std::to_string(priestess_path_2.at(1)[2]),
-    "Cost: " + std::to_string(priestess_path_2.at(0)[0])
+    "Upgraded Attack Speed Buff: " + std::to_string((int) ((priestess_path_2.at(1)[2] - 1) * 100)) + "%",
+    "Cost: " + std::to_string((int) priestess_path_2.at(0)[0])
 };
 
 const std::vector<std::string> path_2_upgrade_button_priestess_1 = {
-    "Current Attack Speed Buff: " + std::to_string(priestess_path_2.at(1)[2]),
+    "Current Attack Speed Buff: " + std::to_string((int) ((priestess_path_2.at(1)[2] - 1)*100)) + "%",
     "",
-    "Upgraded Attack Speed Buff: " + std::to_string(priestess_path_2.at(2)[2]),
-    "Cost: " + std::to_string(priestess_path_2.at(1)[0])
+    "Upgraded Attack Speed Buff: " + std::to_string((int) ((priestess_path_2.at(2)[2]-1)*100)) + "%",
+    "Cost: " + std::to_string((int) priestess_path_2.at(1)[0])
 };
 
 const std::vector<std::string> path_2_upgrade_button_priestess_2 = {
-    "Current Attack Speed Buff: " + std::to_string(priestess_path_2.at(2)[2]),
+    "Current Attack Speed Buff: " + std::to_string((int) ((priestess_path_2.at(2)[2]-1)*100)) + "%",
     "",
-    "Upgraded Attack Speed Buff: " + std::to_string(priestess_path_2.at(3)[2]),
-    "Cost: " + std::to_string(priestess_path_2.at(2)[0])
+    "Upgraded Attack Speed Buff: " + std::to_string((int) ((priestess_path_2.at(3)[2]-1)*100)) + "%",
+    "Cost: " + std::to_string((int) priestess_path_2.at(2)[0])
 };
 
 

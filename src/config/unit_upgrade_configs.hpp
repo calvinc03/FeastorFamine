@@ -42,34 +42,34 @@ const std::map<int, std::vector<int>> greenhouse_path_2 = {
 
 // damage upgrade 
 const std::map<int, std::vector<int>> exterminator_path_1 = {
-	{0, {100}},
-	{1, {150, 80, 20}},
-	{2, {200, 100, 30}},
-	{3, {10, 150, 40}}
+	{0, {150}},
+	{1, {200, 100, 20}},
+	{2, {400, 150, 30}},
+	{3, {10, 250, 40}}
 };
 
 // range upgrade
 const std::map<int, std::vector<int>> exterminator_path_2 = {
-	{0, {100}},
-	{1, {150, 80, 10}},
-	{2, {200, 120, 20}},
-	{3, {10, 150, 30}}
+	{0, {250}},
+	{1, {250, 200, 10}},
+	{2, {300, 200, 20}},
+	{3, {10, 250, 30}}
 };
 
 // number of projectile upgrade 
 const std::map<int, std::vector<int>> robot_path_1 = {
 	{0, {200}},
-	{1, {300, 150, 20}},
-	{2, {400, 250, 30}},
-	{3, {10, 350, 40}}
+	{1, {350, 150, 20}},
+	{2, {500, 350, 30}},
+	{3, {10, 450, 40}}
 };
 
 // range upgrade
 const std::map<int, std::vector<int>> robot_path_2 = {
 	{0, {200}},
-	{1, {300, 150, 2}},
-	{2, {400, 250, 3}},
-	{3, {10, 350, 4}}
+	{1, {350, 150, 2}},
+	{2, {500, 300, 3}},
+	{3, {10, 450, 4}}
 };
 
 // damage upgrade 
