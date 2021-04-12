@@ -481,7 +481,7 @@ void WorldSystem::step(float elapsed_ms)
 				next_particle_spawn = 40;
 				vec2 velocity = { rand() % 400 + (-200), 300.0f };
 				vec2 position = { rand() % WINDOW_SIZE_IN_PX.x + 1 , 0 };
-				float life = 1800.0f;
+				float life = 2300.0f;
 				std::string texture = "snow.png";
 				std::string shader = "snow";
 				ParticleSystem::createParticle(velocity, position, life, texture, shader);
@@ -552,6 +552,7 @@ void WorldSystem::step(float elapsed_ms)
 			float delta_x = 7.5f;
 			float tangent_slope = 1 / (2 * sqrt(a_constant) * sqrt(motion.position.x - c_constant));
 			motion.velocity.x = -1.f;
+			
 			
 			if (motion.position.x < c_constant)
 			{
@@ -1045,7 +1046,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		next_particle_spawn = 40;
 		vec2 velocity = { rand() % 400 + (-200), 300.0f };
 		vec2 position = { rand() % WINDOW_SIZE_IN_PX.x + 1 , UI_TOP_BAR_HEIGHT };
-		float life = 1800.0f;
+		float life = 2300.0f;
 		std::string texture = "snow.png";
 		std::string shader = "snow";
 		ParticleSystem::createParticle(velocity, position, life, texture, shader);
