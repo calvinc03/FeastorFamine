@@ -87,6 +87,10 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 				scale.x = -abs(motion.scale.x);
 				angle = atan2(-motion.velocity.y, -motion.velocity.x);
 			}
+			if (motion.standing && abs(angle) >= PI/2) {
+			    angle /= -2;
+			    scale.x *= -1;
+			}
 		}
 	}
 	else if (registry.has<UI_element>(entity))

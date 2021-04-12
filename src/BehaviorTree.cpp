@@ -435,9 +435,7 @@ void increment_monster_step(entt::entity entity) {
 			vec2 move_direction = normalize((vec2)(next_path_coord - current_path_coord));
 			motion.position = coord_to_pixel(current_path_coord);
 			motion.velocity = length(motion.velocity) * move_direction;
-			motion.angle = atan(move_direction.y / move_direction.x);
 			monster.current_node_visited = true;
-
 			if (next_node.occupancy != NONE && next_node.occupancy != FOREST && next_node.occupancy != VILLAGE) {
                 if (!registry.has<SpringBoss>(entity) || unit_create_projectiles.at(next_node.occupancy) != NULL) {
                     monster.state = ATTACK;
