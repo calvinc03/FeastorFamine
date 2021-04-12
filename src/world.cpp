@@ -60,6 +60,7 @@ const size_t TEXT_APPEAR_SPEED = 20; // lower is faster
 const int STARTING_HEALTH = 1000;
 
 int WorldSystem::health = 1000;
+int WorldSystem::world_round_number = 0;
 bool WorldSystem::sandbox = false;
 bool WorldSystem::survival_mode = false;
 float WorldSystem::speed_up_factor = 1.f;
@@ -1000,10 +1001,6 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		handle_game_tips();
 	}
 
-	if (world_round_number >= 9) {
-		reward_multiplier = .5f;
-	}
-
 	auto particle_view = registry.view<ParticleSystem>();
 	if (particle_view.size() < MAX_PARTICLES) {
 		for (auto particle_entity : particle_view) {
@@ -1333,10 +1330,13 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 
 	int prev_weather = weather;
     current_round_monster_types.clear();
-    current_round_monster_types.emplace_back(MOB);
+	if (max_mobs > 0)
+		current_round_monster_types.emplace_back(MOB);
+
     if (world_season_str == SPRING_TITLE)
     {
-        season = SPRING;
+		reward_multiplier = 1.5f;
+		season = SPRING;
         int weather_int = rand() % 2 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1350,7 +1350,8 @@ void WorldSystem::setup_round_from_round_number(int round_number)
     }
     else if (world_season_str == SUMMER_TITLE)
     {
-        season = SUMMER;
+		reward_multiplier = 1.f;
+		season = SUMMER;
         int weather_int = rand() % 5 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1366,7 +1367,8 @@ void WorldSystem::setup_round_from_round_number(int round_number)
     }
     else if (world_season_str == FALL_TITLE)
     {
-        season = FALL;
+		reward_multiplier = 1.5f;
+		season = FALL;
         int weather_int = rand() % 5 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1380,7 +1382,8 @@ void WorldSystem::setup_round_from_round_number(int round_number)
     }
     else if (world_season_str == WINTER_TITLE)
     {
-        season = WINTER;
+		reward_multiplier = 0.5f;
+		season = WINTER;
         int weather_int = rand() % 2 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1419,7 +1422,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	}
 
 	//update wanted board
-	WantedBoard::updateWantedEntries(wanted_board_entity, current_round_monster_types);
+	WantedBoard::updateWantedEntries(wanted_board_entity, current_round_monster_types, world_round_number, reward_multiplier);
 	UI_button::wantedboard_update_on(wanted_board_button);
 
 	// update text
@@ -1553,7 +1556,7 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 	}
 
 	//update wanted board
-	WantedBoard::updateWantedEntries(wanted_board_entity, current_round_monster_types);
+	WantedBoard::updateWantedEntries(wanted_board_entity, current_round_monster_types, world_round_number, reward_multiplier);
 	UI_button::wantedboard_update_on(wanted_board_button);
 
 	// update text

@@ -150,6 +150,7 @@ public:
 
 	// decrease reward at higher levels
 	static float reward_multiplier;
+	static int world_round_number;
 
 	// speed up factor for fastforwarding time
 	static float speed_up_factor;
@@ -237,9 +238,6 @@ private:
 	entt::entity(*create_boss)();
 
 	std::shared_ptr<BTNode> BTCollision;
-
-	// round and set up
-	int world_round_number;
 
 	// flag for selected view bottom ui
 	bool selected_view_change;

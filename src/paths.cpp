@@ -107,19 +107,19 @@ vec3 Path::getPathColor(int monster_type) {
 
 std::string Path::getPathColorString(int monster_type) {
 	if (monster_type == MOB) {
-		return "Red";
+		return "WHITE";
 	}
 	else if (monster_type == SPRING_BOSS) {
-		return "Orange";
+		return "GREEN";
 	}
 	else if (monster_type == SUMMER_BOSS) {
-		return "Yellow";
+		return "YELLOW";
 	}
 	else if (monster_type == FALL_BOSS) {
-		return "Lime";
+		return "ORANGE";
 	}
 	else if (monster_type == WINTER_BOSS) {
-		return "Green";
+		return "BLUE";
 	}
 	else if (monster_type == FINAL_BOSS) {
 		return "Cyan";
@@ -134,6 +134,6 @@ std::string Path::getPathColorString(int monster_type) {
 		return "Gray";
 	}
 	else {
-		return { 0,0,0 };
+		return "None";
 	}
 }

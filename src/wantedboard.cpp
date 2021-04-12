@@ -82,7 +82,7 @@ void WantedBoard::updateWantedBoardDisplay(entt::entity wanted_board_entity, boo
 	}
 }
 
-void WantedBoard::updateWantedEntries(entt::entity wanted_board, std::vector<int> current_round_monster_types)
+void WantedBoard::updateWantedEntries(entt::entity wanted_board, std::vector<int> current_round_monster_types, int round_number, float reward_multiplier)
 {
 	auto& board = registry.get<WantedBoard>(wanted_board);
 	for (auto entry : board.wanted_entries) {
@@ -108,11 +108,11 @@ void WantedBoard::updateWantedEntries(entt::entity wanted_board, std::vector<int
 		{
 			position = vec2(ui_element.position.x + ui_element.scale.x / 4.f, ui_element.position.y + 50.f);
 		}
-		board.wanted_entries.push_back(WantedEntry::createWantedEntry(position, current_round_monster_types[i]));
+		board.wanted_entries.push_back(WantedEntry::createWantedEntry(position, current_round_monster_types[i], round_number, reward_multiplier));
 	}
 }
 
-entt::entity WantedEntry::createWantedEntry(vec2 position, int monster_type)
+entt::entity WantedEntry::createWantedEntry(vec2 position, int monster_type, int round_number, float reward_multiplier)
 {
 	auto entity = registry.create();
 	// card background
@@ -134,7 +134,7 @@ entt::entity WantedEntry::createWantedEntry(vec2 position, int monster_type)
 	registry.emplace<WantedEntry>(entity);
 
 	createMonsterIcon(entity, ui_element.position, ui_element.scale, monster_type);
-	createMonsterText(entity, ui_element.position, ui_element.scale, monster_type);
+	createMonsterText(entity, ui_element.position, ui_element.scale, monster_type, round_number, reward_multiplier);
 
 	return entity;
 }
@@ -184,10 +184,19 @@ void WantedEntry::createMonsterIcon(entt::entity entry, vec2 position, vec2 scal
 	registry.get<WantedEntry>(entry).monster_info.push_back(entity);
 }
 
-void WantedEntry::createMonsterText(entt::entity entry, vec2 position, vec2 scale, int monster_type)
+void WantedEntry::createMonsterText(entt::entity entry, vec2 position, vec2 scale, int monster_type, int round_number, float reward_multiplier)
 {
 	auto& wantedEntry = registry.get<WantedEntry>(entry);
-	std::vector<std::string> description_strings = wanted_descriptions.at(monster_type);
+	std::vector<std::string> description_strings;
+	MonsterInfo info = wanted_descriptions.at(monster_type);
+	
+	if (monster_type == MOB) info.health += round_number * MONSTER_SCALE_HEALTH;
+
+	description_strings.push_back(template_text[0] + std::to_string(info.health));
+	description_strings.push_back(template_text[1] + std::to_string(info.speed));
+	description_strings.push_back(template_text[2] + std::to_string(info.damage));
+	description_strings.push_back(template_text[3] + info.path_color);
+	description_strings.push_back(template_text[4] + std::to_string((int) (info.reward * reward_multiplier)));
 	
 	auto Marlboro = TextFont::load("data/fonts/Marlboro/Marlboro.ttf");
 	
@@ -215,3 +224,4 @@ void WantedEntry::createMonsterText(entt::entity entry, vec2 position, vec2 scal
 		line_counter++;
 	}
 }
+

@@ -4,7 +4,7 @@
 // this is for initial values; when the entity is created
 
 const std::map<unit_type, int> unit_damage = {
-	{HUNTER, 15},
+	{HUNTER, 20},
 	//{WATCHTOWER, 10},
 	{GREENHOUSE, 60},
 	{EXTERMINATOR, 10},
