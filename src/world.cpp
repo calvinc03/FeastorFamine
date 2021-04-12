@@ -11,6 +11,7 @@
 #include "monsters/final_boss.hpp"
 #include "monsters/fireball_boss.hpp"
 #include "monsters/mob.hpp"
+#include "monsters/ghost.hpp"
 #include <projectile.hpp>
 
 #include "grid_map.hpp"
@@ -303,6 +304,14 @@ void WorldSystem::step(float elapsed_ms)
         {
             auto& motion = registry.get<Motion>(entity);
             motion.angle += 0.01;
+        }
+
+        for (auto entity : registry.view<Ghost>()) {
+            auto& ghost = registry.get<Ghost>(entity);
+            ghost.lifespan--;
+            if (ghost.lifespan < 0) {
+                registry.destroy(entity);
+            }
         }
 
 	    // for when units are destroyed (or placed in survival mode)
@@ -1487,7 +1496,7 @@ void WorldSystem::damage_monster_helper(entt::entity e_monster, entt::entity e_p
 		else {
 			registry.destroy(e_monster);
 		}
-
+            Ghost::createGhostEntt(motion.position);
 	}
 }
 

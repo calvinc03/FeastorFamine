@@ -22,6 +22,5 @@ vec2 distort(vec2 uv)
 
 void main()
 {
-    vec2 coord = distort(texcoord);
-	color = vec4(fcolor, cos(time)) * texture(sampler0, vec2(coord.x, coord.y));
+	color = vec4(fcolor, cos(time)) * texture(sampler0, vec2(texcoord.x, texcoord.y));
 }

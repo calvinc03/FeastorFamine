@@ -35,7 +35,8 @@ enum monster_type
     SPIDER,
     FINAL_BOSS,
     FIREBALL_BOSS,
-    TALKY_BOI
+    TALKY_BOI,
+    GHOST
 };
 
 enum monster_state {
