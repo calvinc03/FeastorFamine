@@ -97,7 +97,6 @@ const std::map<std::string, int> season_str_to_enum = {
         {SUMMER_TITLE, SUMMER},
         {FALL_TITLE, FALL},
         {WINTER_TITLE, WINTER},
-		{FINAL_TITLE, SUMMER}
 };
 
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_state(start_menu),
@@ -109,8 +108,7 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     next_particle_spawn(0),
     num_bosses_spawned(0),
 	selected_view_change(true),
-	game_tips(true),
-	monster_tips(false)
+	game_tips(true)
 {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -870,24 +868,22 @@ void WorldSystem::end_battle_phase()
 	{
 		start_victory_screen();
 	}
-	else
-	{
-		setup_round_from_round_number(world_round_number);
-		// re-roll some fraction of map for weather terrains
-		int max_rerolls = (int)ceil(0.7 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
-		//screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
 
-		for (auto particle : registry.view<ParticleSystem>()) {
-			registry.destroy(particle);
-		}
-
-		AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
-		player_state = set_up_stage;
-		num_bosses_spawned = 0;
-		num_mobs_spawned = 0;
-		prepare_setup_stage();
-		save_game();
+	setup_round_from_round_number(world_round_number);
+	// re-roll some fraction of map for weather terrains
+	int max_rerolls = (int)ceil(0.7 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
+	//screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
+		
+	for (auto particle : registry.view<ParticleSystem>()) {
+		registry.destroy(particle);
 	}
+
+	AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
+	player_state = set_up_stage;
+	num_bosses_spawned = 0;
+	num_mobs_spawned = 0;
+	prepare_setup_stage();
+	save_game();
 }
 
 void WorldSystem::handle_game_tips()
@@ -951,39 +947,6 @@ void WorldSystem::handle_game_tips()
 		tip_manager.tip_index++;
 		break;
 	}
-
-	if (!monster_tips) {
-		switch (world_round_number) {
-		case 1:
-			TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, eagle_tips);
-			game_state = paused;
-			monster_tips = true;
-			break;
-		case 3:
-			TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, moose_tips);
-			game_state = paused;
-			monster_tips = true;
-			break;
-		case 5:
-			TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, bear_tips);
-			game_state = paused;
-			monster_tips = true;
-			break;
-		case 7:
-			TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, penguin_tips);
-			game_state = paused;
-			monster_tips = true;
-			break;
-		case 16:
-			TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, dragon_tips);
-			game_state = paused;
-			monster_tips = true;
-			break;
-		default:
-			break;
-		}
-	}
-	
 }
 
 void WorldSystem::deduct_health(int num) {
@@ -1041,7 +1004,7 @@ void WorldSystem::prepare_setup_stage()
 void WorldSystem::set_up_step(float elapsed_ms)
 {
 	// Restart/End game after max rounds
-	if (game_tips) {
+	if (world_round_number <= 0 && game_tips) {
 		handle_game_tips();
 	}
 
@@ -1136,7 +1099,7 @@ void WorldSystem::set_default_paths() {// set default paths for monster AI for t
 
 void WorldSystem::start_round()
 {
-	monster_tips = false;
+	game_tips = false;
 	// hide towers buttons
 	if (!survival_mode) {
         for (auto entity : registry.view<UI_build_unit>())
@@ -1544,7 +1507,6 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 	}
 
 	season = season_str_to_enum.at(world_season_str);
-
 	if (game_state != help_menu)
 	{
 		if (sandbox || survival_mode) {
@@ -1826,38 +1788,10 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
 	{
-		if (registry.valid(entity_selected))
-		{
-			registry.destroy(entity_selected);
-			if (registry.valid(entity_range_circle))
-				registry.destroy(entity_range_circle);
-			placement_unit_selected = unit_type::NONE;
-			un_highlight();
-		}
-		else if (unit_selected)
-		{
-			unit_selected = false;
-			update_look_for_selected_buttons(GLFW_PRESS, false);
-			un_highlight();
-		}
-		else if (game_state == GameState::paused)
-		{
-			resume_game();
-		}
-		else
-		{
-			pause_game();
-			more_options_menu();
-		}
-		
-		/*
-		else
-		{
-			game_setup();
-			create_start_menu();
-			player_state = set_up_stage;
-			game_state = start_menu;
-		}*/
+		game_setup();
+		create_start_menu();
+		player_state = set_up_stage;
+		game_state = start_menu;
 	}
 
 	// hotkey for controls
@@ -2208,13 +2142,9 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 		}
 		else {
 			if (registry.valid(entity_selected))
-			{
 				registry.destroy(entity_selected);
-				un_highlight();
-			}
 			if (registry.valid(entity_range_circle))
 				registry.destroy(entity_range_circle);
-			
 		}
 	}
 
@@ -2458,9 +2388,8 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 	auto view_ui_selected_buttons = registry.view<UI_selected_unit, UI_element, ShadedMeshRef>();
 	auto view_ui_build_buttons = registry.view<UI_build_unit, UI_element, ShadedMeshRef>();
 
-	if (registry.valid(selected_range_circle)) {
+	if (registry.valid(selected_range_circle))
 		registry.destroy(selected_range_circle);
-	}
 	
 	// if a unit is selected and the sell button is not clicked
 	// show upgrade buttons and sell button
@@ -2717,28 +2646,35 @@ bool check_click_on_unit_selected_buttons(double mouse_pos_x, double mouse_pos_y
 // return true if a unit is selected; otherwise, false
 bool WorldSystem::click_on_unit(double mouse_pos_x, double mouse_pos_y)
 {
+	bool clicked_on_unit = false;
 	auto view_highlight = registry.view<HighlightBool>();
 	auto view_unit = registry.view<Unit>();
 	vec2 mouse_pos = mouse_in_world_coord({ mouse_pos_x, mouse_pos_y });
-	if (mouse_in_game_area(mouse_pos)) {
-		auto node = current_map.getNodeAtCoord(pixel_to_coord(mouse_pos));
-		auto view_selectable = registry.view<Selectable, Motion>();
-		for (auto [entity, selectable, motion] : view_selectable.each())
+	auto view_selectable = registry.view<Selectable, Motion>();
+	for (auto [entity, selectable, motion] : view_selectable.each())
+	{
+		vec2 scale = motion.scale / 2.f;
+		if (registry.has<GreenHouse>(entity)) {
+			scale /= 3.f;
+		}
+
+		// check click on units
+		if (sdBox(mouse_pos, motion.position, scale) < 0.0f && entity != entity_selected)
+		{
+			// add selected status
+			selectable.selected = true;
+			view_highlight.get<HighlightBool>(entity).highlight = true;
+
+			clicked_on_unit = true;
+		}
+		else
 		{
 			// remove selected status on all other units
 			selectable.selected = false;
 			view_highlight.get<HighlightBool>(entity).highlight = false;
 		}
-
-		if (registry.valid(node.occupying_entity)) {
-			view_selectable.get<Selectable>(node.occupying_entity).selected = true;
-			view_highlight.get<HighlightBool>(node.occupying_entity).highlight = true;
-
-			return true;
-		}
 	}
-
-	return false;
+	return clicked_on_unit;
 }
 
 vec2 WorldSystem::on_click_select_unit(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)
@@ -2789,12 +2725,18 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
         case (MenuButtonType::survival_mode_button):
             survival_mode = true;
             show_path = show_path_duration;
+			remove_menu_buttons();
+			restart_with_save();
+			break;
 		case (MenuButtonType::sandbox_button):
 			sandbox = true;
-		case (MenuButtonType::new_game_button):
 			remove_menu_buttons();
+			restart_with_save();
+			break;
+		case (MenuButtonType::new_game_button):
 //			game_state = help_menu;
 //          RenderSystem::show_entity(help_menu_entity);
+			remove_menu_buttons();
 			restart_with_save();
 			break;
 		case (MenuButtonType::load_game_button):
