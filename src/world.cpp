@@ -1194,7 +1194,6 @@ void WorldSystem::restart()
 
 	if (sandbox) {
 		world_season_str = WINTER_TITLE;
-		season = WINTER;
 	}
 
 	registry.each(destroy_entity);
@@ -1350,7 +1349,6 @@ void WorldSystem::setup_round_from_round_number(int round_number)
     if (world_season_str == SPRING_TITLE)
     {
 		reward_multiplier = 1.5f;
-		season = SPRING;
         int weather_int = rand() % 2 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1365,7 +1363,6 @@ void WorldSystem::setup_round_from_round_number(int round_number)
     else if (world_season_str == SUMMER_TITLE)
     {
 		reward_multiplier = 1.f;
-		season = SUMMER;
         int weather_int = rand() % 5 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1382,7 +1379,6 @@ void WorldSystem::setup_round_from_round_number(int round_number)
     else if (world_season_str == FALL_TITLE)
     {
 		reward_multiplier = 1.5f;
-		season = FALL;
         int weather_int = rand() % 5 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1397,7 +1393,6 @@ void WorldSystem::setup_round_from_round_number(int round_number)
     else if (world_season_str == WINTER_TITLE)
     {
 		reward_multiplier = 0.5f;
-		season = WINTER;
         int weather_int = rand() % 2 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1411,9 +1406,6 @@ void WorldSystem::setup_round_from_round_number(int round_number)
     }
 	else if (world_season_str == FINAL_TITLE)// FINAL_TITLE) else ifSPRING_TITLE
 	{
-		
-		season = SUMMER;
-
 		//fireball_delay_ms = FIREBALL_DELAY_MS;//5100;
 		//next_fireball_spawn = fireball_delay_ms;
 
@@ -1536,36 +1528,30 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 	// set up boss by season
 	if (world_season_str == SPRING_TITLE)
 	{
-		season = SPRING;
 		create_boss = SpringBoss::createSpringBossEntt;
 		if (max_boss > 0)
 			current_round_monster_types.emplace_back(SPRING_BOSS);
 	}
 	else if (world_season_str == SUMMER_TITLE)
 	{
-		season = SUMMER;
 		create_boss = SummerBoss::createSummerBossEntt;
 		if (max_boss > 0)
 			current_round_monster_types.emplace_back(SUMMER_BOSS);
 	}
 	else if (world_season_str == FALL_TITLE)
 	{
-		season = FALL;
 		create_boss = FallBoss::createFallBossEntt;
 		if (max_boss > 0)
 			current_round_monster_types.emplace_back(FALL_BOSS);
 	}
 	else if (world_season_str == WINTER_TITLE)
 	{
-		season = WINTER;
 		create_boss = WinterBoss::createWinterBossEntt;
 		if (max_boss > 0)
 			current_round_monster_types.emplace_back(WINTER_BOSS);
 	}
 	else if (world_season_str == FINAL_TITLE)// FINAL_TITLE) else ifSPRING_TITLE
 	{
-
-		season = SUMMER;
 		std::cout << "SPAWNING FINAL BOSS" << std::endl;
 		create_boss = DragonRig::createDragon; //FinalBoss::createFinalBossEntt; //
 	}
