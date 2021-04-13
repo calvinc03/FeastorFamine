@@ -569,12 +569,12 @@ void WorldSystem::step(float elapsed_ms)
 				tangent_slope = 1 / (2 * sqrt(a_constant) * sqrt(c_constant - motion.position.x));
 				motion.velocity.x = 1.f;
 			}
-			
-			
+
 			motion.velocity.y = -1.f * tangent_slope;
 			float speed = 800.f;
 			motion.velocity = speed * normalize(motion.velocity);
-			if (motion.position.y < FOOD_NUM_Y_OFFSET || isnan(tangent_slope))
+			
+			if (motion.position.y < FOOD_NUM_Y_OFFSET)
 			{
 				registry.get<SoundRef>(entity).play_sound = true;
 				add_health(health_drop.food_gain_amount);
@@ -868,27 +868,24 @@ void WorldSystem::end_battle_phase()
 	if (world_round_number == MAX_ROUND_NUMBER)
 	{
 		start_victory_screen();
-	}
-	else
-	{
-		setup_round_from_round_number(world_round_number);
-		// re-roll some fraction of map for weather terrains
-		int max_rerolls = (int)ceil(0.7 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
-		//screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
-
-		for (auto particle : registry.view<ParticleSystem>()) {
-			registry.destroy(particle);
-		}
-
-		AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
-		player_state = set_up_stage;
-		num_bosses_spawned = 0;
-		num_mobs_spawned = 0;
-		prepare_setup_stage();
-		save_game();
+		return;
 	}
 
-	
+	setup_round_from_round_number(world_round_number);
+	// re-roll some fraction of map for weather terrains
+	int max_rerolls = (int)ceil(0.7 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
+	//screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
+		
+	for (auto particle : registry.view<ParticleSystem>()) {
+		registry.destroy(particle);
+	}
+
+	AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
+	player_state = set_up_stage;
+	num_bosses_spawned = 0;
+	num_mobs_spawned = 0;
+	prepare_setup_stage();
+	save_game();
 }
 
 void WorldSystem::handle_game_tips()
