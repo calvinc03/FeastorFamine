@@ -574,7 +574,7 @@ void WorldSystem::step(float elapsed_ms)
 			float speed = 800.f;
 			motion.velocity = speed * normalize(motion.velocity);
 			
-			if (motion.position.y < FOOD_NUM_Y_OFFSET)
+			if (motion.position.y < FOOD_NUM_Y_OFFSET || isnan(tangent_slope))
 			{
 				registry.get<SoundRef>(entity).play_sound = true;
 				add_health(health_drop.food_gain_amount);
