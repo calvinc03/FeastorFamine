@@ -111,6 +111,7 @@ public:
 	// game state
 	int game_state;
 	bool game_tips;
+	bool monster_tips;
 	static bool sandbox;
 	static bool survival_mode;
 
