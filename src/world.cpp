@@ -97,6 +97,7 @@ const std::map<std::string, int> season_str_to_enum = {
         {SUMMER_TITLE, SUMMER},
         {FALL_TITLE, FALL},
         {WINTER_TITLE, WINTER},
+		{FINAL_TITLE, SUMMER}
 };
 
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_state(start_menu),
@@ -869,22 +870,24 @@ void WorldSystem::end_battle_phase()
 	{
 		start_victory_screen();
 	}
+	else
+	{
+		setup_round_from_round_number(world_round_number);
+		// re-roll some fraction of map for weather terrains
+		int max_rerolls = (int)ceil(0.7 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
+		//screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
 
-	setup_round_from_round_number(world_round_number);
-	// re-roll some fraction of map for weather terrains
-	int max_rerolls = (int)ceil(0.7 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
-	//screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
-		
-	for (auto particle : registry.view<ParticleSystem>()) {
-		registry.destroy(particle);
+		for (auto particle : registry.view<ParticleSystem>()) {
+			registry.destroy(particle);
+		}
+
+		AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
+		player_state = set_up_stage;
+		num_bosses_spawned = 0;
+		num_mobs_spawned = 0;
+		prepare_setup_stage();
+		save_game();
 	}
-
-	AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
-	player_state = set_up_stage;
-	num_bosses_spawned = 0;
-	num_mobs_spawned = 0;
-	prepare_setup_stage();
-	save_game();
 }
 
 void WorldSystem::handle_game_tips()
@@ -1228,7 +1231,6 @@ void WorldSystem::restart()
 
 	if (sandbox) {
 		world_season_str = WINTER_TITLE;
-		season = WINTER;
 	}
 
 	registry.each(destroy_entity);
@@ -1361,6 +1363,8 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		world_season_str = round_json["season"];
 	}
 
+	season = season_str_to_enum.at(world_season_str);
+
 	if (game_state != help_menu)
 	{
 	    if (sandbox || survival_mode) {
@@ -1384,7 +1388,6 @@ void WorldSystem::setup_round_from_round_number(int round_number)
     if (world_season_str == SPRING_TITLE)
     {
 		reward_multiplier = 1.5f;
-		season = SPRING;
         int weather_int = rand() % 2 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1399,7 +1402,6 @@ void WorldSystem::setup_round_from_round_number(int round_number)
     else if (world_season_str == SUMMER_TITLE)
     {
 		reward_multiplier = 1.f;
-		season = SUMMER;
         int weather_int = rand() % 5 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1416,7 +1418,6 @@ void WorldSystem::setup_round_from_round_number(int round_number)
     else if (world_season_str == FALL_TITLE)
     {
 		reward_multiplier = 1.5f;
-		season = FALL;
         int weather_int = rand() % 5 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1431,7 +1432,6 @@ void WorldSystem::setup_round_from_round_number(int round_number)
     else if (world_season_str == WINTER_TITLE)
     {
 		reward_multiplier = 0.5f;
-		season = WINTER;
         int weather_int = rand() % 2 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1445,9 +1445,6 @@ void WorldSystem::setup_round_from_round_number(int round_number)
     }
 	else if (world_season_str == FINAL_TITLE)// FINAL_TITLE) else ifSPRING_TITLE
 	{
-		
-		season = SUMMER;
-
 		//fireball_delay_ms = FIREBALL_DELAY_MS;//5100;
 		//next_fireball_spawn = fireball_delay_ms;
 
@@ -1491,14 +1488,13 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	weather_text.content = weather_str.at(weather);
 	weather_text.colour = weather_str_colour.at(weather);
 	// update season wheel angle
-	UI_season_wheel::set_arrow(season_wheel_arrow_entity, season);
+	UI_season_wheel::set_arrow(season_wheel_arrow_entity, season, round_number);
 	// monster path reset
 	for (auto entity : registry.view<Path>())
 		registry.destroy(entity);
 	set_AI_paths = false;
 
 	UI_weather_icon::change_weather_icon(weather_icon_entity, weather);
-    season = season_str_to_enum.at(world_season_str);
 }
 
 void WorldSystem::setup_round_from_save_file(int round_number, int weather)
@@ -1547,6 +1543,8 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 		world_season_str = round_json["season"];
 	}
 
+	season = season_str_to_enum.at(world_season_str);
+
 	if (game_state != help_menu)
 	{
 		if (sandbox || survival_mode) {
@@ -1570,36 +1568,30 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 	// set up boss by season
 	if (world_season_str == SPRING_TITLE)
 	{
-		season = SPRING;
 		create_boss = SpringBoss::createSpringBossEntt;
 		if (max_boss > 0)
 			current_round_monster_types.emplace_back(SPRING_BOSS);
 	}
 	else if (world_season_str == SUMMER_TITLE)
 	{
-		season = SUMMER;
 		create_boss = SummerBoss::createSummerBossEntt;
 		if (max_boss > 0)
 			current_round_monster_types.emplace_back(SUMMER_BOSS);
 	}
 	else if (world_season_str == FALL_TITLE)
 	{
-		season = FALL;
 		create_boss = FallBoss::createFallBossEntt;
 		if (max_boss > 0)
 			current_round_monster_types.emplace_back(FALL_BOSS);
 	}
 	else if (world_season_str == WINTER_TITLE)
 	{
-		season = WINTER;
 		create_boss = WinterBoss::createWinterBossEntt;
 		if (max_boss > 0)
 			current_round_monster_types.emplace_back(WINTER_BOSS);
 	}
 	else if (world_season_str == FINAL_TITLE)// FINAL_TITLE) else ifSPRING_TITLE
 	{
-
-		season = SUMMER;
 		std::cout << "SPAWNING FINAL BOSS" << std::endl;
 		create_boss = DragonRig::createDragon; //FinalBoss::createFinalBossEntt; //
 	}
@@ -1626,14 +1618,13 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 	weather_text.content = weather_str.at(weather);
 	weather_text.colour = weather_str_colour.at(weather);
 	// update season wheel angle
-	UI_season_wheel::set_arrow(season_wheel_arrow_entity, season);
+	UI_season_wheel::set_arrow(season_wheel_arrow_entity, season, round_number);
 	// monster path reset
 	for (auto entity : registry.view<Path>())
 		registry.destroy(entity);
 	set_AI_paths = false;
 
 	UI_weather_icon::change_weather_icon(weather_icon_entity, weather);
-    season = season_str_to_enum.at(world_season_str);
 }
 
 void WorldSystem::damage_monster_helper(entt::entity e_monster, entt::entity e_projectile, int damage, bool slow) {
@@ -1835,10 +1826,38 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
 	{
-		game_setup();
-		create_start_menu();
-		player_state = set_up_stage;
-		game_state = start_menu;
+		if (registry.valid(entity_selected))
+		{
+			registry.destroy(entity_selected);
+			if (registry.valid(entity_range_circle))
+				registry.destroy(entity_range_circle);
+			placement_unit_selected = unit_type::NONE;
+			un_highlight();
+		}
+		else if (unit_selected)
+		{
+			unit_selected = false;
+			update_look_for_selected_buttons(GLFW_PRESS, false);
+			un_highlight();
+		}
+		else if (game_state == GameState::paused)
+		{
+			resume_game();
+		}
+		else
+		{
+			pause_game();
+			more_options_menu();
+		}
+		
+		/*
+		else
+		{
+			game_setup();
+			create_start_menu();
+			player_state = set_up_stage;
+			game_state = start_menu;
+		}*/
 	}
 
 	// hotkey for controls
@@ -2189,9 +2208,13 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 		}
 		else {
 			if (registry.valid(entity_selected))
+			{
 				registry.destroy(entity_selected);
+				un_highlight();
+			}
 			if (registry.valid(entity_range_circle))
 				registry.destroy(entity_range_circle);
+			
 		}
 	}
 
@@ -2435,8 +2458,9 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 	auto view_ui_selected_buttons = registry.view<UI_selected_unit, UI_element, ShadedMeshRef>();
 	auto view_ui_build_buttons = registry.view<UI_build_unit, UI_element, ShadedMeshRef>();
 
-	if (registry.valid(selected_range_circle))
+	if (registry.valid(selected_range_circle)) {
 		registry.destroy(selected_range_circle);
+	}
 	
 	// if a unit is selected and the sell button is not clicked
 	// show upgrade buttons and sell button
@@ -2693,35 +2717,28 @@ bool check_click_on_unit_selected_buttons(double mouse_pos_x, double mouse_pos_y
 // return true if a unit is selected; otherwise, false
 bool WorldSystem::click_on_unit(double mouse_pos_x, double mouse_pos_y)
 {
-	bool clicked_on_unit = false;
 	auto view_highlight = registry.view<HighlightBool>();
 	auto view_unit = registry.view<Unit>();
 	vec2 mouse_pos = mouse_in_world_coord({ mouse_pos_x, mouse_pos_y });
-	auto view_selectable = registry.view<Selectable, Motion>();
-	for (auto [entity, selectable, motion] : view_selectable.each())
-	{
-		vec2 scale = motion.scale / 2.f;
-		if (registry.has<GreenHouse>(entity)) {
-			scale /= 3.f;
-		}
-
-		// check click on units
-		if (sdBox(mouse_pos, motion.position, scale) < 0.0f && entity != entity_selected)
-		{
-			// add selected status
-			selectable.selected = true;
-			view_highlight.get<HighlightBool>(entity).highlight = true;
-
-			clicked_on_unit = true;
-		}
-		else
+	if (mouse_in_game_area(mouse_pos)) {
+		auto node = current_map.getNodeAtCoord(pixel_to_coord(mouse_pos));
+		auto view_selectable = registry.view<Selectable, Motion>();
+		for (auto [entity, selectable, motion] : view_selectable.each())
 		{
 			// remove selected status on all other units
 			selectable.selected = false;
 			view_highlight.get<HighlightBool>(entity).highlight = false;
 		}
+
+		if (registry.valid(node.occupying_entity)) {
+			view_selectable.get<Selectable>(node.occupying_entity).selected = true;
+			view_highlight.get<HighlightBool>(node.occupying_entity).highlight = true;
+
+			return true;
+		}
 	}
-	return clicked_on_unit;
+
+	return false;
 }
 
 vec2 WorldSystem::on_click_select_unit(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)

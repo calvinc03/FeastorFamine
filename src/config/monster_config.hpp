@@ -20,9 +20,9 @@ const std::map<int, int> monster_health = {
 	{ MOB, 30},
 	{ SPIDER, 80},
 	{ SPRING_BOSS, 60},
-	{ SUMMER_BOSS, 80},
-	{ FALL_BOSS, 150},
-	{ WINTER_BOSS, 200},
+	{ SUMMER_BOSS, 70},
+	{ FALL_BOSS, 90},
+	{ WINTER_BOSS, 100},
 	{ BURROW_BOSS, 20},
 	{ FINAL_BOSS, 5000},
 	{ FIREBALL_BOSS, 250}

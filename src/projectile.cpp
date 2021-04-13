@@ -7,7 +7,7 @@
 #include <ai.hpp>
 
 float EXPLOSION_FRAMES = 4.f;
-float FLAMETHROWER_FRAMES = 4.f;
+float FLAMETHROWER_FRAMES = 3.f;
 float ICEFIELD_FRAMES = 5.f;
 
 entt::entity Projectile::createProjectile(entt::entity e_unit, entt::entity e_monster, int damage)
@@ -277,7 +277,7 @@ entt::entity Explosion::createExplosion(entt::entity e_projectile, int damage)
     auto& motion = registry.emplace<Motion>(entity);
     motion.position = hunter_motion.position;
     // Setting initial values, scale is negative to make it face the opposite way
-    motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), 1);
+    motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), 4);
     motion.boundingbox = vec2({ motion.scale.x * 0.22f , motion.scale.y });
 
     Animate& animate = registry.emplace<Animate>(entity);

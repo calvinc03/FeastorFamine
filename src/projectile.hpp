@@ -24,14 +24,14 @@ struct Snowball
 struct Flamethrower
 {
     static entt::entity createFlamethrower(entt::entity e_unit, entt::entity e_monster, int damage);
-    float active_timer = 1500;
+    float active_timer = 1000;
     entt::entity e_unit; 
 };
 
 struct LaserBeam
 {
     static entt::entity createLaserBeam(entt::entity e_unit, entt::entity e_monster, int damage);
-    float active_timer = 1500;
+    float active_timer = 1000;
     entt::entity e_unit;
     vec2 unit_pos;
 };
@@ -44,13 +44,13 @@ struct Missile
 struct Explosion
 {
     static entt::entity createExplosion(entt::entity e_projectile, int damage);
-    float active_timer = 1500;
+    float active_timer = 1000;
     entt::entity e_unit;
 };
 
 struct IceField
 {
     static entt::entity createIceField(entt::entity e_unit, entt::entity e_monster, int damage);
-    float active_timer = 1500;
+    float active_timer = 1000;
     entt::entity e_unit;
 };

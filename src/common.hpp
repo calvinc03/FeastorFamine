@@ -31,6 +31,7 @@ using namespace glm;
 static const float PI = 3.14159265359f;
 
 static int season;
+static int weather;
 
 // C++ random number generator
 static std::default_random_engine rng;
