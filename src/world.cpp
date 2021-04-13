@@ -637,8 +637,8 @@ void WorldSystem::end_battle_phase_step(float elapsed_ms)
 		auto closeness_outline = TextFont::load("data/fonts/Closeness/closeness.outline-regular.ttf");
 		auto closeness_regular = TextFont::load("data/fonts/Closeness/closeness.regular.ttf");
 		vec2 text_position = get_center_text_position(WINDOW_SIZE_IN_PX, { WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2 }, 2.f, "ROUND CLEARED!");
-		auto round_clear_text = DisappearingText::createDisappearingText(closeness_regular, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 245.f / 255.f, 216.f / 255.f, 51.f / 255.f }));
-		DisappearingText::createDisappearingText(closeness_outline, "ROUND CLEARED!", text_position, 500, 2.f, vec3({ 0.f, 0.f, 0.f }));
+		auto round_clear_text = DisappearingText::createDisappearingText(closeness_regular, "ROUND CLEARED!", text_position, 1000, 2.f, vec3({ 245.f / 255.f, 216.f / 255.f, 51.f / 255.f }));
+		DisappearingText::createDisappearingText(closeness_outline, "ROUND CLEARED!", text_position, 1000, 2.f, vec3({ 0.f, 0.f, 0.f }));
 		auto& sound = registry.emplace<SoundRef>(round_clear_text);
 		sound.sound_reference = Mix_LoadWAV(audio_path("ui/round_cleared_sound.wav").c_str());
 		// change fastforward texture to not light up
@@ -667,7 +667,7 @@ void WorldSystem::end_battle_phase_step(float elapsed_ms)
 		// reset speed up factor
 		speed_up_factor = 1.f;
 		// if no greenhouse, shorten the end phase delay
-		if (registry.view<GreenHouse>().size() == 0)
+		if (!greenhouse_food_increased && registry.view<GreenHouse>().size() == 0)
 		{
 			end_of_battle_stage_dealy_ms -= 500;
 			greenhouse_food_increased = true;
