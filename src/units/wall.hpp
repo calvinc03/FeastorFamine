@@ -4,5 +4,5 @@
 
 struct Wall
 {
-	static entt::entity createWall(vec2 position, bool rotate);
+	static entt::entity createWall(vec2 position/*, bool rotate*/);
 };

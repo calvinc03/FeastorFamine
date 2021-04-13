@@ -2,6 +2,8 @@
 
 #include "common.hpp"
 #include "entt.hpp"
+#include "render.hpp"
+#include "units/unit.hpp"
 
 // Placeable Hunter unit 
 struct Hunter

@@ -9,5 +9,5 @@ struct SummerBoss
 public:
     std::string sprite;
     // Creates all the associated render resources and default transform
-    static entt::entity createSummerBossEntt();
+    static entt::entity createSummerBossEntt(int round_number);
 };

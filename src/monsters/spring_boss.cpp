@@ -1,17 +1,15 @@
 // Header
 #include "render.hpp"
 #include "spring_boss.hpp"
+#include "config/monster_config.hpp"
 
-const std::string WALK_SPRITE = "eagle/eagle_walk.png";
-const std::string RUN_SPRITE = "NA";
-const std::string ATTACK_SPRITE = "eagle/eagle_attack.png";
-const std::string DEATH_SPRITE = "eagle/eagle_death.png";
-const size_t WALK_FRAMES = 4.f;
-const size_t RUN_FRAMES = 0.f;
-const size_t ATTACK_FRAMES = 0.f;
-const size_t DEATH_FRAMES = 0.f;
+const std::string DIR = "monsters/spring/";
+const std::string WALK_SPRITE = DIR + "bird_walk.png";
+const std::string ATTACK_SPRITE = DIR + "bird_attack.png";
+const int WALK_FRAMES = 4;
+const int ATTACK_FRAMES = 4;
 
-entt::entity SpringBoss::createSpringBossEntt()
+entt::entity SpringBoss::createSpringBossEntt(int round_number)
 {
     // Reserve en entity
     auto entity = registry.create();
@@ -28,24 +26,24 @@ entt::entity SpringBoss::createSpringBossEntt()
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     //ECS::registry<ShadedMeshRef>.emplace(entity, resource);
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 11;
+    shaded_mesh.layer = LAYER_MONSTERS + SPRING_BOSS;
     // Initialize the position, scale, and physics components
     //auto& motion = ECS::registry<Motion>.emplace(entity);
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = grid_to_pixel_velocity(vec2(1, 0));
+    motion.velocity = grid_to_pixel_velocity(monster_velocities.at(SPRING_BOSS));
     motion.position = coord_to_pixel(FOREST_COORD);
-    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1, WALK_FRAMES);
+    motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1.3, WALK_FRAMES);
 
     // scale down bounding box from .png file based on number of frames
    // motion.boundingbox = vec2({ motion.scale.x * (1 / WALK_FRAMES), motion.scale.y });
     motion.boundingbox = vec2({ motion.scale.x * 0.85f/WALK_FRAMES, motion.scale.y });
 
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = 60;
+    monster.max_health = monster_health.at(SPRING_BOSS) + round_number * MONSTER_SCALE_HEALTH;
     monster.health = monster.max_health;
-    monster.damage = 20;
-    monster.reward = 30;
+    monster.damage = monster_damage.at(SPRING_BOSS);
+    monster.reward = monster_reward.at(SPRING_BOSS);
 
     monster.hit = false;
     monster.type = SPRING_BOSS;
@@ -56,16 +54,12 @@ entt::entity SpringBoss::createSpringBossEntt()
     monster.attack_sprite = ATTACK_SPRITE;
     monster.walk_frames = WALK_FRAMES;
     monster.walk_sprite = WALK_SPRITE;
-    monster.run_frames = RUN_FRAMES;
-    monster.run_sprite = RUN_SPRITE;
-    monster.death_frames = DEATH_FRAMES;
-    monster.death_sprite = DEATH_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
-    animate.frame = 0.f;
-    animate.state = 0.f;
+    animate.frame = 0;
+    animate.state = 0;
     animate.frame_num = WALK_FRAMES;
-    animate.state_num = 1.f;
+    animate.state_num = 1;
 
     registry.emplace<SpringBoss>(entity);
     registry.emplace<HitReaction>(entity);

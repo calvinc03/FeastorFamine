@@ -4,6 +4,7 @@
 #include "camera.hpp"
 #include "ui.hpp"
 #include "particle.hpp"
+#include "menu.hpp"
 
 #include "text.hpp"
 #include "entt.hpp"
@@ -18,11 +19,11 @@ void RenderSystem::animate(entt::entity entity)
 
 	auto &sprite = *registry.get<ShadedMeshRef>(entity).reference_to_cache;
 
-	float state_num = animate.state_num;
-	float frame_num = animate.frame_num;
+	float state_num = (float)animate.state_num;
+	float frame_num = (float)animate.frame_num;
 
-	float curr_state = animate.state;
-	float curr_frame = animate.frame;
+	float curr_state = (float)animate.state;
+	float curr_frame = (float)animate.frame;
 
 	vec2 scale_pos = {1.f, 1.f};
 	vec2 scale_tex = {1.f, 1.f};
@@ -86,6 +87,10 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 				scale.x = -abs(motion.scale.x);
 				angle = atan2(-motion.velocity.y, -motion.velocity.x);
 			}
+			if (motion.standing && abs(angle) >= PI/2) {
+			    angle /= -2;
+			    scale.x *= -1;
+			}
 		}
 	}
 	else if (registry.has<UI_element>(entity))
@@ -93,6 +98,7 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 		auto &ui_element = registry.get<UI_element>(entity);
 		position = ui_element.position;
 		scale = ui_element.scale;
+		angle = ui_element.angle;
 	}
 
 	// camera zoom
@@ -115,13 +121,33 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 		const auto& rigPart = registry.get<RigPart>(entity);
 		Motion root_motion = registry.get<Motion>(rigPart.root_entity);
 
+
 		transform.mat = mat3(1.0f);
 		transform.translate(root_motion.position * camera_scale);
 		transform.rotate(root_motion.angle);
 		transform.scale(camera_scale);
 
-		const auto& entity_transform = registry.get<Transform>(entity);
+		auto& entity_transform = registry.get<Transform>(entity);
 		transform.mat = transform.mat * entity_transform.mat;
+		//entity_transform = transform;
+	}
+	else if (registry.has<RigTexture>(entity)) {
+		auto rigPart = registry.get<RigTexture>(entity).rigPart;
+		auto& root_motion = registry.get<Motion>(registry.get<RigPart>(rigPart).root_entity);
+
+		auto& rigPart_motion = registry.get<Motion>(rigPart);
+		auto&  rigTexture_motion = registry.get<Motion>(entity);
+		Transform entity_transform = registry.get<Transform>(rigPart);
+
+		transform.mat = mat3(1.0f);
+		transform.translate(root_motion.position * camera_scale);
+		transform.rotate(root_motion.angle);
+		transform.scale(camera_scale);
+		transform.mat = transform.mat * entity_transform.mat;
+		transform.scale(vec2(1.0f, 1.0f) / rigPart_motion.scale);
+		transform.translate(rigTexture_motion.position);
+		transform.rotate(rigTexture_motion.angle);
+		transform.scale(rigTexture_motion.scale);
 	}
 	else 
 	{
@@ -210,7 +236,13 @@ void RenderSystem::drawTexturedMesh(entt::entity entity, const mat3 &projection)
 		}
 	}
 
+	GLint season_uloc = glGetUniformLocation(texmesh.effect.program, "season");
+	glUniform1i(season_uloc, season);
+
 	gl_has_errors();
+
+	GLuint time_uloc = glGetUniformLocation(texmesh.effect.program, "time");
+	glUniform1f(time_uloc, static_cast<float>(glfwGetTime() * 10.0f));
 
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(texmesh.effect.program, "fcolor");
@@ -300,8 +332,9 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 }
 
-void RenderSystem::drawParticle(GLuint billboard_vertex_buffer, GLuint particles_position_buffer, const mat3 &projection){
-    
+void RenderSystem::drawParticle(GLuint billboard_vertex_buffer, GLuint particles_position_buffer, const mat3 &projection)
+{
+	(void)billboard_vertex_buffer;
     // Update the buffers that OpenGL uses for rendering.
     // There are much more sophisticated means to stream data from the CPU to the GPU,
     // but this is outside the scope of this tutorial.
@@ -412,8 +445,8 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 	// Fake projection matrix, scales with respect to window coordinates
 	float left = 0.f + camera_motion.position.x;
 	float top = 0.f + camera_motion.position.y;
-	float right = WINDOW_SIZE_IN_PX.x + camera_motion.position.x;
-	float bottom = WINDOW_SIZE_IN_PX.y + camera_motion.position.y;
+	float right = (float)WINDOW_SIZE_IN_PX.x + camera_motion.position.x;
+	float bottom = (float)WINDOW_SIZE_IN_PX.y + camera_motion.position.y;
 
 	float sx = 2.f / (right - left);
 	float sy = 2.f / (top - bottom);
@@ -424,8 +457,8 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 	// some repeated code for the ui matrix -- any suggestions on how to avoid this?
 	float left_ui = 0.f;
 	float top_ui = 0.f;
-	float right_ui = WINDOW_SIZE_IN_PX.x;
-	float bottom_ui = WINDOW_SIZE_IN_PX.y;
+	float right_ui = (float)WINDOW_SIZE_IN_PX.x;
+	float bottom_ui = (float)WINDOW_SIZE_IN_PX.y;
 
 	float sx_ui = 2.f / (right_ui - left_ui);
 	float sy_ui = 2.f / (top_ui - bottom_ui);
@@ -434,8 +467,9 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 	mat3 projection_2D_ui{{sx_ui, 0.f, 0.f}, {0.f, sy_ui, 0.f}, {tx_ui, ty_ui, 1.f}};
 
 
-	auto view_mesh_ref = registry.view<ShadedMeshRef>();
 
+	auto view_mesh_ref = registry.view<ShadedMeshRef>();
+	auto view_render_property = registry.view<RenderProperty>();
 	std::vector<std::vector<entt::entity>> sort_by_layer = {};
 
 	// 100 layers
@@ -447,6 +481,7 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 		sort_by_layer[layer].push_back(entity);
 
 	}
+	bool drawn_particle = false;
 	for (auto entities : sort_by_layer)
 	{
 		for (auto entity : entities)
@@ -461,36 +496,50 @@ void RenderSystem::draw(GLuint billboard_vertex_buffer, GLuint particles_positio
 				{
 					drawTexturedMesh(entity, projection_2D_ui);
 				}
-                else if (registry.has<ParticleSystem>(entity))
-                {
-                    continue;
-                }
-				else
+				else if (registry.has<ParticleSystem>(entity))
+				{
+					// Truely render to the screen
+					if (!drawn_particle) {
+						if (registry.view<ParticleSystem>().size() != 0) {
+							glDisable(GL_DEPTH_TEST);
+							drawParticle(billboard_vertex_buffer, particles_position_buffer, projection_2D_ui);
+						}
+						drawn_particle = true;
+					}
+				}
+				else if(!registry.has<RigPart>(entity))
 				{
 					drawTexturedMesh(entity, projection_2D);
 				}
+				
 				if (registry.has<Text>(entity)) {
 
-					drawText(registry.get<Text>(entity), frame_buffer_size);
+					auto text = registry.get<Text>(entity);
+					if (text.show)
+						drawText(text, frame_buffer_size);
 				}
 				gl_has_errors();
 			}
-
 		}
 	}
+
+
+	//auto view_rigs = registry.view<RigPart>();
+	//for (auto entity : view_rigs) {
+	//	drawTexturedMesh(entity, projection_2D);
+	//}
+	
 
 	//useful for rendering entities with only text and no ShadedMeshRef
 	auto view_text = registry.view<Text>();
 	for (auto [entity, text] : view_text.each()) 	{
-		if(!registry.has<ShadedMeshRef>(entity))
-			drawText(text, frame_buffer_size);
+		if (!registry.has<ShadedMeshRef>(entity))
+		{
+			if (text.show)
+				drawText(text, frame_buffer_size);
+		}	
 	}
-    
-    // Truely render to the screen
-    if (registry.view<ParticleSystem>().size() != 0) {
-        glDisable(GL_DEPTH_TEST);
-        drawParticle(billboard_vertex_buffer, particles_position_buffer, projection_2D_ui);
-    }
+
 
 	drawToScreen();
 
@@ -536,13 +585,23 @@ void gl_has_errors()
 void RenderSystem::show_entity(entt::entity entity)
 {
 	// hide start_button
-	ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity);
-	shaded_mesh_ref.show = true;
+	if (registry.has<ShadedMeshRef>(entity)) {
+		ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity);
+		shaded_mesh_ref.show = true;
+	}
+	else if (registry.has<Text>(entity)) {
+		registry.get<Text>(entity).show = true;
+	}
 }
 
 void RenderSystem::hide_entity(entt::entity entity)
 {
 	// hide start_button
-	ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity);
-	shaded_mesh_ref.show = false;
+	if (registry.has<ShadedMeshRef>(entity)) {
+		ShadedMeshRef& shaded_mesh_ref = registry.view<ShadedMeshRef>().get<ShadedMeshRef>(entity);
+		shaded_mesh_ref.show = false;
+	}
+	else if (registry.has<Text>(entity)) {
+		registry.get<Text>(entity).show = false;
+	}
 }

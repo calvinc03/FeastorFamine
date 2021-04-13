@@ -16,17 +16,12 @@ public:
 	~AISystem();
 
 	void step(float elapsed_ms);
-	void updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster);
+	void updateProjectileMonsterCollision(entt::entity monster);
 
 	struct MapAI {
         static bool is_walkable(GridMap& current_map, ivec2 coord)
         {
-            if (is_inbounds(coord))
-            {
-                int occupancy = current_map.getNodeAtCoord(coord).occupancy;
-                return occupancy == NONE || occupancy == FOREST || occupancy == VILLAGE;
-            }
-            return false;
+            return is_inbounds(coord);
         }
         static std::vector<ivec2> findPathBFS(GridMap& current_map,
                                               ivec2 start_coord = FOREST_COORD,
@@ -36,12 +31,13 @@ public:
         static std::vector<ivec2> findPathAStar(GridMap& current_map, int monster_type,
                                                 ivec2 start_coord = FOREST_COORD,
                                                 ivec2 goal_coord = VILLAGE_COORD,
-                                                bool is_valid(GridMap&, ivec2) = is_walkable,
-                                                int neighbors = ALL_NBRS);
+                                                bool is_valid(GridMap&, ivec2) = is_walkable);
         static void setRandomMapWeatherTerrain(GridMap& map, int weather);
-        static void setRandomWeatherTerrain(GridMap& map, int max_rerolls);
-        static void setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain = TERRAIN_PAVEMENT);
+        static void setRandomWeatherTerrain(GridMap& map, int max_rerolls, int weather);
+        static void setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, terrain_type terrain = TERRAIN_PAVEMENT);
 	};
+
+    static vec2 calculate_position(entt::entity animal, float time);
 
 	struct MonstersAI {
 		static std::shared_ptr<BTSelector> createBehaviorTree();
@@ -50,4 +46,6 @@ public:
 private:
 	// PhysicsSystem handle
 	PhysicsSystem* physics;
+
+    void updateUnitTarget(entt::entity e_unit) const;
 };

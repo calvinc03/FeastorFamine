@@ -1,17 +1,15 @@
 // Header
 #include "render.hpp"
 #include "fall_boss.hpp"
+#include "config/monster_config.hpp"
 
-const std::string WALK_SPRITE = "bear/bear_walk.png";
-const std::string RUN_SPRITE = "NA";
-const std::string ATTACK_SPRITE = "bear/bear_attack.png";
-const std::string DEATH_SPRITE = "bear/bear_death.png";
-const size_t WALK_FRAMES = 6.f;
-const size_t RUN_FRAMES = 0.f;
-const size_t ATTACK_FRAMES = 7.f;
-const size_t DEATH_FRAMES = 6.f;
+const std::string DIR = "monsters/fall/";
+const std::string WALK_SPRITE = DIR+"bear_walk.png";
+const std::string ATTACK_SPRITE = DIR+"bear_attack.png";
+const int WALK_FRAMES = 4;
+const int ATTACK_FRAMES = 4;
 
-entt::entity FallBoss::createFallBossEntt()
+entt::entity FallBoss::createFallBossEntt(int round_number)
 {
     // Reserve en entity
     auto entity = registry.create();
@@ -27,21 +25,21 @@ entt::entity FallBoss::createFallBossEntt()
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 11;
+    shaded_mesh.layer = LAYER_MONSTERS + FALL_BOSS;
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 0.f;
-    motion.velocity = grid_to_pixel_velocity(vec2(1, 0));
+    motion.velocity = grid_to_pixel_velocity(monster_velocities.at(FALL_BOSS));
     motion.position = coord_to_pixel(FOREST_COORD);
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1, WALK_FRAMES);
     // scale down bounding box from .png file based on number of frames
     motion.boundingbox = vec2({ motion.scale.x *0.85f / WALK_FRAMES, motion.scale.y });
-
+    motion.standing = true;
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = 150;
+    monster.max_health = monster_health.at(FALL_BOSS) + round_number * MONSTER_SCALE_HEALTH;
     monster.health = monster.max_health;
-    monster.damage = 100;
-    monster.reward = 50;
+    monster.damage = monster_damage.at(FALL_BOSS);
+    monster.reward = monster_reward.at(FALL_BOSS);
 
     monster.type = FALL_BOSS;
     monster.hit = false;
@@ -52,16 +50,14 @@ entt::entity FallBoss::createFallBossEntt()
     monster.attack_sprite = ATTACK_SPRITE;
     monster.walk_frames = WALK_FRAMES;
     monster.walk_sprite = WALK_SPRITE;
-    monster.run_frames = RUN_FRAMES;
-    monster.run_sprite = RUN_SPRITE;
-    monster.death_frames = DEATH_FRAMES;
-    monster.death_sprite = DEATH_SPRITE;
+    monster.slow_walk = true;
 
     Animate& animate = registry.emplace<Animate>(entity);
-    animate.frame = 0.f;
-    animate.state = 0.f;
+    animate.frame = 0;
+    animate.state = 0;
     animate.frame_num = WALK_FRAMES;
-    animate.state_num = 1.f;
+    animate.state_num = 1;
+    animate.update_interval = 2;
 
     registry.emplace<FallBoss>(entity);
     registry.emplace<HitReaction>(entity);

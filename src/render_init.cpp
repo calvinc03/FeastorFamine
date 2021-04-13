@@ -107,6 +107,46 @@ void RenderSystem::createColoredMesh(ShadedMesh& texmesh, std::string shader_nam
 	// Loading shaders
 	texmesh.effect.load_from_file(shader_path(shader_name)+".vs.glsl", shader_path(shader_name)+".fs.glsl");
 }
+void RenderSystem::createTexturedMesh(ShadedMesh& texmesh, std::string texture_path, std::string shader_name)
+{
+	if (texture_path.length() > 0)
+		texmesh.texture.load_from_file(texture_path.c_str());
+
+
+	for (auto& vi : texmesh.mesh.vertex_indices)
+		std::cout << "idx " << vi << std::endl;
+
+	for (auto& v : texmesh.mesh.vertices) {
+		std::cout << "pos " << v.position.x << " " << v.position.y << std::endl;
+		std::cout << "uv " << v.texcoord.x << " " << v.texcoord.y << std::endl;
+	}
+
+	// Vertex Array
+	glGenVertexArrays(1, texmesh.mesh.vao.data());
+	glGenBuffers(1, texmesh.mesh.vbo.data());
+	glGenBuffers(1, texmesh.mesh.ibo.data());
+	glBindVertexArray(texmesh.mesh.vao);
+
+
+	// Vertex Buffer creation
+	glBindBuffer(GL_ARRAY_BUFFER, texmesh.mesh.vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(ColoredVertex) * texmesh.mesh.vertices.size(), texmesh.mesh.vertices.data(), GL_STATIC_DRAW);
+
+	// Index Buffer creation
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, texmesh.mesh.ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * texmesh.mesh.vertex_indices.size(), texmesh.mesh.vertex_indices.data(), GL_STATIC_DRAW);
+	gl_has_errors();
+
+	//Note, one could set vertex attributes here...
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	//glEnableVertexAttribArray(0);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0); // Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
+
+	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
+
+	// Loading shaders
+	texmesh.effect.load_from_file(shader_path(shader_name) + ".vs.glsl", shader_path(shader_name) + ".fs.glsl");
+}
 
 // Initialize the screen texture from a standard sprite
 void RenderSystem::initScreenTexture()
@@ -121,3 +161,4 @@ void RenderSystem::initScreenTexture()
 	screen_state_entity = registry.create();
 	registry.emplace<ScreenState>(screen_state_entity);
 }
+

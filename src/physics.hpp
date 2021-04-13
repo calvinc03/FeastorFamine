@@ -1,9 +1,9 @@
 #pragma once
 
 #include "common.hpp"
-//#include "tiny_ecs.hpp"
 #include "entt.hpp"
 #include <Observer.hpp>
+
 // A simple physics system that moves rigid bodies and checks for collision
 class PhysicsSystem
 {
@@ -11,6 +11,7 @@ class PhysicsSystem
 
 public:
 	void step(float elapsed_ms);
+	void title_screen_step(float elapsed_ms);
 	void notifyObservers(entt::entity entity_i, entt::entity entity_j);
 	void attach(Observer* obs);
 
@@ -24,5 +25,6 @@ public:
 		entt::entity other;
 		Collision(entt::entity& other);
 	};
-
+private:
+	void update_projectiles(float elapsed_ms);
 };

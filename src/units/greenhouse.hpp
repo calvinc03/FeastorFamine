@@ -10,4 +10,5 @@ struct GreenHouse
     static entt::entity createGreenHouse(vec2 pos);
     int workers = 0;
     int food_production = workers * 5;
+    int next_grow = 10;
 };

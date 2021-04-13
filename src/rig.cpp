@@ -1,15 +1,13 @@
 #include "rig.hpp"
 #include <iostream>
+#include "rope.hpp"
 
-vec2 point_in_world_space(vec2 pos, Transform transform_part, Transform root_transform);
 Transform parent(Transform parent, Motion child_motion, Motion root_motion);
 void animate_rig_fk_helper(entt::entity character, float elapsed_ms);
-//TODO: find_keyframe function + make it based on elapsed_ms
-//TODO: complex prescribed motion for keyframes interpolation
 
 
 //create a simple entity that takes part in kinematic chain
-entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 offset, vec2 origin, float angle)
+entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 offset, vec2 origin, float angle, vec2 scale)
 {
     auto entity = registry.create();
 
@@ -21,35 +19,69 @@ entt::entity Rig::createPart(entt::entity root_entity, std::string name, vec2 of
         RenderSystem::createColoredMesh(resource, "spider"); // TODO: need texturedMesh function
     }
     ShadedMeshRef& mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
-    mesh_ref.layer = 60;
+    mesh_ref.layer = 0; 
+   // mesh_ref.show = false;
 
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = angle;
     motion.velocity = { 0, 0 };
-    motion.scale = resource.mesh.original_size;
+    motion.scale = resource.mesh.original_size*scale;
     motion.position =  offset;
     motion.scale.y *= -1;
     motion.boundingbox = motion.scale;
     motion.origin = origin;
 
-    registry.emplace<Transform>(entity);
+    auto& transform = registry.emplace<Transform>(entity);
+    transform.mat = glm::mat3(1.0);
     auto& rigPart = registry.emplace<RigPart>(entity, root_entity);
-
-    registry.emplace<KeyFrames_FK>(entity);
 
     return entity;
 }
 
 
+entt::entity Rig::createPartTextured(entt::entity rigPart, std::string name, vec2 offset, float angle, vec2 scale, int layer)
+{
+    auto entity = registry.create();
+
+    std::string key = name;
+    ShadedMesh& resource = cache_resource(key);
+    if (resource.effect.program.resource == 0)
+    {
+        resource = ShadedMesh();
+        RenderSystem::createSprite(resource, textures_path(name), "monster");
+    }
+
+
+    ShadedMeshRef& mesh_ref = registry.emplace<ShadedMeshRef>(entity, resource);
+    mesh_ref.layer = layer;
+
+    auto& motion = registry.emplace<Motion>(entity);
+    motion.angle = angle;
+    motion.velocity = { 0, 0 };
+    motion.scale = scale; //resource.mesh.original_size * 
+    motion.position = offset;
+    //motion.scale.y *= -1;
+    motion.boundingbox = motion.scale;
+
+    auto& transform = registry.emplace<Transform>(entity);
+    transform.mat = glm::mat3(1.0);
+    
+    registry.emplace<RigTexture>(entity, rigPart);
+
+    return entity;
+}
+
 //updates transforms after updating angles
 void RigSystem::update_rig(entt::entity character) {
     auto& rig = registry.get<Rig>(character);
     auto& root_motion = registry.get<Motion>(character);
+
     //create parent constraints
     for (auto& chain : rig.chains) {
-        Transform previous_transform;
-        previous_transform.mat = glm::mat3(1.0);
-        for (auto& part : chain) {
+
+        Transform previous_transform = registry.get<Transform>(chain.root);
+
+        for (auto& part : chain.chain_vector) {
             auto& transform = registry.get<Transform>(part);
             auto& motion = registry.get<Motion>(part);
             transform = parent(previous_transform, motion, root_motion);
@@ -59,7 +91,7 @@ void RigSystem::update_rig(entt::entity character) {
 
     //must adjust scale after parent constraints!!
     for (auto& chain : rig.chains) {
-        for (auto& part : chain) {
+        for (auto& part : chain.chain_vector) {
             auto& transform = registry.get<Transform>(part);
             auto& motion = registry.get<Motion>(part);
             transform.scale(root_motion.scale * motion.scale);
@@ -68,11 +100,17 @@ void RigSystem::update_rig(entt::entity character) {
 }
 
 void Rig::delete_rig(entt::entity character) {
+    if (registry.has<Rope_attachement>(character)) {
+        RopeRig::delete_rope(registry.get<Rope_attachement>(character).rope_rig);
+    }
     auto& rig = registry.get<Rig>(character);
     for (auto chains : rig.chains) {
-        for (auto part : chains) {
+        for (auto part : chains.chain_vector) {
             registry.destroy(part);
         }
+    }
+    for (auto texture : rig.textures) {
+        registry.destroy(texture);
     }
     registry.destroy(character);
 }
@@ -87,18 +125,26 @@ void RigSystem::animate_rig_fk(entt::entity character, float elapsed_ms) {
     update_rig(character);
 }
 
+//TODO check if FK component exists
 //TODO: check corner cases of lower/upper bound
 void animate_rig_fk_helper(entt::entity character, float elapsed_ms) {
+    if (!registry.has<FK_Animations>(character)) {
+        return;
+    }
+
     auto& timeline = registry.get<Timeline>(character);
     timeline.current_time += elapsed_ms/1000.0f;
     float t_current = timeline.current_time;
     
-    bool finished_loop = true;
+
     auto& rig = registry.get<Rig>(character);
+    auto& fk_animations = registry.get<FK_Animations>(character);
+    auto& animation = fk_animations.anims[fk_animations.anim_state].anim;
+
     for (auto chain : rig.chains) {
-        for (auto part : chain) {
+        for (auto part : chain.chain_vector) {
             std::map<float, float>::iterator lo, hi;
-            auto& keyframes = registry.get<KeyFrames_FK>(part);
+            auto& keyframes = animation[part];
             lo = keyframes.data.lower_bound(t_current);
             hi = keyframes.data.upper_bound(t_current);
 
@@ -112,27 +158,29 @@ void animate_rig_fk_helper(entt::entity character, float elapsed_ms) {
                 auto& motion = registry.get<Motion>(part);
                 float new_angle = mix(a0, a1, ratio);
                 motion.angle = new_angle;
-
-                finished_loop = false; //when all chains are at the end, this doesn't get set
             }
         }
     }
-    if (finished_loop && timeline.loop) {
-        timeline.current_time = 0;
-    }
+
 }
 
 
 //make a procedurally animated character. animation speed based on velocity.
 //able to take recoil from hits
 void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
+    if (!registry.has<IK_Animations>(character)) {
+        return;
+    }
     auto& rig = registry.get<Rig>(character);
     auto& root_motion = registry.get<Motion>(character);
     auto& timeline = registry.get<Timeline>(character);
     timeline.current_time += elapsed_ms / 1000.0f;
     float t_current = timeline.current_time;
 
-    auto& keyframes = registry.get<KeyFrames_IK>(character);
+  
+    auto& animations = registry.get<IK_Animations>(character);
+    auto& keyframes = animations.anims[animations.anim_state];
+
     bool finished_loop = true;
 
     for(int i = 0; i < keyframes.data.size(); i++) {
@@ -149,10 +197,11 @@ void RigSystem::animate_rig_ik(entt::entity character, float elapsed_ms) {
             vec2 a1 = hi->second;
             float ratio = (t_current - t0) / (t1 - t0);
 
-            vec2 new_pos = mix(a0, a1, ratio); // linear interpolation
-
-            ik_solve(character, new_pos * root_motion.scale, i);
-           // ik_solve(character, (new_pos * root_motion.scale + root_motion.position), i);
+            if (a0 != a1) {
+                vec2 new_pos = mix(a0, a1, ratio); // linear interpolation
+                ik_solve(character, new_pos * root_motion.scale, i); // i == which chain. keyframe data has to manually align with chain #
+            }
+ 
 
             finished_loop = false;
         }
@@ -177,30 +226,27 @@ void RigSystem::ik_solve(entt::entity character, vec2 goal, int chain_idx) {
     root_transform.translate(root_motion.position);
     root_transform.rotate(root_motion.angle);
     
-    //vec2 goal_world_space = goal;
     vec2 goal_world_space = root_transform.mat*vec3(goal.x, goal.y,1); 
     
     std::vector<float> segment;
     float total_length = 0;
     
     //get total length of arm and the length of each segment
-    for (int k = 0; k < rig.chains[chain_idx].size(); k++) {
-        auto& part_motion = registry.get<Motion>(rig.chains[chain_idx][k]);
-        float len = 2 * length(part_motion.origin * root_motion.scale);
+    for (int k = 0; k < rig.chains[chain_idx].chain_vector.size(); k++) {
+        auto& part_motion = registry.get<Motion>(rig.chains[chain_idx].chain_vector[k]);
+        float len = 2 * length(part_motion.origin * root_motion.scale * part_motion.scale);
         segment.push_back(len);
         total_length += len;
     }
     float offset_goal = total_length;
 
-    for (int k = 0; k < rig.chains[chain_idx].size(); k++) {
+    for (int k = 0; k < rig.chains[chain_idx].chain_vector.size(); k++) {
         float alpha = 0.1f;
-        auto& part = rig.chains[chain_idx][k];
+        auto& part = rig.chains[chain_idx].chain_vector[k];
         auto& part_motion = registry.get<Motion>(part);
         auto& part_transform = registry.get<Transform>(part);
 
         offset_goal -= segment[k];
-        //vec2 pt = point_in_world_space(part_motion.origin, part_transform, root_transform) - root_motion.position;
-        //std::cout << pt.x << " " << pt.y << std::endl;
 
         float score_old = length(goal_world_space - point_in_world_space(part_motion.origin, part_transform, root_transform));
         for (int i = 0; i < 10; i++) {        
@@ -242,4 +288,5 @@ Transform parent(Transform parent, Motion child_motion, Motion root_motion) {
     child.mat = parent.mat * child.mat; //this applies parent's transforms to child
     return child;
 }
+
 

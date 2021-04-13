@@ -7,5 +7,5 @@
 struct Mob
 {
     // Creates all the associated render resources and default transform
-    static entt::entity createMobEntt();
+    static entt::entity createMobEntt(int round_number);
 };

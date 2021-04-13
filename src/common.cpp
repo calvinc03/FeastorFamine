@@ -1,6 +1,8 @@
 #include "common.hpp"
 #include "text.hpp"
+#include "rig.hpp"
 #include <iostream>
+#include <world.hpp>
 
 // Note, we could also use the functions from GLM but we write the transformations here to show the uderlying math
 void Transform::scale(vec2 scale)
@@ -49,16 +51,16 @@ vec2 mouse_in_world_coord(vec2 mouse_pos)
 }
 
 vec2 coord_to_pixel(ivec2 grid_coord) {
-    return grid_coord * GRID_CELL_SIZE + GRID_OFFSET;
+    return grid_coord * GRID_CELL_SIZE + GRID_OFFSET + ivec2(0, UI_TOP_BAR_HEIGHT);
 }
 
 ivec2 pixel_to_coord(vec2 pixel_position) {
-    return (ivec2)pixel_position / GRID_CELL_SIZE;
+    return ((ivec2)pixel_position - ivec2(0, UI_TOP_BAR_HEIGHT)) / GRID_CELL_SIZE;
 }
 
 // convert original scale to some set multiple of cell units
 vec2 scale_to_grid_units(vec2 original_scale, float cell_units, int frames) {
-    vec2 scale =  vec2(original_scale.x / (float)frames, original_scale.y);
+    vec2 scale =  abs(vec2(original_scale.x / (float)frames, original_scale.y));
     vec2 unit_scale = original_scale / max(scale.x, scale.y);
     return unit_scale * cell_units * (float) GRID_CELL_SIZE;
 }
@@ -67,22 +69,6 @@ vec2 scale_to_grid_units(vec2 original_scale, float cell_units, int frames) {
 // eg. unit_velocity = vec2(1,1) means moving 1 grid right and 1 grid down every second
 vec2 grid_to_pixel_velocity(vec2 unit_velocity) {
     return unit_velocity * (vec2) GRID_CELL_SIZE;
-}
-
-// create hit points when projectile hits monsters
-void create_hit_points_text(int hit_points, entt::entity e_damaged)
-{
-    // used to scale the hit points size
-    float max_possible_damage = 150;
-    float min_text_size = 0.5;
-    float max_text_size = 1.5;
-
-    auto motion = registry.get<Motion>(e_damaged);
-    float on_screen_time_ms = 300;
-    float text_scale = (float)hit_points * (max_text_size - min_text_size) / max_possible_damage + min_text_size;
-
-    auto d_text = DisappearingText::createDisappearingText(std::to_string(hit_points), motion.position, on_screen_time_ms, text_scale);
-    registry.emplace<HitPointsText>(d_text);
 }
 
 bool is_inbounds(ivec2 grid_coord) {
@@ -100,9 +86,9 @@ std::vector<vec2> bezierVelocities(std::vector<vec2> points) {
 // total time in milliseconds
 std::vector<vec2> bezierCurve(std::vector<vec2> points, float total_time) {
 	size_t num_points = points.size();
-	float num_frames = round(total_time / ELAPSED_MS); 
+	float num_frames = round(total_time / (ELAPSED_MS * WorldSystem::speed_up_factor)); 
 	float step = 1 / num_frames;
-	std::vector<float> coefficients = pascalNRow(num_points);
+	std::vector<float> coefficients = pascalNRow((int)num_points);
 	
 	std::vector<vec2> bezier_points; 
 	for (int i = 0; i <= num_frames; i++) {
@@ -130,4 +116,39 @@ std::vector<float> pascalNRow(int n) {
 	}
 
 	return row;
+}
+
+nlohmann::json get_json(std::string json_path)
+{
+	std::ifstream input_stream(json_path);
+
+	if (input_stream.fail())
+	{
+		std::cout << "Not reading json file for path \"" + json_path + "\" \n";
+		return NULL;
+	}
+
+	try {
+		auto json = nlohmann::json::parse(input_stream);
+		return json;
+	}
+	catch (std::exception) {
+		return NULL;
+	}
+}
+
+void Monster::setSprite(entt::entity entity){
+    if (registry.has<Rig>(entity)) {
+        return;
+    }
+    // Create the rendering components
+    std::string key = sprite;
+    ShadedMesh& resource = cache_resource(key);
+    if (resource.effect.program.resource == 0)
+    {
+        resource = ShadedMesh();
+        RenderSystem::createSprite(resource, textures_path(sprite), "monster");
+    }
+    auto& shaded_mesh_ref = registry.get<ShadedMeshRef>(entity);
+    shaded_mesh_ref.reference_to_cache = &resource;
 }

@@ -15,8 +15,14 @@
 #include <monsters/final_boss.hpp>
 #include <monsters/fireball_boss.hpp>
 #include <units/unit.hpp>
+#include <units/priestess.hpp>
+#include <units/robot.hpp>
+#include <units/exterminator.hpp>
+#include <units/snowmachine.hpp>
+#include <monsters/dragon_rig.hpp>
 
 const size_t BULLET_UPGRADE = 2;
+const size_t FLAMETHROWER_UPGRADE = 3;
 
 
 AISystem::AISystem(PhysicsSystem* physics) 
@@ -27,57 +33,144 @@ AISystem::AISystem(PhysicsSystem* physics)
 
 AISystem::~AISystem() {}
 
+// calculates the position of a monster after a given amount of time in milliseconds
+vec2 AISystem::calculate_position(entt::entity animal, float time)
+{
+    auto& motion = registry.get<Motion>(animal);
+    auto& monster = registry.get<Monster>(animal);
+    float num_frames = round(time / (ELAPSED_MS * WorldSystem::speed_up_factor));
+
+    vec2 speed = motion.velocity * (ELAPSED_MS * WorldSystem::speed_up_factor * monster.speed_multiplier) / 1000.f;
+    
+    int current_index = monster.current_path_index;
+    vec2 current_pos = motion.position;
+    ivec2 node;
+    float distance = 0;
+    while (num_frames > 0) {
+        if (current_index + 1>= monster.path_coords.size()) {
+            return coord_to_pixel(VILLAGE_COORD);
+        }
+        current_index += 1;
+        node = monster.path_coords.at(current_index);
+        distance += length(coord_to_pixel(node) - current_pos);
+        speed = length(speed) * normalize(coord_to_pixel(node) - current_pos);
+        float occurrance = 0;
+        while (distance - length(speed) >= 0) {
+            distance -= length(speed);
+            num_frames -= 1;
+            occurrance += 1;
+            if (num_frames <= 0) return current_pos + speed * occurrance;
+        }
+        current_pos = coord_to_pixel(node);
+    }
+    return current_pos;
+}
+
+struct compare_distance_to_village {
+    bool operator()(entt::entity const& e1, entt::entity const& e2) {
+        return length(coord_to_pixel(VILLAGE_COORD) - registry.get<Motion>(e1).position) > length(coord_to_pixel(VILLAGE_COORD) - registry.get<Motion>(e2).position);
+    }
+};
+
 void AISystem::step(float elapsed_ms)
 {
 	//(void)elapsed_ms; // placeholder to silence unused warning until implemented
 	
-	for (auto& unit : registry.view<Unit>()) {
-		auto hunter = entt::to_entity(registry, unit);
-		auto& placeable_unit = registry.get<Unit>(hunter);
-
-		// TODO: scale projectile spawn with the current speed of the game 
-		placeable_unit.next_projectile_spawn -= elapsed_ms;
-	}
-
-	// Attack mobs if in range of hunter
-    for (auto unit : registry.view<Unit>()) {
-        auto hunter = entt::to_entity(registry, unit);
-        auto& motion_h = registry.get<Motion>(hunter);
-        auto& placeable_unit = registry.get<Unit>(hunter);
-
-        Motion motion_monster;
-        float min_distance = INFINITY;
-        for (auto monster : registry.view<Monster>()) {
-            auto animal = entt::to_entity(registry, monster);
-            auto& motion_m = registry.get<Motion>(animal);
-
-            float distance_to_village = length(motion_m.position - coord_to_pixel(VILLAGE_COORD));
-            float distance_to_hunter = length(motion_m.position - motion_h.position);
-            if (distance_to_village < min_distance && distance_to_hunter <= placeable_unit.attack_range) {
-                min_distance = length(motion_m.position - coord_to_pixel(VILLAGE_COORD));
-                motion_monster = motion_m;
-            }
+	for (auto& e_unit : registry.view<Unit>()) {
+		auto& unit = registry.get<Unit>(e_unit);
+		// TODO: scale projectile spawn with the current speed of the game
+		if (unit.is_active) {
+            unit.next_projectile_spawn -= elapsed_ms;
+            updateUnitTarget(e_unit);
 		}
-        if (min_distance == INFINITY) continue;
-
-        float opposite = motion_monster.position.y - motion_h.position.y;
-        float adjacent = motion_monster.position.x - motion_h.position.x;
-        float distance = sqrt(pow(adjacent, 2) + pow(opposite, 2));
-        motion_h.angle = atan2(opposite, adjacent);
-
-        if (placeable_unit.next_projectile_spawn < 0.f && placeable_unit.health > 0) {
-            placeable_unit.next_projectile_spawn = placeable_unit.attack_interval_ms;
-            if (placeable_unit.upgrades >= BULLET_UPGRADE) {
-                Projectile::createProjectile(motion_h.position, motion_monster.position, placeable_unit.damage);
-            }
-            else {
-                RockProjectile::createRockProjectile(motion_h.position, motion_monster.position, placeable_unit.damage);
-            }
-        }
 	}
 }
 
-void AISystem::updateProjectileMonsterCollision(entt::entity projectile, entt::entity monster)
+void AISystem::updateUnitTarget(entt::entity e_unit) const {// Attack mobs if in range of hunter
+
+        auto& motion_h = registry.get<Motion>(e_unit);
+        auto& unit = registry.get<Unit>(e_unit);
+
+        // priority queue containing Motion of all monsters to the village
+        std::priority_queue<entt::entity, std::vector<entt::entity>, compare_distance_to_village> priority_queue;
+
+        for (auto monster : registry.view<Monster>()) {
+            auto monster_position = registry.get<Motion>(monster).position;
+
+            float distance_to_hunter = length(monster_position - motion_h.position);
+
+            if (distance_to_hunter < unit.attack_range || registry.has<DragonRig>(monster)) {
+                priority_queue.push(monster);
+            }
+        }
+
+        if (!priority_queue.empty() && !motion_h.standing) {
+            auto monster = priority_queue.top();
+            auto& motion_monster = registry.get<Motion>(monster);
+            vec2 direction = motion_monster.position - motion_h.position;
+            motion_h.angle = atan2(direction.y, direction.x);
+        }
+
+        if (unit.next_projectile_spawn <= 0.f && unit.health > 0) {
+
+            int num_spawned_prj = 0;
+            std::vector<entt::entity> projectiles;
+
+            while (num_spawned_prj < unit.num_projectiles && !priority_queue.empty())
+            {
+                auto monster = priority_queue.top();
+                priority_queue.pop();
+                auto& motion_monster = registry.get<Motion>(monster);
+
+                vec2 direction = motion_monster.position - motion_h.position;
+                if (!motion_h.standing) {
+                    motion_h.angle = atan2(direction.y, direction.x);
+                }
+
+                auto projectile = unit.create_projectile(e_unit, monster, unit.damage + unit.damage_buff);
+                projectiles.push_back(projectile);
+                
+                num_spawned_prj += 1;
+
+            }
+
+            if (unit.type == ROBOT)
+            {
+                auto& robot = registry.get<Robot>(e_unit);
+                for (auto prj_entity : robot.lasers)
+                {
+                    if (registry.valid(prj_entity))
+                        projectiles.push_back(prj_entity);
+                }
+                robot.lasers = projectiles;
+            }
+            else if (unit.type == EXTERMINATOR && unit.path_2_upgrade == 0)
+            {
+                auto& exterminator = registry.get<Exterminator>(e_unit);
+                for (auto prj_entity : exterminator.flamethrowers)
+                {
+                    if (registry.valid(prj_entity))
+                        projectiles.push_back(prj_entity);
+                }
+                exterminator.flamethrowers = projectiles;
+            }
+            else if (unit.type == SNOWMACHINE && unit.path_1_upgrade == 0 && unit.path_2_upgrade > 0)
+            {
+                auto& snowmachine = registry.get<SnowMachine>(e_unit);
+                for (auto prj_entity : snowmachine.snowfields)
+                {
+                    if (registry.valid(prj_entity))
+                        projectiles.push_back(prj_entity);
+                }
+                snowmachine.snowfields = projectiles;
+            }
+
+            if (num_spawned_prj >= 1)
+                unit.next_projectile_spawn = unit.attack_interval_ms / unit.attack_speed_buff;
+        }
+}
+
+void AISystem::updateProjectileMonsterCollision(entt::entity monster)
 {
 	if (registry.has<Monster>(monster))
 	{
@@ -85,22 +178,17 @@ void AISystem::updateProjectileMonsterCollision(entt::entity projectile, entt::e
 		if (!boss.hit)
 		{
 			boss.hit = true;
-
-			if (boss.speed_multiplier > 1)
-			{
-				boss.sprite = boss.run_sprite;
-				boss.frames = boss.run_frames;
-			}
-
-			auto& motion = registry.get<Motion>(monster);
-
+//
+//			if (boss.speed_multiplier > 1)
+//			{
+//				boss.sprite = boss.run_sprite;
+//				boss.frames = boss.run_frames;
+//			}
 		}
 	}
     else {
 		auto& hit_reaction = registry.get<HitReaction>(monster);
 		hit_reaction.hit_bool = true;
-
-		auto& motion = registry.get<Motion>(monster);
 	}
 }
 
@@ -174,19 +262,33 @@ struct iterable_pq: std::priority_queue<search_node, std::vector<search_node>, c
 
 // diagonal distance
 float heuristic_diagonal_dist(GridMap& current_map, int monster_type, ivec2 from_coord, ivec2 to_coord) {
-    float dx = abs(from_coord.x - to_coord.x);
-    float dy = abs(from_coord.y - to_coord.y);
-    float unit_move_cost = 1;
+    int dx = abs(from_coord.x - to_coord.x);
+    int dy = abs(from_coord.y - to_coord.y);
+    float unit_move_cost = 1.f;
     // if calculating unit move (as opposed to heuristic over multiple grids), get the corresponding cost of that terrain
     if (length((vec2)(from_coord - to_coord)) <= sqrt(2)) {
-        unit_move_cost = monster_move_cost.at({monster_type, current_map.getNodeAtCoord(to_coord).terrain});
+        auto& node = current_map.getNodeAtCoord(to_coord);
+        unit_move_cost = monster_move_cost.at({monster_type, node.terrain});
+        if (node.occupancy != NONE && node.occupancy != FOREST &&  node.occupancy != VILLAGE) {
+            unit_move_cost += monster_attack_cost.at(monster_type);
+        }
     }
     float diag_cost = sqrt(2 * unit_move_cost);
     return unit_move_cost * (dx + dy) + (diag_cost - 2 * unit_move_cost) * min(dx, dy);
 }
 
-std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int monster_type, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2), int neighbor_type) {
-    std::vector<ivec2> neighbors = neighbor_map.at(neighbor_type);
+std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int monster_type, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2)) {
+    std::vector<ivec2> neighbors;
+    if (monster_type == SUMMER_BOSS || monster_type == FALL_BOSS || monster_type == WINTER_BOSS) {
+        neighbors = neighbor_map.at(DIRECT_NBRS);
+    }
+    else if (monster_type == SPRING_BOSS) {
+        neighbors = neighbor_map.at(DIAGONAL_NBRS);
+    }
+    else {
+        neighbors = neighbor_map.at(ALL_NBRS);
+    }
+
     std::vector<std::vector<search_node>> parent(MAP_SIZE_IN_COORD.x,std::vector<search_node> (MAP_SIZE_IN_COORD.y, {ivec2(-1, -1), INFINITY, INFINITY}));
     iterable_pq open;
     std::vector<search_node> closed;
@@ -227,12 +329,15 @@ std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int mons
                     break;
                 }
             }
-            for (search_node node : closed) {
-                if (node.coord == nbr_coord && node.f < nbr_node.f) {
-                    exists_lower = true;
-                    break;
+            if (!exists_lower) {
+                for (search_node node : closed) {
+                    if (node.coord == nbr_coord && node.f < nbr_node.f) {
+                        exists_lower = true;
+                        break;
+                    }
                 }
             }
+
             if (exists_lower) {
                 continue;
             }
@@ -246,35 +351,25 @@ std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int mons
     return std::vector<ivec2>();
 }
 
-int get_random_weather_terrain(int weather) {
-    std::map<int, float> weather_terrain_default_prob = {
-            {TERRAIN_MUD,      1},
-            {TERRAIN_PUDDLE,   1},
-            {TERRAIN_DRY,      1},
-            {TERRAIN_FIRE,     1},
-            {TERRAIN_ICE,      1},
-    };
+terrain_type get_random_weather_terrain(int weather) {
+    std::map<terrain_type, float> weather_terrain_default_prob = season_terrain_prob.at(season);
 
     // multiply each prob with a rand number and weather multiplier
     for (auto& [terrain, prob] : weather_terrain_default_prob) {
         prob = uniform_dist(rng) * weather_terrain_prob_multiplier.at(std::pair(weather,terrain));
     }
 
-    vec2 max_prob(-1, -1);
+    
+    std::pair<terrain_type, float> max_prob;
 
     for (auto& [terrain, prob] : weather_terrain_default_prob) {
-        if (prob > max_prob.y){
-            max_prob.x = terrain;
-            max_prob.y = prob;
+        if (prob > max_prob.second){
+            max_prob.first = terrain;
+            max_prob.second = prob;
         }
     }
 
-    // approx 30% tiles will be weather tiles
-    if (max_prob.y > 0.7) {
-        return max_prob.x;
-    }
-
-    return TERRAIN_DEFAULT;
+    return max_prob.first;
 }
 
 void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map, int weather) {
@@ -282,19 +377,18 @@ void AISystem::MapAI::setRandomMapWeatherTerrain(GridMap& map, int weather) {
         for (int j = 0; j < MAP_SIZE_IN_COORD.y; j++) {
             auto& node = map.getNodeAtCoord(ivec2(i,j));
 
-            if (node.terrain != TERRAIN_PAVEMENT && node.occupancy != VILLAGE && node.occupancy != FOREST) {
-                int weather_terrain = get_random_weather_terrain(weather);
-                map.setGridTerrain(ivec2(i, j), weather_terrain);
+            if (node.terrain != TERRAIN_PAVEMENT && node.occupancy == NONE) {
+                map.setGridTerrain(ivec2(i, j), get_random_weather_terrain(weather));
             }
         }
     }
 }
 
-void AISystem::MapAI::setRandomWeatherTerrain(GridMap &map, int max_rerolls) {
+void AISystem::MapAI::setRandomWeatherTerrain(GridMap &map, int max_rerolls, int weather) {
     for (int i = 0; i < max_rerolls; i++) {
         ivec2 random_coord(uniform_dist(rng)*MAP_SIZE_IN_COORD.x,  uniform_dist(rng)*MAP_SIZE_IN_COORD.y);
         auto& node = map.getNodeAtCoord(random_coord);
-        if (node.terrain != TERRAIN_PAVEMENT) {
+        if (node.terrain != TERRAIN_PAVEMENT && node.occupancy == NONE) {
             map.setGridTerrain(random_coord, get_random_weather_terrain(weather));
         }
     }
@@ -304,8 +398,8 @@ void AISystem::MapAI::setRandomWeatherTerrain(GridMap &map, int max_rerolls) {
 bool is_valid_terrain_path(GridMap& current_map, ivec2 coord)
 {
     if (is_inbounds(coord)) {
-        int terrain = current_map.getNodeAtCoord(coord).terrain;
-        int occupancy = current_map.getNodeAtCoord(coord).occupancy;
+        auto terrain = current_map.getNodeAtCoord(coord).terrain;
+        auto occupancy = current_map.getNodeAtCoord(coord).occupancy;
         return terrain != TERRAIN_PAVEMENT && occupancy == NONE;
     }
     return false;
@@ -354,7 +448,7 @@ ivec2 get_random_neighbor(GridMap& map, ivec2 current_coord, ivec2 end_coord, in
     return ivec2(0,0);
 }
 
-void AISystem::MapAI::setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, int terrain) {
+void AISystem::MapAI::setRandomMapPathTerran(GridMap& map, ivec2 start_coord, ivec2 end_coord, terrain_type terrain) {
 
 
     map.setGridTerrain(start_coord, terrain);
@@ -372,7 +466,7 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
 	//std::shared_ptr <BTNode> stop = std::make_unique<Stop>();
 	std::shared_ptr <BTNode> run = std::make_unique<Run>();
     std::shared_ptr <BTNode> knockback = std::make_unique<Knockback>();
-    std::shared_ptr <BTNode> attack = std::make_unique<Attack>();
+//    std::shared_ptr <BTNode> attack = std::make_unique<Attack>();
 
 	std::shared_ptr <BTIfCondition> conditional_donothing = std::make_unique<BTIfCondition>(
 		donothing,
@@ -380,41 +474,41 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
 	);
 	std::shared_ptr <BTIfCondition> conditional_grow = std::make_unique<BTIfCondition>(
 		grow,
-		[](entt::entity e) {return registry.has<FallBoss>(e); }
+		[](entt::entity e) {return registry.has<WinterBoss>(e); }
 	);
-    std::shared_ptr <BTIfCondition> conditional_attack = std::make_unique<BTIfCondition>(
-            attack,
-            [](entt::entity e) {
-                // must be spring boss to attack for now
-                if (!registry.has<SpringBoss>(e)) {
-                    return false;
-                }
-                // must be near the center of corresponding grid to attack
-                auto& motion = registry.get<Motion>(e);
-                ivec2 coord = pixel_to_coord(motion.position);
-                if (abs(length(coord_to_pixel(coord) - motion.position)) > length(motion.velocity) * ELAPSED_MS / 1000.f) {
-                    return false;
-                }
-
-                // can attack if next to a placeable unit that has health left
-                // TODO: allow various size monsters
-                for (ivec2 nbr : neighbor_map.at(DIRECT_NBRS)) {
-                    // check if neighbor in-bounds
-                    ivec2 nbr_coord = coord + nbr;
-                    if (!is_inbounds(nbr_coord)) {
-                        continue;
-                    }
-                    // check if containing at least one attackable unit
-                    auto& node = WorldSystem::current_map.getNodeAtCoord(nbr_coord);
-                    if (node.occupancy != NONE
-                            && registry.has<Unit>(node.occupying_entity)
-                            && registry.get<Unit>(node.occupying_entity).health > 0) {
-                       return true;
-                    }
-                }
-                return false;
-            }
-    );
+//    std::shared_ptr <BTIfCondition> conditional_attack = std::make_unique<BTIfCondition>(
+//            attack,
+//            [](entt::entity e) {
+//                // must be spring boss to attack for now
+//                if (!registry.has<SpringBoss>(e)) {
+//                    return false;
+//                }
+//                // must be near the center of corresponding grid to attack
+//                auto& motion = registry.get<Motion>(e);
+//                ivec2 coord = pixel_to_coord(motion.position);
+//                if (abs(length(coord_to_pixel(coord) - motion.position)) > length(motion.velocity) * ELAPSED_MS / 1000.f) {
+//                    return false;
+//                }
+//
+//                // can attack if next to a placeable unit that has health left
+//                // TODO: allow various size monsters
+//                for (ivec2 nbr : neighbor_map.at(DIRECT_NBRS)) {
+//                    // check if neighbor in-bounds
+//                    ivec2 nbr_coord = coord + nbr;
+//                    if (!is_inbounds(nbr_coord)) {
+//                        continue;
+//                    }
+//                    // check if containing at least one attackable unit
+//                    auto& node = WorldSystem::current_map.getNodeAtCoord(nbr_coord);
+//                    if (node.occupancy != NONE
+//                            && registry.has<Unit>(node.occupying_entity)
+//                            && registry.get<Unit>(node.occupying_entity).health > 0) {
+//                       return true;
+//                    }
+//                }
+//                return false;
+//            }
+//    );
 	/*std::shared_ptr <BTIfCondition> conditional_stop = std::make_unique<BTIfCondition>(
 		stop,
 		[](entt::entity e) {return registry.has<SummerBoss>(e); }
@@ -429,7 +523,7 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
     );
     std::shared_ptr <BTIfCondition> conditional_knockback = std::make_unique<BTIfCondition>(
         knockback,
-        [](entt::entity e) {return registry.has<WinterBoss>(e); }
+        [](entt::entity e) {return registry.has<FallBoss>(e); }
     );
 
 	std::vector<std::shared_ptr<BTIfCondition>> cond_nodes;
@@ -452,13 +546,13 @@ std::shared_ptr<BTSelector> AISystem::MonstersAI::createBehaviorTree() {
     std::shared_ptr <BTIfCondition> conditional_walk = std::make_unique<BTIfCondition>(
         walk,
         // return true for all monsters except the final boss and its fireballs
-        [](entt::entity e) {return !(registry.has<FinalBoss>(e) || registry.has<FireballBoss>(e)); }
+        [](entt::entity e) {return !(registry.has<DragonRig>(e) || registry.has<FireballBoss>(e)); }
     );
 
     std::shared_ptr<BTNode> final_boss_walk = std::make_unique<Dragon>();
     std::shared_ptr <BTIfCondition> conditional_final_boss_walk = std::make_unique<BTIfCondition>(
         final_boss_walk,
-        [](entt::entity e) {return registry.has<FinalBoss>(e); }
+        [](entt::entity e) {return registry.has<DragonRig>(e); }
     );
 
     std::shared_ptr<BTNode> fireball_walk = std::make_unique<Fireball>();

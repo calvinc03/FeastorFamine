@@ -11,11 +11,10 @@
 #include "world.hpp"
 #include "entt.hpp"
 //#include "tiny_ecs.hpp"
-
+#include "sound_system.hpp"
 #include "render.hpp"
 #include "physics.hpp"
 #include "ai.hpp"
-
 #include "debug.hpp"
 #include "health_bar.hpp"
 
@@ -35,8 +34,12 @@ int main()
 	// Initialize the main systems
 	PhysicsSystem physics;
 	AISystem ai(&physics);
+	
 	WorldSystem world(WINDOW_SIZE_IN_PX, &physics);
 	RenderSystem renderer(*world.window);
+	SoundSystem sound_system(&world);
+
+	world.screen_sprite = &renderer.screen_sprite;
 	
 	world.game_setup();
 	world.create_start_menu();
@@ -45,7 +48,7 @@ int main()
 	//world.restart();
 	auto t = Clock::now();
 	// Variable timestep loop
-    float elapsed_ms = 20;
+    float elapsed_ms = ELAPSED_MS;
     
     static const GLfloat g_vertex_buffer_data[] = {
          -0.5f, -0.5f, 0.0f,
@@ -75,27 +78,48 @@ int main()
 		float actual_ms = static_cast<float>((std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count()) / 1000.f;
 
 		while (actual_ms < elapsed_ms) {
-            now = Clock::now();
-            actual_ms = static_cast<float>((std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count()) / 1000.f;
-        }
-        t = now;
+			now = Clock::now();
+			actual_ms = static_cast<float>((std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count()) / 1000.f;
+		}
+		t = now;
 
 		DebugSystem::clearDebugComponents();
 		HealthSystem::updateHealthComponents(elapsed_ms);
-		if (world.game_state == WorldSystem::in_game) {
+		if (world.game_state == WorldSystem::story_card) {
+			world.animate_speaker(elapsed_ms * world.speed_up_factor);
+		}
+		else if (world.game_state == WorldSystem::in_game) {
 			if (world.player_state == WorldSystem::set_up_stage) {
-				world.set_up_step(elapsed_ms);
-                physics.step(elapsed_ms);
+				world.set_up_step(elapsed_ms * world.speed_up_factor);
+				physics.step(elapsed_ms * world.speed_up_factor);
 			}
 			else if (world.player_state == WorldSystem::battle_stage) {
-				ai.step(elapsed_ms);
-				world.step(elapsed_ms);
-				physics.step(elapsed_ms);
+				ai.step(elapsed_ms * world.speed_up_factor);
+				world.step(elapsed_ms * world.speed_up_factor);
+				physics.step(elapsed_ms * world.speed_up_factor);
 			}
 		}
-        
+		else if (world.game_state == WorldSystem::darken_screen)
+		{
+			world.darken_screen_step(elapsed_ms);
+		}
+		else if (world.game_state == WorldSystem::lost_game_screen)
+		{
+			world.animation_step(elapsed_ms);
+		}
+		else if (world.game_state == WorldSystem::victory_screen)
+		{
+			world.animation_step(elapsed_ms);
+		}
+		else if (world.game_state == WorldSystem::GameState::start_menu)
+		{
+			world.title_screen_step(elapsed_ms);
+			physics.title_screen_step(elapsed_ms);
+		}
+		sound_system.step(actual_ms);
 		renderer.draw(billboard_vertex_buffer, particles_position_buffer);
 	}
 	//
+
 	return EXIT_SUCCESS;
 }

@@ -1,15 +1,12 @@
 // Header
 #include "fireball_boss.hpp"
 #include "render.hpp"
+#include "config/monster_config.hpp"
 
-const std::string WALK_SPRITE = "projectile.png";
-const std::string RUN_SPRITE = "NA";
+const std::string WALK_SPRITE = "monsters/final/fireball.png";
 const std::string ATTACK_SPRITE = "NA";
-const std::string DEATH_SPRITE = "NA";
-const size_t WALK_FRAMES = 1.f;
-const size_t RUN_FRAMES = 0.f;
-const size_t ATTACK_FRAMES = 0;
-const size_t DEATH_FRAMES = 0.f;
+const int WALK_FRAMES = 3;
+const int ATTACK_FRAMES = 0;
 
 entt::entity FireballBoss::createFireballBossEntt()
 {
@@ -27,21 +24,21 @@ entt::entity FireballBoss::createFireballBossEntt()
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 12;
+    shaded_mesh.layer = LAYER_MONSTERS + FIREBALL_BOSS;
 
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
     motion.angle = 200.f;
-    motion.velocity = vec2(1, 0);
-    motion.position = coord_to_pixel(vec2(7, DRAGON_COORD.y + 1.5));
-    motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), .75f);
+    motion.velocity = monster_velocities.at(FIREBALL_BOSS);
+    motion.position = coord_to_pixel(vec2(6, DRAGON_COORD.y + 1.5));
+    motion.scale = 5.0f*scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), .75f);
     motion.boundingbox = { 75, 75 };
 
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = 500;
+    monster.max_health = monster_health.at(FIREBALL_BOSS);
     monster.health = monster.max_health;
-    monster.damage = 100;
-    monster.reward = 50;
+    monster.damage = monster_damage.at(FIREBALL_BOSS);
+    monster.reward = monster_reward.at(FIREBALL_BOSS);
 
     monster.hit = false;
     monster.type = FIREBALL_BOSS;
@@ -52,16 +49,12 @@ entt::entity FireballBoss::createFireballBossEntt()
     monster.attack_sprite = ATTACK_SPRITE;
     monster.walk_frames = WALK_FRAMES;
     monster.walk_sprite = WALK_SPRITE;
-    monster.run_frames = RUN_FRAMES;
-    monster.run_sprite = RUN_SPRITE;
-    monster.death_frames = DEATH_FRAMES;
-    monster.death_sprite = DEATH_SPRITE;
 
     Animate& animate = registry.emplace<Animate>(entity);
-    animate.frame = 0.f;
-    animate.state = 0.f;
+    animate.frame = 0;
+    animate.state = 0;
     animate.frame_num = WALK_FRAMES;
-    animate.state_num = 1.f;
+    animate.state_num = 1;
 
     registry.emplace<FireballBoss>(entity);
     registry.emplace<HitReaction>(entity);

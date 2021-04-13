@@ -10,7 +10,8 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     auto entity = registry.create();
 
     // Create the rendering components
-    std::string key = unit_str.at(WATCHTOWER);
+    //std::string key = unit_str.at(WATCHTOWER);
+    std::string key = "xd";
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {
@@ -20,7 +21,7 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 50;
+    shaded_mesh.layer = LAYER_UNITS;
 
     // Initialize the position component
     auto& motion = registry.emplace<Motion>(entity);
@@ -29,15 +30,7 @@ entt::entity WatchTower::createWatchTower(vec2 pos)
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
 
     auto& unit = registry.emplace<Unit>(entity);
-    unit.damage = 10;
-    unit.attack_interval_ms = 800;
-    unit.attack_range = 400;
-    unit.workers = 0;
-    unit.upgrades = 0;
-    unit.type = WATCHTOWER;
-    unit.cost = WATCHTOWER_COST;
-    unit.upgrade_cost = WATCHTOWER_UPGRADE_COST;
-    unit.sell_price = WATCHTOWER_SELL_PRICE;
+    //unit = watchtower_unit;
 
     registry.emplace<WatchTower>(entity);
     registry.emplace<Selectable>(entity);

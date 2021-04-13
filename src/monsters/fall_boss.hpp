@@ -8,5 +8,5 @@
 struct FallBoss
 {
     // Creates all the associated render resources and default transform
-    static entt::entity createFallBossEntt();
+    static entt::entity createFallBossEntt(int round_number);
 };

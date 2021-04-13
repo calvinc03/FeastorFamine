@@ -62,6 +62,7 @@ struct ColoredVertex
 {
 	vec3 position;
 	vec3 color;
+	vec2 texcoord;
 };
 
 // Single Vertex Buffer element for textured sprites (textured.vs.glsl)
@@ -101,6 +102,7 @@ struct Effect
 struct Mesh
 {
 	void loadFromOBJFile(std::string obj_path);
+	void loadFromOBJFile_textured(std::string obj_path);
 	vec2 original_size = {1.f,1.f};
 	GLResource<BUFFER> vbo;
 	GLResource<BUFFER> ibo;
@@ -112,6 +114,7 @@ struct Mesh
 struct ScreenState
 {
 	float darken_screen_factor = -1;
+	bool all_dark = false;
 };
 
 // ShadedMesh datastructure for storing mesh, shader, and texture objects
@@ -134,6 +137,13 @@ struct ShadedMeshRef
 	ShadedMeshRef(ShadedMesh& mesh);
 };
 
+// replacing layer and show in shadedmeshref, so that entity without shadedmeshref can also get layers and show property (ex. texts)
+struct RenderProperty
+{
+	bool show = true;
+	int layer = 0;
+};
+
 // A struct to refer to debugging graphics in the ECS
 struct DebugComponent
 {
@@ -149,6 +159,7 @@ struct HitReaction
 {
 	bool hit_bool;
 	float counter_ms = 0;
+	float counter_interval = 750;
 };
 //for ui 
 struct HighlightBool

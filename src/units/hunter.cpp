@@ -1,9 +1,5 @@
 // Header
 #include "hunter.hpp"
-#include "render.hpp"
-#include "menu.hpp"
-#include "button.hpp"
-#include "unit.hpp"
 
 entt::entity Hunter::createHunter(vec2 pos)
 {
@@ -21,7 +17,7 @@ entt::entity Hunter::createHunter(vec2 pos)
     
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
     ShadedMeshRef& shaded_mesh = registry.emplace<ShadedMeshRef>(entity, resource);
-    shaded_mesh.layer = 50;
+    shaded_mesh.layer = LAYER_UNITS;
 
     // Initialize the position component
     auto& motion = registry.emplace<Motion>(entity);
@@ -30,14 +26,7 @@ entt::entity Hunter::createHunter(vec2 pos)
     motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
 
     auto& unit = registry.emplace<Unit>(entity);
-    unit.damage = 10;
-    unit.attack_interval_ms = 1500;
-    unit.attack_range = 300;
-    unit.upgrades = 0;
-    unit.type = HUNTER;
-    unit.cost = HUNTER_COST;
-    unit.upgrade_cost = HUNTER_UPGRADE_COST;
-    unit.sell_price = HUNTER_SELL_PRICE;
+    unit = hunter_unit;
 
     registry.emplace<Hunter>(entity);
     registry.emplace<Selectable>(entity);

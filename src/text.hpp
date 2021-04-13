@@ -71,6 +71,9 @@ struct Text {
 
     // The text's colour. Default value of {0.0f, 0.0f, 0.0f} (black)
     glm::vec3 colour;
+
+    // flag to display the Text
+    bool show = true;
 };
 
 // Forward declaration, only for internal use.
@@ -152,13 +155,29 @@ private:
  */
 void drawText(const Text& text, glm::ivec2 frameBufferSize);
 
+vec2 get_center_text_position(vec2 text_box_scale, vec2 text_box_position, float text_scale, std::string text);
+
 struct DisappearingText
 {
-    static entt::entity createDisappearingText(std::string text, vec2 position, float on_screen_time_ms, float scale = 1.f);
+    static entt::entity createDisappearingText(std::shared_ptr<TextFont> text_font, std::string text, vec2 position, float on_screen_time_ms, float scale = 1.f, vec3 colour = { 1.f, 0.f, 0.f });
     float on_screen_time_ms;
+};
+
+struct HealthChangeText
+{
+    static void create_health_gain_text(int num, int health);
+    static void create_health_deduct_text(int num, int health);
 };
 
 struct HitPointsText
 {
+    // create hit points when projectile hits monsters
+    static void create_hit_points_text(int damage, entt::entity e_damaged, vec3 color);
+    float min_scale;
+};
 
+struct EffectHitText
+{
+    static void create_effect_hit_text(std::string text, entt::entity e_damaged, vec3 color);
+    float y_distance;
 };
