@@ -7,11 +7,11 @@
 //enum Story { title_screen, settings, default_menu, help_menu };
 
 static const std::string STORY_TEXT_PER_LEVEL[] = {
-	"Hi there, buddah! Welcome to the@sandbox version of Feast or Famine!@There's lots to do, and lots to learn aboot!@All units are free, you can change the tiles,@and you can spawn units at will. Have fun!",
+	"Hey there, buddah! Welcome to the@sandbox version of Feast or Famine!@There's lots to do, and lots to learn aboot!@All units are free, you can change the tiles,@and you can spawn units at will. Have fun!",
 	"Mayor, please help us! There are some@horrible monsters approaching! Lay your@defenses so that they don't reach our village!",
 	"Whew, thank you! That was too close.@I feat that's not the last of them, though.@Legend tells of an evil lurking in the forest.@...@What's that in the sky?",
 	"Eagles?!? What will they think of next?@That's all of them for now, but there are@more smaller monsters approaching.@Spring is over, get ready for the heat!",
-	"Thank you, mayor! I fear that this may not@be the last of them. At this time in@the summer, some of the villagers tell stories@about giant spiders lurking in the forest...",
+	"Thank you, mayor! I fear that this may not@be the last of them. At this time in@the summer, some of the villagers tell stories@about giant moose lurking in the forest...",
 	"You've taken care of all the moose!@The weather is turning rainy as we go into fall,@and a lot of monsters will be searching for@places to lay low for the winter...",
 	"Bad news, mayor. We have word from our@scouts that there are several bears headed@towards the village. They must be looking for@some winter lodging.@Don't let them steal our food!",
 	"Brrrrr...Food is getting scarce.@The monsters are getting desperate.@Be careful, I sense a large attack force...",

@@ -97,6 +97,7 @@ const std::map<std::string, int> season_str_to_enum = {
         {SUMMER_TITLE, SUMMER},
         {FALL_TITLE, FALL},
         {WINTER_TITLE, WINTER},
+		{FINAL_TITLE, SUMMER}
 };
 
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_state(start_menu),
@@ -539,7 +540,7 @@ void WorldSystem::step(float elapsed_ms)
 		food_num_text.content = std::to_string(health);
 
 		// Increment round number if all enemies are not on the map and projectiles are removed
-		if (num_bosses_spawned == max_boss && num_mobs_spawned == max_mobs)
+		if (num_bosses_spawned >= max_boss && num_mobs_spawned >= max_mobs)
 		{
 			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty() && registry.view<HealthOrb>().empty())
 			{
@@ -867,6 +868,7 @@ void WorldSystem::end_battle_phase()
 	if (world_round_number == MAX_ROUND_NUMBER)
 	{
 		start_victory_screen();
+		return;
 	}
 
 	setup_round_from_round_number(world_round_number);
