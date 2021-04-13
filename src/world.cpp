@@ -1790,10 +1790,29 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
 	{
-		game_setup();
-		create_start_menu();
-		player_state = set_up_stage;
-		game_state = start_menu;
+		if (registry.valid(entity_selected))
+		{
+			registry.destroy(entity_selected);
+			if (registry.valid(entity_range_circle))
+				registry.destroy(entity_range_circle);
+			placement_unit_selected = unit_type::NONE;
+			un_highlight();
+		}
+		else if (unit_selected)
+		{
+			unit_selected = false;
+			update_look_for_selected_buttons(GLFW_PRESS, false);
+			un_highlight();
+		}
+		else if (game_state == GameState::paused)
+		{
+			resume_game();
+		}
+		else
+		{
+			pause_game();
+			more_options_menu();
+		}
 	}
 
 	// hotkey for controls
@@ -2144,7 +2163,10 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 		}
 		else {
 			if (registry.valid(entity_selected))
+			{
 				registry.destroy(entity_selected);
+				un_highlight();
+			}
 			if (registry.valid(entity_range_circle))
 				registry.destroy(entity_range_circle);
 		}
