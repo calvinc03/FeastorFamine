@@ -3,7 +3,7 @@
 #include "render.hpp"
 #include <iostream>
 
-const std::string WALK_SPRITE = "speakers/dave_animate.png";
+const std::string WALK_SPRITE = "speakers/helge_animate.png";
 const std::string ATTACK_SPRITE = "NA";
 
 const int WALK_FRAMES = 6;
