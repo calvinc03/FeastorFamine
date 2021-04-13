@@ -97,6 +97,7 @@ const std::map<std::string, int> season_str_to_enum = {
         {SUMMER_TITLE, SUMMER},
         {FALL_TITLE, FALL},
         {WINTER_TITLE, WINTER},
+		{FINAL_TITLE, SUMMER}
 };
 
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_state(start_menu),
