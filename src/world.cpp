@@ -863,10 +863,14 @@ void WorldSystem::start_victory_screen()
 void WorldSystem::end_battle_phase()
 {
 	world_round_number = sandbox ? -1 : world_round_number + 1;
-	
+	std::cout << std::to_string(world_round_number) << std::endl;
+	std::cout << std::to_string(MAX_ROUND_NUMBER) << std::endl;
+	std::cout << std::to_string(world_round_number == MAX_ROUND_NUMBER) << std::endl;
 	if (world_round_number == MAX_ROUND_NUMBER)
 	{
+		std::cout << "here" << std::endl;
 		start_victory_screen();
+		return;
 	}
 
 	setup_round_from_round_number(world_round_number);
@@ -1739,6 +1743,10 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 			for (entt::entity projectile : registry.view<Projectile>())
 			{
 				registry.destroy(projectile);
+			}
+			for (entt::entity orb : registry.view<HealthOrb>())
+			{
+				registry.destroy(orb);
 			}
 			for (entt::entity monster : registry.view<Monster>())
 			{
