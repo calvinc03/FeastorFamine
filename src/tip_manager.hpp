@@ -57,19 +57,19 @@ const std::vector<std::string> start_tips_2 = {
 };
 
 const std::vector<std::string> start_tips_3 = {
-	"You can only place, upgrade, and sell units",
-	"during the setup phase, which we are",
-	"currently on. Once the battle phase starts,",
-	"you will not be able to control units until",
-	"they are defeated."
+	"You can only place units during the setup",
+	"phase, which we are currently on. Once",
+	"the battle phase starts, you will only be",
+	"able to control units by upgrading or",
+	"selling them."
 };
 
 const std::vector<std::string> start_tips_4 = {
 	"Enemies spawn in the forest in the top left",
 	"and will attack your village in the bottom",
-	"right. They will try to take the shortest",
-	"path, so place your units wisely. Note that",
-	"they will not always take the grey stone road!"
+	"right. Their path will appear on the map,",
+	"and you can see what unit will travel on",
+	"which path by clicking the wanted board."
 };
 
 const std::vector<std::string> start_tips_5 = {
@@ -176,4 +176,44 @@ const std::vector<std::string> snowmachine_tips = {
 	"they will also slow them down.",
 	"This effect does not stack, so spread",
 	"these units out for maximum effect."
+};
+
+const std::vector<std::string> eagle_tips = {
+	"Eagles fly over walls and will attack",
+	"your units if they cross their path.",
+	"Their speed is not affected by any tiles.",
+	"They speed up when they are hit, so take",
+	"them out quickly!"
+};
+
+const std::vector<std::string> moose_tips = {
+	"Moose are very dangerous foes. They are",
+	"very fast and increase their speed when",
+	"they are hit. They like to attack your",
+	"units, but thankfully they don't have",
+	"too much health!"
+};
+
+const std::vector<std::string> bear_tips = {
+	"Bears are slow moving and suffer a ",
+	"knockback effect when hit. Like moose,",
+	"they like attacking any units in their",
+	"path. They have a ton of health so make",
+	"sure there's enough firepoweron their path!"
+};
+
+const std::vector<std::string> penguin_tips = {
+	"Penguins are big, with lots of health and",
+	"do lots of damage. When they are hit, they",
+	"grow and will do more damage. They are very",
+	"slow, except when they find patches of ice",
+	"they will slide at incredible speeds!"
+};
+
+const std::vector<std::string> dragon_tips = {
+	"The dragon is a formidable opponent! She",
+	"launches powerful fireballs at your village,",
+	"but they can be shot down before they reach",
+	"the village. The dragon only appears in the",
+	"bottom left; make sure you have units there!"
 };

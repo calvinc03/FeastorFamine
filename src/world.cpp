@@ -109,7 +109,8 @@ WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_st
     next_particle_spawn(0),
     num_bosses_spawned(0),
 	selected_view_change(true),
-	game_tips(true)
+	game_tips(true),
+	monster_tips(false)
 {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -950,6 +951,39 @@ void WorldSystem::handle_game_tips()
 		tip_manager.tip_index++;
 		break;
 	}
+
+	if (!monster_tips) {
+		switch (world_round_number) {
+		case 1:
+			TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, eagle_tips);
+			game_state = paused;
+			monster_tips = true;
+			break;
+		case 3:
+			TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, moose_tips);
+			game_state = paused;
+			monster_tips = true;
+			break;
+		case 5:
+			TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, bear_tips);
+			game_state = paused;
+			monster_tips = true;
+			break;
+		case 7:
+			TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, penguin_tips);
+			game_state = paused;
+			monster_tips = true;
+			break;
+		case 16:
+			TipCard::createTipCard(TIP_CARD_CENTRE_X, TIP_CARD_CENTRE_Y, dragon_tips);
+			game_state = paused;
+			monster_tips = true;
+			break;
+		default:
+			break;
+		}
+	}
+	
 }
 
 void WorldSystem::deduct_health(int num) {
@@ -1007,7 +1041,7 @@ void WorldSystem::prepare_setup_stage()
 void WorldSystem::set_up_step(float elapsed_ms)
 {
 	// Restart/End game after max rounds
-	if (world_round_number <= 0 && game_tips) {
+	if (game_tips) {
 		handle_game_tips();
 	}
 
@@ -1102,7 +1136,7 @@ void WorldSystem::set_default_paths() {// set default paths for monster AI for t
 
 void WorldSystem::start_round()
 {
-	game_tips = false;
+	monster_tips = false;
 	// hide towers buttons
 	if (!survival_mode) {
         for (auto entity : registry.view<UI_build_unit>())
