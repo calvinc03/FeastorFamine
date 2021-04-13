@@ -199,30 +199,6 @@ private:
     static int show_path_duration;
     static int show_path;
 
-	// Season
-	int season;
-
-	enum season
-	{
-		SPRING = 0,
-		SUMMER = 1,
-		FALL = 2,
-		WINTER = 3
-	};
-
-	// Weather
-	int weather;
-
-
-	enum weather
-	{
-		CLEAR = 0,
-		RAIN = 1,
-		DROUGHT = 2,
-		FOG = 3,
-		SNOW = 4,
-	};
-
 	int mob_delay_ms;
 	int max_mobs;
 	int boss_delay_ms;

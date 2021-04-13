@@ -74,7 +74,8 @@ void change_button_text(entt::entity button_entity, std::string button_text);
 void aligne_text_right(entt::entity entity, float right_alignment_position);
 
 struct UI_season_wheel {
-	static void set_arrow(entt::entity season_wheel_arrow_entity, int season);
+	static void set_arrow(entt::entity season_wheel_arrow_entity, int season, int round);
+	static void increment_arrow(entt::entity season_wheel_arrow_entity);
 	static entt::entity createUI_season_wheel();
 	static entt::entity createUI_season_wheel_arrow();
 	static void get_season_sequence();
