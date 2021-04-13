@@ -996,7 +996,7 @@ entt::entity UI_season_wheel::createUI_season_wheel_arrow() {
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "UI_season_wheel_arrow";
-	ui_element.scale = vec2({ 0.9, 0.9 }) * static_cast<vec2>(resource.texture.size);
+	ui_element.scale = vec2({ 0.8, 0.8 }) * static_cast<vec2>(resource.texture.size);
 	ui_element.position = vec2(SEASON_WHEEL_X_OFFSET, SEASON_WHEEL_Y_OFFSET);
 	ui_element.angle = PI + PI / 12 - PI / (2 * ROUND_PER_SEASON);
 
