@@ -26,13 +26,13 @@ const std::map<unit_type, float> unit_attack_interval_ms = {
 };
 
 const std::map<unit_type, int> unit_attack_range = {
-	{HUNTER, 300},
+	{HUNTER, GRID_CELL_SIZE * 3},
 	//{WATCHTOWER, 400},
 	{GREENHOUSE, 0},
-	{EXTERMINATOR, 125},
+	{EXTERMINATOR, GRID_CELL_SIZE * 1.5},
 	{ROBOT, 250},
-	{PRIESTESS, 300},
-	{SNOWMACHINE, 300},
+	{PRIESTESS, GRID_CELL_SIZE * 2.5},
+	{SNOWMACHINE, GRID_CELL_SIZE * 4},
 	{WALL, 0}
 };
 
