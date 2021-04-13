@@ -12,7 +12,7 @@ static const std::string STORY_TEXT_PER_LEVEL[] = {
 	"Whew, thank you! That was too close.@I feat that's not the last of them, though.@Legend tells of an evil lurking in the forest.@...@What's that in the sky?",
 	"Eagles?!? What will they think of next?@That's all of them for now, but there are@more smaller monsters approaching.@Spring is over, get ready for the heat!",
 	"Thank you, mayor! I fear that this may not@be the last of them. At this time in@the summer, some of the villagers tell stories@about giant spiders lurking in the forest...",
-	"You've taken care of all the spiders!@The weather is turning rainy as we go into fall,@and a lot of monsters will be searching for@places to lay low for the winter...",
+	"You've taken care of all the moose!@The weather is turning rainy as we go into fall,@and a lot of monsters will be searching for@places to lay low for the winter...",
 	"Bad news, mayor. We have word from our@scouts that there are several bears headed@towards the village. They must be looking for@some winter lodging.@Don't let them steal our food!",
 	"Brrrrr...Food is getting scarce.@The monsters are getting desperate.@Be careful, I sense a large attack force...",
 	"We don't know how, but the murderous@emperor penguin kill squads have found us.@God help us all.",
