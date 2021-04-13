@@ -539,7 +539,7 @@ void WorldSystem::step(float elapsed_ms)
 		food_num_text.content = std::to_string(health);
 
 		// Increment round number if all enemies are not on the map and projectiles are removed
-		if (num_bosses_spawned == max_boss && num_mobs_spawned == max_mobs)
+		if (num_bosses_spawned >= max_boss && num_mobs_spawned >= max_mobs)
 		{
 			if (registry.view<Monster>().empty() && registry.view<Projectile>().empty() && registry.view<HealthOrb>().empty())
 			{
