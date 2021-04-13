@@ -36,7 +36,7 @@ StoryCard::StoryCard(std::string story_card_text, std::string level_number)
 	auto level_text_scale = 0.9f;
 	auto level_x_offset = -370;
 	auto level_y_offset = 165 - UI_TOP_BAR_HEIGHT;
-	auto& t_level = registry.emplace<Text>(level_text_entity, Text("Level " + level_number, font, vec2(pos.x + level_x_offset, pos.y + level_y_offset)));
+	auto& t_level = registry.emplace<Text>(level_text_entity, Text("Talky Boi", font, vec2(pos.x + level_x_offset, pos.y + level_y_offset)));
 	t_level.scale = level_text_scale;
 	t_level.colour = { 1.0f, 1.0f, 1.0f };
 	registry.emplace<StoryCardText>(level_text_entity);

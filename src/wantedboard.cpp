@@ -51,8 +51,7 @@ entt::entity WantedTitle::createWantedSign() {
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "wanted_sign";
 	ui_element.scale = static_cast<vec2>(resource.texture.size);
-	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x / 2, ui_element.scale.y / 2 + UI_TOP_BAR_HEIGHT + 30);
-
+	ui_element.position = vec2(WINDOW_SIZE_IN_PX.x / 2, 1.5*ui_element.scale.y + UI_TOP_BAR_HEIGHT);
 	return entity;
 }
 
@@ -129,7 +128,7 @@ entt::entity WantedEntry::createWantedEntry(vec2 position, int monster_type, int
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "wanted_entry";
-	ui_element.scale = static_cast<vec2>(resource.texture.size);
+	ui_element.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 5.5, 1.0);
 	ui_element.position = position;
 	registry.emplace<WantedEntry>(entity);
 
