@@ -63,7 +63,7 @@ void upgrade_unit_path_1(entt::entity e_unit)
 		std::vector<int> upgrades = wall_path_1.at(unit.path_1_upgrade);
 		unit.upgrade_path_1_cost = upgrades[0];
 		unit.sell_price += upgrades[1];
-		unit.damage = upgrades[2];
+		unit.health = upgrades[2];
 	}
 }
 

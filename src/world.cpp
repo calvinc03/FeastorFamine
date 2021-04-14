@@ -1790,28 +1790,35 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
 	{
-		if (registry.valid(entity_selected))
+		if (game_state == GameState::start_menu)
 		{
-			registry.destroy(entity_selected);
-			if (registry.valid(entity_range_circle))
-				registry.destroy(entity_range_circle);
-			placement_unit_selected = unit_type::NONE;
-			un_highlight();
+			// Possibly close the game (same as clicking exit button)
 		}
-		else if (unit_selected)
+		else if (game_state == GameState::in_game)
 		{
-			unit_selected = false;
-			update_look_for_selected_buttons(GLFW_PRESS, false);
-			un_highlight();
+			if (registry.valid(entity_selected))
+			{
+				registry.destroy(entity_selected);
+				if (registry.valid(entity_range_circle))
+					registry.destroy(entity_range_circle);
+				placement_unit_selected = unit_type::NONE;
+				un_highlight();
+			}
+			else if (unit_selected)
+			{
+				unit_selected = false;
+				update_look_for_selected_buttons(GLFW_PRESS, false);
+				un_highlight();
+			}
+			else
+			{
+				pause_game();
+				more_options_menu();
+			}
 		}
 		else if (game_state == GameState::paused)
 		{
 			resume_game();
-		}
-		else
-		{
-			pause_game();
-			more_options_menu();
 		}
 	}
 
