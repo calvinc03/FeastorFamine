@@ -34,6 +34,15 @@ const std::map<int, std::string> season_str = {
         {SUMMER,    "summer"},
         {FALL,      "fall"},
         {WINTER,    "winter"},
+        {FINAL,     "final"}
+};
+
+const std::map<std::string, int> season_str_to_enum = {
+        {"spring", SPRING},
+        {"summer", SUMMER},
+        {"fall", FALL},
+        {"winter", WINTER},
+        {"final", SUMMER}
 };
 
 const std::map<int, std::string> weather_str = {

@@ -112,8 +112,6 @@ public:
 	int game_state;
 	bool game_tips;
 	bool monster_tips;
-	static bool sandbox;
-	static bool survival_mode;
 
 	// Particle System
 //    GLuint billboard_vertex_buffer;
@@ -187,9 +185,6 @@ private:
 	// animation fps
 	float fps_ms;
 
-    // season
-	std::string world_season_str;
-
 	// Game state
 	float current_speed;
 	float next_boss_spawn;
@@ -197,8 +192,8 @@ private:
 	float next_mob_spawn;
 	float next_particle_spawn;
 
-    static int show_path_duration;
-    static int show_path;
+    static float show_path_duration_ms;
+    static float show_path;
 
 	int mob_delay_ms;
 	int max_mobs;
@@ -289,4 +284,7 @@ private:
 	Mix_Chunk* ui_sound_hollow_tick;
 	Mix_Chunk* snowball_hit_sound;
 
+    void set_random_weather();
+    void set_round_monsters();
+    void update_weather_season_UI(int round_number) const;
 };

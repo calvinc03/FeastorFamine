@@ -1,5 +1,6 @@
 #include "ui.hpp"
 #include "world.hpp"
+#include "common.hpp"
 
 void UI_highlight_system(vec2 mouse_pos) {
 	auto view_ui = registry.view<UI_element, HighlightBool>(); //may make separate registry for UI elements. Could have position+scale instead of motion component
@@ -492,7 +493,6 @@ entt::entity UI_button::randomize_grid_map_button(vec2 position)
 	registry.emplace<Button>(entity, Button::randomize_grid_map);
 	registry.emplace<UI_button>(entity);
 
-
 	return entity;
 }
 
@@ -930,6 +930,10 @@ entt::entity UI_season_wheel::createUI_season_wheel() {
 	ui_element.scale = vec2({ 0.9f, 0.9f }) * static_cast<vec2>(resource.texture.size);
 	ui_element.position = vec2(SEASON_WHEEL_X_OFFSET, SEASON_WHEEL_Y_OFFSET);
 
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, Button::season_button);
+	registry.emplace<UI_button>(entity);
+
 	return entity;
 }
 
@@ -978,7 +982,9 @@ void UI_season_wheel::set_arrow(entt::entity season_wheel_arrow_entity, int seas
 		break;
 	}
 
-	season_wheel_arrow.angle += round % ROUND_PER_SEASON * (PI/2) / ROUND_PER_SEASON;
+	if (game_mode == SANDBOX || round % ROUND_PER_SEASON) {
+        season_wheel_arrow.angle += (PI/2) / ROUND_PER_SEASON;
+	}
 }
 
 entt::entity UI_season_wheel::createUI_season_wheel_arrow() {
@@ -1019,6 +1025,10 @@ entt::entity UI_weather_icon::createUI_weather_icon() {
 	ui_element.tag = "UI_weather_icon";
 	ui_element.scale = vec2({ 0.45f, 0.45f }) * static_cast<vec2>(resource.texture.size);
 	ui_element.position = vec2(WEATHER_ICON_X_OFFSET, WEATHER_ICON_Y_OFFSET);
+
+    auto& highlight = registry.emplace<HighlightBool>(entity);
+    registry.emplace<Button>(entity, Button::weather_button);
+    registry.emplace<UI_button>(entity);
 
 	return entity;
 }

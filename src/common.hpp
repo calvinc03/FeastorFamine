@@ -30,8 +30,10 @@
 using namespace glm;
 static const float PI = 3.14159265359f;
 
-static int season;
+static int season = 0;
+static std::string world_season_str = season_str.at(SPRING);
 static int weather;
+static mode game_mode;
 
 // C++ random number generator
 static std::default_random_engine rng;
