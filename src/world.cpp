@@ -2581,6 +2581,7 @@ void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y,
 		else {
 			game_state = story_card;
 		}*/
+		un_highlight();
 		game_state = in_game;
 	}
 	// avoid 'unreferenced formal parameter' warning message
@@ -3432,6 +3433,7 @@ void WorldSystem::paused_click_handle(double xpos, double ypos, int button, int 
 			// remove game tips if exist
 			remove_game_tip_and_story_card();
 			resume_game();
+			un_highlight();
 		}
 	}
 	// avoid 'unreferenced formal parameter' warning message

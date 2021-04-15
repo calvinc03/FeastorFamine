@@ -185,5 +185,5 @@ struct SoundRef
 	bool is_continuous = false;
 	// default: false
 	bool one_time_sound_played = false;
-	int channel_num;
+	int channel_num = -2;
 };

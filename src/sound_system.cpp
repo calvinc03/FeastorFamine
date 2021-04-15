@@ -11,6 +11,7 @@ void adjust_volume(int channel)
     for (int i = 0; i < Mix_AllocateChannels(-1); i++)
     {
         int volume = 110 - 4 * (channel_playing);
+        volume = (volume < 30) ? 30 : volume;
         Mix_Volume(i, volume);
         //std::cout << "Volume: " << volume << "\n";
     }
@@ -40,9 +41,9 @@ void sound_on_destroy(entt::basic_registry<entt::entity>& registry, entt::entity
     if (!sound_ref.on_impact_destory)
     {
         Mix_HaltChannel(sound_ref.channel_num);
-        if (sound_ref.one_time_sound_played && !sound_ref.is_continuous)
-            if (sound_ref.sound_reference != nullptr)
-                Mix_FreeChunk(sound_ref.sound_reference);
+        /*if (sound_ref.one_time_sound_played && !sound_ref.is_continuous)
+            if (cache_chunk(sound_ref.file_path) != nullptr)
+                Mix_FreeChunk(cache_chunk(sound_ref.file_path));*/
     }
     else
     {
@@ -126,4 +127,17 @@ Mix_Chunk* cache_chunk(std::string file_path)
         return it_succeeded.first->second;
     }
     return it->second;
+}
+
+
+void play_sound(std::string file_path)
+{
+    Mix_Chunk* chunk = cache_chunk(file_path);
+    int channel_played = Mix_PlayChannel(-1, chunk, 0);
+    // if no channels are free
+    if (channel_played == -1) {
+        // allocate new channels
+        Mix_AllocateChannels(Mix_AllocateChannels(-1) + 1);
+        channel_played = Mix_PlayChannel(-1, chunk, 0);
+    }
 }

@@ -79,6 +79,7 @@ MenuButtonType on_click_button(vec2 mouse_pos)
 	auto view_menu_button = registry.view<UI_element, MenuButton>();
 	for (auto [entity, ui_element, menu_button] : view_menu_button.each()) {
 		if (sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f) < 0.0f) {
+			play_sound("ui/button_click/generic_button_click.wav");
 			return menu_button.button_type;
 		}
 	}
