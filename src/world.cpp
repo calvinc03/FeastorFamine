@@ -1931,9 +1931,10 @@ void WorldSystem::more_options_menu()
 	auto menu_ui = registry.get<UI_element>(pause_menu_entity);
 
 	float top_button_y_offset = menu_ui.position.y - menu_ui.scale.y / 2.f - 10;
-	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 1.f / 3.5f, MenuButtonType::restart_round_button, "Restart round", { 1.4f, 1.2f });
-	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 2.f / 3.5f, MenuButtonType::help_button, "Help", { 1.2f, 1.0f });
-	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 3.f / 3.5f, MenuButtonType::exit_button, "Exit", { 1.2f, 1.0f });
+	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 1.f / 4.5f, MenuButtonType::restart_round_button, "Restart round", { 1.4f, 1.2f });
+	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 2.f / 4.5f, MenuButtonType::menu_save_button, "Save", { 1.2f, 1.0f });
+	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 3.f / 4.5f, MenuButtonType::help_button, "Help", { 1.2f, 1.0f });
+	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 4.f / 4.5f, MenuButtonType::exit_button, "Exit", { 1.2f, 1.0f });
 }
 
 void WorldSystem::resume_game()
