@@ -40,7 +40,11 @@ void sound_on_destroy(entt::basic_registry<entt::entity>& registry, entt::entity
     auto& sound_ref = registry.get<SoundRef>(entity);
     if (!sound_ref.on_impact_destory)
     {
-        Mix_HaltChannel(sound_ref.channel_num);
+        if (Mix_GetChunk(sound_ref.channel_num) == cache_chunk(sound_ref.file_path))
+        {
+            Mix_HaltChannel(sound_ref.channel_num);
+        }
+        
         /*if (sound_ref.one_time_sound_played && !sound_ref.is_continuous)
             if (cache_chunk(sound_ref.file_path) != nullptr)
                 Mix_FreeChunk(cache_chunk(sound_ref.file_path));*/
@@ -115,29 +119,6 @@ void SoundSystem::deallocate_channel()
     }
 }
 
-Mix_Chunk* cache_chunk(std::string file_path)
-{
-    static std::unordered_map<std::string, Mix_Chunk*> chunk_cache;
-
-    const auto it = chunk_cache.find(file_path);
-    if (it == chunk_cache.end())
-    {
-        Mix_Chunk* chunk = Mix_LoadWAV(audio_path(file_path).c_str());
-        const auto it_succeeded = chunk_cache.emplace(file_path, chunk);
-        return it_succeeded.first->second;
-    }
-    return it->second;
-}
 
 
-void play_sound(std::string file_path)
-{
-    Mix_Chunk* chunk = cache_chunk(file_path);
-    int channel_played = Mix_PlayChannel(-1, chunk, 0);
-    // if no channels are free
-    if (channel_played == -1) {
-        // allocate new channels
-        Mix_AllocateChannels(Mix_AllocateChannels(-1) + 1);
-        channel_played = Mix_PlayChannel(-1, chunk, 0);
-    }
-}
+

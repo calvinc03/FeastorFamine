@@ -187,3 +187,7 @@ struct SoundRef
 	bool one_time_sound_played = false;
 	int channel_num = -2;
 };
+
+
+Mix_Chunk* cache_chunk(std::string key);
+void play_sound(std::string file_path);

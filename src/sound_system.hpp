@@ -21,5 +21,3 @@ private:
 	WorldSystem* world;
 };
 
-Mix_Chunk* cache_chunk(std::string key);
-void play_sound(std::string file_path);

@@ -1458,7 +1458,9 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	for (auto entity : registry.view<Path>())
 		registry.destroy(entity);
 	set_AI_paths = false;
-
+	// rest speed up factor
+	speed_up_factor = 1.f;
+	// update weather icon
 	UI_weather_icon::change_weather_icon(weather_icon_entity, weather);
 }
 

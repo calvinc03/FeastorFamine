@@ -328,40 +328,43 @@ public:
 // helper for increment_monster_step
 void remove_unit_entity(unit_type type, entt::entity e_unit)
 {
-    if (type == PRIESTESS) {
-        for (auto e_aura : registry.view<Aura>()) {
-            auto& aura = registry.get<Aura>(e_aura);
-            if (aura.emitter == e_unit) {
-                registry.destroy(e_aura);
-            }
-        }
-    }
+	if (type == PRIESTESS) {
+		for (auto e_aura : registry.view<Aura>()) {
+			auto& aura = registry.get<Aura>(e_aura);
+			if (aura.emitter == e_unit) {
+				registry.destroy(e_aura);
+			}
+		}
+	}
 
 	else if (type == ROBOT)
 	{
 		auto& robot = registry.get<Robot>(e_unit);
 		for (auto projectile : robot.lasers)
-            if (registry.valid(projectile)) {
-                registry.destroy(projectile);
-            }
+			if (registry.valid(projectile)) {
+				registry.destroy(projectile);
+			}
 	}
 	else if (type == EXTERMINATOR)
 	{
 		auto& exterminator = registry.get<Exterminator>(e_unit);
 		for (auto projectile : exterminator.flamethrowers)
-		    if (registry.valid(projectile)) {
-                registry.destroy(projectile);
-		    }
+			if (registry.valid(projectile)) {
+				registry.destroy(projectile);
+			}
 	}
 	else if (type == SNOWMACHINE)
 	{
 		auto& snowmachine = registry.get<SnowMachine>(e_unit);
 		for (auto projectile : snowmachine.snowfields)
-            if (registry.valid(projectile)) {
-                registry.destroy(projectile);
-            }
+			if (registry.valid(projectile)) {
+				registry.destroy(projectile);
+			}
 	}
-
+	else if (type == HUNTER)
+	{
+		play_sound("units/dying.wav");
+	}
 	registry.destroy(e_unit);
 }
 
@@ -395,6 +398,9 @@ void handle_monster_attack(entt::entity entity, Monster& monster, GridNode& next
             hit_reaction.hit_bool = true;
             atk_unit.health -= monster.damage;
             HitPointsText::create_hit_points_text(monster.damage, atk_entity, { 1.f, 0.8, 0.f });
+			//play sound
+			int sound_num = rand() % 4 + 1;
+			play_sound("monsters/bite_" + std::to_string(sound_num) + ".wav");
         }
     }
 }

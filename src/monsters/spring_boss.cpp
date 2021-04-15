@@ -61,6 +61,8 @@ entt::entity SpringBoss::createSpringBossEntt(int round_number)
     animate.frame_num = WALK_FRAMES;
     animate.state_num = 1;
 
+    play_sound("monsters/hawk_spawn_sound.wav");
+
     registry.emplace<SpringBoss>(entity);
     registry.emplace<HitReaction>(entity);
 
