@@ -79,6 +79,7 @@ MenuButtonType on_click_button(vec2 mouse_pos)
 	auto view_menu_button = registry.view<UI_element, MenuButton>();
 	for (auto [entity, ui_element, menu_button] : view_menu_button.each()) {
 		if (sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f) < 0.0f) {
+			play_sound("ui/button_click/generic_button_click.wav");
 			return menu_button.button_type;
 		}
 	}
@@ -107,7 +108,8 @@ entt::entity MenuButton::create_button_arrow()
 	ui_element.position = { 0.f, 0.f };
 
 	auto& sound = registry.emplace<SoundRef>(entity);
-	sound.sound_reference = Mix_LoadWAV(audio_path("ui/sign_post_hover.wav").c_str());
+	//sound.sound_reference = Mix_LoadWAV(audio_path("ui/sign_post_hover.wav").c_str());
+	sound.file_path = "ui/sign_post_hover.wav";
 	sound.play_delay_ms = 0;
 	sound.play_sound = false;
 

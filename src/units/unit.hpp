@@ -26,6 +26,7 @@ struct Unit {
 	int damage_buff;
 	float attack_speed_buff;
     bool is_active = true; // units created as mouse indicators should not be actively firing
+	void(*play_attack_sound);
 };
 
 const Unit hunter_unit = {

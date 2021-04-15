@@ -60,6 +60,8 @@ entt::entity SummerBoss::createSummerBossEntt(int round_number)
     animate.frame_num = monster.frames;
     animate.state_num = 1;
 
+    play_sound("monsters/moose_spawn_sound.wav");
+
     registry.emplace<SummerBoss>(entity);
     registry.emplace<HitReaction>(entity);
 

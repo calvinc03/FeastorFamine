@@ -70,7 +70,7 @@ const std::vector<std::string> priestess_description = {
     "",
     "Attack granted: " + std::to_string(unit_damage.at(PRIESTESS)),
     "Attack speed granted: " + std::to_string((int) ((unit_attack_interval_ms.at(PRIESTESS) - 1) * 100)) + "%",
-    "Buff range:" + std::to_string(unit_attack_range.at(PRIESTESS))
+    "Aura range:" + std::to_string(unit_attack_range.at(PRIESTESS))
 };
 
 const std::vector<std::string> snowmachine_description = {
