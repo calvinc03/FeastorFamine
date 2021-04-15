@@ -14,10 +14,11 @@ public:
 	int volume;
 
 	void step(float elapsed_ms);
-	
+
 private:
-	Mix_Chunk* laser_attack_sound = nullptr;
 	// de-allocate channels if no sound is playing 
 	void deallocate_channel();
 	WorldSystem* world;
 };
+
+Mix_Chunk* cache_chunk(std::string key);

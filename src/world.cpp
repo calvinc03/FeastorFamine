@@ -639,7 +639,7 @@ void WorldSystem::end_battle_phase_step(float elapsed_ms)
 		auto round_clear_text = DisappearingText::createDisappearingText(closeness_regular, "ROUND CLEARED!", text_position, 1000, 2.f, vec3({ 245.f / 255.f, 216.f / 255.f, 51.f / 255.f }));
 		DisappearingText::createDisappearingText(closeness_outline, "ROUND CLEARED!", text_position, 1000, 2.f, vec3({ 0.f, 0.f, 0.f }));
 		auto& sound = registry.emplace<SoundRef>(round_clear_text);
-		sound.sound_reference = Mix_LoadWAV(audio_path("ui/round_cleared_sound.wav").c_str());
+		sound.file_path = "ui/round_cleared_sound.wav";
 		// change fastforward texture to not light up
 		UI_button::fastforward_light_off();
 		// hide fastforward button and showi start_button
@@ -1337,7 +1337,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	    } else {
             game_state = story_card;
             StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number + 1], std::to_string(round_number + 1));
-            TalkyBoi::createTalkyBoiEntt();
+            TalkyBoi::createTalkyBoiEntt(round_number);
 	    }
 	}
 	if (weather == DROUGHT)
@@ -1517,7 +1517,7 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 		else {
 			game_state = story_card;
 			StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number + 1], std::to_string(round_number + 1));
-			TalkyBoi::createTalkyBoiEntt();
+			TalkyBoi::createTalkyBoiEntt(round_number);
 		}
 	}
 	// weather related
@@ -2264,7 +2264,7 @@ void update_unit_stats(Unit unit)
 		aps_out.precision(2);
 		aps_out << std::fixed << (aps * unit.attack_speed_buff);
 
-		attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), stat_2_string + aps_out.str() + " (aps)", 0.3f, {1,0,0});
+		attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), stat_2_string + aps_out.str() + " (atk/sec)", 0.3f, {1,0,0});
 	}
 	else {
 		// display aps to 2 decimals
@@ -2272,7 +2272,7 @@ void update_unit_stats(Unit unit)
 		aps_out.precision(2);
 		aps_out << std::fixed << aps;
 
-		attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), stat_2_string + aps_out.str() + " (aps)");
+		attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), stat_2_string + aps_out.str() + " (atk/sec)");
 	}
 	
 	registry.emplace<UI_unit_stats>(attack_speed_stats);
@@ -3207,28 +3207,28 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				{
                     entity = Hunter::createHunter(unit_position);
 					auto& sound = registry.emplace<SoundRef>(entity);
-					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/hunter_built_sound.wav").c_str());
+					sound.file_path = "ui/tower_built_sound/hunter_built_sound.wav";
 					deduct_health(hunter_unit.cost);
 				}
 				else if (placement_unit_selected == GREENHOUSE && health >= greenhouse_unit.cost)
 				{
 					entity = GreenHouse::createGreenHouse(unit_position);
 					auto& sound = registry.emplace<SoundRef>(entity);
-					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/greenhouse_built_sound.wav").c_str());
+					sound.file_path = "ui/tower_built_sound/greenhouse_built_sound.wav";
 					deduct_health(greenhouse_unit.cost);
 				}
 				else if (placement_unit_selected == EXTERMINATOR && health >= exterminator_unit.cost)
 				{
 					entity = Exterminator::createExterminator(unit_position);
 					auto& sound = registry.emplace<SoundRef>(entity);
-					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/exterminator_built_sound.wav").c_str());
+					sound.file_path = "ui/tower_built_sound/exterminator_built_sound.wav";
 					deduct_health(exterminator_unit.cost);
 				}
 				else if (placement_unit_selected == ROBOT && health >= robot_unit.cost)
 				{
 					entity = Robot::createRobot(unit_position);
 					auto& sound = registry.emplace<SoundRef>(entity);
-					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/robot_built_sound.wav").c_str());
+					sound.file_path = "ui/tower_built_sound/robot_built_sound.wav";
 					deduct_health(robot_unit.cost);
 				}
 				else if (placement_unit_selected == PRIESTESS && health >= priestess_unit.cost)
@@ -3237,21 +3237,21 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					auto& unit = registry.get<Unit>(entity);
                     Aura::createAura(unit_position, unit.attack_range, entity);
 					auto& sound = registry.emplace<SoundRef>(entity);
-					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/priestess_built_sound.wav").c_str());
+					sound.file_path = "ui/tower_built_sound/priestess_built_sound.wav";
 					deduct_health(priestess_unit.cost);
 				}
 				else if (placement_unit_selected == SNOWMACHINE && health >= snowmachine_unit.cost)
 				{
 					entity = SnowMachine::createSnowMachine(unit_position);
 					auto& sound = registry.emplace<SoundRef>(entity);
-					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/snowmachine_built_sound.wav").c_str());
+					sound.file_path = "ui/tower_built_sound/snowmachine_built_sound.wav";
 					deduct_health(snowmachine_unit.cost);
 				}
 				else if (placement_unit_selected == WALL && health >= wall_unit.cost)
 				{
 					entity = Wall::createWall(unit_position/*, false*/);
 					auto& sound = registry.emplace<SoundRef>(entity);
-					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/wall_built_sound.wav").c_str());
+					sound.file_path = "ui/tower_built_sound/wall_built_sound.wav";
 					deduct_health(wall_unit.cost);
 				}
 				else

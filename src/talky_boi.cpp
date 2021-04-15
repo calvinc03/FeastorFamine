@@ -9,7 +9,7 @@ const std::string ATTACK_SPRITE = "NA";
 const int WALK_FRAMES = 6;
 const int ATTACK_FRAMES = 0;
 
-entt::entity TalkyBoi::createTalkyBoiEntt()
+entt::entity TalkyBoi::createTalkyBoiEntt(int round_number)
 {
     // Reserve en entity
     auto entity = registry.create();
@@ -57,6 +57,9 @@ entt::entity TalkyBoi::createTalkyBoiEntt()
     animate.state = 0;
     animate.frame_num = WALK_FRAMES;
     animate.state_num = 1;
+
+    SoundRef& sound_ref = registry.emplace<SoundRef>(entity);
+    sound_ref.file_path = "ui/story_card_voice/" + round_voice_file_name[round_number] + ".wav";
 
     registry.emplace<TalkyBoi>(entity);
 

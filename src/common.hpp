@@ -171,14 +171,19 @@ nlohmann::json get_json(std::string json_path);
 
 struct SoundRef
 {
+	std::string file_path = "money.wav";
 	Mix_Chunk* sound_reference = nullptr;
 	float play_delay_counter_ms = -1;
 	// set play_delay_ms to more than the lifetime of the entity that SoundRef is attacted to, 
 	// to make it only play once; otherwise, the sound will keep playing when play_delay_ms reaches zero
 	float play_delay_ms = 99999.f; // prevent sound to get played again for some projectiles
+	// default: true
 	bool play_sound = true;
+	// default: false
 	bool on_impact_destory = false;
+	// default: false
 	bool is_continuous = false;
+	// default: false
 	bool one_time_sound_played = false;
 	int channel_num;
 };
