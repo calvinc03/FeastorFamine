@@ -3113,6 +3113,9 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 	else if (ui_button == Button::randomize_grid_map)
 	{
 		std::cout << "asdf" << std::endl;
+        for (auto unit : registry.view<Unit>()) {
+            registry.destroy(unit);
+        }
         for (auto grid_node : registry.view<GridNode>()) {
             registry.destroy(grid_node);
         }
