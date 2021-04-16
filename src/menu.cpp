@@ -398,7 +398,7 @@ entt::entity TitleEyes::createTitleEyes(vec2 position)
 
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = "eyes";
-	ui_element.scale = vec2({ 0.8f, 0.8f }) * static_cast<vec2>(resource.texture.size);
+	ui_element.scale = vec2({ 1.1, 1.1}) * static_cast<vec2>(resource.texture.size);
 	ui_element.position = position;
 
 	auto eyes = registry.emplace<TitleEyes>(entity);

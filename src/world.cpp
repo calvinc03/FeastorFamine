@@ -2879,27 +2879,27 @@ void WorldSystem::create_start_menu()
 	Menu::createMenu(470, 120, "title_screen_title_or", Menu_texture::title_screen_title2_or, LAYER_MAP + 3, { 0.7, 0.7 });
 	
 	//buttons
-	MenuButton::create_button(NEW_GAME_BUTTON_X, NEW_GAME_BUTTON_Y, MenuButtonType::new_game_button, "", { 1.2f, 1.2f }, 0);
-	MenuButton::create_button(LOAD_GAME_BUTTON_X, LOAD_GAME_BUTTON_Y, MenuButtonType::load_game_button, "", { 1.2f, 1.2f }, PI);
-	MenuButton::create_button(SURVIVAL_MODE_BUTTON_X, SURVIVAL_MODE_BUTTON_Y, MenuButtonType::survival_mode_button, "", { 1.2f, 1.2f }, 0);
-	MenuButton::create_button(SANDBOX_BUTTON_X, SANDBOX_BUTTON_Y, MenuButtonType::sandbox_button, "", { 1.2f, 1.2f }, PI);
+	MenuButton::create_button(NEW_GAME_BUTTON_X, NEW_GAME_BUTTON_Y, MenuButtonType::new_game_button, "", { 1.2f, 1.2f }, TITLE_HELP_BUTTON_ANGLE);
+	MenuButton::create_button(LOAD_GAME_BUTTON_X, LOAD_GAME_BUTTON_Y, MenuButtonType::load_game_button, "", { 1.2f, 1.2f }, PI + TITLE_HELP_BUTTON_ANGLE);
+	MenuButton::create_button(SURVIVAL_MODE_BUTTON_X, SURVIVAL_MODE_BUTTON_Y, MenuButtonType::survival_mode_button, "", { 1.2f, 1.2f }, TITLE_HELP_BUTTON_ANGLE);
+	MenuButton::create_button(SANDBOX_BUTTON_X, SANDBOX_BUTTON_Y, MenuButtonType::sandbox_button, "", { 1.2f, 1.2f }, PI + TITLE_HELP_BUTTON_ANGLE);
 	
 	MenuButton::create_button(TITLE_HELP_BUTTON_X, TITLE_HELP_BUTTON_Y, MenuButtonType::title_help_button, "", { 0.8f, 0.8f }, PI - TITLE_HELP_BUTTON_ANGLE);
 	MenuButton::create_button(TITLE_EXIT_BUTTON_X, TITLE_EXIT_BUTTON_Y, MenuButtonType::title_exit_button, "", { 0.8f, 0.8f }, -TITLE_HELP_BUTTON_ANGLE);
 
 	// button text
-	registry.get<UI_element>(Menu::createMenu(NEW_GAME_BUTTON_X, NEW_GAME_BUTTON_Y, "new_game_button_text", "menu_button/new_game_text.png", LAYER_MENU + 4, { 0.7, 0.7 })).angle = 0;
-	registry.get<UI_element>(Menu::createMenu(LOAD_GAME_BUTTON_X, LOAD_GAME_BUTTON_Y, "load_game_button_text", "menu_button/load_game_text.png", LAYER_MENU + 4, { 0.7, 0.7 })).angle = 0;
-	registry.get<UI_element>(Menu::createMenu(SURVIVAL_MODE_BUTTON_X, SURVIVAL_MODE_BUTTON_Y, "survival_mode_text", "menu_button/survival_mode_text.png", LAYER_MENU + 4, { 0.7, 0.7 })).angle = 0;
-	registry.get<UI_element>(Menu::createMenu(SANDBOX_BUTTON_X, SANDBOX_BUTTON_Y, "sandbox_text", "menu_button/sandbox_text.png", LAYER_MENU + 4, { 0.7, 0.7 })).angle = 0;
+	registry.get<UI_element>(Menu::createMenu(NEW_GAME_BUTTON_X, NEW_GAME_BUTTON_Y, "new_game_button_text", "menu_button/new_game_text.png", LAYER_MENU + 4, { 0.7, 0.7 })).angle = TITLE_HELP_BUTTON_ANGLE;
+	registry.get<UI_element>(Menu::createMenu(LOAD_GAME_BUTTON_X, LOAD_GAME_BUTTON_Y, "load_game_button_text", "menu_button/load_game_text.png", LAYER_MENU + 4, { 0.7, 0.7 })).angle = TITLE_HELP_BUTTON_ANGLE;
+	registry.get<UI_element>(Menu::createMenu(SURVIVAL_MODE_BUTTON_X, SURVIVAL_MODE_BUTTON_Y, "survival_mode_text", "menu_button/survival_mode_text.png", LAYER_MENU + 4, { 0.7, 0.7 })).angle = TITLE_HELP_BUTTON_ANGLE;
+	registry.get<UI_element>(Menu::createMenu(SANDBOX_BUTTON_X, SANDBOX_BUTTON_Y, "sandbox_text", "menu_button/sandbox_text.png", LAYER_MENU + 4, { 0.7, 0.7 })).angle = TITLE_HELP_BUTTON_ANGLE;
 
 	registry.get<UI_element>(Menu::createMenu(TITLE_HELP_BUTTON_X, TITLE_HELP_BUTTON_Y, "help_text", "menu_button/help_text.png", LAYER_MENU + 4, { 0.5, 0.5 })).angle = -TITLE_HELP_BUTTON_ANGLE;
 	registry.get<UI_element>(Menu::createMenu(TITLE_EXIT_BUTTON_X, TITLE_EXIT_BUTTON_Y, "exit_text", "menu_button/exit_text.png", LAYER_MENU + 4, { 0.5, 0.5 })).angle = -TITLE_HELP_BUTTON_ANGLE;
 
 	title_button_highlight_entity = MenuButton::create_button_arrow();
 	// blinking eyes
-	std::vector<vec2> locations = { vec2({984, 452}), vec2({891, 439}), vec2({851, 437}), vec2({764, 444}), vec2({719, 445}),
-								   vec2({596, 440}), vec2({531, 437}), vec2({397, 431}), vec2({355, 432}), vec2({40, 430}) };
+	std::vector<vec2> locations = { vec2({984, 452}), vec2({891, 439}), vec2({851, 437}), vec2({764, 444}), vec2({719, 448}),
+								   vec2({596, 445}), vec2({531, 442}), vec2({397, 431}), vec2({355, 432}), vec2({40, 430}) };
 	for (vec2 position : locations)
 	{
 		TitleEyes::createTitleEyes(position);
