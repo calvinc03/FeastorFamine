@@ -2844,7 +2844,7 @@ void WorldSystem::create_start_menu()
 	// sign post
 	Menu::createMenu(WINDOW_SIZE_IN_PX.x / 4, WINDOW_SIZE_IN_PX.y / 2 + 100, "sign_post", Menu_texture::sign_post, LAYER_MENU + 2, { 1.0, 0.9 });
 	// 2nd sign post
-	Menu::createMenu(WINDOW_SIZE_IN_PX.x * 3 / 4 + 60, WINDOW_SIZE_IN_PX.y / 2 + 80, "sign_post", Menu_texture::sign_post, LAYER_MENU + 2, { 0.5, 0.55 });
+	Menu::createMenu(WINDOW_SIZE_IN_PX.x * 3 / 4 + 60, WINDOW_SIZE_IN_PX.y / 2 + 80, "sign_post", Menu_texture::sign_post, LAYER_MENU + 2, { -0.5, 0.55 });
 	// title: Feast or Famine
 	Menu::createMenu(300, 150, "title_screen_title2", Menu_texture::title_screen_title2, LAYER_MAP + 3, { 1.1, 1.1 });
 	Menu::createMenu(470, 120, "title_screen_title_or", Menu_texture::title_screen_title2_or, LAYER_MAP + 3, { 0.7, 0.7 });
@@ -2869,8 +2869,8 @@ void WorldSystem::create_start_menu()
 
 	title_button_highlight_entity = MenuButton::create_button_arrow();
 	// blinking eyes
-	std::vector<vec2> locations = { vec2({984, 442}), vec2({891, 429}), vec2({851, 427}), vec2({764, 434}), vec2({719, 435}),
-								   vec2({576, 410}), vec2({501, 417}), vec2({397, 421}), vec2({355, 422}), vec2({40, 420}) };
+	std::vector<vec2> locations = { vec2({984, 452}), vec2({891, 439}), vec2({851, 437}), vec2({764, 444}), vec2({719, 445}),
+								   vec2({596, 440}), vec2({531, 437}), vec2({397, 431}), vec2({355, 432}), vec2({40, 430}) };
 	for (vec2 position : locations)
 	{
 		TitleEyes::createTitleEyes(position);
