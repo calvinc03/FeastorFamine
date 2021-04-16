@@ -622,9 +622,9 @@ void WorldSystem::end_battle_phase_step(float elapsed_ms)
 		// round cleared text
 		auto closeness_outline = TextFont::load("data/fonts/Closeness/closeness.outline-regular.ttf");
 		auto closeness_regular = TextFont::load("data/fonts/Closeness/closeness.regular.ttf");
-		vec2 text_position = get_center_text_position(WINDOW_SIZE_IN_PX, { WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2 }, 2.f, "ROUND CLEARED!");
-		auto round_clear_text = DisappearingText::createDisappearingText(closeness_regular, "ROUND CLEARED!", text_position, 1000, 2.f, vec3({ 245.f / 255.f, 216.f / 255.f, 51.f / 255.f }));
 		if (!round_skipped) {
+            vec2 text_position = get_center_text_position(WINDOW_SIZE_IN_PX, { WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2 }, 2.f, "ROUND CLEARED!");
+            auto round_clear_text = DisappearingText::createDisappearingText(closeness_regular, "ROUND CLEARED!", text_position, 1000, 2.f, vec3({ 245.f / 255.f, 216.f / 255.f, 51.f / 255.f }));
             DisappearingText::createDisappearingText(closeness_outline, "ROUND CLEARED!", text_position, 1000, 2.f, vec3({ 0.f, 0.f, 0.f }));
             auto& sound = registry.emplace<SoundRef>(round_clear_text);
             sound.file_path = "ui/round_cleared_sound.wav";
@@ -2738,13 +2738,12 @@ bool WorldSystem::click_on_unit(double mouse_pos_x, double mouse_pos_y)
 	}
 
     // check if clicked on egg
-    if (registry.valid(egg)) {
+    if (world_round_number < 16 && registry.valid(egg)) {
         auto& motion = registry.get<Motion>(egg);
         if (sdBox(mouse_pos, motion.position, motion.scale / 2.f) < 0.0f)
         {
             round_skipped = true;
             skip_to_final_round();
-            registry.destroy(egg);
         }
 
     }
