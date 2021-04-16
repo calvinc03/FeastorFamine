@@ -152,3 +152,29 @@ void Monster::setSprite(entt::entity entity){
     auto& shaded_mesh_ref = registry.get<ShadedMeshRef>(entity);
     shaded_mesh_ref.reference_to_cache = &resource;
 }
+
+Mix_Chunk* cache_chunk(std::string file_path)
+{
+	static std::unordered_map<std::string, Mix_Chunk*> chunk_cache;
+
+	const auto it = chunk_cache.find(file_path);
+	if (it == chunk_cache.end())
+	{
+		Mix_Chunk* chunk = Mix_LoadWAV(audio_path(file_path).c_str());
+		const auto it_succeeded = chunk_cache.emplace(file_path, chunk);
+		return it_succeeded.first->second;
+	}
+	return it->second;
+}
+
+void play_sound(std::string file_path)
+{
+	Mix_Chunk* chunk = cache_chunk(file_path);
+	int channel_played = Mix_PlayChannel(-1, chunk, 0);
+	// if no channels are free
+	if (channel_played == -1) {
+		// allocate new channels
+		Mix_AllocateChannels(Mix_AllocateChannels(-1) + 1);
+		channel_played = Mix_PlayChannel(-1, chunk, 0);
+	}
+}

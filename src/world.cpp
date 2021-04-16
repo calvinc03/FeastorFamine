@@ -36,6 +36,7 @@
 #include <BehaviorTree.hpp>
 
 // stlib
+#include <glm/gtc/integer.hpp>
 #include <string.h>
 #include <cassert>
 #include <sstream>
@@ -61,13 +62,11 @@ const int STARTING_HEALTH = 1000;
 
 int WorldSystem::health = 1000;
 int WorldSystem::world_round_number = 0;
-bool WorldSystem::sandbox = false;
-bool WorldSystem::survival_mode = false;
 float WorldSystem::speed_up_factor = 1.f;
 float WorldSystem::reward_multiplier = 1.f;
 bool WorldSystem::set_AI_paths = false;
-int WorldSystem::show_path_duration = 30;
-int WorldSystem::show_path = 0;
+float WorldSystem::show_path_duration_ms = 1000.f;
+float WorldSystem::show_path = 0.f;
 GridMap WorldSystem::current_map;
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer; but it also defines the callbacks to the mouse and keyboard. That is why it is called here.
 
@@ -85,20 +84,7 @@ const std::string SELL_BUTTON_TITLE = "sell_button";
 const std::string START_BUTTON_TITLE = "start_button";
 
 const std::string TIPS_BUTTON_TITLE = "tips_button";
-const std::string SPRING_TITLE = "spring";
-const std::string SUMMER_TITLE = "summer";
-const std::string FALL_TITLE = "fall";
-const std::string WINTER_TITLE = "winter";
-const std::string FINAL_TITLE = "final";
 const std::string SAVE_PATH = "data/save_files/save_state.json";
-
-const std::map<std::string, int> season_str_to_enum = {
-        {SPRING_TITLE, SPRING},
-        {SUMMER_TITLE, SUMMER},
-        {FALL_TITLE, FALL},
-        {WINTER_TITLE, WINTER},
-		{FINAL_TITLE, SUMMER}
-};
 
 WorldSystem::WorldSystem(ivec2 window_size_px, PhysicsSystem *physics) : game_state(start_menu),
     player_state(set_up_stage),
@@ -303,7 +289,7 @@ void  WorldSystem::manage_dragon_animations() {
 void WorldSystem::step(float elapsed_ms)
 {
 	if (game_state == in_game) {
-        show_path--;
+        show_path -= elapsed_ms;
 	    if (show_path < 0) {
             for (auto entity : registry.view<Path>())
                 registry.destroy(entity);
@@ -317,8 +303,8 @@ void WorldSystem::step(float elapsed_ms)
 
         for (auto entity : registry.view<Ghost>()) {
             auto& ghost = registry.get<Ghost>(entity);
-            ghost.lifespan--;
-            if (ghost.lifespan < 0) {
+            ghost.lifespan_ms -= elapsed_ms;
+            if (ghost.lifespan_ms < 0) {
                 registry.destroy(entity);
             }
         }
@@ -639,7 +625,7 @@ void WorldSystem::end_battle_phase_step(float elapsed_ms)
 		auto round_clear_text = DisappearingText::createDisappearingText(closeness_regular, "ROUND CLEARED!", text_position, 1000, 2.f, vec3({ 245.f / 255.f, 216.f / 255.f, 51.f / 255.f }));
 		DisappearingText::createDisappearingText(closeness_outline, "ROUND CLEARED!", text_position, 1000, 2.f, vec3({ 0.f, 0.f, 0.f }));
 		auto& sound = registry.emplace<SoundRef>(round_clear_text);
-		sound.sound_reference = Mix_LoadWAV(audio_path("ui/round_cleared_sound.wav").c_str());
+		sound.file_path = "ui/round_cleared_sound.wav";
 		// change fastforward texture to not light up
 		UI_button::fastforward_light_off();
 		// hide fastforward button and showi start_button
@@ -663,8 +649,7 @@ void WorldSystem::end_battle_phase_step(float elapsed_ms)
 				RenderSystem::show_entity(entity);
 			}
 		}
-		// reset speed up factor
-		speed_up_factor = 1.f;
+
 		// if no greenhouse, shorten the end phase delay
 		if (!greenhouse_food_increased && registry.view<GreenHouse>().size() == 0)
 		{
@@ -863,7 +848,9 @@ void WorldSystem::start_victory_screen()
 // called at the end of battle pahse to set up next round
 void WorldSystem::end_battle_phase()
 {
-	world_round_number = sandbox ? -1 : world_round_number + 1;
+    if (game_mode != SANDBOX) {
+        world_round_number = world_round_number + 1;
+    }
 	
 	if (world_round_number == MAX_ROUND_NUMBER)
 	{
@@ -872,15 +859,13 @@ void WorldSystem::end_battle_phase()
 	}
 
 	setup_round_from_round_number(world_round_number);
-	// re-roll some fraction of map for weather terrains
-	int max_rerolls = (int)ceil(0.7 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
+
 	//screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
 		
 	for (auto particle : registry.view<ParticleSystem>()) {
 		registry.destroy(particle);
 	}
 
-	AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
 	player_state = set_up_stage;
 	num_bosses_spawned = 0;
 	num_mobs_spawned = 0;
@@ -952,7 +937,7 @@ void WorldSystem::handle_game_tips()
 }
 
 void WorldSystem::deduct_health(int num) {
-	int total_deduction = num * !WorldSystem::sandbox;
+	int total_deduction = (game_mode == SANDBOX) ? 0 : num;
 	WorldSystem::health -= total_deduction;
 	HealthChangeText::create_health_deduct_text(total_deduction, health);
 }
@@ -1077,7 +1062,7 @@ void WorldSystem::set_up_step(float elapsed_ms)
 		registry.get<Text>(round_text_entity).position.x = ROUND_NUM_X_OFFSET - 20;
 	registry.get<Text>(food_text_entity).content = std::to_string(health);
 
-	if(survival_mode && world_round_number > 0) {
+	if(game_mode == SURVIVAL && world_round_number > 0) {
         start_round();
 	}
 }
@@ -1094,7 +1079,7 @@ void WorldSystem::set_default_paths() {// set default paths for monster AI for t
             Path::createPath(default_monster_paths.at(monster_type), monster_type, size, num);
             num += 1;
         }
-        show_path = show_path_duration;
+        show_path = show_path_duration_ms;
         set_AI_paths = true;
     }
 }
@@ -1103,7 +1088,7 @@ void WorldSystem::start_round()
 {
 	game_tips = false;
 	// hide towers buttons
-	if (!survival_mode) {
+	if (game_mode == NORMAL) {
         for (auto entity : registry.view<UI_build_unit>())
         {
             RenderSystem::hide_entity(entity);
@@ -1132,10 +1117,15 @@ void WorldSystem::start_round()
 	un_highlight();
 
 	auto& stage_text = registry.get<Text>(stage_text_entity);
-	stage_text.content = "BATTLE";
+	if (game_mode == SURVIVAL) {
+        stage_text.content = "SURVIVAL";
+	} else {
+        stage_text.content = "BATTLE";
+	}
+
 	stage_text.colour = { 1.0f, 0.1f, 0.1f };
 
-    if (!survival_mode) {
+    if (game_mode != SURVIVAL) {
         for (auto entity : registry.view<Path>())
             registry.destroy(entity);
     }
@@ -1184,7 +1174,10 @@ void WorldSystem::restart()
 	current_speed = 1.f;
 	health = STARTING_HEALTH;				  //reset health
 	placement_unit_selected = NONE; // no initial selection
-	world_round_number = sandbox ? -1 : 0;
+	world_round_number = 0;
+	season = SPRING;
+	world_season_str = season_str.at(season);
+	weather = CLEAR;
 	reward_multiplier = 1;
 	num_bosses_spawned = 0;
 	num_mobs_spawned = 0;
@@ -1193,10 +1186,6 @@ void WorldSystem::restart()
 	mob_delay_ms = 0;
 	max_boss = 0;
 	boss_delay_ms = 0;
-
-	if (sandbox) {
-		world_season_str = WINTER_TITLE;
-	}
 
 	registry.each(destroy_entity);
 	registry.clear(); // Remove all entities that we created
@@ -1214,7 +1203,7 @@ void WorldSystem::restart()
 	UI_button::createUI_build_unit_button(5, green_house_button, unit_cost.at(GREENHOUSE));
 	UI_button::createUI_build_unit_button(6, wall_button, unit_cost.at(WALL));
 
-	if (sandbox) {
+	if (game_mode == SANDBOX) {
 		create_sandbox_ui();
 	}
 
@@ -1242,17 +1231,21 @@ void WorldSystem::restart()
 	stage_text_entity = create_ui_text(vec2(5, 65), "PREPARE");
 
 	// round label
-	create_ui_text(vec2(ROUND_LABEL_X_OFFSET, WINDOW_SIZE_IN_PX.y - ROUND_LABEL_Y_OFFSET), "Round:          / " + std::to_string(MAX_ROUND_NUMBER), ROUND_LABEL_SCALE);
+	if (game_mode != SANDBOX) {
+        create_ui_text(vec2(ROUND_LABEL_X_OFFSET, WINDOW_SIZE_IN_PX.y - ROUND_LABEL_Y_OFFSET), "Round:          / " + std::to_string(MAX_ROUND_NUMBER), ROUND_LABEL_SCALE);
+    } else {
+        create_ui_text(vec2(ROUND_LABEL_X_OFFSET, WINDOW_SIZE_IN_PX.y - ROUND_LABEL_Y_OFFSET), "SANDBOX", ROUND_LABEL_SCALE);
+	}
 
 	// round number text
 	round_text_entity = create_ui_text(vec2(ROUND_NUM_X_OFFSET, WINDOW_SIZE_IN_PX.y - ROUND_NUM_Y_OFFSET), "1", ROUND_NUM_SCALE, { 1.f, 0.f, 0.f });
 
 	// food label
 	create_ui_text(vec2(FOOD_LABEL_X_OFFSET, WINDOW_SIZE_IN_PX.y - FOOD_LABEL_Y_OFFSET), "Food:", FOOD_LABEL_SCALE);
-	
+
 	// food number text
 	food_text_entity = create_ui_text(vec2(FOOD_NUM_X_OFFSET, WINDOW_SIZE_IN_PX.y - FOOD_NUM_Y_OFFSET), "", FOOD_NUM_SCALE, { 0.f, 1.f, 0.f });
-	
+
 	// pause menu
 	pause_menu_entity = Menu::createMenu((float)WINDOW_SIZE_IN_PX.x / 2, (float)WINDOW_SIZE_IN_PX.y / 2, "pause_menu", Menu_texture::pause_menu, LAYER_MENU + 1, vec2({ 220.f, 260.f }));
 	registry.get<ShadedMeshRef>(pause_menu_entity).show = false;
@@ -1288,7 +1281,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 
 	remove_game_tip_and_story_card();
 
-	if (sandbox) {
+	if (game_mode == SANDBOX) {
 		if (max_mobs == 0) {
 			max_mobs = 10;
 			mob_delay_ms = 1000;
@@ -1296,21 +1289,20 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 			boss_delay_ms = 1000;
 		}
 
-		if (world_season_str == SPRING_TITLE) {
-			world_season_str = SUMMER_TITLE;
-		}
-		else if (world_season_str == SUMMER_TITLE) {
-			world_season_str = FALL_TITLE;
-		}
-		else if (world_season_str == FALL_TITLE) {
-			world_season_str = WINTER_TITLE;
-		}
-		else if (world_season_str == WINTER_TITLE) {
-			world_season_str = SPRING_TITLE;
-		}
+//        if (season == SPRING) {
+//            season = SUMMER;
+//        }
+//        else if (season == SUMMER) {
+//            season = FALL;
+//        }
+//        else if (season == FALL) {
+//            season = WINTER;
+//        }
+//        else if (season == WINTER) {
+//            season = SPRING;
+//        }
 
 		auto& stage_text = registry.get<Text>(stage_text_entity);
-		stage_text.content = "SANDBOX";
 
 		auto& max_mobs_text = registry.get<Text>(max_mobs_text_entity);
 		max_mobs_text.content = std::to_string(max_mobs);
@@ -1326,23 +1318,18 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 		max_boss = round_json["max_bosses"];
 		boss_delay_ms = round_json["boss_delay_ms"];
 		world_season_str = round_json["season"];
+		season = season_str_to_enum.at(world_season_str);
 	}
-
-	season = season_str_to_enum.at(world_season_str);
 
 	if (game_state != help_menu)
 	{
-	    if (sandbox || survival_mode) {
+	    if (game_mode == SANDBOX || game_mode == SURVIVAL) {
 	        game_state = in_game;
 	    } else {
             game_state = story_card;
             StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number + 1], std::to_string(round_number + 1));
-            TalkyBoi::createTalkyBoiEntt();
+            TalkyBoi::createTalkyBoiEntt(round_number);
 	    }
-	}
-	if (weather == DROUGHT)
-	{
-		screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
 	}
 
 	int prev_weather = weather;
@@ -1350,9 +1337,104 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	if (max_mobs > 0)
 		current_round_monster_types.emplace_back(MOB);
 
-    if (world_season_str == SPRING_TITLE)
+    if (game_mode != SANDBOX) {
+        set_random_weather();
+    }
+
+	if (prev_weather != weather || round_number <= 0) {
+	    AISystem::MapAI::setRandomMapWeatherTerrain(current_map, weather);
+	} else {
+        // re-roll some fraction of map for weather terrains
+        int max_rerolls = (int)ceil(0.7 * MAP_SIZE_IN_COORD.x * MAP_SIZE_IN_COORD.y);
+        AISystem::MapAI::setRandomWeatherTerrain(current_map, max_rerolls, weather);
+	}
+    // reset speed up factor
+    speed_up_factor = 1.f;
+
+    set_round_monsters();
+    update_weather_season_UI(round_number);
+}
+
+void WorldSystem::update_weather_season_UI(int round_number) const {//update wanted board
+    WantedBoard::updateWantedEntries(wanted_board_entity, current_round_monster_types, world_round_number, reward_multiplier);
+    UI_button::wantedboard_update_on(wanted_board_button);
+
+    if (weather == DROUGHT) {
+        screen_sprite->effect.load_from_file(shader_path("heat") + ".vs.glsl", shader_path("heat") + ".fs.glsl");
+    } else {
+        screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
+    }
+
+    // update text
+    auto& round_text = registry.get<Text>(round_text_entity);
+    if (game_mode == SANDBOX) {
+        round_text.content = "";
+    } else {
+        round_text.content = std::to_string(round_number + 1);
+    }
+
+    // only supports up to 2 digit rounds (99 max round)
+    if (round_text.content.length() == 2)
+        round_text.position.x = ROUND_NUM_X_OFFSET - 20;
+
+    auto& food_num_text = registry.get<Text>(food_text_entity);
+    food_num_text.content = std::to_string(health);
+
+    auto& season_text = registry.get<Text>(season_text_entity);
+    season_text.content = season_str.at(season);
+    season_text.colour = season_str_colour.at(season);
+
+    auto& weather_text = registry.get<Text>(weather_text_entity);
+    weather_text.content = weather_str.at(weather);
+    weather_text.colour = weather_str_colour.at(weather);
+    // update season wheel angle
+    UI_season_wheel::set_arrow(season_wheel_arrow_entity, season, round_number);
+    UI_weather_icon::change_weather_icon(weather_icon_entity, weather);
+
+    // monster path reset
+    for (auto entity : registry.view<Path>())
+        registry.destroy(entity);
+    set_AI_paths = false;
+}
+
+void WorldSystem::set_round_monsters() {
+    int boss;
+    current_round_monster_types.clear();
+
+    if (max_mobs > 0)
+        current_round_monster_types.emplace_back(MOB);
+
+    if (world_season_str == season_str.at(SPRING))
     {
-		reward_multiplier = 1.5f;
+        create_boss = SpringBoss::createSpringBossEntt;
+        boss = SPRING_BOSS;
+    }
+    else if (world_season_str == season_str.at(SUMMER)){
+        create_boss = SummerBoss::createSummerBossEntt;
+        boss = SUMMER_BOSS;
+    }
+    else if (world_season_str == season_str.at(FALL)){
+        create_boss = FallBoss::createFallBossEntt;
+        boss = FALL_BOSS;
+    }
+    else if (world_season_str == season_str.at(WINTER)){
+        create_boss = WinterBoss::createWinterBossEntt;
+        boss = WINTER_BOSS;
+    }
+    else if (world_season_str == season_str.at(FINAL)){
+        create_boss = DragonRig::createDragon;
+        boss = FINAL_BOSS;
+    }
+    if (boss != FINAL_BOSS && max_boss > 0) {
+        current_round_monster_types.emplace_back(boss);
+    }
+}
+
+
+void WorldSystem::set_random_weather() {
+    if (world_season_str == season_str.at(SPRING))
+    {
+        reward_multiplier = 1.5f;
         int weather_int = rand() % 2 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1360,29 +1442,21 @@ void WorldSystem::setup_round_from_round_number(int round_number)
         } else {
             weather = CLEAR;
         }
-        create_boss = SpringBoss::createSpringBossEntt;
-		if (max_boss > 0)
-			current_round_monster_types.emplace_back(SPRING_BOSS);
     }
-    else if (world_season_str == SUMMER_TITLE)
+    else if (world_season_str == season_str.at(SUMMER))
     {
-		reward_multiplier = 1.f;
+        reward_multiplier = 1.f;
         int weather_int = rand() % 5 + 1;
         if (weather_int % 2 == 1)
         {
             weather = DROUGHT;
-			screen_sprite->effect.load_from_file(shader_path("heat") + ".vs.glsl", shader_path("heat") + ".fs.glsl");
         } else {
             weather = CLEAR;
         }
-        create_boss = SummerBoss::createSummerBossEntt;
-		//create_boss =  Spider::createSpider;
-		if (max_boss > 0)
-			current_round_monster_types.emplace_back(SUMMER_BOSS);
     }
-    else if (world_season_str == FALL_TITLE)
+    else if (world_season_str == season_str.at(FALL))
     {
-		reward_multiplier = 1.5f;
+        reward_multiplier = 1.5f;
         int weather_int = rand() % 5 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1390,13 +1464,10 @@ void WorldSystem::setup_round_from_round_number(int round_number)
         } else {
             weather = CLEAR;
         }
-        create_boss = FallBoss::createFallBossEntt;
-		if (max_boss > 0)
-			current_round_monster_types.emplace_back(FALL_BOSS);
     }
-    else if (world_season_str == WINTER_TITLE)
+    else if (world_season_str == season_str.at(WINTER))
     {
-		reward_multiplier = 0.5f;
+        reward_multiplier = 0.5f;
         int weather_int = rand() % 2 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1404,62 +1475,23 @@ void WorldSystem::setup_round_from_round_number(int round_number)
         } else {
             weather = CLEAR;
         }
-        create_boss = WinterBoss::createWinterBossEntt;
-		if (max_boss > 0)
-			current_round_monster_types.emplace_back(WINTER_BOSS);
     }
-	else if (world_season_str == FINAL_TITLE)// FINAL_TITLE) else ifSPRING_TITLE
-	{
-		//fireball_delay_ms = FIREBALL_DELAY_MS;//5100;
-		//next_fireball_spawn = fireball_delay_ms;
+    else if (world_season_str == season_str.at(FINAL))// FINAL_TITLE) else ifSPRING_TITLE
+    {
+        //fireball_delay_ms = FIREBALL_DELAY_MS;//5100;
+        //next_fireball_spawn = fireball_delay_ms;
 
-		int weather_int = rand() % 5 + 1;
-		if (weather_int % 2 == 1)
-		{
-			weather = DROUGHT;
-		}
-		else {
-			weather = CLEAR;
-		}
-		std::cout << "SPAWNING FINAL BOSS" << std::endl;
-
-		create_boss = DragonRig::createDragon;
-
-        // current_round_monster_types.emplace_back(FINAL_BOSS);
-	}
-	if (prev_weather != weather || round_number == 0) {
-	    AISystem::MapAI::setRandomMapWeatherTerrain(current_map, weather);
-	}
-
-	//update wanted board
-	WantedBoard::updateWantedEntries(wanted_board_entity, current_round_monster_types, world_round_number, reward_multiplier);
-	UI_button::wantedboard_update_on(wanted_board_button);
-
-	// update text
-	auto& round_text = registry.get<Text>(round_text_entity);
-	round_text.content = std::to_string(round_number + 1);
-	// only supports up to 2 digit rounds (99 max round)
-	if (round_text.content.length() == 2)
-		round_text.position.x = ROUND_NUM_X_OFFSET - 20;
-
-	auto& food_num_text = registry.get<Text>(food_text_entity);
-	food_num_text.content = std::to_string(health);
-
-	auto& season_text = registry.get<Text>(season_text_entity);
-	season_text.content = season_str.at(season);
-	season_text.colour = season_str_colour.at(season);
-
-	auto& weather_text = registry.get<Text>(weather_text_entity);
-	weather_text.content = weather_str.at(weather);
-	weather_text.colour = weather_str_colour.at(weather);
-	// update season wheel angle
-	UI_season_wheel::set_arrow(season_wheel_arrow_entity, season, round_number);
-	// monster path reset
-	for (auto entity : registry.view<Path>())
-		registry.destroy(entity);
-	set_AI_paths = false;
-
-	UI_weather_icon::change_weather_icon(weather_icon_entity, weather);
+        int weather_int = rand() % 5 + 1;
+        if (weather_int % 2 == 1)
+        {
+            weather = DROUGHT;
+        }
+        else {
+            weather = CLEAR;
+        }
+        std::cout << "SPAWNING FINAL BOSS" << std::endl;
+        create_boss = DragonRig::createDragon;
+    }
 }
 
 void WorldSystem::setup_round_from_save_file(int round_number, int weather)
@@ -1470,27 +1502,13 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 
 	remove_game_tip_and_story_card();
 
-	if (sandbox) {
+	if (game_mode == SANDBOX) {
 		max_mobs = 10;
 		mob_delay_ms = 1000;
 		max_boss = 10;
 		boss_delay_ms = 1000;
 
-		if (world_season_str == SPRING_TITLE) {
-			world_season_str = SUMMER_TITLE;
-		}
-		else if (world_season_str == SUMMER_TITLE) {
-			world_season_str = FALL_TITLE;
-		}
-		else if (world_season_str == FALL_TITLE) {
-			world_season_str = WINTER_TITLE;
-		}
-		else if (world_season_str == WINTER_TITLE) {
-			world_season_str = SPRING_TITLE;
-		}
-
 		auto& stage_text = registry.get<Text>(stage_text_entity);
-		stage_text.content = "SANDBOX";
 
 		auto& max_mobs_text = registry.get<Text>(max_mobs_text_entity);
 		max_mobs_text.content = std::to_string(max_mobs);
@@ -1506,18 +1524,18 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 		max_boss = round_json["max_bosses"];
 		boss_delay_ms = round_json["boss_delay_ms"];
 		world_season_str = round_json["season"];
+        season = season_str_to_enum.at(world_season_str);
 	}
 
-	season = season_str_to_enum.at(world_season_str);
 	if (game_state != help_menu)
 	{
-		if (sandbox || survival_mode) {
+		if (game_mode == SANDBOX || game_mode == SURVIVAL) {
 			game_state = in_game;
 		}
 		else {
 			game_state = story_card;
 			StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number + 1], std::to_string(round_number + 1));
-			TalkyBoi::createTalkyBoiEntt();
+			TalkyBoi::createTalkyBoiEntt(round_number);
 		}
 	}
 	// weather related
@@ -1530,31 +1548,31 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 		screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
 	}
 	// set up boss by season
-	if (world_season_str == SPRING_TITLE)
+	if (world_season_str == season_str.at(SPRING))
 	{
 		create_boss = SpringBoss::createSpringBossEntt;
 		if (max_boss > 0)
 			current_round_monster_types.emplace_back(SPRING_BOSS);
 	}
-	else if (world_season_str == SUMMER_TITLE)
+	else if (world_season_str == season_str.at(SUMMER))
 	{
 		create_boss = SummerBoss::createSummerBossEntt;
 		if (max_boss > 0)
 			current_round_monster_types.emplace_back(SUMMER_BOSS);
 	}
-	else if (world_season_str == FALL_TITLE)
+	else if (world_season_str == season_str.at(FALL))
 	{
 		create_boss = FallBoss::createFallBossEntt;
 		if (max_boss > 0)
 			current_round_monster_types.emplace_back(FALL_BOSS);
 	}
-	else if (world_season_str == WINTER_TITLE)
+	else if (world_season_str == season_str.at(WINTER))
 	{
 		create_boss = WinterBoss::createWinterBossEntt;
 		if (max_boss > 0)
 			current_round_monster_types.emplace_back(WINTER_BOSS);
 	}
-	else if (world_season_str == FINAL_TITLE)// FINAL_TITLE) else ifSPRING_TITLE
+	else if (world_season_str == season_str.at(FINAL))// FINAL_TITLE) else ifSPRING_TITLE
 	{
 		std::cout << "SPAWNING FINAL BOSS" << std::endl;
 		create_boss = DragonRig::createDragon; //FinalBoss::createFinalBossEntt; //
@@ -1778,6 +1796,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		}
 
 		world_round_number = 15;
+		world_season_str = season_str.at(FINAL);
 	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P && game_state == in_game) {
@@ -1790,28 +1809,35 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE)
 	{
-		if (registry.valid(entity_selected))
+		if (game_state == GameState::start_menu)
 		{
-			registry.destroy(entity_selected);
-			if (registry.valid(entity_range_circle))
-				registry.destroy(entity_range_circle);
-			placement_unit_selected = unit_type::NONE;
-			un_highlight();
+			// Possibly close the game (same as clicking exit button)
 		}
-		else if (unit_selected)
+		else if (game_state == GameState::in_game)
 		{
-			unit_selected = false;
-			update_look_for_selected_buttons(GLFW_PRESS, false);
-			un_highlight();
+			if (registry.valid(entity_selected))
+			{
+				registry.destroy(entity_selected);
+				if (registry.valid(entity_range_circle))
+					registry.destroy(entity_range_circle);
+				placement_unit_selected = unit_type::NONE;
+				un_highlight();
+			}
+			else if (unit_selected)
+			{
+				unit_selected = false;
+				update_look_for_selected_buttons(GLFW_PRESS, false);
+				un_highlight();
+			}
+			else
+			{
+				pause_game();
+				more_options_menu();
+			}
 		}
 		else if (game_state == GameState::paused)
 		{
 			resume_game();
-		}
-		else
-		{
-			pause_game();
-			more_options_menu();
 		}
 	}
 
@@ -1924,9 +1950,10 @@ void WorldSystem::more_options_menu()
 	auto menu_ui = registry.get<UI_element>(pause_menu_entity);
 
 	float top_button_y_offset = menu_ui.position.y - menu_ui.scale.y / 2.f - 10;
-	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 1.f / 3.5f, MenuButtonType::restart_round_button, "Restart round", { 1.4f, 1.2f });
-	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 2.f / 3.5f, MenuButtonType::help_button, "Help", { 1.2f, 1.0f });
-	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 3.f / 3.5f, MenuButtonType::exit_button, "Exit", { 1.2f, 1.0f });
+	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 1.f / 4.5f, MenuButtonType::restart_round_button, "Restart round", { 1.4f, 1.2f });
+	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 2.f / 4.5f, MenuButtonType::menu_save_button, "Save", { 1.2f, 1.0f });
+	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 3.f / 4.5f, MenuButtonType::help_button, "Help", { 1.2f, 1.0f });
+	MenuButton::create_button(menu_ui.position.x, top_button_y_offset + menu_ui.scale.y * 4.f / 4.5f, MenuButtonType::exit_button, "Exit", { 1.2f, 1.0f });
 }
 
 void WorldSystem::resume_game()
@@ -2156,7 +2183,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 		camera_control(mouse_pos);
 		mouse_hover_ui_button();
 		bool in_game_area = mouse_in_game_area(mouse_pos);
-		if (in_game_area && placement_unit_selected != NONE && (player_state == set_up_stage || survival_mode))
+		if (in_game_area && placement_unit_selected != NONE && (player_state == set_up_stage || game_mode != NORMAL))
 		{
 			grid_highlight_system(mouse_pos, current_map);
 			createEntityRangeIndicator(mouse_pos);
@@ -2257,7 +2284,7 @@ void update_unit_stats(Unit unit)
 		aps_out.precision(2);
 		aps_out << std::fixed << (aps * unit.attack_speed_buff);
 
-		attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), stat_2_string + aps_out.str() + " (aps)", 0.3f, {1,0,0});
+		attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), stat_2_string + aps_out.str() + " (atk/sec)", 0.3f, {1,0,0});
 	}
 	else {
 		// display aps to 2 decimals
@@ -2265,7 +2292,7 @@ void update_unit_stats(Unit unit)
 		aps_out.precision(2);
 		aps_out << std::fixed << aps;
 
-		attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), stat_2_string + aps_out.str() + " (aps)");
+		attack_speed_stats = create_ui_text(vec2(x_position, y_position - y_line_offset), stat_2_string + aps_out.str() + " (atk/sec)");
 	}
 	
 	registry.emplace<UI_unit_stats>(attack_speed_stats);
@@ -2479,7 +2506,7 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 	{
 		selected_view_change = true;
 		remove_selected_unit_buttons();
-		if (player_state == PlayerState::set_up_stage || survival_mode)
+		if (player_state == PlayerState::set_up_stage || game_mode != NORMAL)
 		{
 			// show build unit buttons
 			for (auto entity : view_ui_build_buttons)
@@ -2574,6 +2601,7 @@ void WorldSystem::help_menu_click_handle(double mouse_pos_x, double mouse_pos_y,
 		else {
 			game_state = story_card;
 		}*/
+		un_highlight();
 		game_state = in_game;
 	}
 	// avoid 'unreferenced formal parameter' warning message
@@ -2743,23 +2771,24 @@ void WorldSystem::start_menu_click_handle(double mouse_pos_x, double mouse_pos_y
 		TitleEyes::createTitleEyes(vec2({ mouse_pos_x, mouse_pos_y }));*/
 		//MenuButton::create_button(mouse_pos_x, mouse_pos_y, MenuButtonType::exit_button, "X");
 		button_tag = on_click_button({mouse_pos_x, mouse_pos_y});
-		sandbox = false;
+
 		switch (button_tag)
 		{
         case (MenuButtonType::survival_mode_button):
-            survival_mode = true;
-            show_path = show_path_duration;
+            game_mode = SURVIVAL;
+            show_path = show_path_duration_ms;
 			remove_menu_buttons();
 			restart_with_save();
 			break;
 		case (MenuButtonType::sandbox_button):
-			sandbox = true;
+            game_mode = SANDBOX;
 			remove_menu_buttons();
 			restart_with_save();
 			break;
 		case (MenuButtonType::new_game_button):
 //			game_state = help_menu;
 //          RenderSystem::show_entity(help_menu_entity);
+            game_mode = NORMAL;
 			remove_menu_buttons();
 			restart_with_save();
 			break;
@@ -3075,6 +3104,21 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 		set_AI_paths = false;
 		set_default_paths();
 	}
+    else if (game_mode == SANDBOX && ui_button == Button::season_button)
+    {
+        season = mod((float)season + 1, (float)4);
+        world_season_str = season_str.at(season);
+        update_weather_season_UI(0);
+        set_round_monsters();
+        std::cout << world_season_str << " season up\n";
+    }
+    else if (game_mode == SANDBOX && ui_button == Button::weather_button)
+    {
+        weather = mod((float)weather +  1, (float)5);
+        AISystem::MapAI::setRandomMapWeatherTerrain(current_map, weather);
+        update_weather_season_UI(0);
+        std::cout << weather_str.at(weather) << " weather up\n";
+    }
 }
 
 void WorldSystem::on_click_ui(Button ui_button)
@@ -3182,7 +3226,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 	bool in_game_area = mouse_in_game_area(vec2(xpos, ypos));
 
-	if (player_state == set_up_stage || survival_mode)
+	if (player_state == set_up_stage || game_mode != NORMAL)
 	{
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && in_game_area)
 			WantedBoard::updateWantedBoardDisplay(wanted_board_entity, false);
@@ -3200,28 +3244,28 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 				{
                     entity = Hunter::createHunter(unit_position);
 					auto& sound = registry.emplace<SoundRef>(entity);
-					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/hunter_built_sound.wav").c_str());
+					sound.file_path = "ui/tower_built_sound/hunter_built_sound.wav";
 					deduct_health(hunter_unit.cost);
 				}
 				else if (placement_unit_selected == GREENHOUSE && health >= greenhouse_unit.cost)
 				{
 					entity = GreenHouse::createGreenHouse(unit_position);
 					auto& sound = registry.emplace<SoundRef>(entity);
-					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/greenhouse_built_sound.wav").c_str());
+					sound.file_path = "ui/tower_built_sound/greenhouse_built_sound.wav";
 					deduct_health(greenhouse_unit.cost);
 				}
 				else if (placement_unit_selected == EXTERMINATOR && health >= exterminator_unit.cost)
 				{
 					entity = Exterminator::createExterminator(unit_position);
 					auto& sound = registry.emplace<SoundRef>(entity);
-					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/exterminator_built_sound.wav").c_str());
+					sound.file_path = "ui/tower_built_sound/exterminator_built_sound.wav";
 					deduct_health(exterminator_unit.cost);
 				}
 				else if (placement_unit_selected == ROBOT && health >= robot_unit.cost)
 				{
 					entity = Robot::createRobot(unit_position);
 					auto& sound = registry.emplace<SoundRef>(entity);
-					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/robot_built_sound.wav").c_str());
+					sound.file_path = "ui/tower_built_sound/robot_built_sound.wav";
 					deduct_health(robot_unit.cost);
 				}
 				else if (placement_unit_selected == PRIESTESS && health >= priestess_unit.cost)
@@ -3230,21 +3274,21 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 					auto& unit = registry.get<Unit>(entity);
                     Aura::createAura(unit_position, unit.attack_range, entity);
 					auto& sound = registry.emplace<SoundRef>(entity);
-					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/priestess_built_sound.wav").c_str());
+					sound.file_path = "ui/tower_built_sound/priestess_built_sound.wav";
 					deduct_health(priestess_unit.cost);
 				}
 				else if (placement_unit_selected == SNOWMACHINE && health >= snowmachine_unit.cost)
 				{
 					entity = SnowMachine::createSnowMachine(unit_position);
 					auto& sound = registry.emplace<SoundRef>(entity);
-					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/snowmachine_built_sound.wav").c_str());
+					sound.file_path = "ui/tower_built_sound/snowmachine_built_sound.wav";
 					deduct_health(snowmachine_unit.cost);
 				}
 				else if (placement_unit_selected == WALL && health >= wall_unit.cost)
 				{
 					entity = Wall::createWall(unit_position/*, false*/);
 					auto& sound = registry.emplace<SoundRef>(entity);
-					sound.sound_reference = Mix_LoadWAV(audio_path("ui/tower_built_sound/wall_built_sound.wav").c_str());
+					sound.file_path = "ui/tower_built_sound/wall_built_sound.wav";
 					deduct_health(wall_unit.cost);
 				}
 				else
@@ -3257,7 +3301,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
                     Mix_PlayChannel(-1, ui_sound_bottle_pop, 0);
 				    auto& motion = registry.get<Motion>(entity);
                     current_map.setGridOccupancy(node.coord, placement_unit_selected, entity);
-                    show_path = show_path_duration;
+                    show_path = show_path_duration_ms;
 					set_AI_paths = false;
 
 					auto& unit = registry.get<Unit>(entity);
@@ -3425,6 +3469,7 @@ void WorldSystem::paused_click_handle(double xpos, double ypos, int button, int 
 			// remove game tips if exist
 			remove_game_tip_and_story_card();
 			resume_game();
+			un_highlight();
 		}
 	}
 	// avoid 'unreferenced formal parameter' warning message
@@ -3481,7 +3526,7 @@ void WorldSystem::save_game()
 	nlohmann::json save_json;
 	save_json["round_number"] = world_round_number;
 	save_json["health"] = health;
-	save_json["survival_mode"] = survival_mode;
+	save_json["game_mode"] = game_mode;
 	save_json["weather"] = weather;
 
 	// TODO finish implementing, may need to edit unit struct
@@ -3551,7 +3596,7 @@ void WorldSystem::load_game()
 
 	health = save_json["health"];
 	world_round_number = save_json["round_number"];
-    survival_mode = save_json["survival_mode"];
+    game_mode = save_json["game_mode"];
 	weather = save_json["weather"];
 	setup_round_from_save_file(world_round_number, weather);
 

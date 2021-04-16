@@ -1,3 +1,9 @@
+enum mode {
+    NORMAL,
+    SANDBOX,
+    SURVIVAL
+};
+
 enum layer_value {
     LAYER_MAP = 0,
     LAYER_UNITS = 10,
@@ -67,12 +73,14 @@ enum neighbor_type
     ALL_NBRS,
 };
 
+
 enum season
 {
     SPRING,
     SUMMER,
     FALL,
     WINTER,
+    FINAL
 };
 
 // Weather
@@ -111,7 +119,9 @@ enum Button
     rem_monster_button,
     inc_m_speed_button,
     dec_m_speed_button,
-    randomize_grid_map
+    randomize_grid_map,
+    season_button,
+    weather_button,
 };
 
 // Menu button

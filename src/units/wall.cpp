@@ -16,7 +16,7 @@ entt::entity Wall::createWall(vec2 position/*, bool rotate*/) // rotation should
 		/*if(rotate) 
 			RenderSystem::createSprite(resource, textures_path("units/wall90.png"), "textured");
 		else*/
-			RenderSystem::createSprite(resource, textures_path("units/wall.png"), "textured");
+			RenderSystem::createSprite(resource, textures_path("units/wall.png"), "unit");
 	}
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)

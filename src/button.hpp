@@ -1,6 +1,7 @@
 #pragma once
 #include "entt.hpp"
 #include "common.hpp"
+#include "sound_system.hpp"
 #include "ui.hpp"
 
 struct MenuButton {

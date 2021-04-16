@@ -1,5 +1,6 @@
 #include "ui.hpp"
 #include "world.hpp"
+#include "common.hpp"
 
 void UI_highlight_system(vec2 mouse_pos) {
 	auto view_ui = registry.view<UI_element, HighlightBool>(); //may make separate registry for UI elements. Could have position+scale instead of motion component
@@ -17,6 +18,10 @@ Button UI_click_system() {
 	auto view_buttons = registry.view<Button, HighlightBool, ShadedMeshRef>();
 	for (auto [entity, button, highlight, shadedmeshref] : view_buttons.each()) {
 		if (highlight.highlight && shadedmeshref.show) { // if a button is highlighted and we click -> button was pressed.
+			if (registry.has<SoundRef>(entity))
+			{
+				registry.get<SoundRef>(entity).play_sound = true;
+			}
 			return button;
 		}
 	}
@@ -189,6 +194,10 @@ entt::entity UI_button::createUI_button(int pos, Button button, std::string tag,
 	ui_element.position = vec2(2.5 * GRID_CELL_SIZE + (float)(pos * GRID_CELL_SIZE) + (GRID_CELL_SIZE / 2 - ui_element.scale.x / 2),
 		WINDOW_SIZE_IN_PX.y - ui_element.scale.y / 2.0f - (float)GRID_CELL_SIZE / 6.f);
 
+	SoundRef& sound_ref = registry.emplace<SoundRef>(entity);
+	sound_ref.file_path = "ui/button_click/generic_button_click.wav";
+	sound_ref.play_sound = false;
+
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);
 	registry.emplace<UI_button>(entity);
@@ -217,6 +226,10 @@ entt::entity UI_button::createTips_button(vec2 position)
 	ui_element.tag = key;
 	ui_element.scale = vec2({ 1.5f, 1.5f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
 	ui_element.position = position;
+
+	SoundRef& sound_ref = registry.emplace<SoundRef>(entity);
+	sound_ref.file_path = "ui/button_click/generic_button_click.wav";
+	sound_ref.play_sound = false;
 
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, Button::tips_button);
@@ -278,6 +291,10 @@ entt::entity UI_button::createStart_button(vec2 position)
 	ui_element.scale = vec2({ 1.7f, 1.7f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
 	ui_element.position = position;
 
+	SoundRef& sound_ref = registry.emplace<SoundRef>(entity);
+	sound_ref.file_path = "ui/button_click/generic_button_click.wav";
+	sound_ref.play_sound = false;
+
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, Button::start_button);
 	registry.emplace<UI_button>(entity);
@@ -337,6 +354,10 @@ entt::entity UI_button::createMore_button(vec2 position)
 	ui_element.tag = key;
 	ui_element.scale = vec2({ 1.7f, 1.7f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
 	ui_element.position = position;
+
+	SoundRef& sound_ref = registry.emplace<SoundRef>(entity);
+	sound_ref.file_path = "ui/button_click/generic_button_click.wav";
+	sound_ref.play_sound = false;
 
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, Button::more_options_button);
@@ -492,7 +513,6 @@ entt::entity UI_button::randomize_grid_map_button(vec2 position)
 	registry.emplace<Button>(entity, Button::randomize_grid_map);
 	registry.emplace<UI_button>(entity);
 
-
 	return entity;
 }
 
@@ -586,6 +606,10 @@ entt::entity UI_button::createFastforward_button(vec2 position)
 	ui_element.tag = key;
 	ui_element.scale = vec2({ 1.7f, 1.7f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
 	ui_element.position = position;
+
+	SoundRef& sound_ref = registry.emplace<SoundRef>(entity);
+	sound_ref.file_path = "ui/button_click/fast_forward_button_click.wav";
+	sound_ref.play_sound = false;
 
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, Button::fastforward_button);
@@ -713,6 +737,11 @@ entt::entity UI_selected_unit::createUI_selected_unit_upgrade_button(int pos, Bu
 	auto& UIselection = registry.emplace<UI_selected_unit>(entity);
 	UIselection.path_num = path_num;
 	UIselection.unit_type = unit_str.at(unit_type);
+
+	SoundRef& sound_ref = registry.emplace<SoundRef>(entity);
+	sound_ref.file_path = "ui/button_click/generic_button_click.wav";
+	sound_ref.play_sound = false;
+
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, button);
 	registry.emplace<UI_button>(entity);
@@ -930,6 +959,10 @@ entt::entity UI_season_wheel::createUI_season_wheel() {
 	ui_element.scale = vec2({ 0.85f, 0.85f }) * static_cast<vec2>(resource.texture.size);
 	ui_element.position = vec2(SEASON_WHEEL_X_OFFSET, SEASON_WHEEL_Y_OFFSET);
 
+	registry.emplace<HighlightBool>(entity);
+	registry.emplace<Button>(entity, Button::season_button);
+	registry.emplace<UI_button>(entity);
+
 	return entity;
 }
 
@@ -978,7 +1011,9 @@ void UI_season_wheel::set_arrow(entt::entity season_wheel_arrow_entity, int seas
 		break;
 	}
 
-	season_wheel_arrow.angle += round % ROUND_PER_SEASON * (PI/2) / ROUND_PER_SEASON;
+	if (game_mode == SANDBOX || round % ROUND_PER_SEASON) {
+        season_wheel_arrow.angle += (PI/2) / ROUND_PER_SEASON;
+	}
 }
 
 entt::entity UI_season_wheel::createUI_season_wheel_arrow() {
@@ -1019,6 +1054,10 @@ entt::entity UI_weather_icon::createUI_weather_icon() {
 	ui_element.tag = "UI_weather_icon";
 	ui_element.scale = vec2({ 0.45f, 0.45f }) * static_cast<vec2>(resource.texture.size);
 	ui_element.position = vec2(WEATHER_ICON_X_OFFSET, WEATHER_ICON_Y_OFFSET);
+
+    auto& highlight = registry.emplace<HighlightBool>(entity);
+    registry.emplace<Button>(entity, Button::weather_button);
+    registry.emplace<UI_button>(entity);
 
 	return entity;
 }
