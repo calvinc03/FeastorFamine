@@ -53,6 +53,7 @@
 #include <units/aura.hpp>
 #include <paths.hpp>
 #include <wantedboard.hpp>
+#include <units/egg.hpp>
 
 const size_t ANIMATION_FPS = 20;
 const size_t MENU_ANIMATION_FPS = 16;
@@ -623,9 +624,11 @@ void WorldSystem::end_battle_phase_step(float elapsed_ms)
 		auto closeness_regular = TextFont::load("data/fonts/Closeness/closeness.regular.ttf");
 		vec2 text_position = get_center_text_position(WINDOW_SIZE_IN_PX, { WINDOW_SIZE_IN_PX.x / 2, WINDOW_SIZE_IN_PX.y / 2 }, 2.f, "ROUND CLEARED!");
 		auto round_clear_text = DisappearingText::createDisappearingText(closeness_regular, "ROUND CLEARED!", text_position, 1000, 2.f, vec3({ 245.f / 255.f, 216.f / 255.f, 51.f / 255.f }));
-		DisappearingText::createDisappearingText(closeness_outline, "ROUND CLEARED!", text_position, 1000, 2.f, vec3({ 0.f, 0.f, 0.f }));
-		auto& sound = registry.emplace<SoundRef>(round_clear_text);
-		sound.file_path = "ui/round_cleared_sound.wav";
+		if (!round_skipped) {
+            DisappearingText::createDisappearingText(closeness_outline, "ROUND CLEARED!", text_position, 1000, 2.f, vec3({ 0.f, 0.f, 0.f }));
+            auto& sound = registry.emplace<SoundRef>(round_clear_text);
+            sound.file_path = "ui/round_cleared_sound.wav";
+		}
 		// change fastforward texture to not light up
 		UI_button::fastforward_light_off();
 		// hide fastforward button and showi start_button
@@ -684,6 +687,8 @@ void WorldSystem::end_battle_phase_step(float elapsed_ms)
 		greenhouse_food_increased = false;
 		end_of_battle_stage_dealy_ms = END_OF_BATTLE_STAGE_DELAY_MS;
 	}
+
+    round_skipped = false;
 }
 
 void WorldSystem::title_screen_step(float elapsed_ms)
@@ -1261,6 +1266,7 @@ void WorldSystem::restart()
 	current_map = registry.get<GridMap>(GridMap::createGridMap());
 	village = Village::createVillage(current_map);
 	Forest::createForest(current_map);
+	egg = Egg::createEgg(current_map);
 
 	// set up tip manager
 	tip_manager = TipManager();
@@ -1774,30 +1780,8 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_S)
 	{
-		if (player_state == set_up_stage)
-		{
-			start_round();
-		}
-		
-		num_bosses_spawned = max_boss;
-		num_mobs_spawned = max_mobs;
-		for (entt::entity projectile : registry.view<Projectile>())
-		{
-			registry.destroy(projectile);
-		}
-		for (entt::entity monster : registry.view<Monster>())
-		{
-			if (registry.has<Rig>(monster)) {
-				Rig::delete_rig(monster); //rigs have multiple pieces to be deleted
-			}
-			else {
-				registry.destroy(monster);
-			}
-		}
-
-		world_round_number = 15;
-		world_season_str = season_str.at(FINAL);
-	}
+        skip_to_final_round();
+    }
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P && game_state == in_game) {
 		pause_game();
@@ -1934,6 +1918,32 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		std::cout << "Current speed = " << current_speed << std::endl;
 	}
 	current_speed = std::max(0.f, current_speed);
+}
+
+void WorldSystem::skip_to_final_round() {
+    if (player_state == set_up_stage)
+    {
+        start_round();
+    }
+
+    num_bosses_spawned = max_boss;
+    num_mobs_spawned = max_mobs;
+    for (entt::entity projectile : registry.view<Projectile>())
+    {
+        registry.destroy(projectile);
+    }
+    for (entt::entity monster : registry.view<Monster>())
+    {
+        if (registry.has<Rig>(monster)) {
+            Rig::delete_rig(monster); //rigs have multiple pieces to be deleted
+        }
+        else {
+            registry.destroy(monster);
+        }
+    }
+
+    world_round_number = 15;
+    world_season_str = season_str.at(FINAL);
 }
 
 void WorldSystem::pause_game()
@@ -2726,6 +2736,16 @@ bool WorldSystem::click_on_unit(double mouse_pos_x, double mouse_pos_y)
 			view_highlight.get<HighlightBool>(entity).highlight = false;
 		}
 	}
+
+    // check if clicked on egg
+    auto& motion = registry.get<Motion>(egg);
+    if (sdBox(mouse_pos, motion.position, motion.scale / 2.f) < 0.0f)
+    {
+        skip_to_final_round();
+        round_skipped = true;
+        registry.destroy(egg);
+    }
+
 	return clicked_on_unit;
 }
 
@@ -3091,14 +3111,16 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 	else if (ui_button == Button::randomize_grid_map)
 	{
 		std::cout << "asdf" << std::endl;
+        for (auto grid_node : registry.view<GridNode>()) {
+            registry.destroy(grid_node);
+        }
 		for (auto grid_map : registry.view<GridMap>()) {
 			registry.destroy(grid_map);
 		}
-		for (auto grid_node : registry.view<GridNode>()) {
-			registry.destroy(grid_node);
-		}
-		current_map = registry.get<GridMap>(GridMap::createGridMap());
+        registry.destroy(egg);
 
+		current_map = registry.get<GridMap>(GridMap::createGridMap());
+        egg = Egg::createEgg(current_map);
 		AISystem::MapAI::setRandomMapWeatherTerrain(current_map, weather);
 
 		set_AI_paths = false;

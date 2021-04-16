@@ -64,6 +64,7 @@ enum unit_type
     ROBOT,
     HUNTER,
     WALL,
+    EGG
 };
 
 enum neighbor_type

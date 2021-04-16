@@ -72,7 +72,7 @@ static const float LOAD_GAME_BUTTON_Y = 427;
 static const float SURVIVAL_MODE_BUTTON_X = 285;
 static const float SURVIVAL_MODE_BUTTON_Y = 505;
 static const float SANDBOX_BUTTON_X = 233;
-static const float SANDBOX_BUTTON_Y = 585;
+static const float SANDBOX_BUTTON_Y = 595;
 
 static const float TITLE_HELP_BUTTON_X = 815;
 static const float TITLE_HELP_BUTTON_Y = 395;

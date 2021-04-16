@@ -182,6 +182,9 @@ private:
 	// village
 	entt::entity village;
 
+	entt::entity egg;
+    bool round_skipped = false;
+
 	// animation fps
 	float fps_ms;
 
@@ -287,4 +290,6 @@ private:
     void set_random_weather();
     void set_round_monsters();
     void update_weather_season_UI(int round_number) const;
+
+    void skip_to_final_round();
 };
