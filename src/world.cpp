@@ -2738,12 +2738,15 @@ bool WorldSystem::click_on_unit(double mouse_pos_x, double mouse_pos_y)
 	}
 
     // check if clicked on egg
-    auto& motion = registry.get<Motion>(egg);
-    if (sdBox(mouse_pos, motion.position, motion.scale / 2.f) < 0.0f)
-    {
-        skip_to_final_round();
-        round_skipped = true;
-        registry.destroy(egg);
+    if (registry.valid(egg)) {
+        auto& motion = registry.get<Motion>(egg);
+        if (sdBox(mouse_pos, motion.position, motion.scale / 2.f) < 0.0f)
+        {
+            round_skipped = true;
+            skip_to_final_round();
+            registry.destroy(egg);
+        }
+
     }
 
 	return clicked_on_unit;
