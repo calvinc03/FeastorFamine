@@ -22,7 +22,8 @@ entt::entity Egg::createEgg(GridMap& current_map)
 	motion.angle = 0.f;
 	motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
 	motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
-    motion.position = ((vec2)MAP_SIZE_IN_PX / 2.f) + vec2(- uniform_dist(rng) * (MAP_SIZE_IN_PX.x/2 - 1), uniform_dist(rng) * (MAP_SIZE_IN_PX.y/2 - 1));
+    vec2 pos = ((vec2)MAP_SIZE_IN_COORD / 2.f) + vec2(- uniform_dist(rng) * (MAP_SIZE_IN_COORD.x/2 - 1), uniform_dist(rng) * (MAP_SIZE_IN_COORD.y/2 - 1));
+    motion.position = coord_to_pixel(pos);
     current_map.setGridOccupancy(pixel_to_coord(motion.position), EGG, entity);
 
 	registry.emplace<Egg>(entity);
