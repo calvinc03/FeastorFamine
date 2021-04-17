@@ -252,6 +252,8 @@ entt::entity Missile::createMissile(entt::entity e_unit, entt::entity e_monster,
     Projectile& p = registry.emplace<Projectile>(entity);
     p.damage = damage;
 
+    play_sound("projectile/rocket_launcher_begin.wav");
+
     registry.emplace<Missile>(entity);
 
     return entity;
@@ -297,6 +299,8 @@ entt::entity Explosion::createExplosion(entt::entity e_projectile, int damage)
     auto& explosion = registry.emplace<Explosion>(entity);
     explosion.e_unit = e_projectile;
 
+    play_sound("projectile/explosion.wav");
+
     return entity;
 }
 
@@ -328,7 +332,7 @@ entt::entity IceField::createIceField(entt::entity e_unit, entt::entity e_monste
     motion.angle = atan2(direction.y, direction.x);
     motion.position = hunter_motion.position;
     // Setting initial values, scale is negative to make it face the opposite way
-    motion.scale = vec2(static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y);
+    motion.scale = vec2(static_cast<vec2>(resource.texture.size).x * 1.5, static_cast<vec2>(resource.texture.size).y * 1.5);
     motion.boundingbox = vec2({ motion.scale.x * 0.18f , motion.scale.y });
 
     // Create and (empty) Projectile component to be able to refer to all Projectile
@@ -340,6 +344,8 @@ entt::entity IceField::createIceField(entt::entity e_unit, entt::entity e_monste
     animate.state = 0.f;
     animate.frame_num = ICEFIELD_FRAMES;
     animate.state_num = 1.f;*/
+
+    play_sound("projectile/ice_field.wav");
 
     auto& field = registry.emplace<IceField>(entity);
     field.e_unit = e_unit;

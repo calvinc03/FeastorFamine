@@ -173,7 +173,7 @@ nlohmann::json get_json(std::string json_path);
 
 struct SoundRef
 {
-	std::string file_path = "money.wav";
+	std::string file_path = "";
 	Mix_Chunk* sound_reference = nullptr;
 	float play_delay_counter_ms = -1;
 	// set play_delay_ms to more than the lifetime of the entity that SoundRef is attacted to, 

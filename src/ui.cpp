@@ -671,8 +671,45 @@ entt::entity UI_selected_unit_portrait::createUI_selected_unit_portrait(unit_typ
 	int x_offset = 100;
 	ui_element.position = PORTRAIT_POS;
 
+	SoundRef& sound_ref = registry.emplace<SoundRef>(entity);
+	int sound_num = 1;
+	switch (type)
+	{
+	case unit_type::HUNTER:
+		sound_num = rand() % 2 + 1;
+		sound_ref.file_path = "units/when_selected/hunter_selected_" + std::to_string(sound_num) + ".wav";
+		break;
+	case unit_type::EXTERMINATOR:
+		sound_num = rand() % 6 + 1;
+		sound_ref.file_path = "units/when_selected/exterminator_selected_" + std::to_string(sound_num) + ".wav";
+		break;
+	case unit_type::ROBOT:
+		sound_num = rand() % 4 + 1;
+		sound_ref.file_path = "units/when_selected/robot_selected_" + std::to_string(sound_num) + ".wav";
+		break;
+	case unit_type::PRIESTESS:
+		sound_num = rand() % 1 + 1;
+		sound_ref.file_path = "units/when_selected/priestess_selected_" + std::to_string(sound_num) + ".wav";
+		break;
+	case unit_type::SNOWMACHINE:
+		sound_num = rand() % 1 + 1;
+		sound_ref.file_path = "units/when_selected/snowmachine_selected_" + std::to_string(sound_num) + ".wav";
+		break;
+	case unit_type::GREENHOUSE:
+		sound_num = rand() % 1 + 1;
+		sound_ref.file_path = "units/when_selected/greenhouse_selected_" + std::to_string(sound_num) + ".wav";
+		break;
+	case unit_type::WALL:
+		sound_num = rand() % 1 + 1;
+		sound_ref.file_path = "units/when_selected/wall_selected_" + std::to_string(sound_num) + ".wav";
+		break;
+	default:
+		break;
+	}
+
 	registry.emplace<UI_selected_unit>(entity);
-	registry.emplace<UI_selected_unit_portrait>(entity);
+	auto portrait = registry.emplace<UI_selected_unit_portrait>(entity);
+	portrait.type = type;
 
 	return entity;
 }

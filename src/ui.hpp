@@ -62,6 +62,7 @@ struct UI_banner
 
 struct UI_selected_unit_portrait
 {
+	unit_type type;
 	static entt::entity createUI_selected_unit_portrait(unit_type type);
 };
 

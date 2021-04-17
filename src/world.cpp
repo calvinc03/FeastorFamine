@@ -2320,7 +2320,8 @@ void update_unit_portrait(Unit unit)
 	// clear unit portrait
 	for (auto entity : registry.view<UI_selected_unit_portrait>())
 	{
-		registry.destroy(entity);
+		if (registry.get<UI_selected_unit_portrait>(entity).type != unit.type)
+			registry.destroy(entity);
 	}
 	UI_selected_unit_portrait::createUI_selected_unit_portrait(unit.type);
 }
@@ -2484,6 +2485,10 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 			upgrade_button_2 = UI_selected_unit::createUI_selected_unit_upgrade_button(3, upgrade_path_2_button, PATH_2_UPGRADE_BUTTON_TITLE, selected_unit.type, selected_unit.path_2_upgrade);
 			button_sell = UI_sell_button::createUI_sell_button(4, sell_button, SELL_BUTTON_TITLE);
 			selected_view_change = false;
+
+			//update unit portrait
+			update_unit_portrait(selected_unit);
+
 		}
 
 		if (registry.valid(upgrade_button_1))
@@ -2500,9 +2505,7 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 
 		update_sell_button_text(button_sell, selected_unit.sell_price);
 
-		//update unit portrait
-		update_unit_portrait(selected_unit);
-
+		
 		// update unit stats
 		update_unit_stats(selected_unit);
 
@@ -3067,6 +3070,7 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 		UI_button::wantedboard_update_off(wanted_board_button);
 		auto board_meshref = registry.get<ShadedMeshRef>(wanted_board_entity);
 		WantedBoard::updateWantedBoardDisplay(wanted_board_entity, !board_meshref.show);
+		play_sound("ui/button_click/wanted_board_button_click_2.wav");
 	}
 	else if (ui_button == Button::add_monster_button)
 	{
@@ -3373,6 +3377,13 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			pause_game();
 			more_options_menu();
 		}
+		else if (ui_button == Button::wantedboard_button)
+		{
+			UI_button::wantedboard_update_off(wanted_board_button);
+			auto board_meshref = registry.get<ShadedMeshRef>(wanted_board_entity);
+			WantedBoard::updateWantedBoardDisplay(wanted_board_entity, !board_meshref.show);
+			play_sound("ui/button_click/wanted_board_button_click_2.wav");
+		}
 		else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !in_game_area)
 		{
 			on_click_ui_when_selected(ui_button);
@@ -3388,7 +3399,6 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 			}
 		}
 	}
-
 	// avoid 'unreferenced formal parameter' warning message
 	(void)mod;
 }
