@@ -3155,6 +3155,10 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
     {
         weather = mod((float)weather +  1, (float)5);
         AISystem::MapAI::setRandomMapWeatherTerrain(current_map, weather);
+        for (auto particle : registry.view<ParticleSystem>()) {
+            registry.destroy(particle);
+        }
+        next_particle_spawn = 0;
         update_weather_season_UI(0);
         std::cout << weather_str.at(weather) << " weather up\n";
     }
