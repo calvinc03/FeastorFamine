@@ -392,7 +392,7 @@ entt::entity UI_button::create_add_monster_button(vec2 position)
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, Button::add_monster_button);
 	registry.emplace<UI_button>(entity);
-
+	registry.emplace<UI_build_unit>(entity);
 
 	return entity;
 }
@@ -422,6 +422,7 @@ entt::entity UI_button::create_rem_monster_button(vec2 position)
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, Button::rem_monster_button);
 	registry.emplace<UI_button>(entity);
+	registry.emplace<UI_build_unit>(entity);
 
 
 	return entity;
@@ -452,6 +453,7 @@ entt::entity UI_button::create_inc_m_speed_button(vec2 position)
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, Button::inc_m_speed_button);
 	registry.emplace<UI_button>(entity);
+	registry.emplace<UI_build_unit>(entity);
 
 
 	return entity;
@@ -482,6 +484,7 @@ entt::entity UI_button::create_dec_m_speed_button(vec2 position)
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, Button::dec_m_speed_button);
 	registry.emplace<UI_button>(entity);
+	registry.emplace<UI_build_unit>(entity);
 
 
 	return entity;
@@ -512,6 +515,7 @@ entt::entity UI_button::randomize_grid_map_button(vec2 position)
 	registry.emplace<HighlightBool>(entity);
 	registry.emplace<Button>(entity, Button::randomize_grid_map);
 	registry.emplace<UI_button>(entity);
+	registry.emplace<UI_build_unit>(entity);
 
 	return entity;
 }

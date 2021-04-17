@@ -86,7 +86,7 @@ void upgrade_unit_path_2(entt::entity e_unit)
 		unit.sell_price += upgrades[1];
 		unit.damage = upgrades[2];
 		unit.create_projectile = Missile::createMissile;
-		unit.attack_range = 400;
+		unit.attack_range = GRID_CELL_SIZE * 4;
 	}
 
 	else if (registry.has<GreenHouse>(e_unit)) {
@@ -115,7 +115,7 @@ void upgrade_unit_path_2(entt::entity e_unit)
 		unit.damage = upgrades[2];
 
 		unit.create_projectile = IceField::createIceField;
-		unit.attack_range = 150;
+		unit.attack_range = GRID_CELL_SIZE * 2;
 	}
 
 	else if (registry.has<Wall>(e_unit)) {

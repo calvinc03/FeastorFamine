@@ -55,6 +55,9 @@ struct UI_button
 	static entt::entity createUI_selected_unit_button(int pos, Button button, std::string tag = "default_ui_button_tag", bool show = true);
 };
 
+
+struct UI_sandbox_button {};
+
 struct UI_banner
 {
 	static entt::entity createUI_Banner(std::string content, vec2 position, vec3 colour, float duration);

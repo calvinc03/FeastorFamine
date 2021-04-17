@@ -37,9 +37,10 @@ entt::entity Mob::createMobEntt(int round_number)
     //motion.boundingbox = vec2({ motion.scale.x , motion.scale.y });
     motion.boundingbox = vec2({ motion.scale.x*0.13f , motion.scale.y });
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = monster_health.at(MOB) + round_number * MONSTER_SCALE_HEALTH;
+    monster.max_health = monster_health.at(MOB) + sum_to_n(round_number) * MONSTER_SCALE_HEALTH_FACTOR;
     monster.health = monster.max_health;
-    monster.damage = monster_damage.at(MOB);
+    monster.village_damage = monster_village_damage.at(MOB) + floor(round_number / 2) * MONSTER_DAMAGE_SCALE_FACTOR;
+    monster.damage = monster_damage.at(MOB) + round_number * MONSTER_DAMAGE_SCALE_FACTOR;
     monster.reward = monster_reward.at(MOB);
     monster.type = MOB;
     monster.sprite = WALK_SPRITE;

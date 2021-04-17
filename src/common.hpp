@@ -65,6 +65,7 @@ struct Monster {
     int max_health; //useful for displaying health bars
     int health;
     int damage;
+	int village_damage;
     int effect_interval = 30;
     int next_attack = 0;
     int next_effect = 0;
@@ -161,6 +162,8 @@ std::vector<vec2> bezierVelocities(std::vector<vec2> points);
 std::vector<vec2> bezierCurve(std::vector<vec2> points, float total_time);
 
 std::vector<float> pascalNRow(int n);
+
+inline int sum_to_n(int n) { return (n * (n + 1)) / 2; }
 
 //TODO: temporary soln
 #include "entt.hpp"

@@ -187,7 +187,7 @@ const Unit wall_unit = {
 	unit_num_projectiles.at(WALL),        //num_projectiles
 	unit_create_projectiles.at(WALL),     //create projectile
 	unit_rotate.at(WALL),	              //rotate
-	0,                                    //upgrade_path_1_cost
+	wall_path_1.at(0)[0],                 //upgrade_path_1_cost
 	0,                                    //upgrade_path_2_cost
 	unit_cost.at(WALL),	                  //cost
 	unit_sell_price.at(WALL),	          //sell_price

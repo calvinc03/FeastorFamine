@@ -189,8 +189,8 @@ void WantedEntry::createMonsterText(entt::entity entry, vec2 position, vec2 scal
 	std::vector<std::string> description_strings;
 	MonsterInfo info = wanted_descriptions.at(monster_type);
 	
-	if (monster_type == MOB) info.health += round_number * MONSTER_SCALE_HEALTH;
-	else info.health += round_number * BOSS_SCALE_HEALTH;
+	if (monster_type == MOB) info.health += sum_to_n(round_number) * MONSTER_SCALE_HEALTH_FACTOR;
+	else info.health += sum_to_n(round_number) * BOSS_SCALE_HEALTH_FACTOR;
 
 	description_strings.push_back(template_text[0] + std::to_string(info.health));
 	description_strings.push_back(template_text[1] + std::to_string(info.speed));

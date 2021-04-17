@@ -116,7 +116,7 @@ const std::vector<std::string> path_2_upgrade_button_exterminator_0 = {
     "Shoot exploding missiles instead",
     "Current Range: " + std::to_string(unit_attack_range.at(EXTERMINATOR)),
     "",
-    "Increased Range: 400",
+    "Increased Range: " + std::to_string(GRID_CELL_SIZE * 4),
     "Cost: " + std::to_string(exterminator_path_2.at(0)[0])
 };
 
@@ -251,7 +251,7 @@ const std::vector<std::string> path_1_upgrade_button_snowmachine_2 = {
 const std::vector<std::string> path_2_upgrade_button_snowmachine_0 = {
     "No more snowballs!",
     "Creates ice field to slow enemies",
-    "Range: 150",
+    "Range: " + std::to_string(GRID_CELL_SIZE * 2),
     "Cost: " + std::to_string(snowmachine_path_2.at(0)[0])
 };
 

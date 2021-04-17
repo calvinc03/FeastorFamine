@@ -1164,8 +1164,11 @@ void WorldSystem::create_sandbox_ui()
 	UI_button::create_inc_m_speed_button(INC_GAME_BUTTON_POS);
 	UI_button::create_dec_m_speed_button(DEC_GAME_BUTTON_POS);
 	UI_button::randomize_grid_map_button(RANDOM_BUTTON_POS);
-	create_ui_text(vec2(ADD_GAME_BUTTON_POS.x - 50, 30), "MONSTERS", .3f, vec3(1.f, 1.f, 1.f));
-	create_ui_text(vec2(INC_GAME_BUTTON_POS.x - 50, 30), "SPEED", .3f, vec3(1.f, 1.f, 1.f));
+	auto monster = create_ui_text(vec2(ADD_GAME_BUTTON_POS.x - 50, 30), "MONSTERS", .3f, vec3(1.f, 1.f, 1.f));
+	auto speed = create_ui_text(vec2(INC_GAME_BUTTON_POS.x - 50, 30), "SPEED", .3f, vec3(1.f, 1.f, 1.f));
+	registry.emplace<UI_build_unit>(monster);
+	registry.emplace<UI_build_unit>(speed);
+
 	max_mobs_text_entity = create_ui_text(vec2(ADD_GAME_BUTTON_POS.x - 25, 10), std::to_string(max_mobs), .3f, vec3(1.f, 1.f, 1.f));
 	float monster_speed = 1000.f / (float)mob_delay_ms;
 	mob_speed_text_entity = create_ui_text(vec2(INC_GAME_BUTTON_POS.x - 50, 10), std::to_string(monster_speed), .3f, vec3(1.f, 1.f, 1.f));
@@ -1440,7 +1443,7 @@ void WorldSystem::set_round_monsters() {
 void WorldSystem::set_random_weather() {
     if (world_season_str == season_str.at(SPRING))
     {
-        reward_multiplier = 1.5f;
+        reward_multiplier = 2.f;
         int weather_int = rand() % 2 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1462,7 +1465,7 @@ void WorldSystem::set_random_weather() {
     }
     else if (world_season_str == season_str.at(FALL))
     {
-        reward_multiplier = 1.5f;
+        reward_multiplier = 1.f;
         int weather_int = rand() % 5 + 1;
         if (weather_int % 2 == 1)
         {
@@ -1498,6 +1501,9 @@ void WorldSystem::set_random_weather() {
         std::cout << "SPAWNING FINAL BOSS" << std::endl;
         create_boss = DragonRig::createDragon;
     }
+	if (world_round_number > 7) {
+		reward_multiplier *= 0.5;
+	}
 }
 
 void WorldSystem::setup_round_from_save_file(int round_number, int weather)
@@ -2275,6 +2281,9 @@ void update_unit_stats(Unit unit)
 		stat_3_string = "Buff Range: ";
 		aps = 1000 / aps;
 	}
+	else if (unit.type == GREENHOUSE) {
+		stat_1_string = "Current Production: ";
+	}
 	else if (unit.type == SNOWMACHINE) {
 		stat_1_string = "Slow Percentage: ";
 	}
@@ -2447,8 +2456,8 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 	{
 		registry.destroy(entity);
 	}
-	auto view_ui_selected_buttons = registry.view<UI_selected_unit, UI_element, ShadedMeshRef>();
-	auto view_ui_build_buttons = registry.view<UI_build_unit, UI_element, ShadedMeshRef>();
+
+	auto view_ui_build_buttons = registry.view<UI_build_unit>();
 
 	if (registry.valid(selected_range_circle))
 		registry.destroy(selected_range_circle);
@@ -2514,6 +2523,11 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 		{
 			RenderSystem::hide_entity(entity);
 		}
+		
+		if (game_mode == SANDBOX) {
+			RenderSystem::hide_entity(max_mobs_text_entity);
+			RenderSystem::hide_entity(mob_speed_text_entity);
+		}
 	}
 	else
 	{
@@ -2525,6 +2539,11 @@ void WorldSystem::update_look_for_selected_buttons(int action, bool sell_clicked
 			for (auto entity : view_ui_build_buttons)
 			{
 				RenderSystem::show_entity(entity);
+			}
+
+			if (game_mode == SANDBOX) {
+				RenderSystem::show_entity(max_mobs_text_entity);
+				RenderSystem::show_entity(mob_speed_text_entity);
 			}
 		}
 	}
@@ -2711,47 +2730,40 @@ bool check_click_on_unit_selected_buttons(double mouse_pos_x, double mouse_pos_y
 // return true if a unit is selected; otherwise, false
 bool WorldSystem::click_on_unit(double mouse_pos_x, double mouse_pos_y)
 {
-	bool clicked_on_unit = false;
 	auto view_highlight = registry.view<HighlightBool>();
 	auto view_unit = registry.view<Unit>();
 	vec2 mouse_pos = mouse_in_world_coord({ mouse_pos_x, mouse_pos_y });
-	auto view_selectable = registry.view<Selectable, Motion>();
-	for (auto [entity, selectable, motion] : view_selectable.each())
-	{
-		vec2 scale = motion.scale / 2.f;
-		if (registry.has<GreenHouse>(entity)) {
-			scale /= 3.f;
-		}
+	
+	if (mouse_in_game_area(mouse_pos)) {
 
-		// check click on units
-		if (sdBox(mouse_pos, motion.position, scale) < 0.0f && entity != entity_selected)
-		{
-			// add selected status
-			selectable.selected = true;
-			view_highlight.get<HighlightBool>(entity).highlight = true;
+		// check if clicked on egg
+		if (world_round_number < 16 && registry.valid(egg)) {
+			auto& motion = registry.get<Motion>(egg);
+			if (sdBox(mouse_pos, motion.position, motion.scale / 2.f) < 0.0f)
+			{
+				round_skipped = true;
+				skip_to_final_round();
+			}
 
-			clicked_on_unit = true;
 		}
-		else
+		
+		auto view_selectable = registry.view<Selectable, Motion>();
+		for (auto [entity, selectable, motion] : view_selectable.each())
 		{
 			// remove selected status on all other units
 			selectable.selected = false;
 			view_highlight.get<HighlightBool>(entity).highlight = false;
 		}
+
+		auto node = current_map.getNodeAtCoord(pixel_to_coord(mouse_pos));
+		if (registry.valid(node.occupying_entity)) {
+			view_selectable.get<Selectable>(node.occupying_entity).selected = true;
+			view_highlight.get<HighlightBool>(node.occupying_entity).highlight = true;
+			return true;
+		}
 	}
 
-    // check if clicked on egg
-    if (world_round_number < 16 && registry.valid(egg)) {
-        auto& motion = registry.get<Motion>(egg);
-        if (sdBox(mouse_pos, motion.position, motion.scale / 2.f) < 0.0f)
-        {
-            round_skipped = true;
-            skip_to_final_round();
-        }
-
-    }
-
-	return clicked_on_unit;
+	return false;
 }
 
 vec2 WorldSystem::on_click_select_unit(double mouse_pos_x, double mouse_pos_y, int button, int action, int mod)

@@ -15,12 +15,12 @@ entt::entity TalkyBoi::createTalkyBoiEntt(int round_number)
     auto entity = registry.create();
 
     // Create the rendering components
-    std::string key = "monster";
+    std::string key = round_talky_boi_sprite.at(round_number);
     ShadedMesh& resource = cache_resource(key);
     if (resource.effect.program.resource == 0)
     {
         resource = ShadedMesh();
-        RenderSystem::createSprite(resource, textures_path(WALK_SPRITE), "monster");
+        RenderSystem::createSprite(resource, speakers_texture_path(round_talky_boi_sprite.at(round_number)), "monster");
     }
 
     // Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)

@@ -40,8 +40,9 @@ entt::entity SpringBoss::createSpringBossEntt(int round_number)
     motion.boundingbox = vec2({ motion.scale.x * 0.85f/WALK_FRAMES, motion.scale.y });
 
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = monster_health.at(SPRING_BOSS) + round_number * MONSTER_SCALE_HEALTH;
+    monster.max_health = monster_health.at(SPRING_BOSS) + sum_to_n(round_number) * BOSS_SCALE_HEALTH_FACTOR;
     monster.health = monster.max_health;
+    monster.village_damage = monster_village_damage.at(SPRING_BOSS) + floor(round_number / 2) * BOSS_DAMAGE_SCALE_FACTOR;
     monster.damage = monster_damage.at(SPRING_BOSS);
     monster.reward = monster_reward.at(SPRING_BOSS);
 

@@ -10,17 +10,17 @@
 
 // damage upgrade 
 const std::map<int, std::vector<int>> hunter_path_1 = {
-	{0, {50}},
-	{1, {100, 40, 30}},
-	{2, {150, 90, 40}},
-	{3, {70, 140, 50}}
+	{0, {100}},
+	{1, {250, 75, 30}},
+	{2, {500, 120, 45}},
+	{3, {70, 200, 60}}
 };
 
 // range upgrade
 const std::map<int, std::vector<int>> hunter_path_2 = {
-	{0, {40}},
-	{1, {80, 30, 350}},
-	{2, {120, 70, 400}},
+	{0, {50}},
+	{1, {100, 30, 350}},
+	{2, {150, 70, 400}},
 	{3, {80, 110, 450}}
 };
 
@@ -42,49 +42,49 @@ const std::map<int, std::vector<int>> greenhouse_path_2 = {
 
 // damage upgrade 
 const std::map<int, std::vector<int>> exterminator_path_1 = {
-	{0, {150}},
-	{1, {200, 100, 20}},
-	{2, {400, 150, 30}},
-	{3, {10, 250, 40}}
+	{0, {200}},
+	{1, {500, 150, 20}},
+	{2, {800, 450, 30}},
+	{3, {10, 700, 40}}
 };
 
 // range upgrade
 const std::map<int, std::vector<int>> exterminator_path_2 = {
-	{0, {250}},
-	{1, {250, 200, 10}},
-	{2, {300, 200, 20}},
-	{3, {10, 250, 30}}
+	{0, {300}},
+	{1, {600, 200, 10}},
+	{2, {900, 500, 20}},
+	{3, {10, 800, 30}}
 };
 
 // number of projectile upgrade 
 const std::map<int, std::vector<int>> robot_path_1 = {
-	{0, {200}},
-	{1, {350, 150, 20}},
-	{2, {500, 350, 30}},
-	{3, {10, 450, 40}}
+	{0, {300}},
+	{1, {600, 200, 20}},
+	{2, {900, 500, 30}},
+	{3, {10, 800, 40}}
 };
 
 // range upgrade
 const std::map<int, std::vector<int>> robot_path_2 = {
-	{0, {200}},
-	{1, {350, 150, 2}},
-	{2, {500, 300, 3}},
-	{3, {10, 450, 4}}
+	{0, {500}},
+	{1, {750, 450, 2}},
+	{2, {1000, 600, 3}},
+	{3, {10, 800, 4}}
 };
 
 // damage upgrade 
 const std::map<int, std::vector<int>> priestess_path_1 = {
 	{0, {200}},
-	{1, {400, 150, 10}},
-	{2, {600, 350, 15}},
+	{1, {500, 150, 10}},
+	{2, {800, 350, 15}},
 	{3, {10, 550, 20}}
 };
 
 // attack speed upgrade
 const std::map<int, std::vector<float>> priestess_path_2 = {
 	{0, {300}},
-	{1, {500, 200, 1.5f}},
-	{2, {700, 400, 1.75f}},
+	{1, {600, 200, 1.5f}},
+	{2, {900, 400, 1.75f}},
 	{3, {10, 600, 2.0f}}
 };
 
@@ -98,10 +98,10 @@ const std::map<int, std::vector<int>> snowmachine_path_1 = {
 
 // range upgrade
 const std::map<int, std::vector<int>> snowmachine_path_2 = {
-	{0, {250}},
-	{1, {200, 250, 30}},
-	{2, {300, 150, 50}},
-	{3, {10, 150, 70}}
+	{0, {500}},
+	{1, {600, 400, 30}},
+	{2, {700, 500, 50}},
+	{3, {10, 600, 70}}
 };
 
 // damage upgrade  
