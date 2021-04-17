@@ -2736,15 +2736,12 @@ bool WorldSystem::click_on_unit(double mouse_pos_x, double mouse_pos_y)
 	
 	if (mouse_in_game_area(mouse_pos)) {
 
+		auto node = current_map.getNodeAtCoord(pixel_to_coord(mouse_pos));
 		// check if clicked on egg
-		if (world_round_number < 16 && registry.valid(egg)) {
-			auto& motion = registry.get<Motion>(egg);
-			if (sdBox(mouse_pos, motion.position, motion.scale / 2.f) < 0.0f)
-			{
-				round_skipped = true;
-				skip_to_final_round();
-			}
-
+		if (world_round_number < 16 && egg == node.occupying_entity) {
+			round_skipped = true;
+			skip_to_final_round();
+			return false;
 		}
 		
 		auto view_selectable = registry.view<Selectable, Motion>();
@@ -2755,7 +2752,6 @@ bool WorldSystem::click_on_unit(double mouse_pos_x, double mouse_pos_y)
 			view_highlight.get<HighlightBool>(entity).highlight = false;
 		}
 
-		auto node = current_map.getNodeAtCoord(pixel_to_coord(mouse_pos));
 		if (registry.valid(node.occupying_entity)) {
 			view_selectable.get<Selectable>(node.occupying_entity).selected = true;
 			view_highlight.get<HighlightBool>(node.occupying_entity).highlight = true;

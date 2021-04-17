@@ -298,7 +298,6 @@ public:
 		motion.position += motion.velocity;
 
 		if (motion.position.x + 100 >= coord_to_pixel(VILLAGE_COORD).x) {
-			std::cout << "hit the village with a fireball" << std::endl;
 			WorldSystem::health -= monster.damage;
 			motion.velocity *= 0;
 			registry.destroy(e);
