@@ -788,6 +788,52 @@ void WorldSystem::animation_step(float elapsed_ms)
 	}
 }
 
+void create_victory_stats_text(std::map<monster_type, int> player_stats)
+{
+	std::map<monster_type, std::string> monster_name = {
+		{monster_type::MOB, "Rabbit"},
+		{monster_type::SPRING_BOSS, "Hawk"},
+		{monster_type::SUMMER_BOSS, "Moose"},
+		{monster_type::FALL_BOSS, "Bear"},
+		{monster_type::WINTER_BOSS, "Penguin"}
+	};
+	auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
+	auto entity = registry.create();
+	registry.emplace<Text>(entity, Text("Monster Killed:", notoRegular, {50, WINDOW_SIZE_IN_PX.y / 2 + 50 }, 0.6f));
+	float line_offset = 35.f;
+	int line_counter = 0;
+	for (auto stats : player_stats)
+	{
+		std::string stats_line = monster_name.at(stats.first) + ": " + std::to_string(stats.second);
+		auto entity = registry.create();
+		registry.emplace<Text>(entity, Text(stats_line, notoRegular, { 50, WINDOW_SIZE_IN_PX.y / 2 - line_offset * line_counter }, 0.4f));
+		line_counter++;
+	}
+}
+
+void create_lost_stats_text(std::map<monster_type, int> player_stats)
+{
+	std::map<monster_type, std::string> monster_name = {
+		{monster_type::MOB, "Rabbit"},
+		{monster_type::SPRING_BOSS, "Hawk"},
+		{monster_type::SUMMER_BOSS, "Moose"},
+		{monster_type::FALL_BOSS, "Bear"},
+		{monster_type::WINTER_BOSS, "Penguin"}
+	};
+	auto notoRegular = TextFont::load("data/fonts/Noto/NotoSans-Regular.ttf");
+	auto entity = registry.create();
+	registry.emplace<Text>(entity, Text("Monster Killed:", notoRegular, { WINDOW_SIZE_IN_PX.x / 2 - 110, WINDOW_SIZE_IN_PX.y / 2 - 90.f }, 0.6f, { 1.f, 1.f, 1.f }));
+	float line_offset = 35.f;
+	int line_counter = 0;
+	for (auto stats : player_stats)
+	{
+		std::string stats_line = monster_name.at(stats.first) + ": " + std::to_string(stats.second);
+		auto entity = registry.create();
+		registry.emplace<Text>(entity, Text(stats_line, notoRegular, { WINDOW_SIZE_IN_PX.x / 2 - 40, WINDOW_SIZE_IN_PX.y / 2 - 100.f - 40.f - line_offset * line_counter }, 0.4f, {1.f, 1.f, 1.f}));
+		line_counter++;
+	}
+}
+
 void WorldSystem::darken_screen_step(float elapsed_ms)
 {
 	if (weather == DROUGHT)
@@ -812,6 +858,7 @@ void WorldSystem::darken_screen_step(float elapsed_ms)
 			game_state = GameState::victory_screen;
 			Menu::createVictoryScreen();
 			MenuButton::create_button(EXIT_BUTTON_X, EXIT_BUTTON_Y, MenuButtonType::exit_button, "Exit");
+			create_victory_stats_text(player_stats);
 		}
 		// lost game
 		else
@@ -819,10 +866,12 @@ void WorldSystem::darken_screen_step(float elapsed_ms)
 			game_state = GameState::lost_game_screen;
 			// lost background
 			Menu::createLostMenu();
+			// player stats
+			create_lost_stats_text(player_stats);
 			// restart button
 			MenuButton::create_button(RESTART_ROUND_BUTTON_X, RESTART_ROUND_BUTTON_Y, MenuButtonType::restart_round_button, "Restart round", { 1.4, 1.2 });
 			// exit button
-			MenuButton::create_button(EXIT_BUTTON_X, EXIT_BUTTON_Y, MenuButtonType::exit_button, "Exit");
+			MenuButton::create_button(LOST_EXIT_BUTTON_X, LOST_EXIT_BUTTON_Y, MenuButtonType::exit_button, "Exit");
 		}
 		
 		
@@ -1668,14 +1717,31 @@ void WorldSystem::damage_monster_helper(entt::entity e_monster, entt::entity e_p
 		// gain food
 		//add_health(food_gain_amount);
 		// remove monster
+		update_player_stats_monster(e_monster);
 		if (registry.has<Rig>(e_monster)) {
 			Rig::delete_rig(e_monster); //rigs have multiple pieces to be deleted
 		}
 		else {
 			registry.destroy(e_monster);
+			
 		}
-            Ghost::createGhostEntt(motion.position);
+		
+        Ghost::createGhostEntt(motion.position);
 	}
+}
+
+void WorldSystem::update_player_stats_monster(entt::entity e_monster)
+{
+	try
+	{
+		auto type = registry.get<Monster>(e_monster).type;
+		player_stats.at(type)++;
+	}
+	catch (std::out_of_range& const e)
+	{
+
+	}
+	
 }
 
 void WorldSystem::updateProjectileMonsterCollision(entt::entity e_projectile, entt::entity e_monster)

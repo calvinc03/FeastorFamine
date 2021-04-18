@@ -292,4 +292,14 @@ private:
     void update_weather_season_UI(int round_number) const;
 
     void skip_to_final_round();
+	// performance stats
+	std::map<monster_type, int> player_stats = {
+		{monster_type::MOB, 0},
+		{monster_type::SPRING_BOSS, 0},
+		{monster_type::SUMMER_BOSS, 0},
+		{monster_type::FALL_BOSS, 0},
+		{monster_type::WINTER_BOSS, 0}
+	};
+
+	void update_player_stats_monster(entt::entity monster);
 };

@@ -142,7 +142,7 @@ entt::entity Menu::createLostMenu()
 	rabbit_ui_element.tag = "rabbits_eating_animation";
 	rabbit_ui_element.scale = vec2({ 0.8f, 0.8f }) * static_cast<vec2>(rabbit_resource.texture.size);
 	// rabbit animation is a bit shifted to the left, offset to center
-	rabbit_ui_element.position = { WINDOW_SIZE_IN_PX.x / 2 + 30, WINDOW_SIZE_IN_PX.y / 2 };
+	rabbit_ui_element.position = { WINDOW_SIZE_IN_PX.x / 2 + 30, WINDOW_SIZE_IN_PX.y / 2 - 50 };
 
 	return background_entity;
 }
