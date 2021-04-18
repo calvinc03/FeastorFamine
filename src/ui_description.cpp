@@ -3,7 +3,13 @@
 
 entt::entity UI_description_card::create_UI_description_card(entt::entity button_entity)
 {
+
 	auto entity = registry.create();
+	// remove tooltip box for sandbox buttons 
+	if (registry.has<UI_sandbox_button>(button_entity))
+	{
+		return entity;
+	}
 	// card background
 	std::string key = "unit_description_card_bg";
 	ShadedMesh& resource = cache_resource(key);

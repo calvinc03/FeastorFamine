@@ -393,6 +393,7 @@ entt::entity UI_button::create_add_monster_button(vec2 position)
 	registry.emplace<Button>(entity, Button::add_monster_button);
 	registry.emplace<UI_button>(entity);
 	registry.emplace<UI_build_unit>(entity);
+	registry.emplace<UI_sandbox_button>(entity);
 
 	return entity;
 }
@@ -423,7 +424,7 @@ entt::entity UI_button::create_rem_monster_button(vec2 position)
 	registry.emplace<Button>(entity, Button::rem_monster_button);
 	registry.emplace<UI_button>(entity);
 	registry.emplace<UI_build_unit>(entity);
-
+	registry.emplace<UI_sandbox_button>(entity);
 
 	return entity;
 }
@@ -454,7 +455,7 @@ entt::entity UI_button::create_inc_m_speed_button(vec2 position)
 	registry.emplace<Button>(entity, Button::inc_m_speed_button);
 	registry.emplace<UI_button>(entity);
 	registry.emplace<UI_build_unit>(entity);
-
+	registry.emplace<UI_sandbox_button>(entity);
 
 	return entity;
 }
@@ -485,7 +486,7 @@ entt::entity UI_button::create_dec_m_speed_button(vec2 position)
 	registry.emplace<Button>(entity, Button::dec_m_speed_button);
 	registry.emplace<UI_button>(entity);
 	registry.emplace<UI_build_unit>(entity);
-
+	registry.emplace<UI_sandbox_button>(entity);
 
 	return entity;
 }
@@ -516,6 +517,7 @@ entt::entity UI_button::randomize_grid_map_button(vec2 position)
 	registry.emplace<Button>(entity, Button::randomize_grid_map);
 	registry.emplace<UI_button>(entity);
 	registry.emplace<UI_build_unit>(entity);
+	registry.emplace<UI_sandbox_button>(entity);
 
 	return entity;
 }
@@ -1078,7 +1080,6 @@ entt::entity UI_season_wheel::createUI_season_wheel_arrow() {
 	ui_element.position = vec2(SEASON_WHEEL_X_OFFSET, SEASON_WHEEL_Y_OFFSET);
 	ui_element.angle = PI + PI / 12 - PI / (2 * ROUND_PER_SEASON);
 	registry.emplace<UI_season_wheel>(entity);
-	//registry.emplace<Button>(entity, Button::season_button);
 	return entity;
 }
 
