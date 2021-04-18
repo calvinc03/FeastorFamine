@@ -281,9 +281,6 @@ std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int mons
     if (monster_type == SUMMER_BOSS || monster_type == FALL_BOSS || monster_type == WINTER_BOSS) {
         neighbors = neighbor_map.at(DIRECT_NBRS);
     }
-    else if (monster_type == SPRING_BOSS) {
-        neighbors = neighbor_map.at(DIAGONAL_NBRS);
-    }
     else {
         neighbors = neighbor_map.at(ALL_NBRS);
     }
