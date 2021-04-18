@@ -80,25 +80,12 @@ entt::entity Snowball::createSnowball(entt::entity e_unit, entt::entity e_monste
     vec2 monster_pos = AISystem::calculate_position(e_monster, dist);
 
     vec2 distance = (monster_pos - hunter_motion.position);
-    
-    vec2 orthogonal = vec2(-distance.y, distance.x) * 0.5f;
-    if (distance.x > 0) {
-        orthogonal = vec2(distance.y, -distance.x) * 0.5f;
-    }
-
-    vec2 middle_point = vec2(distance.x, distance.y) / 2.f + hunter_motion.position + orthogonal;
-
-    std::vector<vec2> points;
-    points.push_back(hunter_motion.position);
-    points.push_back(middle_point);
-    points.push_back(monster_pos);
-
-    std::vector<vec2> bezier = bezierVelocities(bezierCurve(points, length(distance)));
 
     // Initialize the position, scale, and physics components
     auto& motion = registry.emplace<Motion>(entity);
     motion.position = hunter_motion.position;
     // Setting initial values, scale is negative to make it face the opposite way
+    motion.velocity = grid_to_pixel_velocity(normalize(distance) * 20.f);
     motion.scale = scale_to_grid_units(vec2(-static_cast<vec2>(resource.texture.size).x, static_cast<vec2>(resource.texture.size).y), 0.3);
     motion.boundingbox = motion.scale;
 
@@ -106,8 +93,7 @@ entt::entity Snowball::createSnowball(entt::entity e_unit, entt::entity e_monste
     Projectile& p = registry.emplace<Projectile>(entity);
     p.damage = damage;
     
-    Snowball& rock = registry.emplace<Snowball>(entity);
-    rock.bezier_points = bezier;
+    Snowball& snowball = registry.emplace<Snowball>(entity);
 
     auto& sound = registry.emplace<SoundRef>(entity);
     //sound.sound_reference = Mix_LoadWAV(audio_path("projectile/snowball_hit.wav").c_str());

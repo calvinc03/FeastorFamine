@@ -292,7 +292,7 @@ void PhysicsSystem::update_projectiles(float elapsed_ms)
 		auto& motion = registry.get<Motion>(entity);
 		motion.angle += 0.2f;
 		auto& rock = registry.get<Snowball>(entity);
-		if (rock.current_step == rock.bezier_points.size() - 1) {
+		if (rock.current_step >= rock.bezier_points.size() - 1 || rock.bezier_points.empty()) {
 			continue;
 		}
 		motion.velocity = 1 / step_seconds * rock.bezier_points[rock.current_step];

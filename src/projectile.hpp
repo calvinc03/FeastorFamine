@@ -17,7 +17,7 @@ struct Projectile
 struct Snowball
 {
     static entt::entity createSnowball(entt::entity e_unit, entt::entity e_monster, int damage);
-    std::vector<vec2> bezier_points;
+    std::vector<vec2> bezier_points = std::vector<vec2>();
     int current_step = 0;
 };
 
