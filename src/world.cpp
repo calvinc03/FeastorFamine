@@ -3454,7 +3454,7 @@ void WorldSystem::in_game_click_handle(double xpos, double ypos, int button, int
 
 		Priestess::updateBuffs();
 	}
-	if (player_state == battle_stage)
+	else if (player_state == battle_stage)
 	{
 		if (ui_button == Button::fastforward_button)
 		{

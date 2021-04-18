@@ -7,15 +7,15 @@ const std::map<unit_type, int> unit_damage = {
 	{HUNTER, 20},
 	//{WATCHTOWER, 10},
 	{GREENHOUSE, 60},
-	{EXTERMINATOR, 10},
-	{ROBOT, 10},
+	{EXTERMINATOR, 15},
+	{ROBOT, 20},
 	{PRIESTESS, 5},
 	{SNOWMACHINE, 50},
 	{WALL, 0}
 };
 
 const std::map<unit_type, float> unit_attack_interval_ms = {
-	{HUNTER, 1250.f},
+	{HUNTER, 1000.f},
 	//{WATCHTOWER, 800.f},
 	{GREENHOUSE, 0.f},
 	{EXTERMINATOR, 2000.f},
@@ -76,9 +76,9 @@ const std::map<unit_type, int> unit_cost = {
 	{HUNTER, 100},
 	//{WATCHTOWER, 200},
 	{GREENHOUSE, 250},
-	{EXTERMINATOR, 150},
-	{ROBOT, 250},
-	{PRIESTESS, 300},
+	{EXTERMINATOR, 250},
+	{ROBOT, 500},
+	{PRIESTESS, 500},
 	{SNOWMACHINE, 100},
 	{WALL, 50}
 };
@@ -87,9 +87,9 @@ const std::map<unit_type, int> unit_sell_price = {
 	{HUNTER, 100},
 	//{WATCHTOWER, 150},
 	{GREENHOUSE, 250},
-	{EXTERMINATOR, 150},
-	{ROBOT, 250},
-	{PRIESTESS, 300},
+	{EXTERMINATOR, 250},
+	{ROBOT, 500},
+	{PRIESTESS, 500},
 	{SNOWMACHINE, 100},
 	{WALL, 50}
 };
@@ -98,8 +98,8 @@ const std::map<unit_type, int> unit_health = {
 	{HUNTER, 100},
 	//{WATCHTOWER, 100},
 	{GREENHOUSE, 100},
-	{EXTERMINATOR, 100},
-	{ROBOT, 100},
+	{EXTERMINATOR, 120},
+	{ROBOT, 150},
 	{PRIESTESS, 100},
 	{SNOWMACHINE, 100},
 	{WALL, 100}
