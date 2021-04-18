@@ -278,7 +278,7 @@ float heuristic_diagonal_dist(GridMap& current_map, int monster_type, ivec2 from
 
 std::vector<ivec2> AISystem::MapAI::findPathAStar(GridMap& current_map, int monster_type, ivec2 start_coord, ivec2 goal_coord, bool is_valid(GridMap&, ivec2)) {
     std::vector<ivec2> neighbors;
-    if (monster_type == SUMMER_BOSS || monster_type == FALL_BOSS || monster_type == WINTER_BOSS) {
+    if (monster_type == MOB || monster_type == SUMMER_BOSS || monster_type == FALL_BOSS || monster_type == WINTER_BOSS) {
         neighbors = neighbor_map.at(DIRECT_NBRS);
     }
     else {
