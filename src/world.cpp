@@ -1385,7 +1385,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	        game_state = in_game;
 	    } else {
             game_state = story_card;
-            StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number + 1], std::to_string(round_number + 1));
+            StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number + 1], round_number);
             TalkyBoi::createTalkyBoiEntt(round_number);
 	    }
 	}
@@ -1595,7 +1595,7 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 		}
 		else {
 			game_state = story_card;
-			StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number + 1], std::to_string(round_number + 1));
+			StoryCard curr_story_card(STORY_TEXT_PER_LEVEL[round_number + 1], round_number);
 			TalkyBoi::createTalkyBoiEntt(round_number);
 		}
 	}

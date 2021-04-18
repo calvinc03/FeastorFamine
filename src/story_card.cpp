@@ -8,7 +8,7 @@ const int LINE_SPACING = 40;
 const int STORY_TEXT_X_OFFSET = -400;
 const int STORY_TEXT_Y_OFFSET = 100;
 
-StoryCard::StoryCard(std::string story_card_text, std::string level_number)
+StoryCard::StoryCard(std::string story_card_text, int round_number)
 {
 	ivec2 pos = ivec2(MAP_SIZE_IN_PX.x - 530, MAP_SIZE_IN_PX.y + UI_TOP_BAR_HEIGHT - 300);
 	auto entity = registry.create();
@@ -36,7 +36,12 @@ StoryCard::StoryCard(std::string story_card_text, std::string level_number)
 	auto level_text_scale = 0.9f;
 	auto level_x_offset = -370;
 	auto level_y_offset = 165 - UI_TOP_BAR_HEIGHT;
-	auto& t_level = registry.emplace<Text>(level_text_entity, Text("Talky Boi", font, vec2(pos.x + level_x_offset, pos.y + level_y_offset)));
+	std::string speaker_name = "Villager Timmie";
+	if (round_talky_boi_sprite.at(round_number) == DAVE_SPRITE) {
+		speaker_name = "Villager Davie";
+	}
+
+	auto& t_level = registry.emplace<Text>(level_text_entity, Text(speaker_name, font, vec2(pos.x + level_x_offset, pos.y + level_y_offset)));
 	t_level.scale = level_text_scale;
 	t_level.colour = { 1.0f, 1.0f, 1.0f };
 	registry.emplace<StoryCardText>(level_text_entity);

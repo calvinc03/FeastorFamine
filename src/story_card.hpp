@@ -30,7 +30,7 @@ static const std::string STORY_TEXT_PER_LEVEL[] = {
 struct StoryCard
 {
 public:
-	StoryCard(std::string story_card_text = "", std::string level_number = 0);
+	StoryCard(std::string story_card_text = "", int round = 0);
 };
 
 struct StoryCardBase

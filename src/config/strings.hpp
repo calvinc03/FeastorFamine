@@ -70,3 +70,46 @@ const std::map<MenuButtonType, std::string> menu_button_ui_tag = {
 
 const std::string INPUT_PATH = "data/monster_rounds/";
 const std::string JSON_EXTENSION = ".json";
+
+const std::string round_voice_file_name[] = {
+    "please_help_us",
+    "whew_thanks(extended)",                            // boss
+    "get_ready_for_summer",
+    "wait_is_that_a_moose",                             // boss
+    "tim/were_heading_into_fall", // 5
+    "tim/prepare_for_lockdown_the_bears_are_coming",    // boss
+    "tim/winter_is_coming",
+    "tim/beware_the_killer_penguins",                   // boss
+    "tim/hunters_rifles_out_its_hunting_time",
+    "wait_whats_that_in_the_sky",                       // 10 // boss
+    "tim/shhh_its_wabbit_season",
+    "oh(surprised)",                                    // boss
+    "tim/hunters_rifles_out_its_hunting_time",
+    "oh(surprised)",                                    // boss
+    "tim/shhh_its_wabbit_season",           // 15
+    "oh(surprised)",                                    // boss
+    "tim/prepare_for_lockdown",           // 17
+};
+
+const std::string DAVE_SPRITE = "dave_animate.png";
+const std::string TIM_SPRITE = "tim_animate.png";
+
+const std::map<int, std::string> round_talky_boi_sprite = {
+    {0, DAVE_SPRITE},
+    {1, DAVE_SPRITE},
+    {2, DAVE_SPRITE},
+    {3, DAVE_SPRITE},
+    {4, TIM_SPRITE},
+    {5, TIM_SPRITE},
+    {6, TIM_SPRITE},
+    {7, TIM_SPRITE},
+    {8, TIM_SPRITE},
+    {9, DAVE_SPRITE},
+    {10, TIM_SPRITE},
+    {11, DAVE_SPRITE},
+    {12, TIM_SPRITE},
+    {13, DAVE_SPRITE},
+    {14, TIM_SPRITE},
+    {15, DAVE_SPRITE},
+    {16, TIM_SPRITE}
+};
