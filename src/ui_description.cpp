@@ -18,8 +18,17 @@ entt::entity UI_description_card::create_UI_description_card(entt::entity button
 	int ui_bar_gap = 10;
 	UI_element& ui_element = registry.emplace<UI_element>(entity);
 	ui_element.tag = button_ui_element.tag + "_description_card";
-	ui_element.scale = vec2({ 4.f, 1.6f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
-	ui_element.position = vec2(button_ui_element.position.x, button_ui_element.position.y - button_ui_element.scale.y / 2 - ui_element.scale.y / 2 - ui_bar_gap);
+	if (registry.has<UI_season_wheel>(button_entity))
+	{
+		ui_element.scale = vec2({ 1.5f, 0.3f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+		ui_element.position = vec2(button_ui_element.position.x, button_ui_element.position.y + button_ui_element.scale.y / 2 + ui_element.scale.y / 2 + ui_bar_gap);
+	}
+	else
+	{
+		ui_element.scale = vec2({ 4.f, 1.6f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+		ui_element.position = vec2(button_ui_element.position.x, button_ui_element.position.y - button_ui_element.scale.y / 2 - ui_element.scale.y / 2 - ui_bar_gap);
+	}
+	
 
 	std::string title_string;
 	std::vector<std::string> description_strings;
@@ -35,6 +44,14 @@ entt::entity UI_description_card::create_UI_description_card(entt::entity button
 		std::string key_string = button_ui_element.tag + "_" + selected_element.unit_type + "_" + std::to_string(selected_element.path_num);
 		title_string = selected_upgrade_title.at(key_string);
 		description_strings = selected_upgrade_descriptions.at(key_string);
+	}
+	else if (registry.has<UI_weather_icon>(button_entity))
+	{
+		//TODO
+	}
+	else if (registry.has<UI_season_wheel>(button_entity))
+	{
+		title_string = season_description.at(registry.get<UI_season_wheel>(button_entity).season);
 	}
 	/*else if (registry.has<Path>(button_entity))
 	{

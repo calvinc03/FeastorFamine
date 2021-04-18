@@ -83,11 +83,14 @@ struct UI_season_wheel {
 	static entt::entity createUI_season_wheel();
 	static entt::entity createUI_season_wheel_arrow();
 	static void get_season_sequence();
+	int season;
+	float reward_multiplier;
 };
 
 struct UI_weather_icon {
 	static entt::entity createUI_weather_icon();
 	static void change_weather_icon(entt::entity entity, int weather);
+	int weather;
 };
 
 struct UI_selected_unit

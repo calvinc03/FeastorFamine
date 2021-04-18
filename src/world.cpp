@@ -2157,6 +2157,7 @@ void mouse_hover_ui_button()
 			remove_descriptions();
 		}
 	}
+	
 }
 
 //helper function for on_mouse_move 
@@ -2198,6 +2199,18 @@ void WorldSystem::on_mouse_move(vec2 mouse_pos)
 		UI_highlight_system(mouse_pos);
 		camera_control(mouse_pos);
 		mouse_hover_ui_button();
+		// hover over season
+		for (auto entity : registry.view<Button, UI_element>())
+		{
+			if (registry.get<Button>(entity) == Button::season_button)
+			{
+				auto ui_element = registry.get<UI_element>(entity);
+				if (sdBox(mouse_pos, ui_element.position, ui_element.scale / 2.0f) < 0.0f)
+				{
+					UI_description_card::create_UI_description_card(season_wheel_arrow_entity);
+				}
+			}
+		}
 		bool in_game_area = mouse_in_game_area(mouse_pos);
 		if (in_game_area && placement_unit_selected != NONE && (player_state == set_up_stage || game_mode != NORMAL))
 		{

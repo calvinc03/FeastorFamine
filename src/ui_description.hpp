@@ -264,3 +264,45 @@ const std::map<std::string, std::vector<std::string>> selected_upgrade_descripti
 
 
 
+
+const std::vector<std::string> clear_description = {
+    "",
+};
+
+//const std::map<int, std::vector<std::string>> weather_description = {
+//    {weather_type::CLEAR, clear_description },
+//    {weather_type::DROUGHT, greenhouse_description},
+//    {weather_type::SNOW, wall_description},
+//    {weather_type::RAIN, exterminator_description },
+//    {weather_type::FOG, robot_description },
+//};
+
+
+
+const std::vector<std::string> spring_description = {
+    "Reward: x2",
+};
+
+const std::vector<std::string> summer_description = {
+    "Reward: x1",
+};
+
+const std::vector<std::string> fall_description = {
+    "Reward: x1",
+};
+
+const std::vector<std::string> winter_description = {
+    "Reward: x0.5",
+};
+
+const std::vector<std::string> final_description = {
+    "Reward: x1",
+};
+
+const std::map<int, std::string> season_description = {
+    {season::SPRING, "Reward: x2" },
+    {season::SUMMER, "Reward: x1"},
+    {season::FALL, "Reward: x1"},
+    {season::WINTER, "Reward: x0.5" },
+    {season::FINAL,  "Reward: x1" },
+};

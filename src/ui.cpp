@@ -983,6 +983,7 @@ void aligne_text_right(entt::entity entity, float right_alignment_position)
 	text_component.position = vec2(right_alignment_position - x_offset, text_component.position.y);
 }
 
+
 entt::entity UI_season_wheel::createUI_season_wheel() {
 	auto entity = registry.create();
 
@@ -1055,6 +1056,7 @@ void UI_season_wheel::set_arrow(entt::entity season_wheel_arrow_entity, int seas
 	if (game_mode == SANDBOX || round % ROUND_PER_SEASON) {
         season_wheel_arrow.angle += (PI/2) / ROUND_PER_SEASON;
 	}
+	registry.get<UI_season_wheel>(season_wheel_arrow_entity).season = season;
 }
 
 entt::entity UI_season_wheel::createUI_season_wheel_arrow() {
@@ -1075,7 +1077,8 @@ entt::entity UI_season_wheel::createUI_season_wheel_arrow() {
 	ui_element.scale = vec2({ 0.9, 0.9 }) * static_cast<vec2>(resource.texture.size);
 	ui_element.position = vec2(SEASON_WHEEL_X_OFFSET, SEASON_WHEEL_Y_OFFSET);
 	ui_element.angle = PI + PI / 12 - PI / (2 * ROUND_PER_SEASON);
-
+	registry.emplace<UI_season_wheel>(entity);
+	//registry.emplace<Button>(entity, Button::season_button);
 	return entity;
 }
 
@@ -1099,6 +1102,7 @@ entt::entity UI_weather_icon::createUI_weather_icon() {
     auto& highlight = registry.emplace<HighlightBool>(entity);
     registry.emplace<Button>(entity, Button::weather_button);
     registry.emplace<UI_button>(entity);
+	registry.emplace<UI_weather_icon>(entity);
 
 	return entity;
 }
@@ -1130,6 +1134,7 @@ void UI_weather_icon::change_weather_icon(entt::entity entity, int weather) {
 		}
 
 	}
+	registry.get<UI_weather_icon>(entity).weather = weather;
 	ShadedMeshRef& shaded_mesh = registry.replace<ShadedMeshRef>(entity, resource);
 	shaded_mesh.layer = LAYER_UI + 1;
 }
