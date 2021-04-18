@@ -451,12 +451,7 @@ void increment_monster_step(entt::entity entity) {
                     monster.setSprite(entity);
                 }
 			}
-			//std::cout << "distance to center: " << length(coord_to_pixel(current_path_coord) - motion.position) << "\n\n";
 		}
-		/*else {
-			std::cout << "distance to center: "<< length(coord_to_pixel(current_path_coord) - motion.position) << "\n";
-			std::cout << "step size: " << length(motion.velocity * time_step) << "\n\n";
-		}*/
 	}
 
     handle_monster_attack(entity, monster, next_node);

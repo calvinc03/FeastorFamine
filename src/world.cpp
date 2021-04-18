@@ -409,6 +409,14 @@ void WorldSystem::step(float elapsed_ms)
 			damage.current_slow = max_slow;
 
 			auto state = BTCollision->process(entity);
+			if (registry.valid(previous_selected)) {
+				update_look_for_selected_buttons(GLFW_PRESS, false);
+			}
+			else {
+				update_look_for_selected_buttons(GLFW_PRESS, true);
+			}
+
+
 			if (health < 0) {
 				start_lost_game_screen();
 				return;
@@ -689,6 +697,7 @@ void WorldSystem::end_battle_phase_step(float elapsed_ms)
 	}
 
     round_skipped = false;
+	update_look_for_selected_buttons(GLFW_PRESS, true);
 }
 
 void WorldSystem::title_screen_step(float elapsed_ms)
