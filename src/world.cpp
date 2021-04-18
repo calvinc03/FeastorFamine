@@ -409,11 +409,13 @@ void WorldSystem::step(float elapsed_ms)
 			damage.current_slow = max_slow;
 
 			auto state = BTCollision->process(entity);
-			if (registry.valid(previous_selected)) {
-				update_look_for_selected_buttons(GLFW_PRESS, false);
-			}
-			else {
-				update_look_for_selected_buttons(GLFW_PRESS, true);
+			if (state == BTState::Attack) {
+				if (registry.valid(previous_selected)) {
+					update_look_for_selected_buttons(GLFW_PRESS, false);
+				}
+				else {
+					update_look_for_selected_buttons(GLFW_PRESS, true);
+				}
 			}
 
 

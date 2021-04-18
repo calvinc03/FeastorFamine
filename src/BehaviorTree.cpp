@@ -319,8 +319,7 @@ public:
 	}
 
 	BTState process(entt::entity e) override {
-		increment_monster_step(e);
-		return BTState::Moving;
+		return increment_monster_step(e);
 	}
 };
 
@@ -367,7 +366,7 @@ void remove_unit_entity(unit_type type, entt::entity e_unit)
 	registry.destroy(e_unit);
 }
 
-void handle_monster_attack(entt::entity entity, Monster& monster, GridNode& next_node) {
+BTState handle_monster_attack(entt::entity entity, Monster& monster, GridNode& next_node) {
     if (monster.state == ATTACK) {
         auto atk_entity = next_node.occupying_entity;
         if (next_node.occupancy == NONE) {
@@ -379,14 +378,14 @@ void handle_monster_attack(entt::entity entity, Monster& monster, GridNode& next
             monster.sprite = monster.walk_sprite;
             monster.frames = monster.walk_frames;
             monster.setSprite(entity);
-            return;
+            return BTState::Moving;
         }
         auto& atk_unit = registry.get<Unit>(atk_entity);
         if (atk_unit.health <= 0) {
             next_node.setOccupancy(NONE, atk_entity);
             remove_unit_entity(atk_unit.type, atk_entity);
             WorldSystem::set_AI_paths = false;
-            return;
+			return BTState::Attack;
         }
         monster.next_attack -= 1;
         if (monster.next_attack < 0) {
@@ -400,11 +399,14 @@ void handle_monster_attack(entt::entity entity, Monster& monster, GridNode& next
 			//play sound
 			int sound_num = rand() % 4 + 1;
 			play_sound("monsters/bite_" + std::to_string(sound_num) + ".wav");
+			return BTState::Attack;
         }
     }
+
+	return BTState::Moving;
 }
 
-void increment_monster_step(entt::entity entity) {
+BTState increment_monster_step(entt::entity entity) {
 	auto& monster = registry.get<Monster>(entity);
 	auto& motion = registry.get<Motion>(entity);
 	auto& current_path_coord = monster.path_coords.at(monster.current_path_index);
@@ -425,7 +427,7 @@ void increment_monster_step(entt::entity entity) {
 		else {
 			registry.destroy(entity);
 		}
-		return;
+		return BTState::Moving;
 	}
 
 	assert(monster.path_coords[monster.current_path_index] == current_path_coord);
@@ -454,7 +456,7 @@ void increment_monster_step(entt::entity entity) {
 		}
 	}
 
-    handle_monster_attack(entity, monster, next_node);
+    auto state = handle_monster_attack(entity, monster, next_node);
 
     auto& curr_node = WorldSystem::current_map.getNodeAtCoord(current_path_coord);
     // fire and puddle effects on monsters
@@ -499,4 +501,6 @@ void increment_monster_step(entt::entity entity) {
 		DebugSystem::createDirectedLine(motion.position, coord_to_pixel(current_path_coord), 5);
 		DebugSystem::createDirectedLine(coord_to_pixel(current_path_coord), coord_to_pixel(next_path_coord), 5);
 	}
+
+	return state;
 }

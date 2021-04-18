@@ -22,5 +22,5 @@ public:
 };
 
 static void remove_unit_entity(unit_type type, entt::entity e_unit);
-static void handle_monster_attack(entt::entity entity, Monster& monster, GridNode& next_node);
-static void increment_monster_step(entt::entity entity);
+static BTState handle_monster_attack(entt::entity entity, Monster& monster, GridNode& next_node);
+static BTState increment_monster_step(entt::entity entity);
