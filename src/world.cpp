@@ -3224,10 +3224,7 @@ void WorldSystem::on_click_ui_general_buttons(Button ui_button)
 		for (auto grid_map : registry.view<GridMap>()) {
 			registry.destroy(grid_map);
 		}
-        registry.destroy(egg);
-
 		current_map = registry.get<GridMap>(GridMap::createGridMap());
-        egg = Egg::createEgg(current_map);
 		AISystem::MapAI::setRandomMapWeatherTerrain(current_map, weather);
 
 		set_AI_paths = false;
