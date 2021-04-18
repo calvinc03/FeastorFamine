@@ -26,7 +26,7 @@ entt::entity UI_description_card::create_UI_description_card(entt::entity button
 	ui_element.tag = button_ui_element.tag + "_description_card";
 	if (registry.has<UI_season_wheel>(button_entity))
 	{
-		ui_element.scale = vec2({ 1.5f, 0.3f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
+		ui_element.scale = vec2({ 1.7f, 0.3f }) * static_cast<vec2>(resource.texture.size) / 2.0f;
 		ui_element.position = vec2(button_ui_element.position.x, button_ui_element.position.y + button_ui_element.scale.y / 2 + ui_element.scale.y / 2 + ui_bar_gap);
 	}
 	else
