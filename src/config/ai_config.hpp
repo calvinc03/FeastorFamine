@@ -71,7 +71,7 @@ const static std::map<std::pair<int, int>, float> monster_move_cost = {
         {std::pair(WINTER_BOSS, TERRAIN_PUDDLE),     5.0},
         {std::pair(WINTER_BOSS, TERRAIN_DRY),        1.0},
         {std::pair(WINTER_BOSS, TERRAIN_FIRE),       10.0},
-        {std::pair(WINTER_BOSS, TERRAIN_ICE),        0.0},
+        {std::pair(WINTER_BOSS, TERRAIN_ICE),        0.1},
 
 //        {std::pair(FINAL_BOSS, TERRAIN_PAVEMENT),    1.0},
 //        {std::pair(FINAL_BOSS, TERRAIN_DEFAULT),     1.0},

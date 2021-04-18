@@ -66,7 +66,7 @@ const std::vector<std::string> robot_description = {
 };
 
 const std::vector<std::string> priestess_description = {
-    "Allies gain attack damage and speed",
+    "Allies in range gain attack damage and speed",
     "",
     "Attack granted: " + std::to_string(unit_damage.at(PRIESTESS)),
     "Attack speed granted: " + std::to_string((int) ((unit_attack_interval_ms.at(PRIESTESS) - 1) * 100)) + "%",
