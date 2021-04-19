@@ -19,5 +19,9 @@ private:
 	// de-allocate channels if no sound is playing 
 	void deallocate_channel();
 	WorldSystem* world;
+	MusicState music_state;
+	std::map<MusicState, std::string> music_file_names;
+	std::map<MusicState, Mix_Music*> mix_music_ref;
+	bool transitioning_music;
 };
 

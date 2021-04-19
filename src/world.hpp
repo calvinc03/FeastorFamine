@@ -158,6 +158,8 @@ public:
 	bool victory = false;
 
     static void set_default_paths();
+	// music to play
+	MusicState music_state;
 
 // flag for AI paths
 static bool set_AI_paths;

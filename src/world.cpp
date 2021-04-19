@@ -895,6 +895,8 @@ void WorldSystem::darken_screen_step(float elapsed_ms)
 void WorldSystem::start_lost_game_screen()
 {
 	victory = false;
+	music_state = MusicState::lost_screen_music;
+	play_sound("ui/famine_lost_screen_sound.wav");
 	auto& screen_state = registry.get<ScreenState>(screen_state_entity);
 	screen_state.darken_screen_factor = 0.3;
 	screen_state.all_dark = false;
@@ -904,6 +906,7 @@ void WorldSystem::start_lost_game_screen()
 void WorldSystem::start_victory_screen()
 {
 	victory = true;
+	music_state = MusicState::vicotry_screen_music;
 	auto& screen_state = registry.get<ScreenState>(screen_state_entity);
 	screen_state.darken_screen_factor = 0.3;
 	screen_state.all_dark = false;
@@ -936,6 +939,7 @@ void WorldSystem::end_battle_phase()
 	num_mobs_spawned = 0;
 	prepare_setup_stage();
 	save_game();
+	//music_state = MusicState::player_prepare_music;
 }
 
 void WorldSystem::handle_game_tips()
@@ -1196,6 +1200,8 @@ void WorldSystem::start_round()
     }
 	set_AI_paths = false;
 
+	//music_state = MusicState::player_battle_music;
+
 	std::cout << world_season_str << " season! \n";
 	std::cout << "weather " << weather << " \n";
 }
@@ -1419,7 +1425,8 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 	}
     // reset speed up factor
     speed_up_factor = 1.f;
-
+	// set music state
+	music_state = MusicState::normal_round_music;
     set_round_monsters();
     update_weather_season_UI(round_number);
 }
@@ -1493,6 +1500,8 @@ void WorldSystem::set_round_monsters() {
     else if (world_season_str == season_str.at(FINAL)){
         create_boss = DragonRig::createDragon;
         boss = FINAL_BOSS;
+		// setup music
+		music_state = MusicState::final_round_music;
     }
     if (boss != FINAL_BOSS && max_boss > 0) {
         current_round_monster_types.emplace_back(boss);
@@ -1560,6 +1569,8 @@ void WorldSystem::set_random_weather() {
         }
         std::cout << "SPAWNING FINAL BOSS" << std::endl;
         create_boss = DragonRig::createDragon;
+		// set final round music
+		music_state = MusicState::final_round_music;
     }
 	if (world_round_number > 7) {
 		reward_multiplier *= 0.5;
@@ -1648,6 +1659,8 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 	{
 		std::cout << "SPAWNING FINAL BOSS" << std::endl;
 		create_boss = DragonRig::createDragon; //FinalBoss::createFinalBossEntt; //
+		// set final round music
+		music_state = MusicState::final_round_music;
 	}
 
 	//update wanted board
@@ -3028,6 +3041,8 @@ void WorldSystem::create_start_menu()
 		TitleEyes::createTitleEyes(position);
 	}
 	screen_sprite->effect.load_from_file(shader_path("water") + ".vs.glsl", shader_path("water") + ".fs.glsl");
+	// set title screen music
+	music_state = MusicState::title_screen_music;
 }
 
 std::string add_quotation_marks(std::string hotkey)

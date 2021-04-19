@@ -138,6 +138,11 @@ entt::entity Menu::createLostMenu()
 	anime.frame = 0;
 	anime.state = 0;
 
+	SoundRef& sound_ref = registry.emplace<SoundRef>(rabbits_entity);
+	sound_ref.file_path = "ui/lost_screen_bite_sound.wav";
+	sound_ref.is_continuous = true;
+	sound_ref.play_delay_ms = 7600;
+
 	UI_element& rabbit_ui_element = registry.emplace<UI_element>(rabbits_entity);
 	rabbit_ui_element.tag = "rabbits_eating_animation";
 	rabbit_ui_element.scale = vec2({ 0.8f, 0.8f }) * static_cast<vec2>(rabbit_resource.texture.size);

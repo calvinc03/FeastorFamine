@@ -14,5 +14,5 @@ layout(location = 0) out  vec4 color;
 
 void main()
 {
-	color = vec4(fcolor, 0.3 + 0.3 * cos(0.1 * time)) * texture(sampler0, vec2(texcoord.x, texcoord.y));
+	color = vec4(fcolor, 0.3 * cos(0.1 * time)) * texture(sampler0, vec2(texcoord.x, texcoord.y));
 }
