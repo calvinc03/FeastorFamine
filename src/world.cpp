@@ -57,8 +57,8 @@
 
 const size_t ANIMATION_FPS = 20;
 const size_t MENU_ANIMATION_FPS = 16;
-const size_t SPEAKER_FPS = 10;
-const size_t TEXT_APPEAR_SPEED = 20; // lower is faster
+const size_t SPEAKER_FPS_MS = 60;
+const size_t TEXT_APPEAR_SPEED = 1; // lower is faster
 const int STARTING_HEALTH = 1000;
 
 int WorldSystem::health = 1000;
@@ -214,7 +214,7 @@ void WorldSystem::animate_speaker(float elapsed_ms)
 			animate.frame += 1;
 			animate.frame = (int)animate.frame % (int)animate.frame_num;
 		}
-		fps_ms = 1000 / SPEAKER_FPS;
+		fps_ms = SPEAKER_FPS_MS;
 
 	}
 
@@ -1006,9 +1006,9 @@ void WorldSystem::handle_game_tips()
 }
 
 void WorldSystem::deduct_health(int num) {
-	int total_deduction = (game_mode == SANDBOX) ? 0 : num;
-	WorldSystem::health -= total_deduction;
-	HealthChangeText::create_health_deduct_text(total_deduction, health);
+	// int total_deduction = (game_mode == SANDBOX) ? 0 : num;
+	WorldSystem::health -= num;
+	HealthChangeText::create_health_deduct_text(num, health);
 }
 
 
@@ -1246,7 +1246,7 @@ void WorldSystem::restart()
 
 	// Reset the game state
 	current_speed = 1.f;
-	health = STARTING_HEALTH;				  //reset health
+	health = game_mode == SANDBOX? STARTING_HEALTH*1000 : STARTING_HEALTH;				  //reset health
 	placement_unit_selected = NONE; // no initial selection
 	world_round_number = 0;
 	season = SPRING;
@@ -1669,7 +1669,12 @@ void WorldSystem::setup_round_from_save_file(int round_number, int weather)
 
 	// update text
 	auto& round_text = registry.get<Text>(round_text_entity);
-	round_text.content = std::to_string(round_number + 1);
+	if (game_mode == SANDBOX) {
+		round_text.content = "";
+	}
+	else {
+		round_text.content = std::to_string(round_number + 1);
+	}
 	// only supports up to 2 digit rounds (99 max round)
 	if (round_text.content.length() == 2)
 		round_text.position.x = ROUND_NUM_X_OFFSET - 20;
