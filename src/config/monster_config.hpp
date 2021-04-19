@@ -13,13 +13,13 @@ const float BOSS_DAMAGE_SCALE_FACTOR = 10;
 const std::map<int, vec2> monster_velocities = {
 	{ MOB, {2.5, 0}},
 	{ SPIDER, {1.5, 0}},
-	{ SPRING_BOSS, {1.5, 0}},
+	{ SPRING_BOSS, {3.0, 0}},
 	{ SUMMER_BOSS, {2, 0}},
 	{ FALL_BOSS, {1, 0}},
 	{ WINTER_BOSS, {1, 0}},
 	{ BURROW_BOSS, {3, 0}},
 	{ FINAL_BOSS, {1, 0}},
-	{ FIREBALL_BOSS, {2.5, 0.25}}
+	{ FIREBALL_BOSS, {3.5, 0.25}}
 };
 
 const std::map<int, int> monster_health = {

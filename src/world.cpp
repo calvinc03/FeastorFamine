@@ -1403,7 +1403,7 @@ void WorldSystem::setup_round_from_round_number(int round_number)
 
 	int prev_weather = weather;
     current_round_monster_types.clear();
-	if (max_mobs > 0)
+	if (max_mobs > 0 && world_round_number < 16)
 		current_round_monster_types.emplace_back(MOB);
 
     if (game_mode != SANDBOX) {
@@ -2025,8 +2025,9 @@ void WorldSystem::skip_to_final_round() {
         }
     }
 
-    world_round_number = 15;
     world_season_str = season_str.at(FINAL);
+	world_round_number = 16;
+	setup_round_from_round_number(world_round_number);
 }
 
 void WorldSystem::pause_game()
