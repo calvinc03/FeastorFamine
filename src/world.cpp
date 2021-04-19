@@ -2842,7 +2842,7 @@ bool WorldSystem::click_on_unit(double mouse_pos_x, double mouse_pos_y)
 
 		auto node = current_map.getNodeAtCoord(pixel_to_coord(mouse_pos));
 		// check if clicked on egg
-		if (world_round_number < 16 && egg == node.occupying_entity) {
+		if (world_round_number <= 16 && egg == node.occupying_entity) {
 			round_skipped = true;
 			skip_to_final_round();
 			return false;

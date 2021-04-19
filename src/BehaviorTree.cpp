@@ -303,6 +303,19 @@ public:
 			registry.destroy(e);
 		}
 
+		auto& node = WorldSystem::current_map.getNodeAtCoord(pixel_to_coord(motion.position));
+		if (registry.valid(node.occupying_entity) && registry.has<Unit>(node.occupying_entity)) {
+			auto& unit = registry.get<Unit>(node.occupying_entity);
+			unit.health -= monster.damage;
+			HitPointsText::create_hit_points_text(monster.damage, node.occupying_entity, { 1.f, 0.8, 0.f });
+			play_sound("projectile/flamethrower.wav");
+			registry.destroy(e);
+			if (unit.health <= 0) {
+				node.setOccupancy(NONE, node.occupying_entity);
+				remove_unit_entity(unit.type, node.occupying_entity);
+			}
+		}
+
 		return BTState::Fireball;
 	}
 };

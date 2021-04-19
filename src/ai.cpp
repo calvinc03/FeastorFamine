@@ -94,6 +94,9 @@ void AISystem::updateUnitTarget(entt::entity e_unit) const {// Attack mobs if in
         std::priority_queue<entt::entity, std::vector<entt::entity>, compare_distance_to_village> priority_queue;
 
         for (auto monster : registry.view<Monster>()) {
+            if (registry.has<FireballBoss>(monster)) {
+                continue;
+            }
             auto monster_position = registry.get<Motion>(monster).position;
 
             float distance_to_hunter = length(monster_position - motion_h.position);

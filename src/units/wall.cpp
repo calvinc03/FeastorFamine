@@ -29,7 +29,7 @@ entt::entity Wall::createWall(vec2 position/*, bool rotate*/) // rotation should
 	motion.angle = 0.f;
 	motion.velocity = grid_to_pixel_velocity(vec2(0, 0));
 	motion.scale = scale_to_grid_units(static_cast<vec2>(resource.texture.size), 1);
-
+	motion.standing = true;
 	auto& unit = registry.emplace<Unit>(entity);
 	unit = wall_unit;
 
