@@ -142,3 +142,14 @@ enum MenuButtonType
     sandbox_button,
     survival_mode_button
 };
+
+enum class MusicState
+{
+    //player_prepare_music,
+    //player_battle_music,
+    title_screen_music,
+    vicotry_screen_music,
+    lost_screen_music,
+    normal_round_music,
+    final_round_music,
+};
