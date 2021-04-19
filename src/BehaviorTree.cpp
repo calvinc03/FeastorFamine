@@ -297,10 +297,11 @@ public:
 
 		motion.position += motion.velocity * WorldSystem::speed_up_factor;
 
-		if (motion.position.x + 100 >= coord_to_pixel(VILLAGE_COORD).x) {
+		if (motion.position.x + GRID_CELL_SIZE >= coord_to_pixel(VILLAGE_COORD).x) {
 			WorldSystem::health -= monster.damage;
 			motion.velocity *= 0;
 			registry.destroy(e);
+			return BTState::Fireball;
 		}
 
 		auto& node = WorldSystem::current_map.getNodeAtCoord(pixel_to_coord(motion.position));
