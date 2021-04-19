@@ -229,7 +229,7 @@ public:
 	BTState process(entt::entity e) override {
 		auto& motion = registry.get<Motion>(e);
 		if (visited[e]) {
-			motion.velocity *= 2;
+			motion.velocity *= 1.5;
 			visited[e] = false;
 			auto& monster = registry.get<Monster>(e);
 			monster.collided = false;

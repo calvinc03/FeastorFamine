@@ -80,7 +80,7 @@ const std::map<unit_type, int> unit_cost = {
 	{ROBOT, 500},
 	{PRIESTESS, 500},
 	{SNOWMACHINE, 100},
-	{WALL, 50}
+	{WALL, 100}
 };
 
 const std::map<unit_type, int> unit_sell_price = {
@@ -91,7 +91,7 @@ const std::map<unit_type, int> unit_sell_price = {
 	{ROBOT, 500},
 	{PRIESTESS, 500},
 	{SNOWMACHINE, 100},
-	{WALL, 50}
+	{WALL, 100}
 };
 
 const std::map<unit_type, int> unit_health = {

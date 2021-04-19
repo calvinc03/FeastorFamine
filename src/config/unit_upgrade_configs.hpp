@@ -60,14 +60,14 @@ const std::map<int, std::vector<int>> exterminator_path_2 = {
 const std::map<int, std::vector<int>> robot_path_1 = {
 	{0, {300}},
 	{1, {600, 200, 30}},
-	{2, {900, 500, 45}},
-	{3, {10, 800, 60}}
+	{2, {900, 400, 45}},
+	{3, {10, 600, 60}}
 };
 
 // range upgrade
 const std::map<int, std::vector<int>> robot_path_2 = {
 	{0, {500}},
-	{1, {750, 450, 2}},
+	{1, {750, 400, 2}},
 	{2, {1000, 600, 3}},
 	{3, {10, 800, 4}}
 };
@@ -107,9 +107,9 @@ const std::map<int, std::vector<int>> snowmachine_path_2 = {
 // damage upgrade  
 const std::map<int, std::vector<int>> wall_path_1 = {
 	{0, {100}},
-	{1, {150, 50, 150}},
-	{2, {250, 100, 250}},
-	{3, {10, 200, 400}}
+	{1, {150, 50, 200}},
+	{2, {250, 100, 300}},
+	{3, {10, 200, 500}}
 };
 
 // health upgrade
