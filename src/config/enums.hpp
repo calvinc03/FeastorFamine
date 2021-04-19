@@ -41,7 +41,6 @@ enum monster_type
     SPRING_BOSS,
     FINAL_BOSS,
     FIREBALL_BOSS,
-    DRAGON_RIG,
     TALKY_BOI,
     GHOST
 };

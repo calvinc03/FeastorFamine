@@ -1888,11 +1888,6 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 		}
 	}
 
-	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_S)
-	{
-        skip_to_final_round();
-    }
-
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P && game_state == in_game) {
 		pause_game();
 		more_options_menu();
@@ -2036,8 +2031,8 @@ void WorldSystem::skip_to_final_round() {
         start_round();
     }
 
-    num_bosses_spawned = max_boss;
-    num_mobs_spawned = max_mobs;
+    num_bosses_spawned = 0;
+    num_mobs_spawned = 0;
     for (entt::entity projectile : registry.view<Projectile>())
     {
         registry.destroy(projectile);
@@ -2055,6 +2050,7 @@ void WorldSystem::skip_to_final_round() {
     world_season_str = season_str.at(FINAL);
 	world_round_number = 16;
 	setup_round_from_round_number(world_round_number);
+	start_round();
 }
 
 void WorldSystem::pause_game()
@@ -2856,9 +2852,11 @@ bool WorldSystem::click_on_unit(double mouse_pos_x, double mouse_pos_y)
 
 		auto node = current_map.getNodeAtCoord(pixel_to_coord(mouse_pos));
 		// check if clicked on egg
-		if (world_round_number <= 16 && egg == node.occupying_entity) {
-			round_skipped = true;
-			skip_to_final_round();
+		if (egg == node.occupying_entity) {
+			if (world_round_number < 16) {
+				round_skipped = true;
+				skip_to_final_round();
+			}
 			return false;
 		}
 		

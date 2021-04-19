@@ -98,7 +98,7 @@ void WantedBoard::updateWantedEntries(entt::entity wanted_board, std::vector<int
 	
 	if (round_number == 16) {
 		vec2 position = vec2(ui_element.position.x, ui_element.position.y + 50.f);
-		board.wanted_entries.push_back(WantedEntry::createWantedEntry(position, DRAGON_RIG, round_number, reward_multiplier));
+		board.wanted_entries.push_back(WantedEntry::createWantedEntry(position, FINAL_BOSS, round_number, reward_multiplier));
 	}
 	else {
 
@@ -169,7 +169,7 @@ void WantedEntry::createMonsterIcon(entt::entity entry, vec2 position, vec2 scal
 		case WINTER_BOSS:
 			RenderSystem::createSprite(resource, wanted_board_texture_path("winter_boss_icon.png"), "textured");
 			break;
-		case DRAGON_RIG:
+		case FINAL_BOSS:
 			RenderSystem::createSprite(resource, wanted_board_texture_path("dragon_icon.png"), "textured");
 			break;
 		default:
@@ -194,7 +194,7 @@ void WantedEntry::createMonsterText(entt::entity entry, vec2 position, vec2 scal
 {
 	auto& wantedEntry = registry.get<WantedEntry>(entry);
 	
-	if (monster_type == DRAGON_RIG) {
+	if (monster_type == FINAL_BOSS) {
 		auto Marlboro = TextFont::load("data/fonts/Marlboro/Marlboro.ttf");
 
 		auto des_text_scale = 0.65f;
