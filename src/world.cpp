@@ -1344,6 +1344,15 @@ void WorldSystem::restart()
 
 	camera = Camera::createCamera();
 
+	//reset kill count
+	player_stats = {
+		{monster_type::MOB, 0},
+		{monster_type::SPRING_BOSS, 0},
+		{monster_type::SUMMER_BOSS, 0},
+		{monster_type::FALL_BOSS, 0},
+		{monster_type::WINTER_BOSS, 0}
+	};
+
 	// set up variables for first round
 	setup_round_from_round_number(world_round_number);
 }
@@ -1956,7 +1965,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	// Hot keys for selecting placeable units
 
-	else if (action == GLFW_PRESS && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_6)
+	else if (action == GLFW_PRESS && key == GLFW_KEY_6)
 	{
 		placement_unit_selected = GREENHOUSE;
 		create_unit_indicator = GreenHouse::createGreenHouse;
@@ -3685,6 +3694,17 @@ void WorldSystem::save_game()
 	save_json["health"] = health;
 	save_json["game_mode"] = game_mode;
 	save_json["weather"] = weather;
+	// save kill count
+	nlohmann::json kill_count_json;
+	for (auto kill_count : player_stats)
+	{
+		nlohmann::json one_monster;
+		one_monster["monster_type"] = kill_count.first;
+		one_monster["monster_killed"] = kill_count.second;
+		kill_count_json.push_back(one_monster);
+	}
+	
+	save_json["kill_count"] = kill_count_json;
 
 	// TODO finish implementing, may need to edit unit struct
 	auto view_unit = registry.view<Unit>();
@@ -3755,6 +3775,12 @@ void WorldSystem::load_game()
 	world_round_number = save_json["round_number"];
     game_mode = save_json["game_mode"];
 	weather = save_json["weather"];
+	// load monster kill count
+	auto list_of_json = save_json["kill_count"];
+	for (auto kill_json : list_of_json)
+	{
+		player_stats.at(kill_json["monster_type"]) = kill_json["monster_killed"];
+	}
 	setup_round_from_save_file(world_round_number, weather);
 
 	for (nlohmann::json unit : save_json["units"])
