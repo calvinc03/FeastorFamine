@@ -10,7 +10,7 @@ void adjust_volume(int channel)
     //std::cout << "Channel playing: " << Mix_Playing(-1) << "\n";
     for (int i = 0; i < Mix_AllocateChannels(-1); i++)
     {
-        int volume = 110 - 4 * (channel_playing);
+        int volume = 70 - 4 * (channel_playing);
         volume = (volume < 30) ? 30 : volume;
         Mix_Volume(i, volume);
         //std::cout << "Volume: " << volume << "\n";
@@ -72,6 +72,23 @@ SoundSystem::SoundSystem(WorldSystem* world)
     auto destroy_sink = registry.on_destroy<SoundRef>();
     destroy_sink.connect<&sound_on_destroy>();
     this->world = world;
+    // load all music
+    std::map<MusicState, std::string> music_file_names =
+    {
+        {MusicState::title_screen_music, "Two Steps from Hell - Heart of Courage.wav"},
+        //{MusicState::player_prepare_music, "Skydrome (epic synthwave metal).wav"},
+        //{MusicState::player_battle_music, "Overkill - Antti Martikainen.wav"},
+        {MusicState::vicotry_screen_music, "FFI_Victory.wav"},
+        {MusicState::lost_screen_music, ""}, // no music during lost screen
+        {MusicState::normal_round_music, "Skydrome (epic synthwave metal).wav"},
+        {MusicState::final_round_music, "The Game Changer (epic symphonic metal).wav"}
+    };
+
+    for (auto music_file : music_file_names)
+    {
+        Mix_Music * music_ref = Mix_LoadMUS(audio_path("music/" + music_file.second).c_str());
+        mix_music_ref.emplace(music_file.first, music_ref);
+    }
 }
 
 
@@ -81,9 +98,25 @@ SoundSystem::~SoundSystem()
     Mix_CloseAudio();
 }
 
-
 void SoundSystem::step(float elasped_ms)
 {
+    // check music state change in world
+    if (this->music_state != this->world->music_state)
+    {
+        // play music
+        Mix_FadeOutMusic(1000);
+        if (Mix_PlayingMusic())
+        {
+            transitioning_music = true;
+        }
+        this->music_state = this->world->music_state;
+    }
+    if (transitioning_music && !Mix_PlayingMusic())
+    {
+        Mix_FadeInMusic(mix_music_ref.at(this->music_state), -1, 1000);
+        Mix_VolumeMusic(60);
+    }
+
     auto sound_ref_view = registry.view<SoundRef>();
     // play all sounds continuously if the entity exists
 	for (auto entity : sound_ref_view)
