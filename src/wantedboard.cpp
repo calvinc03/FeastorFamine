@@ -97,7 +97,7 @@ void WantedBoard::updateWantedEntries(entt::entity wanted_board, std::vector<int
 	UI_element ui_element = registry.get<UI_element>(wanted_board);
 	
 	if (round_number == 16) {
-		vec2 position = vec2(ui_element.position.x, ui_element.position.y + 50.f);
+		vec2 position = vec2(ui_element.position.x - ui_element.scale.x / 4.f, ui_element.position.y + 50.f);
 		board.wanted_entries.push_back(WantedEntry::createWantedEntry(position, FINAL_BOSS, round_number, reward_multiplier));
 	}
 	else {
