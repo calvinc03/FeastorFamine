@@ -275,7 +275,7 @@ public:
 
 		// stop when dragon is at edge of screen
 		if (motion.position.x < 46) {
-			motion.position += motion.velocity;
+			motion.position += motion.velocity * WorldSystem::speed_up_factor;
 		}
 
 		return BTState::Dragon;
@@ -295,7 +295,7 @@ public:
 		auto& monster = registry.get<Monster>(e);
 		auto& motion = registry.get<Motion>(e);
 
-		motion.position += motion.velocity;
+		motion.position += motion.velocity * WorldSystem::speed_up_factor;
 
 		if (motion.position.x + 100 >= coord_to_pixel(VILLAGE_COORD).x) {
 			WorldSystem::health -= monster.damage;
