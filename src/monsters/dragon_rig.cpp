@@ -43,7 +43,7 @@ entt::entity  DragonRig::createDragon(int round_number) {
     motion.boundingbox = motion.scale * 5.0f;
 
     auto& monster = registry.emplace<Monster>(entity);
-    monster.max_health = 10000;
+    monster.max_health = 50000;
     monster.health = monster.max_health;
     monster.damage = 0;
     monster.reward = 10000;

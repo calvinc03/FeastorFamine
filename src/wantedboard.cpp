@@ -95,19 +95,26 @@ void WantedBoard::updateWantedEntries(entt::entity wanted_board, std::vector<int
 
 	board.wanted_entries = std::vector<entt::entity>();
 	UI_element ui_element = registry.get<UI_element>(wanted_board);
+	
+	if (round_number == 16) {
+		vec2 position = vec2(ui_element.position.x, ui_element.position.y + 50.f);
+		board.wanted_entries.push_back(WantedEntry::createWantedEntry(position, DRAGON_RIG, round_number, reward_multiplier));
+	}
+	else {
 
-	for (int i = 0; i < current_round_monster_types.size(); i++)
-	{
-		vec2 position;
-		if (i % 2 == 0)
+		for (int i = 0; i < current_round_monster_types.size(); i++)
 		{
-			position = vec2(ui_element.position.x - ui_element.scale.x / 4.f, ui_element.position.y + 50.f);
+			vec2 position;
+			if (i % 2 == 0)
+			{
+				position = vec2(ui_element.position.x - ui_element.scale.x / 4.f, ui_element.position.y + 50.f);
+			}
+			else
+			{
+				position = vec2(ui_element.position.x + ui_element.scale.x / 4.f, ui_element.position.y + 50.f);
+			}
+			board.wanted_entries.push_back(WantedEntry::createWantedEntry(position, current_round_monster_types[i], round_number, reward_multiplier));
 		}
-		else
-		{
-			position = vec2(ui_element.position.x + ui_element.scale.x / 4.f, ui_element.position.y + 50.f);
-		}
-		board.wanted_entries.push_back(WantedEntry::createWantedEntry(position, current_round_monster_types[i], round_number, reward_multiplier));
 	}
 }
 
@@ -162,8 +169,8 @@ void WantedEntry::createMonsterIcon(entt::entity entry, vec2 position, vec2 scal
 		case WINTER_BOSS:
 			RenderSystem::createSprite(resource, wanted_board_texture_path("winter_boss_icon.png"), "textured");
 			break;
-		case SPIDER:
-			RenderSystem::createSprite(resource, wanted_board_texture_path("mob_icon.png"), "textured");
+		case DRAGON_RIG:
+			RenderSystem::createSprite(resource, wanted_board_texture_path("dragon_icon.png"), "textured");
 			break;
 		default:
 			RenderSystem::createSprite(resource, wanted_board_texture_path("mob_icon.png"), "textured");
@@ -186,42 +193,66 @@ void WantedEntry::createMonsterIcon(entt::entity entry, vec2 position, vec2 scal
 void WantedEntry::createMonsterText(entt::entity entry, vec2 position, vec2 scale, int monster_type, int round_number, float reward_multiplier)
 {
 	auto& wantedEntry = registry.get<WantedEntry>(entry);
-	std::vector<std::string> description_strings;
-	MonsterInfo info = wanted_descriptions.at(monster_type);
 	
-	if (monster_type == MOB) info.health += sum_to_n(round_number) * MONSTER_SCALE_HEALTH_FACTOR;
-	else info.health += sum_to_n(round_number) * BOSS_SCALE_HEALTH_FACTOR;
+	if (monster_type == DRAGON_RIG) {
+		auto Marlboro = TextFont::load("data/fonts/Marlboro/Marlboro.ttf");
 
-	description_strings.push_back(template_text[0] + std::to_string(info.health));
-	description_strings.push_back(template_text[1] + std::to_string(info.speed));
-	description_strings.push_back(template_text[2] + std::to_string(info.damage));
-	description_strings.push_back(template_text[3] + info.path_color);
-	description_strings.push_back(template_text[4] + std::to_string((int) (info.reward * reward_multiplier)));
-	
-	auto Marlboro = TextFont::load("data/fonts/Marlboro/Marlboro.ttf");
-	
-	auto des_text_scale = 0.65f;
-	float des_x_position = position.x;
-	float des_y_position = position.y - scale.y / 5;
-	float des_line_size = des_text_scale * 55;
-	int line_counter = 0;
-	for (std::string line : description_strings)
-	{
-		auto des_entity = registry.create();
-		float center_x_offset = line.length() * 12 / 2;
-		vec2 description_text_position = vec2(des_x_position - center_x_offset, des_y_position - des_line_size * line_counter);
-		auto& des_text = registry.emplace<Text>(des_entity, Text(line, Marlboro, description_text_position));
-		des_text.scale = des_text_scale;
-		if (line_counter == 3) {
-			des_text.colour = Path::getPathColor(monster_type);
-		}
-		else {
-			des_text.colour = { 0.f, 0.f, 0.f };
-		}
-		des_text.show = false;
+		auto des_text_scale = 0.65f;
+		float des_x_position = position.x;
+		float des_y_position = position.y - scale.y / 5;
+		float des_line_size = des_text_scale * 55;
+		int line_counter = 0;
+		for (std::string line : dragon_text)
+		{
+			auto des_entity = registry.create();
+			float center_x_offset = line.length() * 12 / 2;
+			vec2 description_text_position = vec2(des_x_position - center_x_offset, des_y_position - des_line_size * line_counter);
+			auto& des_text = registry.emplace<Text>(des_entity, Text(line, Marlboro, description_text_position));
+			des_text.scale = des_text_scale;
+			des_text.show = false;
 
-		wantedEntry.monster_info.push_back(des_entity);
-		line_counter++;
+			wantedEntry.monster_info.push_back(des_entity);
+			line_counter++;
+		}
+	}
+	else {
+		std::vector<std::string> description_strings;
+		MonsterInfo info = wanted_descriptions.at(monster_type);
+
+		if (monster_type == MOB) info.health += sum_to_n(round_number) * MONSTER_SCALE_HEALTH_FACTOR;
+		else info.health += sum_to_n(round_number) * BOSS_SCALE_HEALTH_FACTOR;
+
+		description_strings.push_back(template_text[0] + std::to_string(info.health));
+		description_strings.push_back(template_text[1] + std::to_string(info.speed));
+		description_strings.push_back(template_text[2] + std::to_string(info.damage));
+		description_strings.push_back(template_text[3] + info.path_color);
+		description_strings.push_back(template_text[4] + std::to_string((int)(info.reward * reward_multiplier)));
+
+		auto Marlboro = TextFont::load("data/fonts/Marlboro/Marlboro.ttf");
+
+		auto des_text_scale = 0.65f;
+		float des_x_position = position.x;
+		float des_y_position = position.y - scale.y / 5;
+		float des_line_size = des_text_scale * 55;
+		int line_counter = 0;
+		for (std::string line : description_strings)
+		{
+			auto des_entity = registry.create();
+			float center_x_offset = line.length() * 12 / 2;
+			vec2 description_text_position = vec2(des_x_position - center_x_offset, des_y_position - des_line_size * line_counter);
+			auto& des_text = registry.emplace<Text>(des_entity, Text(line, Marlboro, description_text_position));
+			des_text.scale = des_text_scale;
+			if (line_counter == 3) {
+				des_text.colour = Path::getPathColor(monster_type);
+			}
+			else {
+				des_text.colour = { 0.f, 0.f, 0.f };
+			}
+			des_text.show = false;
+
+			wantedEntry.monster_info.push_back(des_entity);
+			line_counter++;
+		}
 	}
 }
 

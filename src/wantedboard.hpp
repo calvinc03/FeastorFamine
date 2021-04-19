@@ -81,6 +81,15 @@ const MonsterInfo winter_boss_text{
     monster_reward.at(WINTER_BOSS)
 };
 
+const std::vector<std::string> dragon_text = {
+    "Health: 50000",
+    "Bounty: 10000",
+    "",
+    "  Shoots fireballs",
+    "dealing 100 damage",
+    " to units and village"
+};
+
 const std::map<int, MonsterInfo> wanted_descriptions = {
     {MOB, mob_text},
     {SPRING_BOSS, spring_boss_text },
