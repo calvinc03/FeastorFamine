@@ -1960,7 +1960,7 @@ void WorldSystem::on_key(int key, int, int action, int mod)
 
 	// Hot keys for selecting placeable units
 
-	else if (action == GLFW_PRESS && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_6)
+	else if (action == GLFW_PRESS && key == GLFW_KEY_6)
 	{
 		placement_unit_selected = GREENHOUSE;
 		create_unit_indicator = GreenHouse::createGreenHouse;
