@@ -116,7 +116,14 @@ void SoundSystem::step(float elasped_ms)
         Mix_FadeInMusic(mix_music_ref.at(this->music_state), -1, 1000);
         Mix_VolumeMusic(60);
     }
-
+    if (world->game_state == WorldSystem::GameState::story_card)
+    {
+        Mix_VolumeMusic(40);
+    }
+    else if (world->player_state == WorldSystem::PlayerState::battle_stage)
+    {
+        Mix_VolumeMusic(60);
+    }
     auto sound_ref_view = registry.view<SoundRef>();
     // play all sounds continuously if the entity exists
 	for (auto entity : sound_ref_view)
